@@ -1,0 +1,539 @@
+"use client"
+
+import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ProtectedRoute } from "@/lib/firebase/protected-route"
+import { Button } from "@/components/ui/button"
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  TrendingUp,
+  DollarSign,
+  Users,
+  AlertCircle,
+  ArrowUpRight,
+  ArrowDownRight,
+  Megaphone,
+  StoreIcon,
+  Star,
+  Eye,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Truck,
+  MessageSquare,
+  TrendingDown,
+  Calendar,
+  Target,
+  ShoppingBag,
+  ArrowLeftRight,
+  Wallet,
+} from "lucide-react"
+import Link from "next/link"
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+
+const salesData = [
+  { date: "Mon", sales: 1200 },
+  { date: "Tue", sales: 1900 },
+  { date: "Wed", sales: 1500 },
+  { date: "Thu", sales: 2100 },
+  { date: "Fri", sales: 2400 },
+  { date: "Sat", sales: 2800 },
+  { date: "Sun", sales: 2200 },
+]
+
+const recentOrders = [
+  { id: "ORD-001", customer: "John Doe", total: 199.99, status: "pending" },
+  { id: "ORD-002", customer: "Jane Smith", total: 89.99, status: "processing" },
+  { id: "ORD-003", customer: "Bob Johnson", total: 149.99, status: "shipped" },
+]
+
+function VendorDashboardContent() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+
+      <main className="flex-1 bg-muted/30">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold">Vendor Dashboard</h1>
+                <p className="text-muted-foreground">Welcome back! Here's what's happening with your store</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" asChild className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-blue-200">
+                  <Link href="/">
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    Switch to Buying Mode
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/vendor/orders">
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Orders
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/vendor/products/new">
+                    <Package className="mr-2 h-4 w-4" />
+                    Add Product
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            
+            {/* Quick Stats Bar */}
+            <div className="grid gap-4 sm:grid-cols-4 mb-6">
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-green-800 dark:text-green-200">This Month</p>
+                      <p className="text-xl font-bold text-green-900 dark:text-green-100">$12,450</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-blue-800 dark:text-blue-200">Pending Orders</p>
+                      <p className="text-xl font-bold text-blue-900 dark:text-blue-100">23</p>
+                    </div>
+                    <Clock className="h-8 w-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-purple-800 dark:text-purple-200">Avg. Rating</p>
+                      <p className="text-xl font-bold text-purple-900 dark:text-purple-100">4.8</p>
+                    </div>
+                    <Star className="h-8 w-8 text-purple-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-orange-800 dark:text-orange-200">Available Balance</p>
+                      <p className="text-xl font-bold text-orange-900 dark:text-orange-100">₦0</p>
+                    </div>
+                    <Wallet className="h-8 w-8 text-orange-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Payout Quick Access Card */}
+            <Card className="mb-6 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-full bg-green-500/10 p-3">
+                      <Wallet className="h-8 w-8 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">Earnings & Payouts</h3>
+                      <p className="text-sm text-green-700 dark:text-green-300">Manage your withdrawals and view earning history</p>
+                    </div>
+                  </div>
+                  <Button asChild className="bg-green-600 hover:bg-green-700">
+                    <Link href="/vendor/payouts">
+                      <Wallet className="mr-2 h-4 w-4" />
+                      View Payouts
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-4">
+            {/* Sidebar */}
+            <aside className="space-y-2">
+              <Link href="/vendor/dashboard">
+                <Button variant="default" className="w-full justify-start">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/vendor/products">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Package className="mr-2 h-4 w-4" />
+                  Products
+                </Button>
+              </Link>
+              <Link href="/vendor/orders">
+                <Button variant="ghost" className="w-full justify-start">
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Orders
+                </Button>
+              </Link>
+              <Link href="/vendor/analytics">
+                <Button variant="ghost" className="w-full justify-start">
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Analytics
+                </Button>
+              </Link>
+              <Link href="/vendor/advertising">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Megaphone className="mr-2 h-4 w-4" />
+                  Advertising
+                </Button>
+              </Link>
+              <Link href="/vendor/store">
+                <Button variant="ghost" className="w-full justify-start">
+                  <StoreIcon className="mr-2 h-4 w-4" />
+                  Store Settings
+                </Button>
+              </Link>
+              <Link href="/vendor/payouts">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Payouts
+                </Button>
+              </Link>
+            </aside>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Stats Cards */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Today's Sales</p>
+                        <p className="text-2xl font-bold">$2,847</p>
+                        <p className="text-xs text-green-600 flex items-center mt-1">
+                          <ArrowUpRight className="h-3 w-3 mr-1" />
+                          12.5% from yesterday
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-green-500/10 p-3">
+                        <DollarSign className="h-5 w-5 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Orders</p>
+                        <p className="text-2xl font-bold">156</p>
+                        <p className="text-xs text-green-600 flex items-center mt-1">
+                          <ArrowUpRight className="h-3 w-3 mr-1" />
+                          8.2% from last week
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-blue-500/10 p-3">
+                        <ShoppingCart className="h-5 w-5 text-blue-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Products</p>
+                        <p className="text-2xl font-bold">48</p>
+                        <p className="text-xs text-muted-foreground mt-1">12 low stock</p>
+                      </div>
+                      <div className="rounded-full bg-purple-500/10 p-3">
+                        <Package className="h-5 w-5 text-purple-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Customers</p>
+                        <p className="text-2xl font-bold">892</p>
+                        <p className="text-xs text-red-600 flex items-center mt-1">
+                          <ArrowDownRight className="h-3 w-3 mr-1" />
+                          2.1% from last month
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-orange-500/10 p-3">
+                        <Users className="h-5 w-5 text-orange-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Sales Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sales Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={salesData}>
+                      <XAxis dataKey="date" stroke="#888888" fontSize={12} />
+                      <YAxis stroke="#888888" fontSize={12} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="sales" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Action Items & Alerts */}
+              <div className="grid gap-6 lg:grid-cols-3 mb-6">
+                <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
+                      <AlertCircle className="h-5 w-5" />
+                      Action Required
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-full bg-orange-500/10 p-2">
+                        <Package className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">12 products low stock</p>
+                        <Button variant="link" className="h-auto p-0 text-xs" asChild>
+                          <Link href="/vendor/products">View products →</Link>
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-full bg-orange-500/10 p-2">
+                        <Clock className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">23 orders pending</p>
+                        <Button variant="link" className="h-auto p-0 text-xs" asChild>
+                          <Link href="/vendor/orders">Process orders →</Link>
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-full bg-orange-500/10 p-2">
+                        <MessageSquare className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">5 customer messages</p>
+                        <Button variant="link" className="h-auto p-0 text-xs" asChild>
+                          <Link href="/vendor/messages">Reply now →</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                      <Target className="h-5 w-5" />
+                      Performance Goals
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium">Monthly Sales Target</p>
+                        <p className="text-sm text-muted-foreground">83%</p>
+                      </div>
+                      <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-600" style={{width: '83%'}}></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">$12,450 / $15,000</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium">Customer Satisfaction</p>
+                        <p className="text-sm text-muted-foreground">96%</p>
+                      </div>
+                      <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-600" style={{width: '96%'}}></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">4.8 / 5.0 rating</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium">Response Time</p>
+                        <p className="text-sm text-muted-foreground">Good</p>
+                      </div>
+                      <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-600" style={{width: '75%'}}></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Avg. 2.5 hours</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                      <TrendingUp className="h-5 w-5" />
+                      Quick Stats
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <p className="text-sm">Completed Orders</p>
+                      </div>
+                      <p className="text-sm font-bold">342</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-blue-600" />
+                        <p className="text-sm">In Transit</p>
+                      </div>
+                      <p className="text-sm font-bold">18</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-4 w-4 text-red-600" />
+                        <p className="text-sm">Cancelled</p>
+                      </div>
+                      <p className="text-sm font-bold">7</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Star className="h-4 w-4 text-yellow-600" />
+                        <p className="text-sm">Total Reviews</p>
+                      </div>
+                      <p className="text-sm font-bold">156</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* Recent Orders */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Recent Orders</CardTitle>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/vendor/orders">View All</Link>
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {recentOrders.map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${
+                            order.status === 'pending' ? 'bg-orange-500' :
+                            order.status === 'processing' ? 'bg-blue-500' :
+                            'bg-green-500'
+                          }`} />
+                          <div>
+                            <p className="font-medium">{order.id}</p>
+                            <p className="text-sm text-muted-foreground">{order.customer}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">${order.total.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{order.status}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Top Products */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Top Selling Products</CardTitle>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/vendor/analytics">View All</Link>
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                          <Package className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Wireless Headphones</p>
+                          <p className="text-sm text-muted-foreground">45 sold</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">$8,955</p>
+                        <p className="text-xs text-green-600 flex items-center justify-end">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +12%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                          <Package className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Smart Watch</p>
+                          <p className="text-sm text-muted-foreground">32 sold</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">$6,400</p>
+                        <p className="text-xs text-green-600 flex items-center justify-end">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +8%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                          <Package className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Bluetooth Speaker</p>
+                          <p className="text-sm text-muted-foreground">28 sold</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">$4,200</p>
+                        <p className="text-xs text-red-600 flex items-center justify-end">
+                          <TrendingDown className="h-3 w-3 mr-1" />
+                          -3%
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  )
+}
+
+export default function VendorDashboardPage() {
+  return (
+    <ProtectedRoute allowedRoles={["vendor"]}>
+      <VendorDashboardContent />
+    </ProtectedRoute>
+  )
+}
