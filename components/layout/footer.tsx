@@ -123,8 +123,35 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} MarketHub. All rights reserved.</p>
+        <div className="mt-12 pt-8 border-t border-border">
+          <div className="flex flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} MarketHub. All rights reserved.</p>
+            <div className="flex items-center gap-2">
+              <span>Powered by</span>
+              <Link 
+                href="https://cloudsparkdigital.com" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+              >
+                CloudSparkDigital
+                <svg 
+                  className="h-3 w-3" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" 
+                  />
+                </svg>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

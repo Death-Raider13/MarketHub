@@ -59,6 +59,15 @@ const clientEnvSchema = z.object({
       'Invalid Paystack public key format'
     ),
   
+  // Cloudinary Configuration (for client-side uploads)
+  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z
+    .string()
+    .optional(),
+  
+  NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z
+    .string()
+    .optional(),
+  
   // Application Configuration
   NEXT_PUBLIC_APP_URL: z
     .string()
@@ -200,6 +209,10 @@ const serverEnvSchema = z.object({
     .string()
     .optional(),
   
+  CLOUDINARY_UPLOAD_PRESET: z
+    .string()
+    .optional(),
+  
   // Analytics
   GOOGLE_ANALYTICS_ID: z
     .string()
@@ -276,6 +289,8 @@ export function validateClientEnv() {
       NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
       NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
       NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+      NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
       NEXT_PUBLIC_ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS,
@@ -319,6 +334,7 @@ export function validateServerEnv() {
       CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
       CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
       CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+      CLOUDINARY_UPLOAD_PRESET: process.env.CLOUDINARY_UPLOAD_PRESET,
       GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID,
       SENTRY_DSN: process.env.SENTRY_DSN,
       SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,

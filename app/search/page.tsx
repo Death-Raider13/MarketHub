@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -38,7 +38,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
   updatedAt: new Date(),
 }))
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams()
   const query = searchParams.get("q") || ""
   const { addToCart } = useCart()
@@ -340,5 +340,25 @@ export default function SearchPage() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 bg-muted/30">
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center py-16">
+              <p className="text-muted-foreground">Loading search results...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   )
 }
