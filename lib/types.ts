@@ -16,8 +16,46 @@ export interface Product {
   featured: boolean
   sponsored: boolean
   status: "active" | "inactive" | "pending" | "rejected"
+  
+  // Digital Product Fields
+  productType: "physical" | "digital" | "service"
+  requiresShipping: boolean
+  digitalFiles?: DigitalFile[]
+  accessType?: "instant" | "scheduled" | "lifetime"
+  accessDuration?: number // days (0 = lifetime)
+  downloadLimit?: number // 0 = unlimited
+  
   createdAt: Date
   updatedAt: Date
+}
+
+export interface DigitalFile {
+  id: string
+  fileName: string
+  fileUrl: string // Firebase Storage URL
+  fileSize: number // bytes
+  fileType: string // pdf, zip, mp4, mp3, etc.
+  uploadedAt: Date
+}
+
+export interface PurchasedProduct {
+  id: string
+  userId: string
+  productId: string
+  orderId: string
+  product: Product
+  purchasedAt: Date
+  accessExpiresAt?: Date
+  downloadCount: number
+  downloadLinks?: SecureDownloadLink[]
+  lastDownloadedAt?: Date
+}
+
+export interface SecureDownloadLink {
+  fileId: string
+  fileName: string
+  url: string // Time-limited signed URL
+  expiresAt: Date
 }
 
 export interface CartItem {

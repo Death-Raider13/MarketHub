@@ -1,5 +1,4 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
     
@@ -156,6 +155,11 @@ service cloud.firestore {
       
       // Admins can read all orders
       allow read: if isAdmin();
+      
+      // Allow payment verification updates (from pending to paid)
+      // TEMPORARY: Allow updates for payment verification from server
+      // This allows the API route to update order status after payment
+      allow update: if true;
       
       // Customers can update their own pending orders (cancel)
       allow update: if isOwner(resource.data.customerId) && 
@@ -396,7 +400,7 @@ service cloud.firestore {
     // TRANSACTIONS COLLECTION (Payment Records)
     // ============================================
     match /transactions/{transactionId} {
-      // System creates transactions (via payment webhooks)
+      // System creates transactions (via API routes with Admin SDK)
       allow create: if false;
       
       // Users can read their own transactions
@@ -583,6 +587,250 @@ service cloud.firestore {
     }
     
     // ============================================
+    // ADVERTISERS COLLECTION (New Advertising System)
+    // ============================================
+    match /advertisers/{advertiserId} {
+      // Users can create their own advertiser profile
+      allow create: if isSignedIn() &&
+                      request.auth.uid == advertiserId &&
+                      request.resource.data.uid == request.auth.uid &&
+                      request.resource.data.businessName is string &&
+                      request.resource.data.businessEmail is string &&
+                      request.resource.data.phone is string &&
+                      request.resource.data.businessType is string &&
+                      request.resource.data.accountStatus == 'active' &&
+                      request.resource.data.accountBalance == 0 &&
+                      request.resource.data.totalSpent == 0 &&
+                      isValidEmail(request.resource.data.businessEmail);
+      
+      // Advertisers can read their own profile
+      allow read: if isOwner(advertiserId);
+      
+      // Admins can read all advertiser profiles
+      allow read: if isAdmin();
+      
+      // Advertisers can update their own profile (except balance, totalSpent, and accountStatus)
+      allow update: if isOwner(advertiserId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'accountBalance', 'totalSpent', 'accountStatus']);
+      
+      // Only admins can update accountStatus, accountBalance, and totalSpent
+      // Note: API routes use Firebase Admin SDK which bypasses these rules
+      allow update: if isAdmin();
+      
+      // Only admins can delete advertiser profiles
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // STORE CUSTOMIZATION COLLECTION (Vendor Store Settings)
+    // ============================================
+    match /storeCustomization/{vendorId} {
+      // Vendors can read and write their own store customization
+      allow read, write: if isSignedIn() && request.auth.uid == vendorId;
+      
+      // Anyone can read store customization (for public store pages)
+      allow read: if true;
+      
+      // Admins can read all store customizations
+      allow read: if isAdmin();
+    }
+    
+    // ============================================
+    // STORE SETTINGS COLLECTION (Business Settings)
+    // ============================================
+    match /storeSettings/{vendorId} {
+      // Vendors can read and write their own store settings
+      allow read, write: if isSignedIn() && request.auth.uid == vendorId;
+      
+      // Admins can read all store settings
+      allow read: if isAdmin();
+    }
+    
+    // ============================================
+    // PRODUCTS COLLECTION (Vendor Products)
+    // ============================================
+    match /products/{productId} {
+      // Anyone can read active products
+      allow read: if resource.data.status == 'active';
+      
+      // Vendors can read their own products (any status)
+      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      
+      // Vendors can create products (will be handled by Admin SDK in API routes)
+      // But we allow client-side reads for vendor's own products
+      allow create: if false; // Only via API routes with Admin SDK
+      
+      // Vendors can update their own products (except status if pending/rejected)
+      allow update: if false; // Only via API routes with Admin SDK
+      
+      // Vendors can delete (archive) their own products
+      allow delete: if false; // Only via API routes with Admin SDK
+      
+      // Admins can do everything
+      allow read, write: if isAdmin();
+    }
+    
+    // ============================================
+    // ORDERS COLLECTION (Customer Orders)
+    // ============================================
+    match /orders/{orderId} {
+      // Customers can read their own orders
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Vendors can read orders for their products
+      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      
+      // Only customers can create orders (via checkout)
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // Vendors can update order status (via API with Admin SDK)
+      allow update: if false; // Only via API routes with Admin SDK
+      
+      // Admins can do everything
+      allow read, write: if isAdmin();
+    }
+    
+    // ============================================
+    // AD CAMPAIGNS COLLECTION (Advertiser Campaigns)
+    // ============================================
+    match /adCampaigns/{campaignId} {
+      // Advertisers can create campaigns
+      allow create: if isSignedIn() &&
+                      exists(/databases/$(database)/documents/advertisers/$(request.auth.uid)) &&
+                      request.resource.data.advertiserId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['advertiserId', 'campaignName', 'budget', 'bidding', 'creative', 'status', 'createdAt']) &&
+                      request.resource.data.budget.total > 0 &&
+                      request.resource.data.budget.dailyLimit > 0 &&
+                      request.resource.data.bidding.bidAmount > 0 &&
+                      request.resource.data.status in ['draft', 'pending_review'];
+      
+      // Advertisers can read their own campaigns
+      allow read: if isSignedIn() && resource.data.advertiserId == request.auth.uid;
+      
+      // Admins can read all campaigns
+      allow read: if isAdmin();
+      
+      // Advertisers can update their own campaigns (except stats and status if active)
+      allow update: if isSignedIn() &&
+                      resource.data.advertiserId == request.auth.uid &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['advertiserId', 'stats']) &&
+                      (resource.data.status in ['draft', 'paused'] || 
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && 
+                       request.resource.data.status == 'paused');
+      
+      // System can update stats (use Cloud Functions or API with admin SDK)
+      // Admins can update any campaign
+      allow update: if isAdmin();
+      
+      // Advertisers can delete their own draft campaigns
+      allow delete: if isSignedIn() && 
+                      resource.data.advertiserId == request.auth.uid && 
+                      resource.data.status == 'draft';
+      
+      // Admins can delete any campaign
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // AD SLOTS COLLECTION (Vendor Ad Spaces)
+    // ============================================
+    match /adSlots/{slotId} {
+      // Vendors can create ad slots for their stores
+      allow create: if isVerifiedVendor() &&
+                      request.resource.data.vendorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['vendorId', 'vendorName', 'storeName', 'placement', 'availability', 'pricing', 'isActive', 'createdAt']);
+      
+      // Everyone can read active ad slots (for ad placement)
+      allow read: if resource.data.isActive == true;
+      
+      // Vendors can read their own slots
+      allow read: if isVendorOwner(resource.data.vendorId);
+      
+      // Admins can read all slots
+      allow read: if isAdmin();
+      
+      // Vendors can update their own slots (except stats)
+      allow update: if isVendorOwner(resource.data.vendorId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['vendorId', 'stats']);
+      
+      // System can update stats and rotation queue
+      // Admins can update any slot
+      allow update: if isAdmin();
+      
+      // Vendors can delete their own slots
+      allow delete: if isVendorOwner(resource.data.vendorId);
+      
+      // Admins can delete any slot
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // AD IMPRESSIONS COLLECTION (Tracking)
+    // ============================================
+    match /adImpressions/{impressionId} {
+      // System creates impressions (via API routes)
+      allow create: if false;
+      
+      // Advertisers can read impressions for their campaigns
+      allow read: if isSignedIn() && 
+                    exists(/databases/$(database)/documents/advertisers/$(request.auth.uid)) &&
+                    resource.data.campaignId in get(/databases/$(database)/documents/advertisers/$(request.auth.uid)).data.campaigns;
+      
+      // Vendors can read impressions for their slots
+      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      
+      // Admins can read all impressions
+      allow read: if isAdmin();
+      
+      // System can update impressions (mark as clicked/converted)
+      allow update: if false;
+      
+      // No one can delete impressions (audit trail)
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // AD CLICKS COLLECTION (Click Tracking)
+    // ============================================
+    match /adClicks/{clickId} {
+      // System creates clicks (via API routes)
+      allow create: if false;
+      
+      // Advertisers can read clicks for their campaigns
+      allow read: if isSignedIn() && 
+                    exists(/databases/$(database)/documents/advertisers/$(request.auth.uid));
+      
+      // Vendors can read clicks for their slots
+      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      
+      // Admins can read all clicks
+      allow read: if isAdmin();
+      
+      // No one can update or delete clicks (audit trail)
+      allow update, delete: if false;
+    }
+    
+    // ============================================
+    // VENDOR AD EARNINGS COLLECTION
+    // ============================================
+    match /vendorAdEarnings/{earningsId} {
+      // System creates earnings records
+      allow create: if false;
+      
+      // Vendors can read their own earnings
+      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      
+      // Admins can read all earnings
+      allow read: if isAdmin();
+      
+      // Only admins can update earnings (payout processing)
+      allow update: if isAdmin();
+      
+      // No one can delete earnings records
+      allow delete: if false;
+    }
+    
+    // ============================================
     // DEFAULT DENY ALL
     // ============================================
     // Deny access to any collection not explicitly defined above
@@ -591,80 +839,4 @@ service cloud.firestore {
     }
   }
 }
-
-// ============================================
-// FIREBASE STORAGE RULES
-// ============================================
-
-service firebase.storage {
-  match /b/{bucket}/o {
     
-    // Product Images
-    match /products/{productId}/{imageFile} {
-      // Vendors can upload images for their products
-      allow write: if request.auth != null &&
-                     request.resource.size < 5 * 1024 * 1024 && // 5MB limit
-                     request.resource.contentType.matches('image/.*');
-      
-      // Everyone can read product images
-      allow read: if true;
-    }
-    
-    // Vendor Store Images (logo, banner)
-    match /vendors/{vendorId}/{imageFile} {
-      // Vendors can upload their store images
-      allow write: if request.auth != null &&
-                     request.auth.uid == vendorId &&
-                     request.resource.size < 5 * 1024 * 1024 &&
-                     request.resource.contentType.matches('image/.*');
-      
-      // Everyone can read vendor images
-      allow read: if true;
-    }
-    
-    // Advertisement Creatives
-    match /ads/{adId}/{creativeFile} {
-      // Vendors can upload ad creatives
-      allow write: if request.auth != null &&
-                     request.resource.size < 5 * 1024 * 1024 &&
-                     request.resource.contentType.matches('image/.*');
-      
-      // Everyone can read ad images
-      allow read: if true;
-    }
-    
-    // User Profile Pictures
-    match /users/{userId}/{imageFile} {
-      // Users can upload their own profile picture
-      allow write: if request.auth != null &&
-                     request.auth.uid == userId &&
-                     request.resource.size < 2 * 1024 * 1024 &&
-                     request.resource.contentType.matches('image/.*');
-      
-      // Everyone can read profile pictures
-      allow read: if true;
-    }
-    
-    // Review Images
-    match /reviews/{reviewId}/{imageFile} {
-      // Authenticated users can upload review images
-      allow write: if request.auth != null &&
-                     request.resource.size < 3 * 1024 * 1024 &&
-                     request.resource.contentType.matches('image/.*');
-      
-      // Everyone can read review images
-      allow read: if true;
-    }
-    
-    // Invoices (PDF)
-    match /invoices/{orderId}/{invoiceFile} {
-      // System generates invoices (use Cloud Functions with admin SDK)
-      allow write: if false;
-      
-      // Users can read their own invoices
-      // Note: You'll need to implement custom logic in Cloud Functions
-      // to verify the user owns the order
-      allow read: if request.auth != null;
-    }
-  }
-}

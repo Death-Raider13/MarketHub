@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -11,35 +12,189 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { Upload, X, Plus, Tag, Star, Package } from "lucide-react"
+import { Upload, X, Plus, Tag, Star, Package, FileText, Truck, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { DigitalFileUpload } from "@/components/vendor/digital-file-upload"
+import type { DigitalFile } from "@/lib/types"
+import { toast } from "sonner"
 
 function AddProductContent() {
   const router = useRouter()
+  const { user } = useAuth()
   const [images, setImages] = useState<string[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
   const [loading, setLoading] = useState(false)
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
   const [variants, setVariants] = useState<Array<{name: string, options: string[]}>>([{name: "Size", options: []}])
   const [requestReviews, setRequestReviews] = useState(true)
   const [showRelatedProducts, setShowRelatedProducts] = useState(true)
+  
+  // Product form data
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    compareAtPrice: "",
+    category: "",
+    subcategory: "",
+    stock: "",
+    sku: "",
+    seoTitle: "",
+    seoDescription: "",
+  })
+  
+  // Digital product fields
+  const [productType, setProductType] = useState<"physical" | "digital" | "service">("physical")
+  const [digitalFiles, setDigitalFiles] = useState<DigitalFile[]>([])
+  const [accessDuration, setAccessDuration] = useState<number>(0) // 0 = lifetime
+  const [downloadLimit, setDownloadLimit] = useState<number>(0) // 0 = unlimited
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!user) {
+      toast.error("Please login to continue")
+      return
+    }
+
+    if (images.length === 0) {
+      toast.error("Please upload at least one product image")
+      return
+    }
+
+    // Validate required fields
+    if (!formData.name) {
+      toast.error("Please enter a product name")
+      return
+    }
+
+    if (!formData.price) {
+      toast.error("Please enter a product price")
+      return
+    }
+
+    if (!formData.category) {
+      toast.error("⚠️ Please select a category from the dropdown")
+      return
+    }
+
+    if (!formData.sku) {
+      toast.error("Please enter a SKU")
+      return
+    }
+
+    if (productType === 'physical' && !formData.stock) {
+      toast.error("Please enter stock quantity for physical products")
+      return
+    }
+
+    console.log("Form data being submitted:", {
+      name: formData.name,
+      price: formData.price,
+      category: formData.category,
+      sku: formData.sku,
+      type: productType
+    })
+
     setLoading(true)
 
-    // Simulate product creation
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch("/api/vendor/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendorId: user.uid,
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          compareAtPrice: formData.compareAtPrice,
+          category: formData.category,
+          subcategory: formData.subcategory,
+          images,
+          stock: formData.stock,
+          sku: formData.sku,
+          type: productType,
+          digitalFiles,
+          accessDuration,
+          downloadLimit,
+          variants,
+          tags,
+          status: "active",
+          seoTitle: formData.seoTitle,
+          seoDescription: formData.seoDescription,
+        }),
+      })
 
-    router.push("/vendor/products")
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success("Product created successfully! 🎉")
+        router.push("/vendor/products")
+      } else {
+        toast.error(data.error || "Failed to create product")
+      }
+    } catch (error) {
+      console.error("Error creating product:", error)
+      toast.error("Failed to create product")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files) {
-      const newImages = Array.from(files).map((file) => URL.createObjectURL(file))
-      setImages([...images, ...newImages])
+    if (!files || files.length === 0) return
+
+    setUploadingImages(true)
+    
+    try {
+      const uploadedUrls: string[] = []
+      
+      for (const file of Array.from(files)) {
+        // Validate file
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} is not an image file`)
+          continue
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large (max 5MB)`)
+          continue
+        }
+
+        // Upload to Cloudinary
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
+        formData.append('folder', 'products')
+        
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        )
+        
+        const data = await response.json()
+        
+        if (data.secure_url) {
+          uploadedUrls.push(data.secure_url)
+        }
+      }
+      
+      if (uploadedUrls.length > 0) {
+        setImages([...images, ...uploadedUrls])
+        toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`)
+      }
+    } catch (error) {
+      console.error("Error uploading images:", error)
+      toast.error("Failed to upload images")
+    } finally {
+      setUploadingImages(false)
     }
   }
 
@@ -88,18 +243,35 @@ function AddProductContent() {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Product Name</Label>
-                      <Input id="name" placeholder="Enter product name" required />
+                      <Input 
+                        id="name" 
+                        placeholder="Enter product name" 
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        required 
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" placeholder="Describe your product..." rows={5} required />
+                      <Textarea 
+                        id="description" 
+                        placeholder="Describe your product..." 
+                        rows={5} 
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        required 
+                      />
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
-                        <Select required>
+                        <Select 
+                          value={formData.category}
+                          onValueChange={(value) => setFormData({...formData, category: value})}
+                          required
+                        >
                           <SelectTrigger id="category">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
@@ -115,11 +287,104 @@ function AddProductContent() {
 
                       <div className="space-y-2">
                         <Label htmlFor="sku">SKU</Label>
-                        <Input id="sku" placeholder="Product SKU" required />
+                        <Input 
+                          id="sku" 
+                          placeholder="Product SKU" 
+                          value={formData.sku}
+                          onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                          required 
+                        />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Product Type */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Type</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <RadioGroup value={productType} onValueChange={(value: any) => setProductType(value)}>
+                      <div className="flex items-center space-x-2 rounded-lg border p-4">
+                        <RadioGroupItem value="physical" id="physical" />
+                        <Label htmlFor="physical" className="flex flex-1 cursor-pointer items-center gap-3">
+                          <Truck className="h-5 w-5 text-primary" />
+                          <div>
+                            <div className="font-medium">Physical Product</div>
+                            <div className="text-sm text-muted-foreground">Tangible item that requires shipping</div>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 rounded-lg border p-4">
+                        <RadioGroupItem value="digital" id="digital" />
+                        <Label htmlFor="digital" className="flex flex-1 cursor-pointer items-center gap-3">
+                          <FileText className="h-5 w-5 text-primary" />
+                          <div>
+                            <div className="font-medium">Digital Product</div>
+                            <div className="text-sm text-muted-foreground">Downloadable files (PDF, video, audio, etc.)</div>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 rounded-lg border p-4">
+                        <RadioGroupItem value="service" id="service" />
+                        <Label htmlFor="service" className="flex flex-1 cursor-pointer items-center gap-3">
+                          <Star className="h-5 w-5 text-primary" />
+                          <div>
+                            <div className="font-medium">Service</div>
+                            <div className="text-sm text-muted-foreground">Consultation, booking, or service offering</div>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </CardContent>
+                </Card>
+
+                {/* Digital Files Upload - Only show for digital products */}
+                {productType === "digital" && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Digital Files</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <DigitalFileUpload
+                        onFilesUploaded={setDigitalFiles}
+                        existingFiles={digitalFiles}
+                        maxFiles={10}
+                        maxSizePerFile={500}
+                      />
+                      
+                      <div className="grid gap-4 sm:grid-cols-2 pt-4 border-t">
+                        <div className="space-y-2">
+                          <Label htmlFor="accessDuration">Access Duration (days)</Label>
+                          <Input
+                            id="accessDuration"
+                            type="number"
+                            value={accessDuration}
+                            onChange={(e) => setAccessDuration(Number(e.target.value))}
+                            placeholder="0 for lifetime access"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Set to 0 for lifetime access
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="downloadLimit">Download Limit</Label>
+                          <Input
+                            id="downloadLimit"
+                            type="number"
+                            value={downloadLimit}
+                            onChange={(e) => setDownloadLimit(Number(e.target.value))}
+                            placeholder="0 for unlimited"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Set to 0 for unlimited downloads
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Pricing & Inventory */}
                 <Card>
@@ -130,17 +395,40 @@ function AddProductContent() {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="price">Price</Label>
-                        <Input id="price" type="number" step="0.01" placeholder="0.00" required />
+                        <Input 
+                          id="price" 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="0.00" 
+                          value={formData.price}
+                          onChange={(e) => setFormData({...formData, price: e.target.value})}
+                          required 
+                        />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="comparePrice">Compare at Price (Optional)</Label>
-                        <Input id="comparePrice" type="number" step="0.01" placeholder="0.00" />
+                        <Input 
+                          id="comparePrice" 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="0.00" 
+                          value={formData.compareAtPrice}
+                          onChange={(e) => setFormData({...formData, compareAtPrice: e.target.value})}
+                        />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="stock">Stock Quantity</Label>
-                        <Input id="stock" type="number" placeholder="0" required />
+                        <Input 
+                          id="stock" 
+                          type="number" 
+                          placeholder="0" 
+                          value={formData.stock}
+                          onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                          required={productType === 'physical'}
+                          disabled={productType !== 'physical'}
+                        />
                       </div>
                     </div>
                   </CardContent>
@@ -180,10 +468,26 @@ function AddProductContent() {
 
                       {images.length < 10 && (
                         <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted">
-                          <Upload className="h-8 w-8 text-muted-foreground" />
-                          <span className="mt-2 text-sm text-muted-foreground">Upload</span>
-                          <span className="text-xs text-muted-foreground">{images.length}/10</span>
-                          <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageUpload} />
+                          {uploadingImages ? (
+                            <>
+                              <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+                              <span className="mt-2 text-sm text-muted-foreground">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-8 w-8 text-muted-foreground" />
+                              <span className="mt-2 text-sm text-muted-foreground">Upload</span>
+                              <span className="text-xs text-muted-foreground">{images.length}/10</span>
+                            </>
+                          )}
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*" 
+                            multiple 
+                            onChange={handleImageUpload}
+                            disabled={uploadingImages}
+                          />
                         </label>
                       )}
                     </div>

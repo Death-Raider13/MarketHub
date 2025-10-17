@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -29,10 +30,12 @@ import {
   Copy,
   BarChart3,
   Clock,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import type { Product } from "@/lib/types"
+import { toast } from "sonner"
 
 const mockProducts: Product[] = [
   {
@@ -77,11 +80,36 @@ const mockProducts: Product[] = [
 ]
 
 function VendorProductsContent() {
+  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
-  const [products, setProducts] = useState(mockProducts)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
   const [editingStock, setEditingStock] = useState<string | null>(null)
   const [stockValue, setStockValue] = useState<number>(0)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+
+  // Load products from Firestore
+  useEffect(() => {
+    async function loadProducts() {
+      if (!user) return
+
+      try {
+        const response = await fetch(`/api/vendor/products?vendorId=${user.uid}`)
+        const data = await response.json()
+
+        if (data.products) {
+          setProducts(data.products)
+        }
+      } catch (error) {
+        console.error("Error loading products:", error)
+        toast.error("Failed to load products")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProducts()
+  }, [user])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -98,39 +126,75 @@ function VendorProductsContent() {
     }
   }
 
-  const handleStatusToggle = (productId: string, currentStatus: string) => {
-    // Vendors can only toggle between active and inactive
-    // They cannot change pending or rejected status
-    console.log("Toggling status for product:", productId, "from:", currentStatus)
-    if (currentStatus === "active") {
-      const updatedProducts = products.map(p => 
-        p.id === productId ? {...p, status: "inactive" as const} : p
-      )
-      setProducts(updatedProducts)
-      console.log("Changed to inactive")
-    } else if (currentStatus === "inactive") {
-      const updatedProducts = products.map(p => 
-        p.id === productId ? {...p, status: "active" as const} : p
-      )
-      setProducts(updatedProducts)
-      console.log("Changed to active")
+  const handleStatusToggle = async (productId: string, currentStatus: string) => {
+    if (currentStatus === "pending" || currentStatus === "rejected") {
+      toast.error("Cannot change status of pending or rejected products")
+      return
+    }
+
+    const newStatus = currentStatus === "active" ? "inactive" : "active"
+
+    try {
+      const response = await fetch(`/api/vendor/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (response.ok) {
+        setProducts(products.map(p => 
+          p.id === productId ? {...p, status: newStatus as any} : p
+        ))
+        toast.success(`Product ${newStatus === "active" ? "activated" : "deactivated"}`)
+      } else {
+        toast.error("Failed to update product status")
+      }
+    } catch (error) {
+      console.error("Error updating status:", error)
+      toast.error("Failed to update product status")
     }
   }
 
-  const handleDuplicate = (product: Product) => {
-    const newProduct: Product = {
-      ...product,
-      id: `${Date.now()}`,
-      name: `${product.name} (Copy)`,
-      status: "pending" as const, // New products need approval
-      createdAt: new Date(),
+  const handleUpdateStock = async (productId: string, newStock: number) => {
+    try {
+      const response = await fetch(`/api/vendor/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stock: newStock }),
+      })
+
+      if (response.ok) {
+        setProducts(products.map(p => 
+          p.id === productId ? {...p, stock: newStock} : p
+        ))
+        setEditingStock(null)
+        toast.success("Stock updated successfully")
+      } else {
+        toast.error("Failed to update stock")
+      }
+    } catch (error) {
+      console.error("Error updating stock:", error)
+      toast.error("Failed to update stock")
     }
-    setProducts([...products, newProduct])
   }
 
-  const handleDelete = (productId: string) => {
-    setProducts(products.filter(p => p.id !== productId))
-    setDeleteConfirm(null)
+  const handleDelete = async (productId: string) => {
+    try {
+      const response = await fetch(`/api/vendor/products/${productId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setProducts(products.filter(p => p.id !== productId))
+        setDeleteConfirm(null)
+        toast.success("Product archived successfully")
+      } else {
+        toast.error("Failed to delete product")
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error)
+      toast.error("Failed to delete product")
+    }
   }
 
   return (
@@ -176,13 +240,7 @@ function VendorProductsContent() {
                   Analytics
                 </Button>
               </Link>
-              <Link href="/vendor/advertising">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Megaphone className="mr-2 h-4 w-4" />
-                  Advertising
-                </Button>
-              </Link>
-              <Link href="/vendor/store">
+              <Link href="/vendor/store-customize">
                 <Button variant="ghost" className="w-full justify-start">
                   <StoreIcon className="mr-2 h-4 w-4" />
                   Store Settings
@@ -192,6 +250,13 @@ function VendorProductsContent() {
 
             {/* Products List */}
             <div className="lg:col-span-3 space-y-6">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">Loading products...</span>
+                </div>
+              ) : (
+                <>
               {/* Stats Overview */}
               <div className="grid gap-4 sm:grid-cols-4 mb-6">
                 <Card>
@@ -301,7 +366,9 @@ function VendorProductsContent() {
                               </div>
                             </td>
                             <td className="p-4 text-sm">{product.sku}</td>
-                            <td className="p-4 text-sm font-medium">${product.price.toFixed(2)}</td>
+                            <td className="p-4 text-sm font-medium">
+                              ₦{typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price || '0').toFixed(2)}
+                            </td>
                             <td className="p-4">
                               {editingStock === product.id ? (
                                 <div className="flex items-center gap-2">
@@ -480,6 +547,8 @@ function VendorProductsContent() {
                   </div>
                 </CardContent>
               </Card>
+              </>
+              )}
             </div>
           </div>
         </div>

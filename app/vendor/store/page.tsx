@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
+import { toast } from "sonner"
 import {
   LayoutDashboard,
   Package,
@@ -33,39 +35,36 @@ import {
   DollarSign,
   Truck,
   AlertCircle,
+  Settings,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 function VendorStoreSettingsContent() {
   const router = useRouter()
+  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [loadingSettings, setLoadingSettings] = useState(true)
 
-  // Store Information
-  const [storeName, setStoreName] = useState("TechStore Pro")
-  const [storeDescription, setStoreDescription] = useState("Your one-stop shop for premium electronics and gadgets")
-  const [storeEmail, setStoreEmail] = useState("contact@techstore.com")
-  const [storePhone, setStorePhone] = useState("+234 803 123 4567")
-  const [storeAddress, setStoreAddress] = useState("123 Admiralty Way, Lekki Phase 1, Lagos, Nigeria")
-  const [storeLogo, setStoreLogo] = useState("")
-  const [storeBanner, setStoreBanner] = useState("")
+  // User Profile Data (loaded from Firestore)
+  const [userProfile, setUserProfile] = useState<any>(null)
 
-  // Business Information
-  const [businessName, setBusinessName] = useState("TechStore Nigeria Ltd")
-  const [taxId, setTaxId] = useState("12345678-0001") // TIN format
+  // Business Information (Store name, email, phone, address come from user profile)
+  const [businessName, setBusinessName] = useState("")
+  const [taxId, setTaxId] = useState("")
   const [businessType, setBusinessType] = useState("limited")
-  const [registrationNumber, setRegistrationNumber] = useState("RC-1234567") // CAC Registration
+  const [registrationNumber, setRegistrationNumber] = useState("")
 
   // Payment Settings
-  const [bankName, setBankName] = useState("Access Bank")
-  const [accountNumber, setAccountNumber] = useState("0123456789")
-  const [accountName, setAccountName] = useState("TechStore Nigeria Ltd")
-  const [bankCode, setBankCode] = useState("044") // Access Bank code
+  const [bankName, setBankName] = useState("")
+  const [accountNumber, setAccountNumber] = useState("")
+  const [accountName, setAccountName] = useState("")
+  const [bankCode, setBankCode] = useState("")
 
   // Shipping Settings
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState("50000") // ₦50,000
-  const [lagosShippingFee, setLagosShippingFee] = useState("2500") // ₦2,500
-  const [outsideLagosShippingFee, setOutsideLagosShippingFee] = useState("5000") // ₦5,000
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState("50000")
+  const [lagosShippingFee, setLagosShippingFee] = useState("2500")
+  const [outsideLagosShippingFee, setOutsideLagosShippingFee] = useState("5000")
   const [processingTime, setProcessingTime] = useState("1-3")
 
   // Notification Settings
@@ -76,31 +75,137 @@ function VendorStoreSettingsContent() {
   const [marketingEmails, setMarketingEmails] = useState(false)
 
   // Store Policies
-  const [returnPolicy, setReturnPolicy] = useState("30-day return policy on all items")
-  const [shippingPolicy, setShippingPolicy] = useState("We ship within 1-2 business days")
-  const [privacyPolicy, setPrivacyPolicy] = useState("We protect your data")
+  const [returnPolicy, setReturnPolicy] = useState("")
+  const [shippingPolicy, setShippingPolicy] = useState("")
+  const [privacyPolicy, setPrivacyPolicy] = useState("")
+
+  // Load profile and settings from Firestore
+  useEffect(() => {
+    async function loadSettings() {
+      if (!user) return
+
+      try {
+        // Load user profile
+        const profileResponse = await fetch(`/api/vendor/profile?vendorId=${user.uid}`)
+        const profileData = await profileResponse.json()
+        if (profileData.profile) {
+          setUserProfile(profileData.profile)
+        }
+
+        // Load store settings
+        const response = await fetch(`/api/vendor/store-settings?vendorId=${user.uid}`)
+        const data = await response.json()
+
+        if (data.settings) {
+          const s = data.settings
+          // Business Info (Store info comes from user profile)
+          if (s.businessInfo) {
+            setBusinessName(s.businessInfo.name || "")
+            setTaxId(s.businessInfo.taxId || "")
+            setBusinessType(s.businessInfo.type || "limited")
+            setRegistrationNumber(s.businessInfo.registrationNumber || "")
+          }
+          // Payment Settings
+          if (s.paymentSettings) {
+            setBankName(s.paymentSettings.bankName || "")
+            setAccountNumber(s.paymentSettings.accountNumber || "")
+            setAccountName(s.paymentSettings.accountName || "")
+            setBankCode(s.paymentSettings.bankCode || "")
+          }
+          // Shipping Settings
+          if (s.shippingSettings) {
+            setFreeShippingThreshold(s.shippingSettings.freeShippingThreshold || "50000")
+            setLagosShippingFee(s.shippingSettings.lagosShippingFee || "2500")
+            setOutsideLagosShippingFee(s.shippingSettings.outsideLagosShippingFee || "5000")
+            setProcessingTime(s.shippingSettings.processingTime || "1-3")
+          }
+          // Notifications
+          if (s.notifications) {
+            setEmailNotifications(s.notifications.email ?? true)
+            setOrderNotifications(s.notifications.orders ?? true)
+            setReviewNotifications(s.notifications.reviews ?? true)
+            setLowStockNotifications(s.notifications.lowStock ?? true)
+            setMarketingEmails(s.notifications.marketing ?? false)
+          }
+          // Policies
+          if (s.policies) {
+            setReturnPolicy(s.policies.return || "")
+            setShippingPolicy(s.policies.shipping || "")
+            setPrivacyPolicy(s.policies.privacy || "")
+          }
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error)
+        toast.error("Failed to load store settings")
+      } finally {
+        setLoadingSettings(false)
+      }
+    }
+
+    loadSettings()
+  }, [user])
 
   const handleSave = async () => {
+    if (!user) {
+      toast.error("Please login to continue")
+      return
+    }
+
     setLoading(true)
-    // Simulate save
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setLoading(false)
-    alert("Settings saved successfully!")
-  }
+    try {
+      const response = await fetch("/api/vendor/store-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendorId: user.uid,
+          businessInfo: {
+            name: businessName,
+            taxId,
+            type: businessType,
+            registrationNumber,
+          },
+          paymentSettings: {
+            bankName,
+            accountNumber,
+            accountName,
+            bankCode,
+          },
+          shippingSettings: {
+            freeShippingThreshold,
+            lagosShippingFee,
+            outsideLagosShippingFee,
+            processingTime,
+          },
+          notifications: {
+            email: emailNotifications,
+            orders: orderNotifications,
+            reviews: reviewNotifications,
+            lowStock: lowStockNotifications,
+            marketing: marketingEmails,
+          },
+          policies: {
+            return: returnPolicy,
+            shipping: shippingPolicy,
+            privacy: privacyPolicy,
+          },
+        }),
+      })
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setStoreLogo(URL.createObjectURL(file))
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success("Store settings saved successfully! 🎉")
+      } else {
+        toast.error(data.error || "Failed to save settings")
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error)
+      toast.error("Failed to save settings")
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setStoreBanner(URL.createObjectURL(file))
-    }
-  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -170,134 +275,71 @@ function VendorStoreSettingsContent() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Store Information</CardTitle>
-                      <CardDescription>Update your store's public information</CardDescription>
+                      <CardDescription>
+                        Your store's contact information. To edit these, go to your Profile Settings.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="storeName">Store Name *</Label>
-                        <Input
-                          id="storeName"
-                          value={storeName}
-                          onChange={(e) => setStoreName(e.target.value)}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="storeDescription">Store Description</Label>
-                        <Textarea
-                          id="storeDescription"
-                          value={storeDescription}
-                          onChange={(e) => setStoreDescription(e.target.value)}
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="storeEmail">
-                            <Mail className="inline h-4 w-4 mr-1" />
-                            Email
-                          </Label>
-                          <Input
-                            id="storeEmail"
-                            type="email"
-                            value={storeEmail}
-                            onChange={(e) => setStoreEmail(e.target.value)}
-                          />
+                      {/* Read-only Store Info from Profile */}
+                      <div className="bg-muted/50 p-6 rounded-lg space-y-4 border">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-semibold text-lg">Contact Information (from Profile)</h3>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href="/vendor/profile">
+                              <Settings className="mr-2 h-4 w-4" />
+                              Edit Profile
+                            </Link>
+                          </Button>
                         </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="storePhone">
-                            <Phone className="inline h-4 w-4 mr-1" />
-                            Phone
-                          </Label>
-                          <Input
-                            id="storePhone"
-                            type="tel"
-                            value={storePhone}
-                            onChange={(e) => setStorePhone(e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="storeAddress">
-                          <MapPin className="inline h-4 w-4 mr-1" />
-                          Address
-                        </Label>
-                        <Input
-                          id="storeAddress"
-                          value={storeAddress}
-                          onChange={(e) => setStoreAddress(e.target.value)}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Store Branding</CardTitle>
-                      <CardDescription>Upload your store logo and banner</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Store Logo</Label>
-                        <div className="flex items-center gap-4">
-                          {storeLogo ? (
-                            <div className="relative h-20 w-20 rounded-lg overflow-hidden border">
-                              <img src={storeLogo} alt="Store logo" className="h-full w-full object-cover" />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute right-1 top-1 h-6 w-6"
-                                onClick={() => setStoreLogo("")}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted">
-                              <Upload className="h-6 w-6 text-muted-foreground" />
-                              <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                            </label>
-                          )}
-                          <div className="text-sm text-muted-foreground">
-                            <p>Recommended: 200x200px</p>
-                            <p>Max size: 2MB</p>
+                        
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Store Name</Label>
+                            <p className="font-semibold text-lg">{userProfile?.storeName || "Not set"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              Email
+                            </Label>
+                            <p className="font-medium">{userProfile?.email || user?.email || "Not set"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              Phone
+                            </Label>
+                            <p className="font-medium">{userProfile?.phone || "Not set"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              Address
+                            </Label>
+                            <p className="font-medium">
+                              {userProfile?.address?.addressLine1 ? (
+                                <>
+                                  {userProfile.address.addressLine1}
+                                  {userProfile.address.city && `, ${userProfile.address.city}`}
+                                  {userProfile.address.state && `, ${userProfile.address.state}`}
+                                </>
+                              ) : (
+                                "Not set"
+                              )}
+                            </p>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Store Banner</Label>
-                        <div className="space-y-2">
-                          {storeBanner ? (
-                            <div className="relative aspect-[4/1] rounded-lg overflow-hidden border">
-                              <img src={storeBanner} alt="Store banner" className="h-full w-full object-cover" />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute right-2 top-2 h-6 w-6"
-                                onClick={() => setStoreBanner("")}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <label className="flex aspect-[4/1] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted">
-                              <Upload className="h-8 w-8 text-muted-foreground" />
-                              <span className="mt-2 text-sm text-muted-foreground">Click to upload banner</span>
-                              <input type="file" className="hidden" accept="image/*" onChange={handleBannerUpload} />
-                            </label>
-                          )}
-                          <p className="text-sm text-muted-foreground">Recommended: 1200x300px, Max size: 5MB</p>
-                        </div>
+                        
+                        <p className="text-xs text-muted-foreground mt-4">
+                          These details are used throughout the platform and on your public store page.
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
+                </TabsContent>
 
+                {/* Business Settings */}
+                <TabsContent value="business" className="space-y-6">
                   <Card>
                     <CardHeader>
                       <CardTitle>Store Policies</CardTitle>

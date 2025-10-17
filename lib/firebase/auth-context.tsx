@@ -10,6 +10,7 @@ import {
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  sendEmailVerification,
   updateProfile,
 } from "firebase/auth"
 import { doc, getDoc, setDoc } from "firebase/firestore"
@@ -33,8 +34,13 @@ export interface UserProfile {
   displayName?: string
   photoURL?: string
   createdAt: Date
+  emailVerified?: boolean
+  lastLoginAt?: Date
+  updatedAt?: Date
+  phoneNumber?: string
   // Vendor-specific fields
   storeName?: string
+  storeUrl?: string
   storeDescription?: string
   verified?: boolean
   commission?: number
@@ -50,6 +56,8 @@ interface AuthContextType {
   logout: () => Promise<void>
   logoutAllDevices: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
+  resendVerificationEmail: () => Promise<void>
+  refreshUserProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
@@ -79,7 +87,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Fetch user profile from Firestore
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
-          setUserProfile(userDoc.data() as UserProfile)
+          const profile = userDoc.data() as UserProfile
+          
+          // Sync emailVerified status from Firebase Auth to Firestore
+          if (user.emailVerified && !profile.emailVerified) {
+            await setDoc(doc(db, "users", user.uid), {
+              ...profile,
+              emailVerified: true,
+              updatedAt: new Date()
+            })
+            profile.emailVerified = true
+          }
+          
+          setUserProfile(profile)
         }
 
         // Validate or restore session
@@ -112,6 +132,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await updateProfile(userCredential.user, { displayName })
       }
 
+      // Send email verification with custom action handler
+      // Automatically uses correct URL for dev/production
+      const actionCodeSettings = {
+        url: typeof window !== 'undefined' 
+          ? `${window.location.origin}/auth/action`
+          : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
+        handleCodeInApp: false
+      }
+      await sendEmailVerification(userCredential.user, actionCodeSettings)
+
       // Create user profile in Firestore
       const userProfile: UserProfile = {
         uid: userCredential.user.uid,
@@ -119,6 +149,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role,
         displayName,
         createdAt: new Date(),
+        emailVerified: false, // Track email verification status
+        lastLoginAt: new Date(),
+        updatedAt: new Date(),
         ...(role === "vendor" && { verified: false, commission: 15 }),
       }
 
@@ -194,6 +227,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await sendPasswordResetEmail(auth, email)
   }
 
+  const resendVerificationEmail = async () => {
+    if (!user) {
+      throw new Error('No user logged in')
+    }
+    
+    if (user.emailVerified) {
+      throw new Error('Email already verified')
+    }
+
+    // Automatically uses correct URL for dev/production
+    const actionCodeSettings = {
+      url: typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/action`
+        : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
+      handleCodeInApp: false
+    }
+    await sendEmailVerification(user, actionCodeSettings)
+  }
+
+  const refreshUserProfile = async () => {
+    if (!user) return
+    
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid))
+      if (userDoc.exists()) {
+        setUserProfile(userDoc.data() as UserProfile)
+      }
+    } catch (error) {
+      console.error("Error refreshing user profile:", error)
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -204,6 +269,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     logoutAllDevices,
     resetPassword,
+    resendVerificationEmail,
+    refreshUserProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

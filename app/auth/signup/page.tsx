@@ -32,9 +32,9 @@ export default function SignupPage() {
     e.preventDefault()
     setError("")
 
-    // Redirect vendors to comprehensive registration form
+    // Redirect vendors to new streamlined registration
     if (role === "vendor") {
-      router.push("/auth/vendor-register")
+      router.push("/auth/vendor-register-new")
       return
     }
 
@@ -56,7 +56,9 @@ export default function SignupPage() {
       // Combine first and last name for display name
       const fullName = `${firstName} ${lastName}`.trim()
       await signUp(email, password, role, fullName)
-      router.push("/")
+      
+      // Redirect to email verification page
+      router.push("/auth/verify-email")
     } catch (err: any) {
       setError(err.message || "Failed to create account")
     } finally {

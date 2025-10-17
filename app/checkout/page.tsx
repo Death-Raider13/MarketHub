@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,10 @@ import { CreditCard, Truck, CheckCircle2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import type { Address } from "@/lib/types"
+import { initiatePaystackPayment } from "@/lib/payment/paystack"
+import { db } from "@/lib/firebase/config"
+import { collection, addDoc } from "firebase/firestore"
+import { toast } from "sonner"
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart()
@@ -31,42 +35,210 @@ export default function CheckoutPage() {
     city: "",
     state: "",
     zipCode: "",
-    country: "United States",
+    country: "Nigeria",
     phone: "",
   })
 
   const [paymentMethod, setPaymentMethod] = useState("card")
   const [shippingMethod, setShippingMethod] = useState("standard")
+  const [completedOrderId, setCompletedOrderId] = useState<string | null>(null)
 
+  // Check if cart has physical products that require shipping
+  const requiresShipping = items.some(item => item.product.requiresShipping)
+  
+  // Currency conversion rate (USD to NGN)
+  const USD_TO_NGN_RATE = 1650 // Update this rate as needed
+  
   const tax = totalPrice * 0.1
-  const shippingCost = shippingMethod === "express" ? 19.99 : totalPrice > 50 ? 0 : 9.99
+  const shippingCost = requiresShipping 
+    ? (shippingMethod === "express" ? 19.99 : totalPrice > 50 ? 0 : 9.99)
+    : 0
   const total = totalPrice + tax + shippingCost
+  const totalInNGN = total * USD_TO_NGN_RATE
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Skip shipping validation for digital-only orders
+    if (!requiresShipping) {
+      setStep(2)
+      return
+    }
+    
+    // Validate shipping address for physical products
+    if (!shippingAddress.fullName || !shippingAddress.addressLine1 || 
+        !shippingAddress.city || !shippingAddress.state || !shippingAddress.phone) {
+      toast.error('Please fill in all required shipping fields')
+      return
+    }
+    
     setStep(2)
   }
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate cart is not empty
+    if (items.length === 0) {
+      toast.error('Your cart is empty')
+      router.push('/cart')
+      return
+    }
+    
+    // Validate user is logged in
+    if (!user) {
+      toast.error('Please log in to complete your purchase')
+      router.push('/auth/login')
+      return
+    }
+    
     setLoading(true)
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      // Create order in database first
+      const orderData = {
+        customerId: user!.uid, // Changed from userId to match Firestore rules
+        userId: user!.uid,
+        userEmail: user!.email,
+        items: items.map(item => ({
+          productId: item.product.id,
+          productName: item.product.name,
+          productPrice: item.product.price,
+          quantity: item.quantity,
+          vendorId: item.product.vendorId,
+          vendorName: item.product.vendorName
+        })),
+        vendorIds: [...new Set(items.map(item => item.product.vendorId))], // For Firestore rules
+        subtotal: totalPrice,
+        tax: tax,
+        shipping: shippingCost,
+        total: total,
+        status: 'pending',
+        paymentStatus: 'pending',
+        shippingAddress: shippingAddress,
+        shippingMethod: shippingMethod,
+        paymentMethod: 'paystack',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
 
-    // In production, integrate with Stripe here
-    setStep(3)
-    setLoading(false)
+      // Save to Firestore
+      const orderRef = await addDoc(collection(db, 'orders'), orderData)
+      const orderId = orderRef.id
+
+      // Initiate Paystack payment (amount in NGN)
+      initiatePaystackPayment(
+        {
+          email: user!.email!,
+          amount: totalInNGN, // Convert USD to NGN
+          orderId: orderId,
+          customerName: shippingAddress.fullName,
+          metadata: {
+            items: items.length,
+            shipping_method: shippingMethod,
+            user_id: user!.uid,
+            amount_usd: total,
+            conversion_rate: USD_TO_NGN_RATE
+          }
+        },
+        async (reference) => {
+          // Payment successful - verify it
+          try {
+            const response = await fetch('/api/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reference })
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              console.log('✅ Payment verified successfully:', data)
+              console.log('✅ Setting step to 3...')
+              setCompletedOrderId(orderId) // Store order ID for display
+              setStep(3) // Show success page
+              console.log('✅ Clearing cart...')
+              clearCart()
+              console.log('✅ Showing success toast...')
+              toast.success('🎉 Payment successful! Order confirmed.')
+            } else {
+              const error = await response.json()
+              console.error('Verification failed:', error)
+              toast.error('Payment verification failed. Please contact support.')
+            }
+          } catch (error) {
+            console.error('Verification error:', error)
+            toast.error('Payment verification failed. Please contact support.')
+          } finally {
+            setLoading(false)
+          }
+        },
+        () => {
+          // Payment cancelled
+          setLoading(false)
+          toast.error('Payment cancelled')
+        }
+      )
+    } catch (error) {
+      console.error('Payment error:', error)
+      toast.error('Failed to initiate payment')
+      setLoading(false)
+    }
   }
 
-  if (!user) {
-    router.push("/auth/login")
+  // Handle redirects in useEffect to avoid render phase updates
+  useEffect(() => {
+    if (!user) {
+      router.push("/auth/login")
+    }
+    // Don't redirect to cart if we're on step 3 (success) or step 2 (payment in progress)
+    else if (items.length === 0 && step === 1) {
+      router.push("/cart")
+    }
+  }, [user, items.length, step, router])
+
+  // Show loading while redirecting
+  if (!user || (items.length === 0 && step !== 3)) {
     return null
   }
 
-  if (items.length === 0 && step !== 3) {
-    router.push("/cart")
-    return null
+  // Check email verification
+  if (!user.emailVerified && step !== 3) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 bg-muted/30">
+          <div className="container mx-auto px-4 py-12">
+            <Card className="max-w-2xl mx-auto">
+              <CardContent className="pt-6 text-center space-y-6">
+                <div className="rounded-full bg-yellow-100 dark:bg-yellow-900 p-4 w-16 h-16 mx-auto flex items-center justify-center">
+                  <span className="text-3xl">⚠️</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Email Verification Required</h2>
+                  <p className="text-muted-foreground">
+                    Please verify your email address before making a purchase.
+                  </p>
+                </div>
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-4">
+                  <p className="text-sm text-blue-900 dark:text-blue-100">
+                    We've sent a verification link to <strong>{user.email}</strong>
+                  </p>
+                </div>
+                <div className="flex gap-3 justify-center">
+                  <Button onClick={() => router.push("/auth/verify-email")}>
+                    Verify Email
+                  </Button>
+                  <Button variant="outline" onClick={() => router.push("/")}>
+                    Continue Browsing
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -84,7 +256,7 @@ export default function CheckoutPage() {
                 >
                   1
                 </div>
-                <span className="text-sm font-medium">Shipping</span>
+                <span className="text-sm font-medium">{requiresShipping ? 'Shipping' : 'Details'}</span>
               </div>
               <div className="h-px flex-1 bg-border" />
               <div className={`flex items-center gap-2 ${step >= 2 ? "text-primary" : "text-muted-foreground"}`}>
@@ -115,10 +287,17 @@ export default function CheckoutPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Truck className="h-5 w-5" />
-                      Shipping Information
+                      {requiresShipping ? 'Shipping Information' : 'Contact Information'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
+                    {!requiresShipping && (
+                      <div className="mb-4 rounded-lg bg-blue-50 dark:bg-blue-950 p-4 border border-blue-200 dark:border-blue-800">
+                        <p className="text-sm text-blue-900 dark:text-blue-100">
+                          📦 Your order contains digital products only. No shipping required!
+                        </p>
+                      </div>
+                    )}
                     <form onSubmit={handleShippingSubmit} className="space-y-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2 sm:col-span-2">
@@ -192,31 +371,33 @@ export default function CheckoutPage() {
                         </div>
                       </div>
 
-                      <div className="space-y-3 pt-4">
-                        <Label>Shipping Method</Label>
-                        <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
-                          <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="standard" id="standard" />
-                              <Label htmlFor="standard" className="cursor-pointer">
-                                <div className="font-medium">Standard Shipping</div>
-                                <div className="text-sm text-muted-foreground">5-7 business days</div>
-                              </Label>
+                      {requiresShipping && (
+                        <div className="space-y-3 pt-4">
+                          <Label>Shipping Method</Label>
+                          <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
+                            <div className="flex items-center justify-between rounded-lg border border-border p-4">
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="standard" id="standard" />
+                                <Label htmlFor="standard" className="cursor-pointer">
+                                  <div className="font-medium">Standard Shipping</div>
+                                  <div className="text-sm text-muted-foreground">5-7 business days</div>
+                                </Label>
+                              </div>
+                              <span className="font-medium">{totalPrice > 50 ? "FREE" : "$9.99"}</span>
                             </div>
-                            <span className="font-medium">{totalPrice > 50 ? "FREE" : "$9.99"}</span>
-                          </div>
-                          <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="express" id="express" />
-                              <Label htmlFor="express" className="cursor-pointer">
-                                <div className="font-medium">Express Shipping</div>
-                                <div className="text-sm text-muted-foreground">2-3 business days</div>
-                              </Label>
+                            <div className="flex items-center justify-between rounded-lg border border-border p-4">
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="express" id="express" />
+                                <Label htmlFor="express" className="cursor-pointer">
+                                  <div className="font-medium">Express Shipping</div>
+                                  <div className="text-sm text-muted-foreground">2-3 business days</div>
+                                </Label>
+                              </div>
+                              <span className="font-medium">$19.99</span>
                             </div>
-                            <span className="font-medium">$19.99</span>
-                          </div>
-                        </RadioGroup>
-                      </div>
+                          </RadioGroup>
+                        </div>
+                      )}
 
                       <Button type="submit" className="w-full" size="lg">
                         Continue to Payment
@@ -244,33 +425,23 @@ export default function CheckoutPage() {
                             <RadioGroupItem value="card" id="card" />
                             <Label htmlFor="card" className="flex flex-1 cursor-pointer items-center gap-2">
                               <CreditCard className="h-5 w-5" />
-                              Credit / Debit Card
+                              <div>
+                                <div className="font-medium">Pay with Paystack</div>
+                                <div className="text-sm text-muted-foreground">Secure payment via card, bank transfer, or USSD</div>
+                              </div>
                             </Label>
                           </div>
                         </RadioGroup>
                       </div>
 
-                      <div className="space-y-4 pt-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="cardNumber">Card Number</Label>
-                          <Input id="cardNumber" placeholder="1234 5678 9012 3456" required />
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label htmlFor="expiry">Expiry Date</Label>
-                            <Input id="expiry" placeholder="MM/YY" required />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="cvv">CVV</Label>
-                            <Input id="cvv" placeholder="123" required />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="cardName">Cardholder Name</Label>
-                          <Input id="cardName" placeholder="John Doe" required />
-                        </div>
+                      <div className="rounded-lg bg-muted p-4 space-y-2">
+                        <p className="text-sm font-medium">💳 Payment Information</p>
+                        <p className="text-sm text-muted-foreground">
+                          You will be redirected to Paystack's secure payment page to complete your transaction.
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Amount to pay: <span className="font-bold">₦{totalInNGN.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> (${total.toFixed(2)} USD)
+                        </p>
                       </div>
 
                       <div className="flex gap-2 pt-4">
@@ -297,7 +468,7 @@ export default function CheckoutPage() {
                     </p>
                     <div className="mt-6 rounded-lg bg-muted p-4">
                       <p className="text-sm text-muted-foreground">Order Number</p>
-                      <p className="text-lg font-bold">#ORD-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+                      <p className="text-lg font-bold">#{completedOrderId?.substring(0, 8).toUpperCase() || 'PROCESSING'}</p>
                     </div>
                     <div className="mt-6 flex gap-2">
                       <Button variant="outline" onClick={() => router.push("/dashboard")} className="flex-1">
@@ -351,19 +522,31 @@ export default function CheckoutPage() {
                       <span className="font-medium">${totalPrice.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tax</span>
+                      <span className="text-muted-foreground">Tax (10%)</span>
                       <span className="font-medium">${tax.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span className="font-medium">{shippingCost === 0 ? "FREE" : `$${shippingCost.toFixed(2)}`}</span>
-                    </div>
+                    {requiresShipping && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Shipping</span>
+                        <span className="font-medium">{shippingCost === 0 ? "FREE" : `$${shippingCost.toFixed(2)}`}</span>
+                      </div>
+                    )}
+                    {!requiresShipping && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Shipping</span>
+                        <span className="font-medium text-green-600">Digital Product - No Shipping</span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="border-t border-border pt-4">
+                  <div className="border-t border-border pt-4 space-y-1">
                     <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
+                      <span>Total (USD)</span>
                       <span>${total.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Total (NGN)</span>
+                      <span>₦{totalInNGN.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </CardContent>

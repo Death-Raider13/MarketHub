@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -7,9 +9,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { LayoutDashboard, Package, ShoppingCart, TrendingUp, Megaphone, StoreIcon, Eye } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingCart, TrendingUp, Megaphone, StoreIcon, Eye, Loader2 } from "lucide-react"
 import Link from "next/link"
 import type { Order } from "@/lib/types"
+import { toast } from "sonner"
 
 const mockOrders: Order[] = [
   {
@@ -59,6 +62,58 @@ const mockOrders: Order[] = [
 ]
 
 function VendorOrdersContent() {
+  const { user } = useAuth()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filterStatus, setFilterStatus] = useState<string>("all")
+
+  // Load orders from Firestore
+  useEffect(() => {
+    async function loadOrders() {
+      if (!user) return
+
+      try {
+        const response = await fetch(`/api/vendor/orders?vendorId=${user.uid}`)
+        const data = await response.json()
+
+        if (data.orders) {
+          setOrders(data.orders)
+        }
+      } catch (error) {
+        console.error("Error loading orders:", error)
+        toast.error("Failed to load orders")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadOrders()
+  }, [user])
+
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/vendor/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setOrders(orders.map(order => 
+          order.id === orderId ? { ...order, status: newStatus as any } : order
+        ))
+        toast.success("Order status updated successfully")
+      } else {
+        toast.error(data.error || "Failed to update order status")
+      }
+    } catch (error) {
+      console.error("Error updating order:", error)
+      toast.error("Failed to update order status")
+    }
+  }
+
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
       case "delivered":
@@ -75,6 +130,11 @@ function VendorOrdersContent() {
         return "bg-gray-500/10 text-gray-600"
     }
   }
+
+  // Filter orders
+  const filteredOrders = filterStatus === "all" 
+    ? orders 
+    : orders.filter(order => order.status === filterStatus)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -127,11 +187,18 @@ function VendorOrdersContent() {
 
             {/* Orders List */}
             <div className="lg:col-span-3 space-y-6">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">Loading orders...</span>
+                </div>
+              ) : (
+                <>
               {/* Filters */}
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex gap-4">
-                    <Select defaultValue="all">
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Filter by status" />
                       </SelectTrigger>
@@ -160,39 +227,65 @@ function VendorOrdersContent() {
                           <th className="p-4 text-left text-sm font-medium">Date</th>
                           <th className="p-4 text-left text-sm font-medium">Total</th>
                           <th className="p-4 text-left text-sm font-medium">Status</th>
+                          <th className="p-4 text-left text-sm font-medium">Date</th>
                           <th className="p-4 text-left text-sm font-medium">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {mockOrders.map((order) => (
-                          <tr key={order.id} className="border-b border-border">
-                            <td className="p-4 font-medium">{order.id}</td>
-                            <td className="p-4">
-                              <div>
-                                <p className="font-medium">{order.shippingAddress.fullName}</p>
-                                <p className="text-sm text-muted-foreground">{order.shippingAddress.phone}</p>
-                              </div>
-                            </td>
-                            <td className="p-4 text-sm">{order.createdAt.toLocaleDateString()}</td>
-                            <td className="p-4 font-medium">${order.total.toFixed(2)}</td>
-                            <td className="p-4">
-                              <Badge className={getStatusColor(order.status)} variant="secondary">
-                                {order.status}
-                              </Badge>
-                            </td>
-                            <td className="p-4">
-                              <Button variant="ghost" size="sm">
-                                <Eye className="mr-2 h-4 w-4" />
-                                View
-                              </Button>
+                        {filteredOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                              No orders found
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          filteredOrders.map((order) => (
+                            <tr key={order.id} className="border-b border-border">
+                              <td className="p-4 font-medium">{order.id}</td>
+                              <td className="p-4">
+                                {order.shippingAddress?.fullName || "N/A"}
+                              </td>
+                              <td className="p-4">
+                                ₦{typeof order.total === 'number' ? order.total.toFixed(2) : parseFloat(order.total || '0').toFixed(2)}
+                              </td>
+                              <td className="p-4">
+                                <Select
+                                  value={order.status}
+                                  onValueChange={(value) => handleStatusUpdate(order.id, value)}
+                                >
+                                  <SelectTrigger className="w-[140px]">
+                                    <Badge className={getStatusColor(order.status)}>
+                                      {order.status}
+                                    </Badge>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="processing">Processing</SelectItem>
+                                    <SelectItem value="shipped">Shipped</SelectItem>
+                                    <SelectItem value="delivered">Delivered</SelectItem>
+                                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </td>
+                              <td className="p-4 text-sm text-muted-foreground">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="p-4">
+                                <Button variant="outline" size="sm">
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
                 </CardContent>
               </Card>
+              </>
+              )}
             </div>
           </div>
         </div>

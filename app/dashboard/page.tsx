@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { Package, Heart, MapPin, CreditCard, Settings, Star } from "lucide-react"
+import { Package, Heart, MapPin, CreditCard, Settings, Star, Download } from "lucide-react"
 import Link from "next/link"
 import type { Order } from "@/lib/types"
 
@@ -93,6 +93,12 @@ function DashboardContent() {
                 <Button variant="default" className="w-full justify-start">
                   <Package className="mr-2 h-4 w-4" />
                   My Orders
+                </Button>
+              </Link>
+              <Link href="/dashboard/purchases">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Download className="mr-2 h-4 w-4" />
+                  My Purchases
                 </Button>
               </Link>
               <Link href="/dashboard/wishlist">

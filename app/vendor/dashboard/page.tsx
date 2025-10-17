@@ -1,5 +1,8 @@
 "use client"
 
+import { useAuth } from "@/lib/firebase/auth-context"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,27 +33,84 @@ import {
   ShoppingBag,
   ArrowLeftRight,
   Wallet,
+  Palette,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
-const salesData = [
-  { date: "Mon", sales: 1200 },
-  { date: "Tue", sales: 1900 },
-  { date: "Wed", sales: 1500 },
-  { date: "Thu", sales: 2100 },
-  { date: "Fri", sales: 2400 },
-  { date: "Sat", sales: 2800 },
-  { date: "Sun", sales: 2200 },
-]
-
-const recentOrders = [
-  { id: "ORD-001", customer: "John Doe", total: 199.99, status: "pending" },
-  { id: "ORD-002", customer: "Jane Smith", total: 89.99, status: "processing" },
-  { id: "ORD-003", customer: "Bob Johnson", total: 149.99, status: "shipped" },
-]
-
 function VendorDashboardContent() {
+  const { user, userProfile } = useAuth()
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    activeProducts: 0,
+    lowStockProducts: 0,
+    totalRevenue: 0,
+    totalViews: 0,
+    totalSales: 0,
+  })
+  const [salesData, setSalesData] = useState([
+    { date: "Mon", sales: 0 },
+    { date: "Tue", sales: 0 },
+    { date: "Wed", sales: 0 },
+    { date: "Thu", sales: 0 },
+    { date: "Fri", sales: 0 },
+    { date: "Sat", sales: 0 },
+    { date: "Sun", sales: 0 },
+  ])
+  const [recentOrders, setRecentOrders] = useState<any[]>([])
+
+  useEffect(() => {
+    // Redirect if email not verified
+    if (user && !user.emailVerified) {
+      router.push("/auth/vendor-verify")
+      return
+    }
+
+    // Redirect if vendor not approved by admin
+    if (userProfile && userProfile.role === "vendor" && !userProfile.verified) {
+      router.push("/vendor/pending-approval")
+      return
+    }
+  }, [user, userProfile, router])
+
+  // Load vendor stats
+  useEffect(() => {
+    async function loadStats() {
+      if (!user) return
+
+      try {
+        const response = await fetch(`/api/vendor/stats?vendorId=${user.uid}`)
+        const data = await response.json()
+
+        if (data.stats) {
+          setStats(data.stats)
+        }
+        if (data.salesData) {
+          setSalesData(data.salesData)
+        }
+        if (data.recentOrders) {
+          setRecentOrders(data.recentOrders)
+        }
+      } catch (error) {
+        console.error("Error loading stats:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user && user.emailVerified && userProfile?.verified) {
+      loadStats()
+    }
+  }, [user, userProfile]);
+
+  // Show loading while checking
+  if (!user || !user.emailVerified || (userProfile && !userProfile.verified)) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -64,6 +124,12 @@ function VendorDashboardContent() {
                 <p className="text-muted-foreground">Welcome back! Here's what's happening with your store</p>
               </div>
               <div className="flex gap-2">
+                <Button variant="outline" asChild className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200">
+                  <Link href={`/store/${userProfile?.uid}`} target="_blank">
+                    <Eye className="mr-2 h-4 w-4" />
+                    View My Store
+                  </Link>
+                </Button>
                 <Button variant="outline" asChild className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-blue-200">
                   <Link href="/">
                     <ShoppingBag className="mr-2 h-4 w-4" />
@@ -86,13 +152,22 @@ function VendorDashboardContent() {
             </div>
             
             {/* Quick Stats Bar */}
-            <div className="grid gap-4 sm:grid-cols-4 mb-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">Loading dashboard...</span>
+              </div>
+            ) : (
+              <>
+              <div className="grid gap-4 sm:grid-cols-4 mb-6">
               <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-green-800 dark:text-green-200">This Month</p>
-                      <p className="text-xl font-bold text-green-900 dark:text-green-100">$12,450</p>
+                      <p className="text-xs text-green-800 dark:text-green-200">Total Revenue</p>
+                      <p className="text-xl font-bold text-green-900 dark:text-green-100">
+                        ₦{stats.totalRevenue.toLocaleString()}
+                      </p>
                     </div>
                     <DollarSign className="h-8 w-8 text-green-600" />
                   </div>
@@ -102,10 +177,10 @@ function VendorDashboardContent() {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-blue-800 dark:text-blue-200">Pending Orders</p>
-                      <p className="text-xl font-bold text-blue-900 dark:text-blue-100">23</p>
+                      <p className="text-xs text-blue-800 dark:text-blue-200">Total Sales</p>
+                      <p className="text-xl font-bold text-blue-900 dark:text-blue-100">{stats.totalSales}</p>
                     </div>
-                    <Clock className="h-8 w-8 text-blue-600" />
+                    <ShoppingCart className="h-8 w-8 text-blue-600" />
                   </div>
                 </CardContent>
               </Card>
@@ -113,10 +188,12 @@ function VendorDashboardContent() {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-purple-800 dark:text-purple-200">Avg. Rating</p>
-                      <p className="text-xl font-bold text-purple-900 dark:text-purple-100">4.8</p>
+                      <p className="text-xs text-purple-800 dark:text-purple-200">Total Views</p>
+                      <p className="text-xl font-bold text-purple-900 dark:text-purple-100">
+                        {stats.totalViews.toLocaleString()}
+                      </p>
                     </div>
-                    <Star className="h-8 w-8 text-purple-600" />
+                    <Eye className="h-8 w-8 text-purple-600" />
                   </div>
                 </CardContent>
               </Card>
@@ -124,10 +201,12 @@ function VendorDashboardContent() {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-orange-800 dark:text-orange-200">Available Balance</p>
-                      <p className="text-xl font-bold text-orange-900 dark:text-orange-100">₦0</p>
+                      <p className="text-xs text-orange-800 dark:text-orange-200">Active Products</p>
+                      <p className="text-xl font-bold text-orange-900 dark:text-orange-100">
+                        {stats.activeProducts}/{stats.totalProducts}
+                      </p>
                     </div>
-                    <Wallet className="h-8 w-8 text-orange-600" />
+                    <Package className="h-8 w-8 text-orange-600" />
                   </div>
                 </CardContent>
               </Card>
@@ -155,6 +234,8 @@ function VendorDashboardContent() {
                 </div>
               </CardContent>
             </Card>
+              </>
+            )}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-4">
@@ -184,16 +265,10 @@ function VendorDashboardContent() {
                   Analytics
                 </Button>
               </Link>
-              <Link href="/vendor/advertising">
+              <Link href="/vendor/store-customize">
                 <Button variant="ghost" className="w-full justify-start">
-                  <Megaphone className="mr-2 h-4 w-4" />
-                  Advertising
-                </Button>
-              </Link>
-              <Link href="/vendor/store">
-                <Button variant="ghost" className="w-full justify-start">
-                  <StoreIcon className="mr-2 h-4 w-4" />
-                  Store Settings
+                  <Palette className="mr-2 h-4 w-4" />
+                  Customize Store
                 </Button>
               </Link>
               <Link href="/vendor/payouts">

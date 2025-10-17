@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package } from "lucide-react"
+import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -74,6 +74,19 @@ export function Header() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+            {/* Advertise Button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              asChild 
+              className="hidden lg:flex text-primary hover:text-primary"
+            >
+              <Link href="/advertise">
+                <Megaphone className="mr-2 h-4 w-4" />
+                Advertise
+              </Link>
+            </Button>
+
             {/* Vendor Mode Switch - Show on homepage for vendors */}
             {user && userProfile?.role === "vendor" && (
               <Button 
@@ -118,6 +131,14 @@ export function Header() {
                   >
                     <Store className="h-5 w-5" />
                     Categories
+                  </Link>
+                  <Link 
+                    href="/advertise" 
+                    className="flex items-center gap-3 text-lg font-medium hover:text-primary text-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Megaphone className="h-5 w-5" />
+                    Advertise
                   </Link>
                   {user && (
                     <>
@@ -210,7 +231,10 @@ export function Header() {
                         <Link href="/account">My Account</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/account">My Orders</Link>
+                        <Link href="/dashboard/purchases">
+                          <Package className="mr-2 h-4 w-4" />
+                          My Purchases
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/account">Wishlist</Link>

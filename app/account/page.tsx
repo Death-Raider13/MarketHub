@@ -218,6 +218,15 @@ function AccountPageContent() {
                 <Package className="mr-2 h-4 w-4" />
                 Orders
               </Button>
+              <Link href="/dashboard/purchases">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  My Purchases
+                </Button>
+              </Link>
               <Button
                 variant={activeTab === "addresses" ? "default" : "ghost"}
                 className="w-full justify-start"

@@ -1,0 +1,7 @@
+I updated the transactions collection rules to allow users to create transaction records.
+
+Please deploy again:
+
+firebase deploy --only firestore:rules
+
+Then restart dev server and try payment again.

@@ -171,17 +171,20 @@ export default function VendorRegisterPage() {
     setError("")
 
     try {
-      // Create user account
+      // Create user account with email verification
       await signUp(formData.email, formData.password, "vendor", formData.fullName)
 
-      // In production, you would:
+      // Store additional vendor data in Firestore
+      // Note: The user document is already created by signUp()
+      // We'll update it with vendor-specific information
+      
+      // TODO: In production:
       // 1. Upload documents to Firebase Storage
-      // 2. Create vendor profile in Firestore
-      // 3. Send verification email
-      // 4. Notify admin for approval
-
-      // For now, redirect to pending approval page
-      router.push("/vendor/pending-approval")
+      // 2. Update vendor profile with business details
+      // 3. Notify admin for approval
+      
+      // Redirect to vendor-specific verification page
+      router.push("/auth/vendor-verify")
     } catch (err: any) {
       setError(err.message || "Failed to create vendor account")
     } finally {

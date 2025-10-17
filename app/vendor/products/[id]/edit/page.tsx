@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -10,9 +11,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { Upload, X, Plus, Tag, Star, Package, Save, ArrowLeft } from "lucide-react"
+import { Upload, X, Plus, Tag, Star, Package, Save, ArrowLeft, Loader2 } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import { toast } from "sonner"
 
 interface Variant {
   id: string
@@ -31,23 +33,62 @@ interface VariantOption {
 function EditProductContent() {
   const router = useRouter()
   const params = useParams()
+  const { user } = useAuth()
   const productId = params.id as string
 
-  // Mock data - in production, fetch from Firebase using productId
-  const [productName, setProductName] = useState("Wireless Headphones")
-  const [description, setDescription] = useState("Premium noise-cancelling headphones with superior sound quality")
-  const [category, setCategory] = useState("electronics")
-  const [sku, setSku] = useState("WH-1000")
-  const [price, setPrice] = useState("199.99")
-  const [comparePrice, setComparePrice] = useState("299.99")
-  const [stock, setStock] = useState("45")
-  const [images, setImages] = useState<string[]>(["/diverse-people-listening-headphones.png"])
-  const [tags, setTags] = useState<string[]>(["wireless", "bluetooth", "audio"])
+  const [productName, setProductName] = useState("")
+  const [description, setDescription] = useState("")
+  const [category, setCategory] = useState("")
+  const [sku, setSku] = useState("")
+  const [price, setPrice] = useState("")
+  const [comparePrice, setComparePrice] = useState("")
+  const [stock, setStock] = useState("")
+  const [productType, setProductType] = useState<"physical" | "digital" | "service">("physical")
+  const [images, setImages] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
-  const [requestReviews, setRequestReviews] = useState(true)
-  const [showRelatedProducts, setShowRelatedProducts] = useState(true)
   const [status, setStatus] = useState("active")
   const [loading, setLoading] = useState(false)
+  const [loadingProduct, setLoadingProduct] = useState(true)
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [requestReviews, setRequestReviews] = useState(true)
+  const [showRelatedProducts, setShowRelatedProducts] = useState(true)
+
+  // Load product data from Firestore
+  useEffect(() => {
+    async function loadProduct() {
+      if (!productId) return
+
+      try {
+        const response = await fetch(`/api/vendor/products/${productId}`)
+        const data = await response.json()
+
+        if (data.id) {
+          setProductName(data.name || "")
+          setDescription(data.description || "")
+          setCategory(data.category || "")
+          setSku(data.sku || "")
+          setPrice(data.price?.toString() || "")
+          setComparePrice(data.compareAtPrice?.toString() || "")
+          setStock(data.stock?.toString() || "")
+          setProductType(data.type || "physical")
+          setImages(data.images || [])
+          setTags(data.tags || [])
+          setStatus(data.status || "active")
+        } else {
+          toast.error("Product not found")
+          router.push("/vendor/products")
+        }
+      } catch (error) {
+        console.error("Error loading product:", error)
+        toast.error("Failed to load product")
+      } finally {
+        setLoadingProduct(false)
+      }
+    }
+
+    loadProduct()
+  }, [productId, router])
 
   // Variants
   const [variants, setVariants] = useState<Variant[]>([
@@ -72,19 +113,116 @@ function EditProductContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!user) {
+      toast.error("Please login to continue")
+      return
+    }
+
+    // Validate required fields
+    if (!productName) {
+      toast.error("Please enter a product name")
+      return
+    }
+
+    if (!price) {
+      toast.error("Please enter a product price")
+      return
+    }
+
+    if (!category) {
+      toast.error("Please select a category")
+      return
+    }
+
     setLoading(true)
 
-    // Simulate saving
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch(`/api/vendor/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: productName,
+          description,
+          price,
+          compareAtPrice: comparePrice,
+          category,
+          sku,
+          images,
+          stock,
+          type: productType,
+          tags,
+          status,
+        }),
+      })
 
-    router.push("/vendor/products")
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success("Product updated successfully! 🎉")
+        router.push("/vendor/products")
+      } else {
+        toast.error(data.error || "Failed to update product")
+      }
+    } catch (error) {
+      console.error("Error updating product:", error)
+      toast.error("Failed to update product")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files) {
-      const newImages = Array.from(files).map((file) => URL.createObjectURL(file))
-      setImages([...images, ...newImages])
+    if (!files || files.length === 0) return
+
+    setUploadingImages(true)
+    
+    try {
+      const uploadedUrls: string[] = []
+      
+      for (const file of Array.from(files)) {
+        // Validate file
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} is not an image file`)
+          continue
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large (max 5MB)`)
+          continue
+        }
+
+        // Upload to Cloudinary
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
+        formData.append('folder', 'products')
+        
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        )
+        
+        const data = await response.json()
+        
+        if (data.secure_url) {
+          uploadedUrls.push(data.secure_url)
+        }
+      }
+      
+      if (uploadedUrls.length > 0) {
+        setImages([...images, ...uploadedUrls])
+        toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`)
+      }
+    } catch (error) {
+      console.error("Error uploading images:", error)
+      toast.error("Failed to upload images")
+    } finally {
+      setUploadingImages(false)
     }
   }
 
@@ -168,6 +306,22 @@ function EditProductContent() {
     )
   }
 
+  // Show loading state while fetching product
+  if (loadingProduct) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 bg-muted/30 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading product...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -190,7 +344,7 @@ function EditProductContent() {
               <Button variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={loading}>
+              <Button onClick={handleSubmit} disabled={loading || uploadingImages}>
                 <Save className="mr-2 h-4 w-4" />
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
