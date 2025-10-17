@@ -1,8 +1,10 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import {
@@ -15,42 +17,167 @@ import {
   DollarSign,
   Eye,
   Download,
+  Loader2,
+  ArrowUp,
+  ArrowDown,
+  Calendar,
+  Users,
+  BarChart3,
 } from "lucide-react"
 import Link from "next/link"
 import { Line, LineChart, Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
+import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const salesData = [
-  { date: "Jan", revenue: 4200, orders: 42 },
-  { date: "Feb", revenue: 5800, orders: 58 },
-  { date: "Mar", revenue: 4500, orders: 45 },
-  { date: "Apr", revenue: 6100, orders: 61 },
-  { date: "May", revenue: 5800, orders: 58 },
-  { date: "Jun", revenue: 7300, orders: 73 },
-]
-
-const topProducts = [
-  { name: "Wireless Headphones", sales: 234, revenue: 46800 },
-  { name: "Smart Watch", sales: 189, revenue: 37800 },
-  { name: "Laptop Stand", sales: 156, revenue: 7800 },
-  { name: "USB-C Cable", sales: 423, revenue: 8460 },
-]
+interface AnalyticsData {
+  totalRevenue: number
+  totalOrders: number
+  avgOrderValue: number
+  storeViews: number
+  totalProducts: number
+  activeProducts: number
+  salesData: Array<{ date: string; revenue: number; orders: number }>
+  topProducts: Array<{ id: string; name: string; image: string; sales: number; revenue: number }>
+  recentOrders: Array<{ id: string; customerName: string; total: number; status: string; date: Date }>
+  conversionFunnel: {
+    storeVisits: number
+    productViews: number
+    addToCart: number
+    checkout: number
+    purchase: number
+  }
+  growthMetrics: {
+    revenueGrowth: number
+    ordersGrowth: number
+    avgOrderValueGrowth: number
+    viewsGrowth: number
+  }
+}
 
 function VendorAnalyticsContent() {
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [period, setPeriod] = useState("30") // days
+  const [exporting, setExporting] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      fetchAnalytics()
+    }
+  }, [user, period])
+
+  const fetchAnalytics = async () => {
+    if (!user) return
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/vendor/analytics?vendorId=${user.uid}&period=${period}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setAnalytics(data.analytics)
+      } else {
+        toast.error(data.error || "Failed to fetch analytics")
+      }
+    } catch (error) {
+      console.error("Error fetching analytics:", error)
+      toast.error("Failed to load analytics data")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const exportReport = () => {
+    setExporting(true)
+    try {
+      // Create CSV content
+      const csvContent = [
+        ["Metric", "Value"],
+        ["Total Revenue", `₦${analytics?.totalRevenue.toLocaleString()}`],
+        ["Total Orders", analytics?.totalOrders],
+        ["Average Order Value", `₦${analytics?.avgOrderValue.toLocaleString()}`],
+        ["Store Views", analytics?.storeViews],
+        ["Total Products", analytics?.totalProducts],
+        ["Active Products", analytics?.activeProducts],
+        [""],
+        ["Top Products"],
+        ["Product Name", "Sales", "Revenue"],
+        ...(analytics?.topProducts.map((p) => [p.name, p.sales, `₦${p.revenue.toLocaleString()}`]) || []),
+      ]
+        .map((row) => row.join(","))
+        .join("\n")
+
+      // Create download link
+      const blob = new Blob([csvContent], { type: "text/csv" })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `analytics-report-${new Date().toISOString().split("T")[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+
+      toast.success("Report exported successfully!")
+    } catch (error) {
+      console.error("Export error:", error)
+      toast.error("Failed to export report")
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 bg-muted/30 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Loading analytics...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
 
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Sales Analytics</h1>
-              <p className="text-muted-foreground">Track your store performance and insights</p>
+          <div className="mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+              <div>
+                <h1 className="text-3xl font-bold">Sales Analytics</h1>
+                <p className="text-muted-foreground">Track your store performance and insights</p>
+              </div>
+              <div className="flex gap-3 flex-wrap">
+                <Select value={period} onValueChange={setPeriod}>
+                  <SelectTrigger className="w-[180px]">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Last 7 days</SelectItem>
+                    <SelectItem value="30">Last 30 days</SelectItem>
+                    <SelectItem value="90">Last 90 days</SelectItem>
+                    <SelectItem value="365">Last year</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={exportReport} disabled={exporting}>
+                  {exporting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Export Report
+                </Button>
+              </div>
             </div>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export Report
-            </Button>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-4">
@@ -97,14 +224,25 @@ function VendorAnalyticsContent() {
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">
               {/* Key Metrics */}
-              <div className="grid gap-4 sm:grid-cols-4">
-                <Card>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Total Revenue</p>
-                        <p className="text-2xl font-bold">$33,700</p>
-                        <p className="text-xs text-green-600 mt-1">+12.5% from last month</p>
+                        <p className="text-2xl font-bold">₦{analytics?.totalRevenue.toLocaleString()}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {analytics?.growthMetrics.revenueGrowth >= 0 ? (
+                            <ArrowUp className="h-3 w-3 text-green-600" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3 text-red-600" />
+                          )}
+                          <p className={`text-xs ${
+                            analytics?.growthMetrics.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {Math.abs(analytics?.growthMetrics.revenueGrowth || 0).toFixed(1)}% from previous period
+                          </p>
+                        </div>
                       </div>
                       <div className="rounded-full bg-green-500/10 p-3">
                         <DollarSign className="h-5 w-5 text-green-600" />
@@ -113,13 +251,24 @@ function VendorAnalyticsContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Total Orders</p>
-                        <p className="text-2xl font-bold">337</p>
-                        <p className="text-xs text-green-600 mt-1">+8.2% from last month</p>
+                        <p className="text-2xl font-bold">{analytics?.totalOrders}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {analytics?.growthMetrics.ordersGrowth >= 0 ? (
+                            <ArrowUp className="h-3 w-3 text-green-600" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3 text-red-600" />
+                          )}
+                          <p className={`text-xs ${
+                            analytics?.growthMetrics.ordersGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {Math.abs(analytics?.growthMetrics.ordersGrowth || 0).toFixed(1)}% from previous period
+                          </p>
+                        </div>
                       </div>
                       <div className="rounded-full bg-blue-500/10 p-3">
                         <ShoppingCart className="h-5 w-5 text-blue-600" />
@@ -128,13 +277,24 @@ function VendorAnalyticsContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Avg Order Value</p>
-                        <p className="text-2xl font-bold">$100.00</p>
-                        <p className="text-xs text-green-600 mt-1">+3.8% from last month</p>
+                        <p className="text-2xl font-bold">₦{analytics?.avgOrderValue.toLocaleString()}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {analytics?.growthMetrics.avgOrderValueGrowth >= 0 ? (
+                            <ArrowUp className="h-3 w-3 text-green-600" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3 text-red-600" />
+                          )}
+                          <p className={`text-xs ${
+                            analytics?.growthMetrics.avgOrderValueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {Math.abs(analytics?.growthMetrics.avgOrderValueGrowth || 0).toFixed(1)}% from previous period
+                          </p>
+                        </div>
                       </div>
                       <div className="rounded-full bg-purple-500/10 p-3">
                         <TrendingUp className="h-5 w-5 text-purple-600" />
@@ -143,13 +303,15 @@ function VendorAnalyticsContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Store Views</p>
-                        <p className="text-2xl font-bold">12,458</p>
-                        <p className="text-xs text-green-600 mt-1">+24.5% from last month</p>
+                        <p className="text-2xl font-bold">{analytics?.storeViews.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {analytics?.activeProducts} active products
+                        </p>
                       </div>
                       <div className="rounded-full bg-orange-500/10 p-3">
                         <Eye className="h-5 w-5 text-orange-600" />
@@ -162,25 +324,50 @@ function VendorAnalyticsContent() {
               {/* Revenue Chart */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Revenue & Orders</CardTitle>
+                  <CardTitle>Revenue & Orders Trend</CardTitle>
+                  <CardDescription>
+                    Daily performance over the selected period
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={salesData}>
-                      <XAxis dataKey="date" stroke="#888888" fontSize={12} />
-                      <YAxis stroke="#888888" fontSize={12} />
-                      <Tooltip />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        name="Revenue ($)"
-                      />
-                      <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} name="Orders" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {analytics?.salesData && analytics.salesData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={analytics.salesData}>
+                        <XAxis dataKey="date" stroke="#888888" fontSize={12} />
+                        <YAxis stroke="#888888" fontSize={12} />
+                        <Tooltip
+                          formatter={(value: any, name: string) => [
+                            name === "Revenue (₦)" ? `₦${value.toLocaleString()}` : value,
+                            name,
+                          ]}
+                        />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          name="Revenue (₦)"
+                          dot={{ r: 3 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="orders"
+                          stroke="#10b981"
+                          strokeWidth={2}
+                          name="Orders"
+                          dot={{ r: 3 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                      <div className="text-center">
+                        <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>No sales data available for this period</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -188,24 +375,41 @@ function VendorAnalyticsContent() {
               <Card>
                 <CardHeader>
                   <CardTitle>Top Selling Products</CardTitle>
+                  <CardDescription>
+                    Your best performers in the selected period
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {topProducts.map((product, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
-                            {index + 1}
+                  {analytics?.topProducts && analytics.topProducts.length > 0 ? (
+                    <div className="space-y-4">
+                      {analytics.topProducts.map((product, index) => (
+                        <div key={product.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                              {index + 1}
+                            </div>
+                            {product.image && (
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="h-12 w-12 rounded object-cover"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-sm text-muted-foreground">{product.sales} units sold</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-muted-foreground">{product.sales} sales</p>
-                          </div>
+                          <p className="font-bold">₦{product.revenue.toLocaleString()}</p>
                         </div>
-                        <p className="font-bold">${product.revenue.toLocaleString()}</p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No product sales yet</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -213,25 +417,37 @@ function VendorAnalyticsContent() {
               <Card>
                 <CardHeader>
                   <CardTitle>Conversion Funnel</CardTitle>
+                  <CardDescription>
+                    Customer journey from visit to purchase
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart
-                      data={[
-                        { stage: "Store Visits", count: 12458 },
-                        { stage: "Product Views", count: 8920 },
-                        { stage: "Add to Cart", count: 2340 },
-                        { stage: "Checkout", count: 890 },
-                        { stage: "Purchase", count: 337 },
-                      ]}
-                      layout="vertical"
-                    >
-                      <XAxis type="number" stroke="#888888" fontSize={12} />
-                      <YAxis dataKey="stage" type="category" stroke="#888888" fontSize={12} width={120} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {analytics?.conversionFunnel ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart
+                        data={[
+                          { stage: "Store Visits", count: analytics.conversionFunnel.storeVisits },
+                          { stage: "Product Views", count: analytics.conversionFunnel.productViews },
+                          { stage: "Add to Cart", count: analytics.conversionFunnel.addToCart },
+                          { stage: "Checkout", count: analytics.conversionFunnel.checkout },
+                          { stage: "Purchase", count: analytics.conversionFunnel.purchase },
+                        ]}
+                        layout="vertical"
+                      >
+                        <XAxis type="number" stroke="#888888" fontSize={12} />
+                        <YAxis dataKey="stage" type="category" stroke="#888888" fontSize={12} width={120} />
+                        <Tooltip formatter={(value: any) => value.toLocaleString()} />
+                        <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                      <div className="text-center">
+                        <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>No conversion data available</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

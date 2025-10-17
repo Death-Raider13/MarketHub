@@ -38,6 +38,15 @@ export interface UserProfile {
   lastLoginAt?: Date
   updatedAt?: Date
   phoneNumber?: string
+  phone?: string // Alternative phone field
+  address?: {
+    addressLine1?: string
+    addressLine2?: string
+    city?: string
+    state?: string
+    postalCode?: string
+    country?: string
+  }
   // Vendor-specific fields
   storeName?: string
   storeUrl?: string

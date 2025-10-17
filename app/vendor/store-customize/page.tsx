@@ -401,117 +401,44 @@ function StoreCustomizeContent() {
     <div className="flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 bg-muted/30 pb-24">
+      <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
-          {/* Enhanced Header with Stats */}
-          <div className="mb-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-              <div>
-                <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient">
-                  ✨ Customize Your Store
-                </h1>
-                <p className="text-muted-foreground text-lg">
-                  Design your store exactly how you want it - just like Selar, but better!
-                </p>
-              </div>
-              <div className="flex gap-3 flex-wrap">
-                <Button variant="outline" size="lg" asChild className="group">
-                  <Link href={`/store/${userProfile?.uid}`} target="_blank">
-                    <Eye className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                    Preview Store
-                  </Link>
-                </Button>
-                <Button onClick={handleSave} disabled={saving} size="lg" className="min-w-[140px]">
-                  {saving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </div>
+          {/* Header */}
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
+                Customize Your Store
+              </h1>
+              <p className="text-muted-foreground">
+                Design your store exactly how you want it - just like Selar, but better!
+              </p>
             </div>
-            
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 border-blue-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500 rounded-lg">
-                      <Palette className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{THEME_PRESETS.length}</p>
-                      <p className="text-xs text-muted-foreground">Theme Presets</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-500 rounded-lg">
-                      <Type className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{FONT_FAMILIES.length}</p>
-                      <p className="text-xs text-muted-foreground">Font Options</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500 rounded-lg">
-                      <Layout className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">Unlimited</p>
-                      <p className="text-xs text-muted-foreground">Customization</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950 dark:to-amber-950 border-orange-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-500 rounded-lg">
-                      <Sparkles className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">Live</p>
-                      <p className="text-xs text-muted-foreground">Updates</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="flex gap-3">
+              <Button variant="outline" asChild>
+                <Link href={`/store/${userProfile?.uid}`} target="_blank">
+                  <Eye className="mr-2 h-4 w-4" />
+                  View My Store
+                </Link>
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                <Save className="mr-2 h-4 w-4" />
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </div>
 
-          {/* Enhanced Info Banner with Tips */}
-          <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 via-purple-500/5 to-pink-500/5 shadow-lg">
+          {/* Info Banner */}
+          <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="rounded-full bg-gradient-to-br from-primary to-purple-500 p-3 shadow-lg">
-                  <Sparkles className="h-6 w-6 text-white" />
+                <div className="rounded-full bg-primary/10 p-3">
+                  <Sparkles className="h-6 w-6 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2 text-lg">Complete Control Over Your Store Design</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Customize colors, fonts, layout, branding, and more. Changes are saved and applied to your live store instantly.
+                <div>
+                  <h3 className="font-semibold mb-2">Complete Control Over Your Store Design</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Customize colors, fonts, layout, branding, and more. Changes are saved automatically and applied to your live store.
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">🎨 8 Theme Presets</span>
-                    <span className="text-xs px-3 py-1 bg-purple-500/10 text-purple-600 rounded-full font-medium">✍️ 6 Font Families</span>
-                    <span className="text-xs px-3 py-1 bg-pink-500/10 text-pink-600 rounded-full font-medium">📱 Mobile Optimized</span>
-                    <span className="text-xs px-3 py-1 bg-green-500/10 text-green-600 rounded-full font-medium">💰 Ad Monetization</span>
-                  </div>
                 </div>
               </div>
             </CardContent>
@@ -521,94 +448,89 @@ function StoreCustomizeContent() {
           <Card>
             <CardContent className="p-6">
               <Tabs defaultValue="design" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-2 h-auto p-2 bg-muted/50">
-                  <TabsTrigger value="design" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white transition-all">
-                    <Palette className="h-4 w-4 lg:mr-2" />
-                    <span className="hidden lg:inline">Design</span>
+                <TabsList className="grid w-full grid-cols-7">
+                  <TabsTrigger value="design">
+                    <Palette className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Design</span>
                   </TabsTrigger>
-                  <TabsTrigger value="branding" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all">
-                    <ImageIcon className="h-4 w-4 lg:mr-2" />
-                    <span className="hidden lg:inline">Branding</span>
+                  <TabsTrigger value="branding">
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Branding</span>
                   </TabsTrigger>
-                  <TabsTrigger value="layout" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white transition-all">
-                    <Layout className="h-4 w-4 lg:mr-2" />
-                    <span className="hidden lg:inline">Layout</span>
+                  <TabsTrigger value="layout">
+                    <Layout className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Layout</span>
                   </TabsTrigger>
-                  <TabsTrigger value="content" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white transition-all">
-                    <Type className="h-4 w-4 lg:mr-2" />
-                    <span className="hidden lg:inline">Content</span>
+                  <TabsTrigger value="content">
+                    <Type className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Content</span>
                   </TabsTrigger>
-                  <TabsTrigger value="social" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white transition-all">
-                    <Globe className="h-4 w-4 lg:mr-2" />
-                    <span className="hidden lg:inline">Social</span>
+                  <TabsTrigger value="social">
+                    <Globe className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Social</span>
                   </TabsTrigger>
-                  <TabsTrigger value="advertising" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all">
-                    <Megaphone className="h-4 w-4 lg:mr-2" />
-                    <span className="hidden lg:inline">Ads</span>
+                  <TabsTrigger value="advertising">
+                    <Megaphone className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Ads</span>
                   </TabsTrigger>
-                  <TabsTrigger value="features" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-600 data-[state=active]:to-gray-800 data-[state=active]:text-white transition-all">
-                    <Settings className="h-4 w-4 lg:mr-2" />
-                    <span className="hidden lg:inline">Features</span>
+                  <TabsTrigger value="features">
+                    <Settings className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Features</span>
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Design Tab */}
                 <TabsContent value="design" className="space-y-6">
-                  {/* Enhanced Theme Presets */}
-                  <Card className="overflow-hidden border-2">
-                    <CardHeader className="bg-gradient-to-r from-primary/5 to-purple-500/5">
+                  {/* Theme Presets */}
+                  <Card>
+                    <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <div className="p-2 bg-gradient-to-br from-primary to-purple-500 rounded-lg">
-                          <Sparkles className="h-5 w-5 text-white" />
-                        </div>
+                        <Sparkles className="h-5 w-5 text-primary" />
                         Theme Presets
                       </CardTitle>
                       <CardDescription>
-                        Choose a beautiful pre-made theme or customize your own colors below
+                        Choose a pre-made theme or customize your own colors below
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="pt-6">
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <CardContent>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {THEME_PRESETS.map((preset) => (
                           <button
                             key={preset.name}
                             onClick={() => applyThemePreset(preset)}
-                            className={`group relative rounded-xl border-2 p-4 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
-                              theme.primaryColor === preset.colors.primary
-                                ? 'border-primary shadow-lg scale-105 ring-4 ring-primary/20'
-                                : 'border-muted hover:border-primary'
-                            }`}
+                            className="group relative rounded-lg border-2 p-4 hover:border-primary transition-all hover:shadow-lg"
                           >
-                            {/* Color Preview with Animation */}
-                            <div className="flex gap-1.5 mb-4">
+                            {/* Color Preview */}
+                            <div className="flex gap-1 mb-3">
                               <div
-                                className="h-10 flex-1 rounded-lg shadow-sm transition-transform group-hover:scale-110"
+                                className="h-8 flex-1 rounded"
                                 style={{ backgroundColor: preset.colors.primary }}
                                 title="Primary"
                               />
                               <div
-                                className="h-10 flex-1 rounded-lg shadow-sm transition-transform group-hover:scale-110 delay-75"
+                                className="h-8 flex-1 rounded"
                                 style={{ backgroundColor: preset.colors.secondary }}
                                 title="Secondary"
                               />
                               <div
-                                className="h-10 flex-1 rounded-lg shadow-sm transition-transform group-hover:scale-110 delay-100"
+                                className="h-8 flex-1 rounded"
                                 style={{ backgroundColor: preset.colors.accent }}
                                 title="Accent"
                               />
                             </div>
                             
                             {/* Theme Name */}
-                            <p className="text-sm font-semibold text-center mb-1">{preset.name}</p>
-                            <p className="text-xs text-muted-foreground text-center">Click to apply</p>
+                            <p className="text-sm font-medium text-center">{preset.name}</p>
                             
-                            {/* Hover Glow Effect */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                            {/* Hover Effect */}
+                            <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                              <Sparkles className="h-6 w-6 text-primary" />
+                            </div>
                             
-                            {/* Active Indicator with Animation */}
+                            {/* Active Indicator */}
                             {theme.primaryColor === preset.colors.primary && (
-                              <div className="absolute -top-2 -right-2 bg-gradient-to-br from-primary to-purple-500 text-white rounded-full p-2 shadow-lg animate-bounce">
-                                <Sparkles className="h-4 w-4" />
+                              <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                                <Sparkles className="h-3 w-3" />
                               </div>
                             )}
                           </button>
@@ -659,13 +581,11 @@ function StoreCustomizeContent() {
                     </CardContent>
                   </Card>
 
-                  {/* Enhanced Custom Colors */}
-                  <Card className="overflow-hidden border-2">
-                    <CardHeader className="bg-gradient-to-r from-primary/5 to-purple-500/5">
+                  {/* Custom Colors */}
+                  <Card>
+                    <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <div className="p-2 bg-gradient-to-br from-primary to-purple-500 rounded-lg">
-                          <Palette className="h-5 w-5 text-white" />
-                        </div>
+                        <Palette className="h-5 w-5 text-primary" />
                         Custom Colors
                       </CardTitle>
                       <CardDescription>
@@ -843,21 +763,19 @@ function StoreCustomizeContent() {
                     </CardContent>
                   </Card>
 
-                  {/* Enhanced Typography */}
-                  <Card className="overflow-hidden border-2">
-                    <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950 dark:to-amber-950">
+                  {/* Typography */}
+                  <Card>
+                    <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg">
-                          <Type className="h-5 w-5 text-white" />
-                        </div>
+                        <Type className="h-5 w-5 text-primary" />
                         Typography
                       </CardTitle>
                       <CardDescription>
                         Choose the perfect font for your store's personality
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="pt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {FONT_FAMILIES.map((font) => (
                           <button
                             key={font.value}
@@ -865,9 +783,9 @@ function StoreCustomizeContent() {
                               setFontFamily(font.value)
                               toast.success(`${font.name} font applied! ✍️`)
                             }}
-                            className={`p-5 rounded-xl border-2 text-left transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                            className={`p-4 rounded-lg border-2 text-left transition-all hover:shadow-md ${
                               fontFamily === font.value
-                                ? 'border-primary bg-gradient-to-br from-primary/10 to-purple-500/10 shadow-lg scale-105 ring-4 ring-primary/20'
+                                ? 'border-primary bg-primary/5 shadow-md'
                                 : 'border-muted hover:border-primary/50'
                             }`}
                           >
@@ -1740,51 +1658,6 @@ Example:
               </Tabs>
             </CardContent>
           </Card>
-          
-          {/* Sticky Save Button Bar */}
-          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-2xl z-50 py-4">
-            <div className="container mx-auto px-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span>Auto-save enabled</span>
-                  </div>
-                </div>
-                <div className="flex gap-3 flex-1 md:flex-initial justify-end">
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    asChild
-                    className="group"
-                  >
-                    <Link href={`/store/${userProfile?.uid}`} target="_blank">
-                      <Eye className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                      Preview
-                    </Link>
-                  </Button>
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={saving} 
-                    size="lg"
-                    className="min-w-[160px] bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save All Changes
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
 
