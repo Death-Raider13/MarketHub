@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { applyActionCode } from "firebase/auth"
 import { auth } from "@/lib/firebase/config"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle, XCircle, Loader2, Store } from "lucide-react"
 import Link from "next/link"
 
-export default function AuthActionPage() {
+function AuthActionContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
@@ -163,5 +163,26 @@ export default function AuthActionPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function AuthActionPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/5">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardContent className="py-12">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <Loader2 className="h-12 w-12 text-primary animate-spin" />
+              </div>
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <AuthActionContent />
+    </Suspense>
   )
 }

@@ -1,5 +1,3 @@
-import PaystackPop from '@paystack/inline-js'
-
 export interface PaymentData {
   email: string
   amount: number // in Naira
@@ -13,6 +11,14 @@ export function initiatePaystackPayment(
   onSuccess: (reference: string) => void,
   onClose: () => void
 ) {
+  // Only import and use PaystackPop on the client side
+  if (typeof window === 'undefined') {
+    console.error('PaystackPop can only be used in the browser')
+    return
+  }
+
+  // Dynamic import to avoid SSR issues
+  const PaystackPop = require('@paystack/inline-js')
   const paystack = new PaystackPop()
   
   paystack.newTransaction({
