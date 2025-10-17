@@ -245,12 +245,6 @@ function VendorStoreSettingsContent() {
                   Analytics
                 </Button>
               </Link>
-              <Link href="/vendor/advertising">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Megaphone className="mr-2 h-4 w-4" />
-                  Advertising
-                </Button>
-              </Link>
               <Link href="/vendor/store">
                 <Button variant="default" className="w-full justify-start">
                   <StoreIcon className="mr-2 h-4 w-4" />
