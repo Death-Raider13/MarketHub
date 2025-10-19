@@ -151,6 +151,14 @@ export function Header() {
                         My Account
                       </Link>
                       <Link 
+                        href="/my-purchases" 
+                        className="flex items-center gap-3 text-lg font-medium hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Package className="h-5 w-5" />
+                        My Purchases
+                      </Link>
+                      <Link 
                         href="/account" 
                         className="flex items-center gap-3 text-lg font-medium hover:text-primary"
                         onClick={() => setMobileMenuOpen(false)}
@@ -231,7 +239,7 @@ export function Header() {
                         <Link href="/account">My Account</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard/purchases">
+                        <Link href="/my-purchases">
                           <Package className="mr-2 h-4 w-4" />
                           My Purchases
                         </Link>

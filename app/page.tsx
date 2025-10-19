@@ -1,254 +1,323 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { ProductCard } from "@/components/product-card"
-import { CategoryCard } from "@/components/category-card"
-import { AdBanner } from "@/components/ad-banner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useCart } from "@/lib/cart-context"
-import { ArrowRight, TrendingUp, Award, Shield, Truck } from "lucide-react"
-import Link from "next/link"
-import type { Product, Category, Advertisement } from "@/lib/types"
+import { ShoppingBag, TrendingUp, Shield, Zap, ArrowRight, Star } from "lucide-react"
 
-// Mock data - in production, fetch from Firebase
-const mockCategories: Category[] = [
-  { id: "1", name: "Electronics", slug: "electronics", icon: "smartphone", productCount: 1234 },
-  { id: "2", name: "Fashion", slug: "fashion", icon: "shirt", productCount: 2456 },
-  { id: "3", name: "Home & Garden", slug: "home", icon: "home", productCount: 987 },
-  { id: "4", name: "Sports", slug: "sports", icon: "dumbbell", productCount: 654 },
-  { id: "5", name: "Books", slug: "books", icon: "book", productCount: 432 },
-  { id: "6", name: "Gaming", slug: "gaming", icon: "gamepad", productCount: 876 },
-]
-
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    vendorId: "v1",
-    vendorName: "TechStore Pro",
-    name: "Wireless Noise-Cancelling Headphones",
-    description: "Premium audio experience with active noise cancellation",
-    price: 199.99,
-    comparePrice: 299.99,
-    category: "electronics",
-    images: ["/diverse-people-listening-headphones.png"],
-    stock: 45,
-    sku: "WH-1000",
-    rating: 4.5,
-    reviewCount: 128,
-    featured: true,
-    sponsored: false,
-    status: "active",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    vendorId: "v2",
-    vendorName: "Fashion Hub",
-    name: "Premium Cotton T-Shirt",
-    description: "Comfortable and stylish everyday wear",
-    price: 29.99,
-    category: "fashion",
-    images: ["/plain-white-tshirt.png"],
-    stock: 120,
-    sku: "TS-2000",
-    rating: 4.8,
-    reviewCount: 89,
-    featured: true,
-    sponsored: true,
-    status: "active",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    vendorId: "v3",
-    vendorName: "Home Essentials",
-    name: "Smart LED Desk Lamp",
-    description: "Adjustable brightness with USB charging port",
-    price: 49.99,
-    comparePrice: 79.99,
-    category: "home",
-    images: ["/modern-desk-lamp.png"],
-    stock: 67,
-    sku: "DL-3000",
-    rating: 4.3,
-    reviewCount: 45,
-    featured: true,
-    sponsored: false,
-    status: "active",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "4",
-    vendorId: "v4",
-    vendorName: "FitGear",
-    name: "Yoga Mat with Carrying Strap",
-    description: "Non-slip, eco-friendly exercise mat",
-    price: 34.99,
-    category: "sports",
-    images: ["/rolled-yoga-mat.png"],
-    stock: 89,
-    sku: "YM-4000",
-    rating: 4.6,
-    reviewCount: 156,
-    featured: true,
-    sponsored: false,
-    status: "active",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
-
-const mockAd: Advertisement = {
-  id: "ad1",
-  vendorId: "v1",
-  type: "banner",
-  title: "Summer Sale - Up to 50% Off",
-  imageUrl: "/summer-sale-banner.png",
-  linkUrl: "/products?sale=true",
-  placement: "homepage-top",
-  impressions: 12450,
-  clicks: 234,
-  budget: 500,
-  spent: 123.45,
-  status: "active",
-  startDate: new Date(),
-  endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+interface Product {
+  id: string
+  name: string
+  price: number
+  imageUrl: string
+  category: string
+  vendorName: string
+  status: string
 }
 
 export default function HomePage() {
-  const { addToCart } = useCart()
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        // Dynamically import Firebase only on client side
+        const { collection, getDocs, query, where, limit, orderBy } = await import("firebase/firestore")
+        const { db } = await import("@/lib/firebase/config")
+        
+        const productsRef = collection(db, "products")
+        const q = query(
+          productsRef,
+          where("status", "==", "approved"),
+          orderBy("createdAt", "desc"),
+          limit(8)
+        )
+        const snapshot = await getDocs(q)
+        const products = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Product[]
+        setFeaturedProducts(products)
+      } catch (error) {
+        console.error("Error fetching products:", error)
+        // Set empty array on error to prevent crash
+        setFeaturedProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    // Only fetch on client side
+    if (typeof window !== 'undefined') {
+      fetchFeaturedProducts()
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
+  const categories = [
+    { name: "Electronics", icon: "💻", count: "500+" },
+    { name: "Fashion", icon: "👕", count: "800+" },
+    { name: "Home & Living", icon: "🏠", count: "350+" },
+    { name: "Books", icon: "📚", count: "1000+" },
+    { name: "Sports", icon: "⚽", count: "200+" },
+    { name: "Beauty", icon: "💄", count: "450+" },
+  ]
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen flex flex-col">
       <Header />
-
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="border-b border-border bg-gradient-to-br from-primary/5 via-background to-background">
-          <div className="container mx-auto px-4 py-16 md:py-24">
-            <div className="mx-auto max-w-3xl text-center">
-              <h1 className="text-4xl font-bold tracking-tight md:text-6xl text-balance">
-                Discover Amazing Products from Trusted Vendors
+      
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white py-20 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+                🎉 Nigeria's Fastest Growing Marketplace
+              </Badge>
+              <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+                Discover Amazing Products from Trusted Sellers
               </h1>
-              <p className="mt-6 text-lg text-muted-foreground text-pretty">
-                Shop from thousands of verified sellers offering quality products at competitive prices. Your one-stop
-                marketplace for everything you need.
+              <p className="text-xl text-white/90">
+                Shop from thousands of verified vendors. Quality products, secure payments, and fast delivery across Nigeria.
               </p>
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-                <Button size="lg" asChild>
-                  <Link href="/products">
-                    Start Shopping
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
+              <div className="flex flex-wrap gap-4">
+                <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
+                  <ShoppingBag className="mr-2 h-5 w-5" />
+                  Start Shopping
                 </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/auth/vendor-register">Become a Vendor</Link>
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                  Become a Seller
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
+              </div>
+              
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-6 pt-8">
+                <div>
+                  <div className="text-3xl font-bold">500K+</div>
+                  <div className="text-white/80">Monthly Visitors</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold">10K+</div>
+                  <div className="text-white/80">Products</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold">1K+</div>
+                  <div className="text-white/80">Vendors</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="hidden md:block">
+              <div className="relative">
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-3xl transform rotate-6"></div>
+                <div className="relative bg-white/20 backdrop-blur-md rounded-3xl p-8 space-y-4">
+                  <div className="flex items-center gap-4 bg-white/90 rounded-xl p-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-300 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 bg-white/90 rounded-xl p-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-300 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 bg-white/90 rounded-xl p-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-300 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Advertisement Banner */}
-        <section className="container mx-auto px-4 py-8">
-          <AdBanner ad={mockAd} />
-        </section>
+      {/* Features Section */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid md:grid-cols-4 gap-8">
+            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <Shield className="h-6 w-6 text-blue-600" />
+                </div>
+                <CardTitle>Secure Payments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">100% secure transactions with Paystack integration</p>
+              </CardContent>
+            </Card>
 
-        {/* Features */}
-        <section className="border-b border-border bg-muted/30 py-12">
-          <div className="container mx-auto px-4">
-            <div className="grid gap-8 md:grid-cols-4">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 rounded-full bg-primary/10 p-4">
-                  <Truck className="h-6 w-6 text-primary" />
+            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                  <Zap className="h-6 w-6 text-green-600" />
                 </div>
-                <h3 className="font-semibold">Free Shipping</h3>
-                <p className="text-sm text-muted-foreground">On orders over $50</p>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 rounded-full bg-primary/10 p-4">
-                  <Shield className="h-6 w-6 text-primary" />
+                <CardTitle>Fast Delivery</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Quick delivery across Nigeria within 2-5 days</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                  <Star className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="font-semibold">Secure Payment</h3>
-                <p className="text-sm text-muted-foreground">100% protected</p>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 rounded-full bg-primary/10 p-4">
-                  <Award className="h-6 w-6 text-primary" />
+                <CardTitle>Quality Products</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Verified sellers and authentic products only</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                  <TrendingUp className="h-6 w-6 text-orange-600" />
                 </div>
-                <h3 className="font-semibold">Verified Vendors</h3>
-                <p className="text-sm text-muted-foreground">Trusted sellers only</p>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 rounded-full bg-primary/10 p-4">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold">Best Prices</h3>
-                <p className="text-sm text-muted-foreground">Competitive rates</p>
-              </div>
-            </div>
+                <CardTitle>Best Prices</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Competitive prices from multiple vendors</p>
+              </CardContent>
+            </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Categories */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-3xl font-bold">Shop by Category</h2>
-            <Button variant="ghost" asChild>
-              <Link href="/categories">
-                View All
-                <ArrowRight className="ml-2 h-4 w-4" />
+      {/* Categories Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Browse by Category</h2>
+            <p className="text-gray-600 text-lg">Find exactly what you're looking for</p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {categories.map((category) => (
+              <Link key={category.name} href={`/categories?category=${category.name}`}>
+                <Card className="hover:shadow-lg transition-all hover:scale-105 cursor-pointer border-2 hover:border-purple-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-5xl mb-3">{category.icon}</div>
+                    <h3 className="font-semibold mb-1">{category.name}</h3>
+                    <p className="text-sm text-gray-500">{category.count} items</p>
+                  </CardContent>
+                </Card>
               </Link>
-            </Button>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {mockCategories.map((category) => (
-              <CategoryCard key={category.id} category={category} />
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Featured Products */}
-        <section className="border-t border-border bg-muted/30 py-16">
-          <div className="container mx-auto px-4">
-            <div className="mb-8 flex items-center justify-between">
-              <h2 className="text-3xl font-bold">Featured Products</h2>
-              <Button variant="ghost" asChild>
-                <Link href="/products">
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+      {/* Featured Products Section */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="container mx-auto max-w-7xl">
+          <div className="flex justify-between items-center mb-12">
+            <div>
+              <h2 className="text-4xl font-bold mb-2">Featured Products</h2>
+              <p className="text-gray-600">Discover our handpicked selection</p>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {mockProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+            <Link href="/products">
+              <Button variant="outline">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Newsletter */}
-        <section className="border-t border-border py-16">
-          <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold">Stay Updated</h2>
-              <p className="mt-4 text-muted-foreground">
-                Subscribe to our newsletter for exclusive deals and new product announcements
-              </p>
-              <form className="mt-8 flex gap-2">
-                <Input type="email" placeholder="Enter your email" className="flex-1" />
-                <Button type="submit">Subscribe</Button>
-              </form>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <Link key={product.id} href={`/products/${product.id}`}>
+                  <Card className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer h-full">
+                    <div className="relative h-48 bg-gray-100 overflow-hidden rounded-t-lg">
+                      {product.imageUrl ? (
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <ShoppingBag className="h-16 w-16" />
+                        </div>
+                      )}
+                      <Badge className="absolute top-2 right-2 bg-green-500">New</Badge>
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold mb-2 line-clamp-2">{product.name}</h3>
+                      <p className="text-sm text-gray-500 mb-2">{product.vendorName}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl font-bold text-purple-600">
+                          ₦{product.price.toLocaleString()}
+                        </span>
+                        <div className="flex items-center text-yellow-500">
+                          <Star className="h-4 w-4 fill-current" />
+                          <span className="ml-1 text-sm text-gray-600">4.5</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
             </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            Ready to Start Selling?
+          </h2>
+          <p className="text-xl mb-8 text-white/90">
+            Join thousands of successful vendors on MarketHub. Set up your store in minutes and start earning today.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link href="/auth/vendor-register">
+              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
+                Become a Vendor
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/advertise">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                Advertise Your Business
+              </Button>
+            </Link>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
       <Footer />
     </div>

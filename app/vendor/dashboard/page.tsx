@@ -51,16 +51,18 @@ function VendorDashboardContent() {
     totalViews: 0,
     totalSales: 0,
   })
-  const [salesData, setSalesData] = useState([
-    { date: "Mon", sales: 0 },
-    { date: "Tue", sales: 0 },
-    { date: "Wed", sales: 0 },
-    { date: "Thu", sales: 0 },
-    { date: "Fri", sales: 0 },
-    { date: "Sat", sales: 0 },
-    { date: "Sun", sales: 0 },
-  ])
+  const [salesData, setSalesData] = useState<Array<{ date: string; sales: number }>>([])
   const [recentOrders, setRecentOrders] = useState<any[]>([])
+  const [dashboardStats, setDashboardStats] = useState({
+    todaysSales: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    inTransitOrders: 0,
+    cancelledOrders: 0,
+    totalReviews: 0,
+  })
 
   useEffect(() => {
     // Redirect if email not verified
@@ -85,15 +87,44 @@ function VendorDashboardContent() {
         const response = await fetch(`/api/vendor/stats?vendorId=${user.uid}`)
         const data = await response.json()
 
-        if (data.stats) {
-          setStats(data.stats)
-        }
-        if (data.salesData) {
-          setSalesData(data.salesData)
-        }
-        if (data.recentOrders) {
-          setRecentOrders(data.recentOrders)
-        }
+        setStats(data.stats || {})
+        setSalesData(data.salesData || [])
+        setRecentOrders(data.recentOrders || [])
+
+        // Fetch additional dashboard stats from orders
+        const ordersResponse = await fetch(`/api/vendor/orders?vendorId=${user.uid}`)
+        const ordersData = await ordersResponse.json()
+        const orders = ordersData.orders || []
+
+        // Calculate today's sales
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const todayOrders = orders.filter((order: any) => {
+          const orderDate = new Date(order.createdAt)
+          orderDate.setHours(0, 0, 0, 0)
+          return orderDate.getTime() === today.getTime()
+        })
+        const todaysSales = todayOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0)
+
+        // Count unique customers
+        const uniqueCustomers = new Set(orders.map((order: any) => order.userId || order.customerEmail)).size
+
+        // Count orders by status
+        const pendingOrders = orders.filter((o: any) => o.status === 'pending').length
+        const completedOrders = orders.filter((o: any) => o.status === 'completed' || o.status === 'delivered').length
+        const inTransitOrders = orders.filter((o: any) => o.status === 'shipped' || o.status === 'processing').length
+        const cancelledOrders = orders.filter((o: any) => o.status === 'cancelled').length
+
+        setDashboardStats({
+          todaysSales,
+          totalOrders: orders.length,
+          totalCustomers: uniqueCustomers,
+          pendingOrders,
+          completedOrders,
+          inTransitOrders,
+          cancelledOrders,
+          totalReviews: 0, // TODO: Implement reviews system
+        })
       } catch (error) {
         console.error("Error loading stats:", error)
       } finally {
@@ -288,10 +319,9 @@ function VendorDashboardContent() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Today's Sales</p>
-                        <p className="text-2xl font-bold">$2,847</p>
-                        <p className="text-xs text-green-600 flex items-center mt-1">
-                          <ArrowUpRight className="h-3 w-3 mr-1" />
-                          12.5% from yesterday
+                        <p className="text-2xl font-bold">₦{dashboardStats.todaysSales.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Sales made today
                         </p>
                       </div>
                       <div className="rounded-full bg-green-500/10 p-3">
@@ -306,10 +336,9 @@ function VendorDashboardContent() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Total Orders</p>
-                        <p className="text-2xl font-bold">156</p>
-                        <p className="text-xs text-green-600 flex items-center mt-1">
-                          <ArrowUpRight className="h-3 w-3 mr-1" />
-                          8.2% from last week
+                        <p className="text-2xl font-bold">{dashboardStats.totalOrders}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {dashboardStats.pendingOrders} pending
                         </p>
                       </div>
                       <div className="rounded-full bg-blue-500/10 p-3">
@@ -324,8 +353,8 @@ function VendorDashboardContent() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Products</p>
-                        <p className="text-2xl font-bold">48</p>
-                        <p className="text-xs text-muted-foreground mt-1">12 low stock</p>
+                        <p className="text-2xl font-bold">{stats.totalProducts}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{stats.lowStockProducts} low stock</p>
                       </div>
                       <div className="rounded-full bg-purple-500/10 p-3">
                         <Package className="h-5 w-5 text-purple-600" />
@@ -339,10 +368,9 @@ function VendorDashboardContent() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Customers</p>
-                        <p className="text-2xl font-bold">892</p>
-                        <p className="text-xs text-red-600 flex items-center mt-1">
-                          <ArrowDownRight className="h-3 w-3 mr-1" />
-                          2.1% from last month
+                        <p className="text-2xl font-bold">{dashboardStats.totalCustomers}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Unique buyers
                         </p>
                       </div>
                       <div className="rounded-full bg-orange-500/10 p-3">
@@ -385,7 +413,7 @@ function VendorDashboardContent() {
                         <Package className="h-4 w-4 text-orange-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium">12 products low stock</p>
+                        <p className="text-sm font-medium">{stats.lowStockProducts} products low stock</p>
                         <Button variant="link" className="h-auto p-0 text-xs" asChild>
                           <Link href="/vendor/products">View products →</Link>
                         </Button>
@@ -396,7 +424,7 @@ function VendorDashboardContent() {
                         <Clock className="h-4 w-4 text-orange-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium">23 orders pending</p>
+                        <p className="text-sm font-medium">{dashboardStats.pendingOrders} orders pending</p>
                         <Button variant="link" className="h-auto p-0 text-xs" asChild>
                           <Link href="/vendor/orders">Process orders →</Link>
                         </Button>
@@ -426,33 +454,33 @@ function VendorDashboardContent() {
                   <CardContent className="space-y-3">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium">Monthly Sales Target</p>
-                        <p className="text-sm text-muted-foreground">83%</p>
+                        <p className="text-sm font-medium">Monthly Sales</p>
+                        <p className="text-sm text-muted-foreground">₦{stats.totalRevenue.toLocaleString()}</p>
                       </div>
                       <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-600" style={{width: '83%'}}></div>
+                        <div className="h-full bg-blue-600" style={{width: '100%'}}></div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">$12,450 / $15,000</p>
+                      <p className="text-xs text-muted-foreground mt-1">Total revenue this month</p>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium">Customer Satisfaction</p>
-                        <p className="text-sm text-muted-foreground">96%</p>
+                        <p className="text-sm font-medium">Active Products</p>
+                        <p className="text-sm text-muted-foreground">{stats.activeProducts}/{stats.totalProducts}</p>
                       </div>
                       <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-600" style={{width: '96%'}}></div>
+                        <div className="h-full bg-blue-600" style={{width: `${stats.totalProducts > 0 ? (stats.activeProducts / stats.totalProducts * 100) : 0}%`}}></div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">4.8 / 5.0 rating</p>
+                      <p className="text-xs text-muted-foreground mt-1">Products currently active</p>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium">Response Time</p>
-                        <p className="text-sm text-muted-foreground">Good</p>
+                        <p className="text-sm font-medium">Order Fulfillment</p>
+                        <p className="text-sm text-muted-foreground">{dashboardStats.totalOrders > 0 ? Math.round((dashboardStats.completedOrders / dashboardStats.totalOrders) * 100) : 0}%</p>
                       </div>
                       <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-green-600" style={{width: '75%'}}></div>
+                        <div className="h-full bg-green-600" style={{width: `${dashboardStats.totalOrders > 0 ? (dashboardStats.completedOrders / dashboardStats.totalOrders * 100) : 0}%`}}></div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Avg. 2.5 hours</p>
+                      <p className="text-xs text-muted-foreground mt-1">{dashboardStats.completedOrders} of {dashboardStats.totalOrders} orders completed</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -470,28 +498,28 @@ function VendorDashboardContent() {
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                         <p className="text-sm">Completed Orders</p>
                       </div>
-                      <p className="text-sm font-bold">342</p>
+                      <p className="text-sm font-bold">{dashboardStats.completedOrders}</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Truck className="h-4 w-4 text-blue-600" />
                         <p className="text-sm">In Transit</p>
                       </div>
-                      <p className="text-sm font-bold">18</p>
+                      <p className="text-sm font-bold">{dashboardStats.inTransitOrders}</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <XCircle className="h-4 w-4 text-red-600" />
                         <p className="text-sm">Cancelled</p>
                       </div>
-                      <p className="text-sm font-bold">7</p>
+                      <p className="text-sm font-bold">{dashboardStats.cancelledOrders}</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Star className="h-4 w-4 text-yellow-600" />
                         <p className="text-sm">Total Reviews</p>
                       </div>
-                      <p className="text-sm font-bold">156</p>
+                      <p className="text-sm font-bold">{dashboardStats.totalReviews}</p>
                     </div>
                   </CardContent>
                 </Card>

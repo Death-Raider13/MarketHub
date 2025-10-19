@@ -54,20 +54,58 @@ export async function GET(request: NextRequest) {
       sum + (p.stats?.sales || 0), 0
     )
 
-    // Get recent orders (you'll need to implement orders collection)
-    // For now, return empty array
-    const recentOrders: any[] = []
+    // Get recent orders from orders collection
+    const ordersSnapshot = await adminDb
+      .collection("orders")
+      .where("vendorId", "==", vendorId)
+      .orderBy("createdAt", "desc")
+      .limit(5)
+      .get()
 
-    // Calculate sales trend (last 7 days)
-    const salesData = [
-      { date: "Mon", sales: 0 },
-      { date: "Tue", sales: 0 },
-      { date: "Wed", sales: 0 },
-      { date: "Thu", sales: 0 },
-      { date: "Fri", sales: 0 },
-      { date: "Sat", sales: 0 },
-      { date: "Sun", sales: 0 },
-    ]
+    const recentOrders = ordersSnapshot.docs.map((doc: any) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        customerName: data.customerName || data.shippingAddress?.fullName || "Guest",
+        total: data.total || 0,
+        status: data.status || "pending",
+        date: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        items: data.items || []
+      }
+    })
+
+    // Calculate sales trend (last 7 days) from actual orders
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    const recentOrdersSnapshot = await adminDb
+      .collection("orders")
+      .where("vendorId", "==", vendorId)
+      .where("createdAt", ">=", sevenDaysAgo)
+      .get()
+
+    // Group orders by day
+    const salesByDay: { [key: string]: number } = {}
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    
+    recentOrdersSnapshot.docs.forEach((doc: any) => {
+      const data = doc.data()
+      const orderDate = data.createdAt?.toDate?.() || new Date()
+      const dayName = daysOfWeek[orderDate.getDay()]
+      salesByDay[dayName] = (salesByDay[dayName] || 0) + (data.total || 0)
+    })
+
+    // Build sales data for last 7 days
+    const salesData = []
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const dayName = daysOfWeek[date.getDay()]
+      salesData.push({
+        date: dayName,
+        sales: salesByDay[dayName] || 0
+      })
+    }
 
     return NextResponse.json({
       stats: {

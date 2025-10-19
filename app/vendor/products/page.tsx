@@ -197,6 +197,58 @@ function VendorProductsContent() {
     }
   }
 
+  const handleDuplicate = async (product: Product) => {
+    if (!user) return
+
+    try {
+      toast.loading("Duplicating product...")
+      
+      // Create a copy of the product with modified name and reset stats
+      const duplicatedProduct = {
+        vendorId: user.uid,
+        name: `${product.name} (Copy)`,
+        description: product.description,
+        price: product.price,
+        compareAtPrice: product.comparePrice,
+        category: product.category,
+        subcategory: product.subcategory || "",
+        images: product.images || [],
+        stock: product.stock || 0,
+        sku: `${product.sku}-COPY-${Date.now()}`, // Generate unique SKU
+        type: product.type || "physical",
+        digitalFiles: product.digitalFiles || [],
+        variants: product.variants || [],
+        tags: product.tags || [],
+        status: "active",
+        shippingInfo: product.shippingInfo || {},
+        seoTitle: product.seoTitle || product.name,
+        seoDescription: product.seoDescription || product.description,
+      }
+
+      const response = await fetch("/api/vendor/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(duplicatedProduct),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.dismiss()
+        toast.success("Product duplicated successfully! 🎉")
+        // Reload products to show the new duplicate
+        loadProducts()
+      } else {
+        toast.dismiss()
+        toast.error(data.error || "Failed to duplicate product")
+      }
+    } catch (error) {
+      console.error("Error duplicating product:", error)
+      toast.dismiss()
+      toast.error("Failed to duplicate product")
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
