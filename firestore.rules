@@ -831,6 +831,84 @@ service cloud.firestore {
     }
     
     // ============================================
+    // CONVERSATIONS COLLECTION (Vendor-Customer Messaging)
+    // ============================================
+    match /conversations/{conversationId} {
+      // Customers can create conversations with vendors
+      allow create: if isSignedIn() &&
+                      request.resource.data.customerId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['vendorId', 'customerId', 'productId', 'status', 'createdAt']);
+      
+      // Participants can read their conversations
+      allow read: if isSignedIn() && 
+                    (resource.data.customerId == request.auth.uid || 
+                     resource.data.vendorId == request.auth.uid);
+      
+      // Admins can read all conversations
+      allow read: if isAdmin();
+      
+      // Participants can update conversation (mark as read, close, etc.)
+      allow update: if isSignedIn() && 
+                      (resource.data.customerId == request.auth.uid || 
+                       resource.data.vendorId == request.auth.uid) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['vendorId', 'customerId', 'productId']);
+      
+      // Admins can update any conversation
+      allow update: if isAdmin();
+      
+      // No one can delete conversations (audit trail)
+      allow delete: if false;
+      
+      // ============================================
+      // MESSAGES SUBCOLLECTION
+      // ============================================
+      match /messages/{messageId} {
+        // Conversation participants can create messages
+        allow create: if isSignedIn() &&
+                        request.resource.data.senderId == request.auth.uid &&
+                        (get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
+                         get(/databases/$(database)/documents/conversations/$(conversationId)).data.vendorId == request.auth.uid) &&
+                        request.resource.data.keys().hasAll(['senderId', 'message', 'createdAt']) &&
+                        request.resource.data.message.size() > 0 &&
+                        request.resource.data.message.size() <= 2000;
+        
+        // Conversation participants can read messages
+        allow read: if isSignedIn() &&
+                      (get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
+                       get(/databases/$(database)/documents/conversations/$(conversationId)).data.vendorId == request.auth.uid);
+        
+        // Admins can read all messages
+        allow read: if isAdmin();
+        
+        // No one can update or delete messages
+        allow update, delete: if false;
+      }
+    }
+    
+    // ============================================
+    // DIGITAL PRODUCTS COLLECTION (Customer Purchases)
+    // ============================================
+    match /digitalProducts/{digitalProductId} {
+      // System creates digital product records after purchase (via API with Admin SDK)
+      allow create: if false;
+      
+      // Customers can read their own digital products
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Vendors can read digital products they sold
+      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      
+      // Admins can read all digital products
+      allow read: if isAdmin();
+      
+      // System can update download count and last accessed (via API with Admin SDK)
+      allow update: if false;
+      
+      // No one can delete digital product records (audit trail)
+      allow delete: if false;
+    }
+    
+    // ============================================
     // DEFAULT DENY ALL
     // ============================================
     // Deny access to any collection not explicitly defined above
