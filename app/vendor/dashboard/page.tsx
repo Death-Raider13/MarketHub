@@ -85,9 +85,22 @@ function VendorDashboardContent() {
 
       try {
         const response = await fetch(`/api/vendor/stats?vendorId=${user.uid}`)
+        
+        if (!response.ok) {
+          console.error('Stats API error:', response.status)
+          throw new Error('Failed to fetch stats')
+        }
+        
         const data = await response.json()
 
-        setStats(data.stats || {})
+        setStats({
+          totalProducts: data.stats?.totalProducts || 0,
+          activeProducts: data.stats?.activeProducts || 0,
+          lowStockProducts: data.stats?.lowStockProducts || 0,
+          totalRevenue: data.stats?.totalRevenue || 0,
+          totalViews: data.stats?.totalViews || 0,
+          totalSales: data.stats?.totalSales || 0,
+        })
         setSalesData(data.salesData || [])
         setRecentOrders(data.recentOrders || [])
 
