@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 // GET - List all orders for vendor's products
 export async function GET(request: NextRequest) {
   try {

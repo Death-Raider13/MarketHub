@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 // GET - Get vendor profile
 export async function GET(request: NextRequest) {
   try {
