@@ -24,20 +24,45 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all orders that contain products from this vendor
-    const ordersSnapshot = await adminDb
-      .collection("orders")
-      .where("vendorId", "==", vendorId)
-      .orderBy("createdAt", "desc")
-      .get()
+    // Try using vendorIds array-contains query first
+    let ordersSnapshot
+    try {
+      ordersSnapshot = await adminDb
+        .collection("orders")
+        .where("vendorIds", "array-contains", vendorId)
+        .orderBy("createdAt", "desc")
+        .get()
+    } catch (error) {
+      // Fallback: get all orders and filter client-side
+      console.log("Falling back to client-side filtering for vendor orders")
+      ordersSnapshot = await adminDb
+        .collection("orders")
+        .orderBy("createdAt", "desc")
+        .limit(100) // Limit to prevent excessive reads
+        .get()
+    }
 
-    const orders = ordersSnapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    }))
+    // Filter and map orders
+    const orders = ordersSnapshot.docs
+      .filter((doc: any) => {
+        const data = doc.data()
+        // Check if any item in the order belongs to this vendor
+        return data.items?.some((item: any) => item.vendorId === vendorId)
+      })
+      .map((doc: any) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        }
+      })
 
-    return NextResponse.json({ orders })
+    return NextResponse.json({ 
+      orders,
+      success: true 
+    })
   } catch (error) {
     console.error("Error fetching orders:", error)
     return NextResponse.json(

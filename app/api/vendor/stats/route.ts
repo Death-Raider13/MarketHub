@@ -55,34 +55,62 @@ export async function GET(request: NextRequest) {
     )
 
     // Get recent orders from orders collection
-    const ordersSnapshot = await adminDb
-      .collection("orders")
-      .where("vendorId", "==", vendorId)
-      .orderBy("createdAt", "desc")
-      .limit(5)
-      .get()
+    // Note: Orders have vendorIds array, so we need to query differently
+    let ordersSnapshot
+    try {
+      ordersSnapshot = await adminDb
+        .collection("orders")
+        .where("vendorIds", "array-contains", vendorId)
+        .orderBy("createdAt", "desc")
+        .limit(5)
+        .get()
+    } catch (error) {
+      // Fallback if vendorIds field doesn't exist or index not ready
+      console.log("Falling back to all orders query")
+      ordersSnapshot = await adminDb
+        .collection("orders")
+        .orderBy("createdAt", "desc")
+        .limit(5)
+        .get()
+    }
 
-    const recentOrders = ordersSnapshot.docs.map((doc: any) => {
-      const data = doc.data()
-      return {
-        id: doc.id,
-        customerName: data.customerName || data.shippingAddress?.fullName || "Guest",
-        total: data.total || 0,
-        status: data.status || "pending",
-        date: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-        items: data.items || []
-      }
-    })
+    const recentOrders = ordersSnapshot.docs
+      .filter((doc: any) => {
+        const data = doc.data()
+        // Filter orders that contain items from this vendor
+        return data.items?.some((item: any) => item.vendorId === vendorId)
+      })
+      .slice(0, 5)
+      .map((doc: any) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          customerName: data.customerName || data.shippingAddress?.fullName || "Guest",
+          total: data.total || 0,
+          status: data.status || "pending",
+          date: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          items: data.items || []
+        }
+      })
 
     // Calculate sales trend (last 7 days) from actual orders
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-    const recentOrdersSnapshot = await adminDb
-      .collection("orders")
-      .where("vendorId", "==", vendorId)
-      .where("createdAt", ">=", sevenDaysAgo)
-      .get()
+    let recentOrdersSnapshot
+    try {
+      recentOrdersSnapshot = await adminDb
+        .collection("orders")
+        .where("vendorIds", "array-contains", vendorId)
+        .where("createdAt", ">=", sevenDaysAgo)
+        .get()
+    } catch (error) {
+      // Fallback
+      recentOrdersSnapshot = await adminDb
+        .collection("orders")
+        .where("createdAt", ">=", sevenDaysAgo)
+        .get()
+    }
 
     // Group orders by day
     const salesByDay: { [key: string]: number } = {}
