@@ -22,21 +22,24 @@ export async function GET(
       .orderBy('createdAt', 'desc')
       .get()
 
-    const reviews = reviewsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
-    }))
+    const reviews = reviewsSnapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate(),
+        updatedAt: data.updatedAt?.toDate()
+      }
+    })
 
     // Calculate review statistics
     const totalReviews = reviews.length
     const averageRating = totalReviews > 0 
-      ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+      ? reviews.reduce((sum: number, review: any) => sum + (review.rating || 0), 0) / totalReviews 
       : 0
 
     const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-    reviews.forEach(review => {
+    reviews.forEach((review: any) => {
       if (review.rating >= 1 && review.rating <= 5) {
         ratingDistribution[review.rating as keyof typeof ratingDistribution]++
       }

@@ -239,6 +239,12 @@ export function Header() {
                         <Link href="/account">My Account</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
+                        <Link href="/orders">
+                          <Package className="mr-2 h-4 w-4" />
+                          My Orders
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link href="/my-purchases">
                           <Package className="mr-2 h-4 w-4" />
                           My Purchases

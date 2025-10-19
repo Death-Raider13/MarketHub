@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Dialog,
   DialogContent,
@@ -386,7 +386,7 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarContent src={review.userAvatar} />
+                        <AvatarImage src={review.userAvatar} />
                         <AvatarFallback>
                           <User className="h-4 w-4" />
                         </AvatarFallback>

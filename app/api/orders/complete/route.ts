@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
-import { sendEmail } from '@/lib/email/send-email'
+
+// Email service - placeholder for now
+async function sendEmail(options: { to: string; subject: string; html: string }) {
+  console.log('📧 Email would be sent:', options)
+  // TODO: Implement with SendGrid, Mailgun, or other email service
+  return Promise.resolve({ success: true })
+}
 
 // Complete an order and create digital product access records
 export async function POST(request: NextRequest) {
