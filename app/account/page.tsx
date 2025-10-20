@@ -173,11 +173,45 @@ function AccountPageContent() {
           limit(10)
         )
         const snapshot = await getDocs(ordersQuery)
-        const ordersData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate() || new Date()
-        }))
+        
+        // Fetch product details for each order
+        const ordersData = await Promise.all(
+          snapshot.docs.map(async (docSnap) => {
+            const orderData = docSnap.data()
+            
+            // Enrich items with product images
+            const enrichedItems = await Promise.all(
+              (orderData.items || []).map(async (item: any) => {
+                try {
+                  // Fetch product details
+                  const productDoc = await getDocs(
+                    query(collection(db, 'products'), where('__name__', '==', item.productId))
+                  )
+                  
+                  if (!productDoc.empty) {
+                    const productData = productDoc.docs[0].data()
+                    return {
+                      ...item,
+                      image: productData.images?.[0] || null,
+                      productType: productData.productType || 'physical'
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error fetching product:', error)
+                }
+                return item
+              })
+            )
+            
+            return {
+              id: docSnap.id,
+              ...orderData,
+              items: enrichedItems,
+              createdAt: orderData.createdAt || new Date()
+            }
+          })
+        )
+        
         setOrders(ordersData)
       } catch (error) {
         console.error('Error loading orders:', error)
@@ -511,6 +545,31 @@ function AccountPageContent() {
     }
   }
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!user || !confirm('Are you sure you want to cancel this order?')) return
+    
+    try {
+      setSaving(true)
+      const orderRef = doc(db, 'orders', orderId)
+      await updateDoc(orderRef, {
+        status: 'cancelled',
+        updatedAt: new Date()
+      })
+      
+      // Update local state
+      setOrders(orders.map(order => 
+        order.id === orderId ? { ...order, status: 'cancelled' } : order
+      ))
+      
+      toast.success('Order cancelled successfully')
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      toast.error('Failed to cancel order')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "delivered":
@@ -763,13 +822,17 @@ function AccountPageContent() {
                                     </Badge>
                                   </div>
                                   <p className="text-sm text-muted-foreground mt-1">
-                                    Placed on {new Date(order.date).toLocaleDateString()}
+                                    Placed on {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('en-NG', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    }) : 'Invalid Date'}
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="font-semibold">₦{order.total.toLocaleString()}</p>
+                                  <p className="font-semibold">₦{(order.total || 0).toLocaleString()}</p>
                                   <p className="text-sm text-muted-foreground">
-                                    {order.items.length} item(s)
+                                    {order.items?.length || 0} item(s)
                                   </p>
                                 </div>
                               </div>
@@ -813,27 +876,29 @@ function AccountPageContent() {
 
                               {/* Order Actions */}
                               <div className="flex flex-wrap gap-2">
-                                <Button variant="outline" size="sm" asChild>
-                                  <Link href={`/orders/${order.id}`}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View Details
-                                  </Link>
+                                <Button variant="outline" size="sm" disabled>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
                                 </Button>
                                 {order.trackingNumber && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <Link href={`/orders/${order.id}/track`}>
-                                      <Truck className="mr-2 h-4 w-4" />
-                                      Track Order
-                                    </Link>
+                                  <Button variant="outline" size="sm" disabled>
+                                    <Truck className="mr-2 h-4 w-4" />
+                                    Track Order
                                   </Button>
                                 )}
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" disabled>
                                   <Download className="mr-2 h-4 w-4" />
                                   Invoice
                                 </Button>
-                                {order.status === "delivered" && (
-                                  <Button variant="outline" size="sm">
-                                    Reorder
+                                {(order.status === 'pending' || order.status === 'processing') && (
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => handleCancelOrder(order.id)}
+                                    disabled={saving}
+                                  >
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Cancel Order
                                   </Button>
                                 )}
                               </div>
