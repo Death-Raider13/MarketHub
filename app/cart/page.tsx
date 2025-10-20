@@ -14,7 +14,7 @@ export default function CartPage() {
   const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart()
 
   const tax = totalPrice * 0.1
-  const shipping = totalPrice > 50 ? 0 : 9.99
+  const shipping = totalPrice > 50000 ? 0 : 2500
   const total = totalPrice + tax + shipping
 
   if (items.length === 0) {
@@ -94,7 +94,7 @@ export default function CartPage() {
 
                           <div className="flex items-center gap-4">
                             <span className="text-lg font-bold">
-                              ${(item.product.price * item.quantity).toFixed(2)}
+                              ₦{(item.product.price * item.quantity).toLocaleString()}
                             </span>
                             <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.product.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
@@ -117,27 +117,27 @@ export default function CartPage() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${totalPrice.toFixed(2)}</span>
+                    <span className="font-medium">₦{totalPrice.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tax (10%)</span>
-                    <span className="font-medium">${tax.toFixed(2)}</span>
+                    <span className="font-medium">₦{tax.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium">{shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}</span>
+                    <span className="font-medium">{shipping === 0 ? "FREE" : `₦${shipping.toLocaleString()}`}</span>
                   </div>
 
                   {shipping > 0 && (
                     <div className="rounded-lg bg-blue-500/10 p-3 text-sm text-blue-600">
-                      Add ${(50 - totalPrice).toFixed(2)} more for free shipping!
+                      Add ₦{(50000 - totalPrice).toLocaleString()} more for free shipping!
                     </div>
                   )}
 
                   <div className="border-t border-border pt-4">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>₦{total.toLocaleString()}</span>
                     </div>
                   </div>
 

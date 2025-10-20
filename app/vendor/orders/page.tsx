@@ -240,7 +240,7 @@ function VendorOrdersContent() {
                                 {order.shippingAddress?.fullName || "N/A"}
                               </td>
                               <td className="p-4">
-                                ₦{typeof order.total === 'number' ? order.total.toFixed(2) : parseFloat(order.total || '0').toFixed(2)}
+                                ₦{typeof order.total === 'number' ? order.total.toLocaleString() : parseFloat(order.total || '0').toLocaleString()}
                               </td>
                               <td className="p-4">
                                 <Select

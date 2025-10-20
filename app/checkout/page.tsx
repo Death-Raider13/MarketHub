@@ -46,15 +46,11 @@ export default function CheckoutPage() {
   // Check if cart has physical products that require shipping
   const requiresShipping = items.some(item => item.product.requiresShipping)
   
-  // Currency conversion rate (USD to NGN)
-  const USD_TO_NGN_RATE = 1650 // Update this rate as needed
-  
   const tax = totalPrice * 0.1
   const shippingCost = requiresShipping 
-    ? (shippingMethod === "express" ? 19.99 : totalPrice > 50 ? 0 : 9.99)
+    ? (shippingMethod === "express" ? 5000 : totalPrice > 50000 ? 0 : 2500)
     : 0
   const total = totalPrice + tax + shippingCost
-  const totalInNGN = total * USD_TO_NGN_RATE
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -130,15 +126,13 @@ export default function CheckoutPage() {
       initiatePaystackPayment(
         {
           email: user!.email!,
-          amount: totalInNGN, // Convert USD to NGN
+          amount: total,
           orderId: orderId,
           customerName: shippingAddress.fullName,
           metadata: {
             items: items.length,
             shipping_method: shippingMethod,
-            user_id: user!.uid,
-            amount_usd: total,
-            conversion_rate: USD_TO_NGN_RATE
+            user_id: user!.uid
           }
         },
         async (reference) => {
@@ -383,7 +377,7 @@ export default function CheckoutPage() {
                                   <div className="text-sm text-muted-foreground">5-7 business days</div>
                                 </Label>
                               </div>
-                              <span className="font-medium">{totalPrice > 50 ? "FREE" : "$9.99"}</span>
+                              <span className="font-medium">{totalPrice > 50000 ? "FREE" : "₦2,500"}</span>
                             </div>
                             <div className="flex items-center justify-between rounded-lg border border-border p-4">
                               <div className="flex items-center space-x-2">
@@ -393,7 +387,7 @@ export default function CheckoutPage() {
                                   <div className="text-sm text-muted-foreground">2-3 business days</div>
                                 </Label>
                               </div>
-                              <span className="font-medium">$19.99</span>
+                              <span className="font-medium">₦5,000</span>
                             </div>
                           </RadioGroup>
                         </div>
@@ -440,7 +434,7 @@ export default function CheckoutPage() {
                           You will be redirected to Paystack's secure payment page to complete your transaction.
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Amount to pay: <span className="font-bold">₦{totalInNGN.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> (${total.toFixed(2)} USD)
+                          Amount to pay: <span className="font-bold">₦{total.toLocaleString()}</span>
                         </p>
                       </div>
 
@@ -510,7 +504,7 @@ export default function CheckoutPage() {
                         <div className="flex-1">
                           <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>
                           <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                          <p className="text-sm font-medium">${(item.product.price * item.quantity).toFixed(2)}</p>
+                          <p className="text-sm font-medium">₦{(item.product.price * item.quantity).toLocaleString()}</p>
                         </div>
                       </div>
                     ))}
@@ -519,16 +513,16 @@ export default function CheckoutPage() {
                   <div className="border-t border-border pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium">${totalPrice.toFixed(2)}</span>
+                      <span className="font-medium">₦{totalPrice.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Tax (10%)</span>
-                      <span className="font-medium">${tax.toFixed(2)}</span>
+                      <span className="font-medium">₦{tax.toLocaleString()}</span>
                     </div>
                     {requiresShipping && (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Shipping</span>
-                        <span className="font-medium">{shippingCost === 0 ? "FREE" : `$${shippingCost.toFixed(2)}`}</span>
+                        <span className="font-medium">{shippingCost === 0 ? "FREE" : `₦${shippingCost.toLocaleString()}`}</span>
                       </div>
                     )}
                     {!requiresShipping && (
@@ -539,14 +533,10 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  <div className="border-t border-border pt-4 space-y-1">
+                  <div className="border-t border-border pt-4">
                     <div className="flex justify-between text-lg font-bold">
-                      <span>Total (USD)</span>
-                      <span>${total.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Total (NGN)</span>
-                      <span>₦{totalInNGN.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span>₦{total.toLocaleString()}</span>
                     </div>
                   </div>
                 </CardContent>

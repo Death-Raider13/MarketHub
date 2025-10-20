@@ -120,7 +120,7 @@ function AdminAdvertisingContent() {
                 <Card>
                   <CardContent className="pt-6">
                     <p className="text-sm text-muted-foreground">Total Revenue</p>
-                    <p className="text-2xl font-bold">$12,450</p>
+                    <p className="text-2xl font-bold">₦12,450,000</p>
                   </CardContent>
                 </Card>
               </div>

@@ -167,7 +167,7 @@ function AdminProductsContent() {
                               </div>
                             </td>
                             <td className="p-4 text-sm">{product.vendorName}</td>
-                            <td className="p-4 font-medium">${product.price.toFixed(2)}</td>
+                            <td className="p-4 font-medium">₦{product.price.toLocaleString()}</td>
                             <td className="p-4">
                               <Badge
                                 variant={product.status === "active" ? "default" : "secondary"}

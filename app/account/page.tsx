@@ -218,7 +218,7 @@ function AccountPageContent() {
                 <Package className="mr-2 h-4 w-4" />
                 Orders
               </Button>
-              <Link href="/dashboard/purchases">
+              <Link href="/my-purchases">
                 <Button
                   variant="ghost"
                   className="w-full justify-start"
@@ -370,7 +370,7 @@ function AccountPageContent() {
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="font-semibold">${order.total.toFixed(2)}</p>
+                                  <p className="font-semibold">₦{order.total.toLocaleString()}</p>
                                   <p className="text-sm text-muted-foreground">
                                     {order.items.length} item(s)
                                   </p>
@@ -397,7 +397,7 @@ function AccountPageContent() {
                                         Qty: {item.quantity}
                                       </p>
                                     </div>
-                                    <p className="font-medium">${item.price.toFixed(2)}</p>
+                                    <p className="font-medium">₦{item.price.toLocaleString()}</p>
                                   </div>
                                 ))}
                               </div>

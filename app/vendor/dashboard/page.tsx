@@ -592,7 +592,7 @@ function VendorDashboardContent() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">${order.total.toFixed(2)}</p>
+                          <p className="font-medium">₦{order.total.toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground capitalize">{order.status}</p>
                         </div>
                       </div>

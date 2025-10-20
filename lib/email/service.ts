@@ -181,7 +181,7 @@ export async function sendOrderConfirmationEmail(
                 `).join('')}
                 <p style="font-size: 13px; color: #6b7280; margin-top: 15px; margin-bottom: 0;">
                   💡 <strong>Tip:</strong> You can also access your downloads anytime from your 
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/purchases" style="color: #3b82f6;">Purchase History</a>.
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/my-purchases" style="color: #3b82f6;">Purchase History</a>.
                 </p>
               </div>
             ` : ''}

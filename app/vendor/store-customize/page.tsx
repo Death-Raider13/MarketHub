@@ -816,7 +816,7 @@ function StoreCustomizeContent() {
                           <h1 className="text-3xl font-bold">Welcome to Our Store</h1>
                           <h2 className="text-2xl font-semibold">Featured Products</h2>
                           <p className="text-base">
-                            Discover amazing products at great prices. Shop now and enjoy free shipping on orders over $50.
+                            Discover amazing products at great prices. Shop now and enjoy free shipping on orders over ₦50,000.
                           </p>
                           <div className="flex gap-2">
                             <span className="text-sm px-3 py-1 bg-primary/10 rounded">New Arrival</span>

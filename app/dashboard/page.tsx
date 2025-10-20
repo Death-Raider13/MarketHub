@@ -95,7 +95,7 @@ function DashboardContent() {
                   My Orders
                 </Button>
               </Link>
-              <Link href="/dashboard/purchases">
+              <Link href="/my-purchases">
                 <Button variant="ghost" className="w-full justify-start">
                   <Download className="mr-2 h-4 w-4" />
                   My Purchases
@@ -179,7 +179,7 @@ function DashboardContent() {
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">${order.total.toFixed(2)}</p>
+                          <p className="font-bold">₦{order.total.toLocaleString()}</p>
                           <Button variant="outline" size="sm" className="mt-2 bg-transparent">
                             View Details
                           </Button>

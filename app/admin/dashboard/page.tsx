@@ -32,7 +32,7 @@ const revenueData = [
 const recentActivities = [
   { type: "vendor", message: "New vendor registration: TechStore Pro", time: "2 hours ago" },
   { type: "product", message: "Product pending approval: Wireless Headphones", time: "4 hours ago" },
-  { type: "order", message: "High-value order placed: $1,299.99", time: "6 hours ago" },
+  { type: "order", message: "High-value order placed: ₦1,299,999", time: "6 hours ago" },
   { type: "ad", message: "New ad campaign submitted for review", time: "8 hours ago" },
 ]
 
@@ -104,7 +104,7 @@ function AdminDashboardContent() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Total Revenue</p>
-                        <p className="text-2xl font-bold">$124,580</p>
+                        <p className="text-2xl font-bold">₦124,580,000</p>
                         <p className="text-xs text-green-600 flex items-center mt-1">
                           <TrendingUp className="h-3 w-3 mr-1" />
                           18.2% from last month

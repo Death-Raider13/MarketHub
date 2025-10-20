@@ -419,7 +419,7 @@ function VendorProductsContent() {
                             </td>
                             <td className="p-4 text-sm">{product.sku}</td>
                             <td className="p-4 text-sm font-medium">
-                              ₦{typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price || '0').toFixed(2)}
+                              ₦{typeof product.price === 'number' ? product.price.toLocaleString() : parseFloat(product.price || '0').toLocaleString()}
                             </td>
                             <td className="p-4">
                               {editingStock === product.id ? (
