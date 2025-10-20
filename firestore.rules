@@ -161,15 +161,23 @@ service cloud.firestore {
       // This allows the API route to update order status after payment
       allow update: if true;
       
-      // Customers can update their own pending orders (cancel)
-      allow update: if isOwner(resource.data.customerId) && 
-                      resource.data.status == 'pending' &&
-                      request.resource.data.status == 'cancelled';
+      // Customers can cancel their own orders (only if pending or paid, not shipped yet)
+      allow update: if isSignedIn() && 
+                      (resource.data.customerId == request.auth.uid || resource.data.userId == request.auth.uid) &&
+                      resource.data.status in ['pending', 'paid'] &&
+                      request.resource.data.status == 'cancelled' &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['total', 'items', 'userId', 'customerId']);
       
-      // Vendors can update order status for their items
+      // Vendors can update order status for their items (but NOT cancelled orders)
+      // Physical products: paid -> processing -> shipped -> delivered
+      // Digital products: paid -> delivered
+      // Services: paid -> processing -> delivered
       allow update: if isVerifiedVendor() && 
                       request.auth.uid in resource.data.vendorIds &&
-                      request.resource.data.status in ['processing', 'shipped', 'delivered'];
+                      resource.data.status != 'cancelled' &&
+                      resource.data.status in ['paid', 'processing', 'shipped'] &&
+                      request.resource.data.status in ['processing', 'shipped', 'delivered'] &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['total', 'items', 'userId', 'customerId', 'vendorIds']);
       
       // Admins can update any order
       allow update: if isAdmin();

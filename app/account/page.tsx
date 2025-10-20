@@ -545,7 +545,13 @@ function AccountPageContent() {
     }
   }
 
-  const handleCancelOrder = async (orderId: string) => {
+  const handleCancelOrder = async (orderId: string, currentStatus: string) => {
+    // Only allow cancellation for pending or paid orders (not yet shipped)
+    if (currentStatus !== 'pending' && currentStatus !== 'paid') {
+      toast.error('This order cannot be cancelled as it has already been processed')
+      return
+    }
+    
     if (!user || !confirm('Are you sure you want to cancel this order?')) return
     
     try {
@@ -553,6 +559,8 @@ function AccountPageContent() {
       const orderRef = doc(db, 'orders', orderId)
       await updateDoc(orderRef, {
         status: 'cancelled',
+        cancelledAt: new Date(),
+        cancelledBy: 'customer',
         updatedAt: new Date()
       })
       
@@ -890,11 +898,11 @@ function AccountPageContent() {
                                   <Download className="mr-2 h-4 w-4" />
                                   Invoice
                                 </Button>
-                                {(order.status === 'pending' || order.status === 'processing') && (
+                                {(order.status === 'pending' || order.status === 'paid') && (
                                   <Button 
                                     variant="destructive" 
                                     size="sm"
-                                    onClick={() => handleCancelOrder(order.id)}
+                                    onClick={() => handleCancelOrder(order.id, order.status)}
                                     disabled={saving}
                                   >
                                     <XCircle className="mr-2 h-4 w-4" />
