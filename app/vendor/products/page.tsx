@@ -54,7 +54,9 @@ const mockProducts: Product[] = [
     reviewCount: 128,
     featured: true,
     sponsored: false,
-    status: "active", // pending, active, inactive, rejected
+    status: "active",
+    productType: "physical",
+    requiresShipping: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -73,7 +75,9 @@ const mockProducts: Product[] = [
     reviewCount: 45,
     featured: false,
     sponsored: false,
-    status: "pending", // Waiting for admin approval
+    status: "pending",
+    productType: "physical",
+    requiresShipping: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -206,23 +210,22 @@ function VendorProductsContent() {
       // Create a copy of the product with modified name and reset stats
       const duplicatedProduct = {
         vendorId: user.uid,
+        vendorName: product.vendorName,
         name: `${product.name} (Copy)`,
         description: product.description,
         price: product.price,
-        compareAtPrice: product.comparePrice,
+        comparePrice: product.comparePrice,
         category: product.category,
-        subcategory: product.subcategory || "",
         images: product.images || [],
         stock: product.stock || 0,
-        sku: `${product.sku}-COPY-${Date.now()}`, // Generate unique SKU
-        type: product.type || "physical",
-        digitalFiles: product.digitalFiles || [],
-        variants: product.variants || [],
-        tags: product.tags || [],
+        sku: `${product.sku}-COPY-${Date.now()}`,
+        productType: product.productType || "physical",
+        requiresShipping: product.requiresShipping !== false,
         status: "active",
-        shippingInfo: product.shippingInfo || {},
-        seoTitle: product.seoTitle || product.name,
-        seoDescription: product.seoDescription || product.description,
+        rating: 0,
+        reviewCount: 0,
+        featured: false,
+        sponsored: false,
       }
 
       const response = await fetch("/api/vendor/products", {
@@ -237,7 +240,11 @@ function VendorProductsContent() {
         toast.dismiss()
         toast.success("Product duplicated successfully! 🎉")
         // Reload products to show the new duplicate
-        loadProducts()
+        const response2 = await fetch(`/api/vendor/products?vendorId=${user.uid}`)
+        const data2 = await response2.json()
+        if (data2.products) {
+          setProducts(data2.products)
+        }
       } else {
         toast.dismiss()
         toast.error(data.error || "Failed to duplicate product")

@@ -93,25 +93,34 @@ export default function CheckoutPage() {
     try {
       // Create order in database first
       const orderData = {
-        customerId: user!.uid, // Changed from userId to match Firestore rules
+        customerId: user!.uid,
         userId: user!.uid,
-        userEmail: user!.email,
+        userEmail: user!.email || '',
         items: items.map(item => ({
           productId: item.product.id,
           productName: item.product.name,
           productPrice: item.product.price,
           quantity: item.quantity,
           vendorId: item.product.vendorId,
-          vendorName: item.product.vendorName
+          vendorName: item.product.vendorName || 'Unknown Vendor'
         })),
-        vendorIds: [...new Set(items.map(item => item.product.vendorId))], // For Firestore rules
+        vendorIds: [...new Set(items.map(item => item.product.vendorId))],
         subtotal: totalPrice,
         tax: tax,
         shipping: shippingCost,
         total: total,
         status: 'pending',
         paymentStatus: 'pending',
-        shippingAddress: shippingAddress,
+        shippingAddress: {
+          fullName: shippingAddress.fullName || '',
+          addressLine1: shippingAddress.addressLine1 || '',
+          addressLine2: shippingAddress.addressLine2 || '',
+          city: shippingAddress.city || '',
+          state: shippingAddress.state || '',
+          zipCode: shippingAddress.zipCode || '',
+          country: shippingAddress.country || 'Nigeria',
+          phone: shippingAddress.phone || ''
+        },
         shippingMethod: shippingMethod,
         paymentMethod: 'paystack',
         createdAt: new Date(),
