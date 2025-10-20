@@ -275,12 +275,74 @@ function AddProductContent() {
                           <SelectTrigger id="category">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="electronics">Electronics</SelectItem>
-                            <SelectItem value="fashion">Fashion</SelectItem>
+                          <SelectContent className="max-h-[300px]">
+                            {/* Electronics & Technology */}
+                            <SelectItem value="electronics">Electronics & Gadgets</SelectItem>
+                            <SelectItem value="computers">Computers & Accessories</SelectItem>
+                            <SelectItem value="phones">Phones & Tablets</SelectItem>
+                            <SelectItem value="gaming">Gaming & Consoles</SelectItem>
+                            
+                            {/* Fashion & Beauty */}
+                            <SelectItem value="fashion-men">Men's Fashion</SelectItem>
+                            <SelectItem value="fashion-women">Women's Fashion</SelectItem>
+                            <SelectItem value="fashion-kids">Kids & Baby Fashion</SelectItem>
+                            <SelectItem value="shoes">Shoes & Footwear</SelectItem>
+                            <SelectItem value="bags">Bags & Accessories</SelectItem>
+                            <SelectItem value="beauty">Beauty & Personal Care</SelectItem>
+                            <SelectItem value="jewelry">Jewelry & Watches</SelectItem>
+                            
+                            {/* Home & Living */}
                             <SelectItem value="home">Home & Garden</SelectItem>
-                            <SelectItem value="sports">Sports</SelectItem>
-                            <SelectItem value="books">Books</SelectItem>
+                            <SelectItem value="furniture">Furniture</SelectItem>
+                            <SelectItem value="appliances">Home Appliances</SelectItem>
+                            <SelectItem value="kitchen">Kitchen & Dining</SelectItem>
+                            <SelectItem value="decor">Home Decor</SelectItem>
+                            
+                            {/* Sports & Outdoors */}
+                            <SelectItem value="sports">Sports & Fitness</SelectItem>
+                            <SelectItem value="outdoor">Outdoor & Camping</SelectItem>
+                            
+                            {/* Books & Media */}
+                            <SelectItem value="books">Books & Stationery</SelectItem>
+                            <SelectItem value="music">Music & Instruments</SelectItem>
+                            
+                            {/* Food & Groceries */}
+                            <SelectItem value="food">Food & Beverages</SelectItem>
+                            <SelectItem value="groceries">Groceries & Essentials</SelectItem>
+                            
+                            {/* Health & Wellness */}
+                            <SelectItem value="health">Health & Wellness</SelectItem>
+                            <SelectItem value="supplements">Supplements & Vitamins</SelectItem>
+                            
+                            {/* Automotive */}
+                            <SelectItem value="automotive">Automotive & Parts</SelectItem>
+                            
+                            {/* Toys & Kids */}
+                            <SelectItem value="toys">Toys & Games</SelectItem>
+                            <SelectItem value="baby">Baby Products</SelectItem>
+                            
+                            {/* Digital Products */}
+                            <SelectItem value="digital-courses">Online Courses & Training</SelectItem>
+                            <SelectItem value="digital-ebooks">eBooks & Digital Books</SelectItem>
+                            <SelectItem value="digital-software">Software & Apps</SelectItem>
+                            <SelectItem value="digital-templates">Templates & Graphics</SelectItem>
+                            <SelectItem value="digital-music">Music & Audio</SelectItem>
+                            <SelectItem value="digital-video">Videos & Tutorials</SelectItem>
+                            <SelectItem value="digital-photography">Photography & Stock Images</SelectItem>
+                            
+                            {/* Services */}
+                            <SelectItem value="service-consulting">Consulting & Coaching</SelectItem>
+                            <SelectItem value="service-design">Design & Creative</SelectItem>
+                            <SelectItem value="service-writing">Writing & Translation</SelectItem>
+                            <SelectItem value="service-marketing">Marketing & Advertising</SelectItem>
+                            <SelectItem value="service-tech">Tech & Programming</SelectItem>
+                            <SelectItem value="service-business">Business Services</SelectItem>
+                            <SelectItem value="service-education">Education & Tutoring</SelectItem>
+                            <SelectItem value="service-events">Events & Entertainment</SelectItem>
+                            <SelectItem value="service-repair">Repair & Maintenance</SelectItem>
+                            
+                            {/* Other */}
+                            <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

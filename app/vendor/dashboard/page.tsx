@@ -53,6 +53,7 @@ function VendorDashboardContent() {
   })
   const [salesData, setSalesData] = useState<Array<{ date: string; sales: number }>>([])
   const [recentOrders, setRecentOrders] = useState<any[]>([])
+  const [topProducts, setTopProducts] = useState<any[]>([])
   const [dashboardStats, setDashboardStats] = useState({
     todaysSales: 0,
     totalOrders: 0,
@@ -138,6 +139,35 @@ function VendorDashboardContent() {
           cancelledOrders,
           totalReviews: 0, // TODO: Implement reviews system
         })
+
+        // Calculate top selling products from orders
+        const productSales: { [key: string]: { name: string; sold: number; revenue: number; image?: string } } = {}
+        
+        orders.forEach((order: any) => {
+          if (order.items && Array.isArray(order.items)) {
+            order.items.forEach((item: any) => {
+              const productId = item.productId || item.id
+              if (!productSales[productId]) {
+                productSales[productId] = {
+                  name: item.name || item.productName || 'Unknown Product',
+                  sold: 0,
+                  revenue: 0,
+                  image: item.image || item.imageUrl
+                }
+              }
+              productSales[productId].sold += item.quantity || 1
+              productSales[productId].revenue += (item.price || 0) * (item.quantity || 1)
+            })
+          }
+        })
+
+        // Convert to array and sort by revenue
+        const topProductsArray = Object.entries(productSales)
+          .map(([id, data]) => ({ id, ...data }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 3) // Top 3 products
+
+        setTopProducts(topProductsArray)
       } catch (error) {
         console.error("Error loading stats:", error)
       } finally {
@@ -579,60 +609,42 @@ function VendorDashboardContent() {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                          <Package className="h-5 w-5 text-muted-foreground" />
+                    {topProducts.length > 0 ? (
+                      topProducts.map((product, index) => (
+                        <div key={product.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden">
+                              {product.image ? (
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-sm text-muted-foreground">{product.sold} sold</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">₦{product.revenue.toLocaleString()}</p>
+                            <p className={`text-xs flex items-center justify-end ${
+                              index === 0 ? 'text-green-600' : index === 1 ? 'text-blue-600' : 'text-orange-600'
+                            }`}>
+                              {index === 0 && <TrendingUp className="h-3 w-3 mr-1" />}
+                              {index === 1 && <ArrowUpRight className="h-3 w-3 mr-1" />}
+                              {index === 2 && <ArrowDownRight className="h-3 w-3 mr-1" />}
+                              #{index + 1}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">Wireless Headphones</p>
-                          <p className="text-sm text-muted-foreground">45 sold</p>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No sales data yet</p>
+                        <p className="text-xs">Start selling to see your top products here</p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">$8,955</p>
-                        <p className="text-xs text-green-600 flex items-center justify-end">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +12%
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                          <Package className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-medium">Smart Watch</p>
-                          <p className="text-sm text-muted-foreground">32 sold</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">$6,400</p>
-                        <p className="text-xs text-green-600 flex items-center justify-end">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +8%
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                          <Package className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-medium">Bluetooth Speaker</p>
-                          <p className="text-sm text-muted-foreground">28 sold</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">$4,200</p>
-                        <p className="text-xs text-red-600 flex items-center justify-end">
-                          <TrendingDown className="h-3 w-3 mr-1" />
-                          -3%
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

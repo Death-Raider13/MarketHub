@@ -112,8 +112,8 @@ service cloud.firestore {
                       request.resource.data.price > 0 &&
                       request.resource.data.stock >= 0;
       
-      // Everyone can read active/approved products
-      allow read: if resource.data.status == 'active' && resource.data.approved == true;
+      // Everyone can read approved/active products (public access)
+      allow read: if resource.data.status in ['active', 'approved'];
       
       // Vendors can read their own products (any status)
       allow read: if isVendorOwner(resource.data.vendorId);
@@ -646,49 +646,6 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
     
-    // ============================================
-    // PRODUCTS COLLECTION (Vendor Products)
-    // ============================================
-    match /products/{productId} {
-      // Anyone can read active products
-      allow read: if resource.data.status == 'active';
-      
-      // Vendors can read their own products (any status)
-      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
-      
-      // Vendors can create products (will be handled by Admin SDK in API routes)
-      // But we allow client-side reads for vendor's own products
-      allow create: if false; // Only via API routes with Admin SDK
-      
-      // Vendors can update their own products (except status if pending/rejected)
-      allow update: if false; // Only via API routes with Admin SDK
-      
-      // Vendors can delete (archive) their own products
-      allow delete: if false; // Only via API routes with Admin SDK
-      
-      // Admins can do everything
-      allow read, write: if isAdmin();
-    }
-    
-    // ============================================
-    // ORDERS COLLECTION (Customer Orders)
-    // ============================================
-    match /orders/{orderId} {
-      // Customers can read their own orders
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      
-      // Vendors can read orders for their products
-      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
-      
-      // Only customers can create orders (via checkout)
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // Vendors can update order status (via API with Admin SDK)
-      allow update: if false; // Only via API routes with Admin SDK
-      
-      // Admins can do everything
-      allow read, write: if isAdmin();
-    }
     
     // ============================================
     // AD CAMPAIGNS COLLECTION (Advertiser Campaigns)
