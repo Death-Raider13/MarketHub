@@ -88,14 +88,18 @@ export default function HomePage() {
                 Shop from thousands of verified vendors. Quality products, secure payments, and fast delivery across Nigeria.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
-                  <ShoppingBag className="mr-2 h-5 w-5" />
-                  Start Shopping
-                </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  Become a Seller
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <Link href="/products">
+                  <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
+                    <ShoppingBag className="mr-2 h-5 w-5" />
+                    Start Shopping
+                  </Button>
+                </Link>
+                <Link href="/auth/vendor-register-new">
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                    Become a Seller
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
               </div>
               
               {/* Stats */}
@@ -212,7 +216,7 @@ export default function HomePage() {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.map((category) => (
-              <Link key={category.name} href={`/categories?category=${category.name}`}>
+              <Link key={category.name} href={`/products`}>
                 <Card className="hover:shadow-lg transition-all hover:scale-105 cursor-pointer border-2 hover:border-purple-500">
                   <CardContent className="p-6 text-center">
                     <div className="text-5xl mb-3">{category.icon}</div>
@@ -304,15 +308,15 @@ export default function HomePage() {
             Join thousands of successful vendors on MarketHub. Set up your store in minutes and start earning today.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link href="/auth/vendor-register">
+            <Link href="/auth/vendor-register-new">
               <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
                 Become a Vendor
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/advertise">
+            <Link href="/auth/vendor-register-new">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                Advertise Your Business
+                Start Selling Today
               </Button>
             </Link>
           </div>
