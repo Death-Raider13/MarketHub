@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,13 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { db, auth } from "@/lib/firebase/config"
+import { collection, query, where, getDocs, orderBy, limit, addDoc, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore"
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth"
+import { useCart } from "@/lib/cart-context"
+import { ProductCard } from "@/components/product-card"
+import type { Product } from "@/lib/types"
+import { toast } from "sonner"
 
 // Mock data - replace with real data from Firebase
 const mockOrders = [
@@ -115,29 +122,394 @@ const mockAddresses = [
   },
 ]
 
-const mockPaymentMethods = [
-  {
-    id: "1",
-    type: "Visa",
-    last4: "4242",
-    expiryMonth: "12",
-    expiryYear: "2025",
-    isDefault: true,
-  },
-  {
-    id: "2",
-    type: "Mastercard",
-    last4: "5555",
-    expiryMonth: "06",
-    expiryYear: "2026",
-    isDefault: false,
-  },
-]
-
 function AccountPageContent() {
   const { user, userProfile } = useAuth()
+  const { addToCart } = useCart()
   const [activeTab, setActiveTab] = useState("profile")
   const [isEditing, setIsEditing] = useState(false)
+  const [orders, setOrders] = useState<any[]>([])
+  const [wishlist, setWishlist] = useState<Product[]>([])
+  const [addresses, setAddresses] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [profileData, setProfileData] = useState({
+    displayName: '',
+    phone: '',
+    birthday: ''
+  })
+  const [saving, setSaving] = useState(false)
+  const [showAddressForm, setShowAddressForm] = useState(false)
+  const [editingAddress, setEditingAddress] = useState<any>(null)
+  const [addressForm, setAddressForm] = useState({
+    type: 'Home',
+    fullName: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'Nigeria',
+    phone: '',
+    isDefault: false
+  })
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Load orders from Firestore
+  useEffect(() => {
+    async function loadOrders() {
+      if (!user) return
+      
+      try {
+        setLoading(true)
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc'),
+          limit(10)
+        )
+        const snapshot = await getDocs(ordersQuery)
+        const ordersData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date()
+        }))
+        setOrders(ordersData)
+      } catch (error) {
+        console.error('Error loading orders:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadOrders()
+  }, [user])
+
+  // Load profile data
+  useEffect(() => {
+    if (userProfile) {
+      setProfileData({
+        displayName: userProfile.displayName || '',
+        phone: userProfile.phone || '',
+        birthday: userProfile.birthday || ''
+      })
+    }
+  }, [userProfile])
+
+  // Load addresses from Firestore
+  useEffect(() => {
+    async function loadAddresses() {
+      if (!user) return
+      
+      try {
+        const addressesQuery = query(
+          collection(db, 'addresses'),
+          where('userId', '==', user.uid)
+        )
+        const snapshot = await getDocs(addressesQuery)
+        const addressesData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        setAddresses(addressesData)
+      } catch (error) {
+        console.error('Error loading addresses:', error)
+      }
+    }
+    
+    loadAddresses()
+  }, [user])
+
+  // Load wishlist from Firestore
+  useEffect(() => {
+    async function loadWishlist() {
+      if (!user) return
+      
+      try {
+        const wishlistQuery = query(
+          collection(db, 'wishlists'),
+          where('userId', '==', user.uid)
+        )
+        const snapshot = await getDocs(wishlistQuery)
+        const productIds = snapshot.docs.map(doc => doc.data().productId)
+        
+        if (productIds.length > 0) {
+          const productsQuery = query(
+            collection(db, 'products'),
+            where('__name__', 'in', productIds.slice(0, 10))
+          )
+          const productsSnapshot = await getDocs(productsQuery)
+          const productsData = productsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as Product[]
+          setWishlist(productsData)
+        }
+      } catch (error) {
+        console.error('Error loading wishlist:', error)
+      }
+    }
+    
+    loadWishlist()
+  }, [user])
+
+  const removeFromWishlist = async (productId: string) => {
+    if (!user) return
+    
+    try {
+      const wishlistQuery = query(
+        collection(db, 'wishlists'),
+        where('userId', '==', user.uid),
+        where('productId', '==', productId)
+      )
+      const snapshot = await getDocs(wishlistQuery)
+      
+      for (const docSnap of snapshot.docs) {
+        await deleteDoc(doc(db, 'wishlists', docSnap.id))
+      }
+      
+      setWishlist(wishlist.filter(p => p.id !== productId))
+      toast.success('Removed from wishlist')
+    } catch (error) {
+      console.error('Error removing from wishlist:', error)
+      toast.error('Failed to remove from wishlist')
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    if (!user) return
+    
+    try {
+      setSaving(true)
+      
+      // Update user profile in Firestore
+      const userRef = doc(db, 'users', user.uid)
+      await updateDoc(userRef, {
+        displayName: profileData.displayName,
+        phone: profileData.phone,
+        birthday: profileData.birthday,
+        updatedAt: new Date()
+      })
+      
+      setIsEditing(false)
+      toast.success('Profile updated successfully!')
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      toast.error('Failed to update profile')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleAddAddress = () => {
+    setEditingAddress(null)
+    setAddressForm({
+      type: 'Home',
+      fullName: '',
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'Nigeria',
+      phone: '',
+      isDefault: false
+    })
+    setShowAddressForm(true)
+  }
+
+  const handleEditAddress = (address: any) => {
+    setEditingAddress(address)
+    setAddressForm({
+      type: address.type || 'Home',
+      fullName: address.fullName || '',
+      addressLine1: address.addressLine1 || '',
+      addressLine2: address.addressLine2 || '',
+      city: address.city || '',
+      state: address.state || '',
+      zipCode: address.zipCode || '',
+      country: address.country || 'Nigeria',
+      phone: address.phone || '',
+      isDefault: address.isDefault || false
+    })
+    setShowAddressForm(true)
+  }
+
+  const handleSaveAddress = async () => {
+    if (!user) return
+    
+    try {
+      setSaving(true)
+      
+      if (editingAddress) {
+        // Update existing address
+        const addressRef = doc(db, 'addresses', editingAddress.id)
+        await updateDoc(addressRef, {
+          ...addressForm,
+          updatedAt: new Date()
+        })
+        
+        setAddresses(addresses.map(addr => 
+          addr.id === editingAddress.id ? { ...addr, ...addressForm } : addr
+        ))
+        toast.success('Address updated successfully!')
+      } else {
+        // Add new address
+        const newAddress = {
+          ...addressForm,
+          userId: user.uid,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        const docRef = await addDoc(collection(db, 'addresses'), newAddress)
+        setAddresses([...addresses, { id: docRef.id, ...newAddress }])
+        toast.success('Address added successfully!')
+      }
+      
+      setShowAddressForm(false)
+      setEditingAddress(null)
+    } catch (error) {
+      console.error('Error saving address:', error)
+      toast.error('Failed to save address')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!user || !confirm('Are you sure you want to delete this address?')) return
+    
+    try {
+      await deleteDoc(doc(db, 'addresses', addressId))
+      setAddresses(addresses.filter(addr => addr.id !== addressId))
+      toast.success('Address deleted successfully!')
+    } catch (error) {
+      console.error('Error deleting address:', error)
+      toast.error('Failed to delete address')
+    }
+  }
+
+  const handleSetDefaultAddress = async (addressId: string) => {
+    if (!user) return
+    
+    try {
+      // Update all addresses to not default
+      const batch = addresses.map(async (addr) => {
+        const addressRef = doc(db, 'addresses', addr.id)
+        await updateDoc(addressRef, {
+          isDefault: addr.id === addressId
+        })
+      })
+      
+      await Promise.all(batch)
+      
+      setAddresses(addresses.map(addr => ({
+        ...addr,
+        isDefault: addr.id === addressId
+      })))
+      
+      toast.success('Default address updated!')
+    } catch (error) {
+      console.error('Error setting default address:', error)
+      toast.error('Failed to set default address')
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!user) return
+    
+    // Validation
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error('Please fill in all password fields')
+      return
+    }
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('New passwords do not match')
+      return
+    }
+    
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters')
+      return
+    }
+    
+    try {
+      setChangingPassword(true)
+      
+      // Re-authenticate user before changing password
+      const credential = EmailAuthProvider.credential(
+        user.email!,
+        passwordForm.currentPassword
+      )
+      await reauthenticateWithCredential(user, credential)
+      
+      // Update password
+      await updatePassword(user, passwordForm.newPassword)
+      
+      // Clear form
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+      
+      toast.success('Password updated successfully!')
+    } catch (error: any) {
+      console.error('Error changing password:', error)
+      if (error.code === 'auth/wrong-password') {
+        toast.error('Current password is incorrect')
+      } else if (error.code === 'auth/requires-recent-login') {
+        toast.error('Please log out and log back in before changing your password')
+      } else {
+        toast.error('Failed to update password')
+      }
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!user) return
+    
+    try {
+      setSaving(true)
+      
+      // Delete user data from Firestore
+      const collections = ['orders', 'addresses', 'wishlists']
+      for (const collectionName of collections) {
+        const q = query(collection(db, collectionName), where('userId', '==', user.uid))
+        const snapshot = await getDocs(q)
+        for (const docSnap of snapshot.docs) {
+          await deleteDoc(doc(db, collectionName, docSnap.id))
+        }
+      }
+      
+      // Delete user profile
+      await deleteDoc(doc(db, 'users', user.uid))
+      
+      // Delete Firebase Auth account
+      await deleteUser(user)
+      
+      toast.success('Account deleted successfully')
+      // User will be automatically logged out
+    } catch (error: any) {
+      console.error('Error deleting account:', error)
+      if (error.code === 'auth/requires-recent-login') {
+        toast.error('Please log out and log back in before deleting your account')
+      } else {
+        toast.error('Failed to delete account. Please try again.')
+      }
+    } finally {
+      setSaving(false)
+      setShowDeleteConfirm(false)
+    }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -236,14 +608,6 @@ function AccountPageContent() {
                 Addresses
               </Button>
               <Button
-                variant={activeTab === "payment" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab("payment")}
-              >
-                <CreditCard className="mr-2 h-4 w-4" />
-                Payment Methods
-              </Button>
-              <Button
                 variant={activeTab === "wishlist" ? "default" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => setActiveTab("wishlist")}
@@ -294,7 +658,8 @@ function AccountPageContent() {
                         <Label htmlFor="fullName">Full Name</Label>
                         <Input
                           id="fullName"
-                          defaultValue={userProfile?.displayName || ""}
+                          value={profileData.displayName}
+                          onChange={(e) => setProfileData({...profileData, displayName: e.target.value})}
                           disabled={!isEditing}
                         />
                       </div>
@@ -303,7 +668,7 @@ function AccountPageContent() {
                         <Input
                           id="email"
                           type="email"
-                          defaultValue={user?.email || ""}
+                          value={user?.email || ""}
                           disabled
                         />
                       </div>
@@ -315,7 +680,9 @@ function AccountPageContent() {
                         <Input
                           id="phone"
                           type="tel"
-                          placeholder="+1 (555) 123-4567"
+                          placeholder="+234 (800) 123-4567"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
                           disabled={!isEditing}
                         />
                       </div>
@@ -324,6 +691,8 @@ function AccountPageContent() {
                         <Input
                           id="birthday"
                           type="date"
+                          value={profileData.birthday}
+                          onChange={(e) => setProfileData({...profileData, birthday: e.target.value})}
                           disabled={!isEditing}
                         />
                       </div>
@@ -331,11 +700,23 @@ function AccountPageContent() {
 
                     {isEditing && (
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsEditing(false)}>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setIsEditing(false)
+                            // Reset to original values
+                            setProfileData({
+                              displayName: userProfile?.displayName || '',
+                              phone: userProfile?.phone || '',
+                              birthday: userProfile?.birthday || ''
+                            })
+                          }}
+                          disabled={saving}
+                        >
                           Cancel
                         </Button>
-                        <Button onClick={() => setIsEditing(false)}>
-                          Save Changes
+                        <Button onClick={handleSaveProfile} disabled={saving}>
+                          {saving ? 'Saving...' : 'Save Changes'}
                         </Button>
                       </div>
                     )}
@@ -352,7 +733,23 @@ function AccountPageContent() {
                       <CardDescription>View and track your orders</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {mockOrders.map((order) => (
+                      {loading ? (
+                        <div className="text-center py-12">
+                          <p className="text-muted-foreground">Loading orders...</p>
+                        </div>
+                      ) : orders.length === 0 ? (
+                        <div className="text-center py-12">
+                          <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
+                          <p className="text-muted-foreground mb-4">
+                            Start shopping to see your orders here
+                          </p>
+                          <Button asChild>
+                            <Link href="/products">Browse Products</Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        orders.map((order) => (
                         <Card key={order.id}>
                           <CardContent className="p-6">
                             <div className="flex flex-col gap-4">
@@ -431,7 +828,8 @@ function AccountPageContent() {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                      ))
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -444,15 +842,143 @@ function AccountPageContent() {
                     <CardHeader className="flex flex-row items-center justify-between">
                       <div>
                         <CardTitle>Saved Addresses</CardTitle>
-                        <CardDescription>Manage your delivery addresses</CardDescription>
+                        <CardDescription>Manage your delivery addresses ({addresses.length})</CardDescription>
                       </div>
-                      <Button>
+                      <Button onClick={handleAddAddress}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add Address
                       </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {mockAddresses.map((address) => (
+                      {showAddressForm && (
+                        <Card className="border-2 border-primary">
+                          <CardHeader>
+                            <CardTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor="addressType">Address Type</Label>
+                                <Input
+                                  id="addressType"
+                                  placeholder="Home, Office, etc."
+                                  value={addressForm.type}
+                                  onChange={(e) => setAddressForm({...addressForm, type: e.target.value})}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="addressFullName">Full Name</Label>
+                                <Input
+                                  id="addressFullName"
+                                  value={addressForm.fullName}
+                                  onChange={(e) => setAddressForm({...addressForm, fullName: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="addressLine1">Address Line 1</Label>
+                              <Input
+                                id="addressLine1"
+                                value={addressForm.addressLine1}
+                                onChange={(e) => setAddressForm({...addressForm, addressLine1: e.target.value})}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+                              <Input
+                                id="addressLine2"
+                                value={addressForm.addressLine2}
+                                onChange={(e) => setAddressForm({...addressForm, addressLine2: e.target.value})}
+                              />
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-3">
+                              <div className="space-y-2">
+                                <Label htmlFor="city">City</Label>
+                                <Input
+                                  id="city"
+                                  value={addressForm.city}
+                                  onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="state">State</Label>
+                                <Input
+                                  id="state"
+                                  value={addressForm.state}
+                                  onChange={(e) => setAddressForm({...addressForm, state: e.target.value})}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="zipCode">ZIP Code</Label>
+                                <Input
+                                  id="zipCode"
+                                  value={addressForm.zipCode}
+                                  onChange={(e) => setAddressForm({...addressForm, zipCode: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor="addressPhone">Phone Number</Label>
+                                <Input
+                                  id="addressPhone"
+                                  type="tel"
+                                  value={addressForm.phone}
+                                  onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="country">Country</Label>
+                                <Input
+                                  id="country"
+                                  value={addressForm.country}
+                                  onChange={(e) => setAddressForm({...addressForm, country: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="isDefault"
+                                checked={addressForm.isDefault}
+                                onChange={(e) => setAddressForm({...addressForm, isDefault: e.target.checked})}
+                                className="h-4 w-4"
+                              />
+                              <Label htmlFor="isDefault" className="cursor-pointer">Set as default address</Label>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => {
+                                  setShowAddressForm(false)
+                                  setEditingAddress(null)
+                                }}
+                                disabled={saving}
+                              >
+                                Cancel
+                              </Button>
+                              <Button onClick={handleSaveAddress} disabled={saving}>
+                                {saving ? 'Saving...' : 'Save Address'}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                      
+                      {addresses.length === 0 && !showAddressForm ? (
+                        <div className="text-center py-12">
+                          <MapPin className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">No addresses saved</h3>
+                          <p className="text-muted-foreground mb-4">
+                            Add your first delivery address
+                          </p>
+                          <Button onClick={handleAddAddress}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Address
+                          </Button>
+                        </div>
+                      ) : (
+                        addresses.map((address) => (
                         <Card key={address.id}>
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between">
@@ -475,94 +1001,77 @@ function AccountPageContent() {
                                 <p className="text-sm text-muted-foreground mt-1">{address.phone}</p>
                               </div>
                               <div className="flex gap-2">
-                                <Button variant="ghost" size="icon">
+                                {!address.isDefault && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => handleSetDefaultAddress(address.id)}
+                                  >
+                                    Set Default
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => handleEditAddress(address)}
+                                >
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => handleDeleteAddress(address.id)}
+                                >
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                      ))
+                      )}
                     </CardContent>
                   </Card>
                 </div>
               )}
 
-              {/* Payment Methods Tab */}
-              {activeTab === "payment" && (
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>Payment Methods</CardTitle>
-                        <CardDescription>Manage your payment options</CardDescription>
-                      </div>
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Card
-                      </Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {mockPaymentMethods.map((method) => (
-                        <Card key={method.id}>
-                          <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className="rounded-lg bg-muted p-3">
-                                  <CreditCard className="h-6 w-6" />
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <p className="font-semibold">
-                                      {method.type} •••• {method.last4}
-                                    </p>
-                                    {method.isDefault && (
-                                      <Badge variant="secondary">Default</Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground">
-                                    Expires {method.expiryMonth}/{method.expiryYear}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button variant="ghost" size="icon">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
 
               {/* Wishlist Tab */}
               {activeTab === "wishlist" && (
                 <Card>
                   <CardHeader>
                     <CardTitle>My Wishlist</CardTitle>
-                    <CardDescription>Items you've saved for later</CardDescription>
+                    <CardDescription>Items you've saved for later ({wishlist.length})</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-12">
-                      <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Your wishlist is empty</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Start adding items you love to your wishlist
-                      </p>
-                      <Button asChild>
-                        <Link href="/products">Browse Products</Link>
-                      </Button>
-                    </div>
+                    {wishlist.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Your wishlist is empty</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Start adding items you love to your wishlist
+                        </p>
+                        <Button asChild>
+                          <Link href="/products">Browse Products</Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {wishlist.map((product) => (
+                          <div key={product.id} className="relative">
+                            <ProductCard product={product} onAddToCart={addToCart} />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+                              onClick={() => removeFromWishlist(product.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -632,43 +1141,88 @@ function AccountPageContent() {
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="currentPassword">Current Password</Label>
-                        <Input id="currentPassword" type="password" />
+                        <Input 
+                          id="currentPassword" 
+                          type="password"
+                          value={passwordForm.currentPassword}
+                          onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="newPassword">New Password</Label>
-                        <Input id="newPassword" type="password" />
+                        <Input 
+                          id="newPassword" 
+                          type="password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                        />
+                        <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                        <Input id="confirmPassword" type="password" />
+                        <Input 
+                          id="confirmPassword" 
+                          type="password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                        />
                       </div>
-                      <Button>Update Password</Button>
+                      <Button onClick={handleChangePassword} disabled={changingPassword}>
+                        {changingPassword ? 'Updating...' : 'Update Password'}
+                      </Button>
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="border-destructive">
                     <CardHeader>
-                      <CardTitle>Two-Factor Authentication</CardTitle>
-                      <CardDescription>Add an extra layer of security</CardDescription>
+                      <CardTitle className="text-destructive">Delete Account</CardTitle>
+                      <CardDescription>Permanently delete your account and all data</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Two-factor authentication is not enabled for your account.
-                      </p>
-                      <Button>Enable 2FA</Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Delete Account</CardTitle>
-                      <CardDescription>Permanently delete your account</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Once you delete your account, there is no going back. Please be certain.
-                      </p>
-                      <Button variant="destructive">Delete Account</Button>
+                      {!showDeleteConfirm ? (
+                        <>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Once you delete your account, there is no going back. All your orders, addresses, and wishlist will be permanently deleted.
+                          </p>
+                          <Button 
+                            variant="destructive" 
+                            onClick={() => setShowDeleteConfirm(true)}
+                          >
+                            Delete Account
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="rounded-lg bg-destructive/10 p-4 border border-destructive">
+                            <p className="text-sm font-medium text-destructive mb-2">⚠️ Warning: This action cannot be undone!</p>
+                            <p className="text-sm text-muted-foreground">
+                              Are you absolutely sure you want to delete your account? This will:
+                            </p>
+                            <ul className="text-sm text-muted-foreground list-disc list-inside mt-2 space-y-1">
+                              <li>Delete all your orders and purchase history</li>
+                              <li>Remove all saved addresses</li>
+                              <li>Clear your wishlist</li>
+                              <li>Permanently delete your account</li>
+                            </ul>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              onClick={() => setShowDeleteConfirm(false)}
+                              disabled={saving}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              onClick={handleDeleteAccount}
+                              disabled={saving}
+                            >
+                              {saving ? 'Deleting...' : 'Yes, Delete My Account'}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
