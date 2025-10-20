@@ -141,13 +141,13 @@ service cloud.firestore {
     match /orders/{orderId} {
       // Customers can create orders
       allow create: if isSignedIn() &&
-                      request.resource.data.customerId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['customerId', 'items', 'total', 'status', 'createdAt']) &&
+                      (request.resource.data.customerId == request.auth.uid || request.resource.data.userId == request.auth.uid) &&
+                      request.resource.data.keys().hasAll(['items', 'total', 'status', 'createdAt']) &&
                       request.resource.data.status == 'pending' &&
                       request.resource.data.total > 0;
       
       // Customers can read their own orders
-      allow read: if isOwner(resource.data.customerId);
+      allow read: if isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.userId == request.auth.uid);
       
       // Vendors can read orders containing their products
       allow read: if isVerifiedVendor() && 
@@ -288,18 +288,20 @@ service cloud.firestore {
     // ============================================
     // WISHLIST COLLECTION
     // ============================================
-    match /wishlists/{userId} {
-      // Users can create their own wishlist
-      allow create: if isOwner(userId);
+    match /wishlists/{wishlistId} {
+      // Users can create wishlist items
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['userId', 'productId', 'createdAt']);
       
-      // Users can only read their own wishlist
-      allow read: if isOwner(userId);
+      // Users can only read their own wishlist items
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Users can update their own wishlist
-      allow update: if isOwner(userId);
+      // Users can update their own wishlist items
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Users can delete their own wishlist
-      allow delete: if isOwner(userId);
+      // Users can delete their own wishlist items
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
     
     // ============================================

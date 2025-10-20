@@ -778,25 +778,37 @@ function AccountPageContent() {
 
                               {/* Order Items */}
                               <div className="space-y-3">
-                                {order.items.map((item) => (
-                                  <div key={item.id} className="flex items-center gap-4">
-                                    <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted">
-                                      <Image
-                                        src={item.image}
-                                        alt={item.name}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="font-medium">{item.name}</p>
-                                      <p className="text-sm text-muted-foreground">
-                                        Qty: {item.quantity}
+                                {order.items && order.items.length > 0 ? (
+                                  order.items.map((item: any, index: number) => (
+                                    <div key={item.productId || index} className="flex items-center gap-4">
+                                      <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted">
+                                        {item.image ? (
+                                          <Image
+                                            src={item.image}
+                                            alt={item.productName || item.name || 'Product'}
+                                            fill
+                                            className="object-cover"
+                                          />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center bg-muted">
+                                            <Package className="h-8 w-8 text-muted-foreground" />
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="font-medium">{item.productName || item.name || 'Product'}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                          Qty: {item.quantity || 1}
+                                        </p>
+                                      </div>
+                                      <p className="font-medium">
+                                        ₦{(item.productPrice || item.price || 0).toLocaleString()}
                                       </p>
                                     </div>
-                                    <p className="font-medium">₦{item.price.toLocaleString()}</p>
-                                  </div>
-                                ))}
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No items</p>
+                                )}
                               </div>
 
                               {/* Order Actions */}

@@ -39,6 +39,7 @@ export interface UserProfile {
   updatedAt?: Date
   phoneNumber?: string
   phone?: string // Alternative phone field
+  birthday?: string // Date of birth
   address?: {
     addressLine1?: string
     addressLine2?: string
