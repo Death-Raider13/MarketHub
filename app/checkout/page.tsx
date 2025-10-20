@@ -18,7 +18,7 @@ import Image from "next/image"
 import type { Address } from "@/lib/types"
 import { initiatePaystackPayment } from "@/lib/payment/paystack"
 import { db } from "@/lib/firebase/config"
-import { collection, addDoc } from "firebase/firestore"
+import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { toast } from "sonner"
 
 export default function CheckoutPage() {
@@ -123,8 +123,8 @@ export default function CheckoutPage() {
         },
         shippingMethod: shippingMethod,
         paymentMethod: 'paystack',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       }
 
       // Save to Firestore
