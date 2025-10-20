@@ -18,7 +18,7 @@ export function initiatePaystackPayment(
   }
 
   // Dynamic import to avoid SSR issues
-  const PaystackPop = require('@paystack/inline-js')
+  const PaystackPop = require('@paystack/inline-js').default || require('@paystack/inline-js')
   const paystack = new PaystackPop()
   
   paystack.newTransaction({
