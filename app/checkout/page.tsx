@@ -128,7 +128,11 @@ export default function CheckoutPage() {
       }
 
       // Save to Firestore
-      const orderRef = await addDoc(collection(db, 'orders'), orderData)
+      console.log('Creating order with data:', orderData)
+      const ordersCollection = collection(db, 'orders')
+      console.log('Orders collection:', ordersCollection)
+      const orderRef = await addDoc(ordersCollection, orderData)
+      console.log('Order created with ID:', orderRef.id)
       const orderId = orderRef.id
 
       // Initiate Paystack payment (amount in NGN)
