@@ -14,8 +14,14 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const discount = product.comparePrice
-    ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
+  // Ensure price is a number
+  const price = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0
+  const comparePrice = product.comparePrice 
+    ? (typeof product.comparePrice === 'number' ? product.comparePrice : parseFloat(product.comparePrice) || 0)
+    : 0
+  
+  const discount = comparePrice > 0
+    ? Math.round(((comparePrice - price) / comparePrice) * 100)
     : 0
 
   return (
@@ -56,19 +62,19 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={`h-4 w-4 ${i < Math.floor(product.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                className={`h-4 w-4 ${i < Math.floor(product.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
               />
             ))}
           </div>
-          <span className="text-sm text-muted-foreground">({product.reviewCount})</span>
+          <span className="text-sm text-muted-foreground">({product.reviewCount || 0})</span>
         </div>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between p-4 pt-0">
         <div>
-          <div className="text-2xl font-bold">${product.price.toFixed(2)}</div>
-          {product.comparePrice && (
-            <div className="text-sm text-muted-foreground line-through">${product.comparePrice.toFixed(2)}</div>
+          <div className="text-2xl font-bold">₦{price.toLocaleString()}</div>
+          {comparePrice > 0 && (
+            <div className="text-sm text-muted-foreground line-through">₦{comparePrice.toLocaleString()}</div>
           )}
         </div>
         <Button size="sm" onClick={() => onAddToCart?.(product)} disabled={product.stock === 0}>
