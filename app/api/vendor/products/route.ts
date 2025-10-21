@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
 
     const {
       vendorId,
+      vendorName,
       name,
       description,
       price,
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
     // Create product
     const productRef = await adminDb.collection("products").add({
       vendorId,
+      vendorName: vendorName || "Vendor",
       name,
       description: description || "",
       price: parseFloat(price),
