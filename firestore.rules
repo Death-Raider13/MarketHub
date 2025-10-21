@@ -133,6 +133,20 @@ service cloud.firestore {
     }
     
     // ============================================
+    // PURCHASED PRODUCTS COLLECTION
+    // ============================================
+    match /purchasedProducts/{purchaseId} {
+      // Users can read their own purchased products
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Allow creation from server/API
+      allow create: if true;
+      
+      // Admins can read all
+      allow read: if isAdmin();
+    }
+    
+    // ============================================
     // ORDERS COLLECTION
     // ============================================
     match /orders/{orderId} {

@@ -265,22 +265,22 @@ export default function ProductDetailPage() {
                 <div className="mt-2 flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <div className="flex">
-                      {[...Array(5)].map((_, i) => (
+                      {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
                           className={`h-5 w-5 ${
-                            i < Math.floor(product.rating)
+                            i < Math.floor(product.rating || 0)
                               ? "fill-yellow-400 text-yellow-400"
                               : "fill-muted text-muted"
                           }`}
                         />
                       ))}
                     </div>
-                    <span className="font-medium">{product.rating}</span>
+                    <span className="font-medium">{product.rating || 0}</span>
                   </div>
                   <Separator orientation="vertical" className="h-5" />
                   <Link href="#reviews" className="text-sm text-primary hover:underline">
-                    {product.reviewCount.toLocaleString()} reviews
+                    {(product.reviewCount || 0).toLocaleString()} reviews
                   </Link>
                 </div>
               </div>
