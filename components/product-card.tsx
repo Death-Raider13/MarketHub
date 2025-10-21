@@ -54,8 +54,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <Link href={`/products/${product.id}`}>
           <h3 className="font-semibold line-clamp-2 hover:underline">{product.name}</h3>
         </Link>
-        <Link href={`/vendors/${product.vendorId}`} className="text-sm text-muted-foreground hover:underline">
-          {product.vendorName}
+        <Link href={`/store/${product.vendorId}`} className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
+          <span>by {product.vendorName}</span>
         </Link>
         <div className="mt-2 flex items-center gap-1">
           <div className="flex">

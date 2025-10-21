@@ -34,7 +34,7 @@ import {
 import Link from "next/link"
 import Image from "next/image"
 import { db, auth } from "@/lib/firebase/config"
-import { collection, query, where, getDocs, orderBy, limit, addDoc, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore"
+import { collection, query, where, getDocs, orderBy, limit, addDoc, deleteDoc, doc, updateDoc, setDoc, getDoc } from "firebase/firestore"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth"
 import { useCart } from "@/lib/cart-context"
 import { ProductCard } from "@/components/product-card"
@@ -183,17 +183,20 @@ function AccountPageContent() {
             const enrichedItems = await Promise.all(
               (orderData.items || []).map(async (item: any) => {
                 try {
-                  // Fetch product details
-                  const productDoc = await getDocs(
-                    query(collection(db, 'products'), where('__name__', '==', item.productId))
-                  )
-                  
-                  if (!productDoc.empty) {
-                    const productData = productDoc.docs[0].data()
-                    return {
-                      ...item,
-                      image: productData.images?.[0] || null,
-                      productType: productData.productType || 'physical'
+                  // Fetch product details using direct document reference
+                  if (item.productId) {
+                    const productDocRef = doc(db, 'products', item.productId)
+                    const productDoc = await getDoc(productDocRef)
+                    
+                    if (productDoc.exists()) {
+                      const productData = productDoc.data()
+                      return {
+                        ...item,
+                        image: productData.images?.[0] || null,
+                        productType: productData.productType || 'physical',
+                        vendorName: productData.vendorName || item.vendorName,
+                        vendorId: productData.vendorId || item.vendorId
+                      }
                     }
                   }
                 } catch (error) {
@@ -868,6 +871,14 @@ function AccountPageContent() {
                                       </div>
                                       <div className="flex-1">
                                         <p className="font-medium">{item.productName || item.name || 'Product'}</p>
+                                        {item.vendorName && (
+                                          <Link 
+                                            href={`/store/${item.vendorId}`}
+                                            className="text-xs text-muted-foreground hover:underline"
+                                          >
+                                            by {item.vendorName}
+                                          </Link>
+                                        )}
                                         <p className="text-sm text-muted-foreground">
                                           Qty: {item.quantity || 1}
                                         </p>

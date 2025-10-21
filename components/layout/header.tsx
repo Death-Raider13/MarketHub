@@ -133,6 +133,14 @@ export function Header() {
                     Categories
                   </Link>
                   <Link 
+                    href="/vendors" 
+                    className="flex items-center gap-3 text-lg font-medium hover:text-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Store className="h-5 w-5" />
+                    Vendors
+                  </Link>
+                  <Link 
                     href="/advertise" 
                     className="flex items-center gap-3 text-lg font-medium hover:text-primary text-primary"
                     onClick={() => setMobileMenuOpen(false)}

@@ -168,7 +168,7 @@ export default function VendorsPage() {
                       <span className="text-sm text-muted-foreground ml-1">(4.8)</span>
                     </div>
 
-                    <Link href={`/vendor/${vendor.id}`}>
+                    <Link href={`/store/${vendor.id}`}>
                       <Button className="w-full">
                         <Store className="mr-2 h-4 w-4" />
                         Visit Store
