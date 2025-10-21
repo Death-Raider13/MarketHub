@@ -19,11 +19,17 @@ export interface Product {
   
   // Digital Product Fields
   productType: "physical" | "digital" | "service"
+  type: "physical" | "digital" | "service" // Alias for productType
   requiresShipping: boolean
   digitalFiles?: DigitalFile[]
   accessType?: "instant" | "scheduled" | "lifetime"
   accessDuration?: number // days (0 = lifetime)
   downloadLimit?: number // 0 = unlimited
+  
+  // Additional Product Information
+  features?: string[] // Array of key features
+  tags?: string[] // Array of tags for search/filtering
+  specifications?: Record<string, string> // Key-value pairs for specs
   
   createdAt: Date
   updatedAt: Date
