@@ -107,6 +107,7 @@ function AddProductContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           vendorId: user.uid,
+          vendorName: userProfile?.storeName || userProfile?.displayName || userProfile?.businessName || 'Vendor',
           name: formData.name,
           description: formData.description,
           price: formData.price,
