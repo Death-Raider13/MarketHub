@@ -50,16 +50,37 @@ export default function ProductsPage() {
         setFilteredProducts(fetchedProducts)
         
         // Extract unique vendors
-        const uniqueVendors = Array.from(new Set(fetchedProducts.map(p => p.vendorId)))
-          .map(vendorId => {
+        const uniqueVendorIds = Array.from(new Set(fetchedProducts.map(p => p.vendorId).filter(Boolean)))
+        
+        // Fetch vendor names from products or use vendorId as fallback
+        const vendorsList = await Promise.all(
+          uniqueVendorIds.map(async (vendorId) => {
             const product = fetchedProducts.find(p => p.vendorId === vendorId)
+            let vendorName = product?.vendorName
+            
+            // If no vendor name in product, try to fetch from users collection
+            if (!vendorName || vendorName === 'Unknown Vendor') {
+              try {
+                const { doc, getDoc } = await import("firebase/firestore")
+                const vendorDoc = await getDoc(doc(db, 'users', vendorId))
+                if (vendorDoc.exists()) {
+                  const vendorData = vendorDoc.data()
+                  vendorName = vendorData.storeName || vendorData.displayName || vendorData.businessName || 'Vendor Store'
+                }
+              } catch (err) {
+                console.error('Error fetching vendor:', err)
+                vendorName = 'Vendor Store'
+              }
+            }
+            
             return {
               id: vendorId,
-              name: product?.vendorName || 'Unknown Vendor'
+              name: vendorName || 'Vendor Store'
             }
           })
-          .filter(v => v.name !== 'Unknown Vendor')
-        setVendors(uniqueVendors)
+        )
+        
+        setVendors(vendorsList.filter(v => v.id))
       } catch (error) {
         console.error("Error fetching products:", error)
         setProducts([])

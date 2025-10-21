@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { ShoppingBag, TrendingUp, Shield, Zap, ArrowRight, Star } from "lucide-react"
+import { ShoppingBag, TrendingUp, Shield, Zap, ArrowRight, Star, Store } from "lucide-react"
 
 interface Product {
   id: string

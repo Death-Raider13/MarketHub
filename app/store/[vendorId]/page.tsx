@@ -107,7 +107,8 @@ export default function VendorStorefrontPage() {
     try {
       const productsQuery = query(
         collection(db, "products"),
-        where("vendorId", "==", vendorId)
+        where("vendorId", "==", vendorId),
+        where("status", "in", ["active", "approved"])
       )
       const productsSnapshot = await getDocs(productsQuery)
       const productsData = productsSnapshot.docs.map(doc => ({

@@ -21,7 +21,7 @@ export default function CartPage() {
     if (!acc[vendorId]) {
       acc[vendorId] = {
         vendorId,
-        vendorName: item.product.vendorName,
+        vendorName: item.product.vendorName || 'Vendor Store',
         items: []
       }
     }
