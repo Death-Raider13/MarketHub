@@ -190,11 +190,26 @@ function AccountPageContent() {
                     
                     if (productDoc.exists()) {
                       const productData = productDoc.data()
+                      
+                      // Fetch vendor name if not in product data
+                      let vendorName = productData.vendorName || item.vendorName
+                      if (!vendorName && productData.vendorId) {
+                        try {
+                          const vendorDoc = await getDoc(doc(db, 'users', productData.vendorId))
+                          if (vendorDoc.exists()) {
+                            const vendorData = vendorDoc.data()
+                            vendorName = vendorData.storeName || vendorData.displayName || vendorData.businessName
+                          }
+                        } catch (err) {
+                          console.error('Error fetching vendor name:', err)
+                        }
+                      }
+                      
                       return {
                         ...item,
                         image: productData.images?.[0] || null,
                         productType: productData.productType || 'physical',
-                        vendorName: productData.vendorName || item.vendorName,
+                        vendorName: vendorName,
                         vendorId: productData.vendorId || item.vendorId
                       }
                     }

@@ -717,6 +717,9 @@ service cloud.firestore {
       // Everyone can read active ad slots (for ad placement)
       allow read: if resource.data.isActive == true;
       
+      // Anyone can query ad slots (for storefront ad display)
+      allow read: if true;
+      
       // Vendors can read their own slots
       allow read: if isVendorOwner(resource.data.vendorId);
       
