@@ -25,6 +25,8 @@ export default function ProductsPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [minRating, setMinRating] = useState<number>(0)
   const [sortBy, setSortBy] = useState<string>("newest")
+  const [selectedVendors, setSelectedVendors] = useState<string[]>([])
+  const [vendors, setVendors] = useState<{id: string, name: string}[]>([])
   
   // Fetch products from Firestore
   useEffect(() => {
@@ -46,6 +48,18 @@ export default function ProductsPage() {
         
         setProducts(fetchedProducts)
         setFilteredProducts(fetchedProducts)
+        
+        // Extract unique vendors
+        const uniqueVendors = Array.from(new Set(fetchedProducts.map(p => p.vendorId)))
+          .map(vendorId => {
+            const product = fetchedProducts.find(p => p.vendorId === vendorId)
+            return {
+              id: vendorId,
+              name: product?.vendorName || 'Unknown Vendor'
+            }
+          })
+          .filter(v => v.name !== 'Unknown Vendor')
+        setVendors(uniqueVendors)
       } catch (error) {
         console.error("Error fetching products:", error)
         setProducts([])
@@ -78,6 +92,13 @@ export default function ProductsPage() {
     if (minRating > 0) {
       filtered = filtered.filter(p => 
         (p.rating || 0) >= minRating
+      )
+    }
+    
+    // Filter by vendors
+    if (selectedVendors.length > 0) {
+      filtered = filtered.filter(p => 
+        selectedVendors.includes(p.vendorId)
       )
     }
     
@@ -117,6 +138,14 @@ export default function ProductsPage() {
   
   const handleRatingToggle = (rating: number) => {
     setMinRating(prev => prev === rating ? 0 : rating)
+  }
+  
+  const handleVendorToggle = (vendorId: string) => {
+    setSelectedVendors(prev => 
+      prev.includes(vendorId)
+        ? prev.filter(v => v !== vendorId)
+        : [...prev, vendorId]
+    )
   }
 
   return (
@@ -191,6 +220,29 @@ export default function ProductsPage() {
                           </label>
                         </div>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Vendors */}
+                  <div className="mt-6 space-y-4 rounded-lg border border-border p-4">
+                    <Label>Vendors</Label>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {vendors.length > 0 ? (
+                        vendors.map((vendor) => (
+                          <div key={vendor.id} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`vendor-${vendor.id}`}
+                              checked={selectedVendors.includes(vendor.id)}
+                              onCheckedChange={() => handleVendorToggle(vendor.id)}
+                            />
+                            <label htmlFor={`vendor-${vendor.id}`} className="text-sm cursor-pointer">
+                              {vendor.name}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No vendors found</p>
+                      )}
                     </div>
                   </div>
                 </div>

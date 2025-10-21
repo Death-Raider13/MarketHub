@@ -6,12 +6,30 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCart } from "@/lib/cart-context"
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react"
+import { Minus, Plus, Trash2, ShoppingBag, Store } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart()
+
+  // Group items by vendor
+  const itemsByVendor = items.reduce((acc, item) => {
+    const vendorId = item.product.vendorId
+    if (!acc[vendorId]) {
+      acc[vendorId] = {
+        vendorId,
+        vendorName: item.product.vendorName,
+        items: []
+      }
+    }
+    acc[vendorId].items.push(item)
+    return acc
+  }, {} as Record<string, { vendorId: string; vendorName: string; items: typeof items }>)
+
+  const vendorGroups = Object.values(itemsByVendor)
 
   const tax = totalPrice * 0.1
   const shipping = totalPrice > 50000 ? 0 : 2500
@@ -47,65 +65,112 @@ export default function CartPage() {
           <h1 className="mb-8 text-3xl font-bold">Shopping Cart ({totalItems} items)</h1>
 
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {items.map((item) => (
-                <Card key={item.product.id}>
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
-                        <Image
-                          src={item.product.images[0] || "/placeholder.svg"}
-                          alt={item.product.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-
-                      <div className="flex flex-1 flex-col justify-between">
-                        <div>
-                          <Link href={`/products/${item.product.id}`} className="font-semibold hover:underline">
-                            {item.product.name}
+            {/* Cart Items Grouped by Vendor */}
+            <div className="lg:col-span-2 space-y-6">
+              {vendorGroups.map((vendorGroup) => {
+                const vendorTotal = vendorGroup.items.reduce(
+                  (sum, item) => sum + item.product.price * item.quantity,
+                  0
+                )
+                
+                return (
+                  <Card key={vendorGroup.vendorId} className="overflow-hidden">
+                    {/* Vendor Header */}
+                    <div className="bg-muted/50 p-4 border-b">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                            {vendorGroup.vendorName?.charAt(0) || 'V'}
+                          </div>
+                          <div>
+                            <Link 
+                              href={`/store/${vendorGroup.vendorId}`}
+                              className="font-semibold hover:underline flex items-center gap-2"
+                            >
+                              {vendorGroup.vendorName}
+                              <Store className="h-4 w-4" />
+                            </Link>
+                            <p className="text-xs text-muted-foreground">
+                              {vendorGroup.items.length} item(s) • ₦{vendorTotal.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/store/${vendorGroup.vendorId}`}>
+                            Visit Store
                           </Link>
-                          <p className="text-sm text-muted-foreground">by {item.product.vendorName}</p>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8 bg-transparent"
-                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <span className="w-12 text-center">{item.quantity}</span>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8 bg-transparent"
-                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                              disabled={item.quantity >= item.product.stock}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            <span className="text-lg font-bold">
-                              ₦{(item.product.price * item.quantity).toLocaleString()}
-                            </span>
-                            <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.product.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
+                        </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+                    {/* Vendor Items */}
+                    <CardContent className="p-0">
+                      {vendorGroup.items.map((item, index) => (
+                        <div key={item.product.id}>
+                          <div className="p-6">
+                            <div className="flex gap-4">
+                              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+                                <Image
+                                  src={item.product.images[0] || "/placeholder.svg"}
+                                  alt={item.product.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+
+                              <div className="flex flex-1 flex-col justify-between">
+                                <div>
+                                  <Link href={`/products/${item.product.id}`} className="font-semibold hover:underline">
+                                    {item.product.name}
+                                  </Link>
+                                  {item.product.stock < 10 && item.product.stock > 0 && (
+                                    <Badge variant="destructive" className="ml-2 text-xs">
+                                      Only {item.product.stock} left
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-8 w-8 bg-transparent"
+                                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="w-12 text-center">{item.quantity}</span>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-8 w-8 bg-transparent"
+                                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                      disabled={item.quantity >= item.product.stock}
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+
+                                  <div className="flex items-center gap-4">
+                                    <span className="text-lg font-bold">
+                                      ₦{(item.product.price * item.quantity).toLocaleString()}
+                                    </span>
+                                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.product.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {index < vendorGroup.items.length - 1 && <Separator />}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
 
             {/* Order Summary */}

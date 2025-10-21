@@ -415,6 +415,69 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
+          {/* Vendor Information Section */}
+          <div className="mt-12">
+            <Card className="border-2">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-6">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${product.vendorName}`} />
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                      {product.vendorName?.charAt(0) || 'V'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold mb-1">{product.vendorName}</h3>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-medium">4.8</span>
+                            <span>(250 reviews)</span>
+                          </div>
+                          <span>•</span>
+                          <span>500+ products</span>
+                          <span>•</span>
+                          <Badge variant="secondary" className="gap-1">
+                            <Check className="h-3 w-3" />
+                            Verified Seller
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground max-w-2xl">
+                          Quality products with fast shipping and excellent customer service. 
+                          Join thousands of satisfied customers.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-3 mt-4">
+                      <Button asChild variant="default">
+                        <Link href={`/store/${product.vendorId}`}>
+                          <Store className="mr-2 h-4 w-4" />
+                          Visit Store
+                        </Link>
+                      </Button>
+                      <ContactVendor
+                        vendorId={product.vendorId}
+                        vendorName={product.vendorName}
+                        productId={product.id}
+                        productName={product.name}
+                        trigger={
+                          <Button variant="outline">
+                            <MessageCircle className="mr-2 h-4 w-4" />
+                            Contact Seller
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Product Details Tabs */}
           <div className="mt-16">
             <Tabs defaultValue="description" className="w-full">

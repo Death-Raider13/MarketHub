@@ -21,7 +21,9 @@ interface Product {
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
+  const [featuredVendors, setFeaturedVendors] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [vendorsLoading, setVendorsLoading] = useState(true)
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
@@ -57,6 +59,39 @@ export default function HomePage() {
       fetchFeaturedProducts()
     } else {
       setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const fetchFeaturedVendors = async () => {
+      try {
+        const { collection, getDocs, query, where, limit } = await import("firebase/firestore")
+        const { db } = await import("@/lib/firebase/config")
+        
+        const vendorsQuery = query(
+          collection(db, 'users'),
+          where('role', '==', 'vendor'),
+          where('verified', '==', true),
+          limit(6)
+        )
+        const snapshot = await getDocs(vendorsQuery)
+        const vendors = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        setFeaturedVendors(vendors)
+      } catch (error) {
+        console.error("Error fetching vendors:", error)
+        setFeaturedVendors([])
+      } finally {
+        setVendorsLoading(false)
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      fetchFeaturedVendors()
+    } else {
+      setVendorsLoading(false)
     }
   }, [])
 
@@ -292,6 +327,83 @@ export default function HomePage() {
                     </CardContent>
                   </Card>
                 </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Featured Vendors Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="flex justify-between items-center mb-12">
+            <div>
+              <h2 className="text-4xl font-bold mb-2">Featured Vendors</h2>
+              <p className="text-gray-600">Shop from our top-rated sellers</p>
+            </div>
+            <Link href="/vendors">
+              <Button variant="outline">
+                View All Vendors
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+
+          {vendorsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="h-16 w-16 bg-gray-200 rounded-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredVendors.map((vendor) => (
+                <Card key={vendor.id} className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-2xl">
+                          {vendor.storeName?.charAt(0) || vendor.displayName?.charAt(0) || 'V'}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{vendor.storeName || vendor.displayName || 'Vendor Store'}</h3>
+                          <Badge variant="secondary" className="text-xs mt-1">
+                            ✓ Verified
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 mb-4">
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${i < 4 ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-600 ml-1">(4.8)</span>
+                    </div>
+
+                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                      Quality products with excellent service and fast delivery.
+                    </p>
+
+                    <Link href={`/store/${vendor.id}`}>
+                      <Button className="w-full" variant="outline">
+                        <Store className="mr-2 h-4 w-4" />
+                        Visit Store
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
