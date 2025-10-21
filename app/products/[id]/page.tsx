@@ -63,6 +63,8 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [hasPurchased, setHasPurchased] = useState(false)
+  const [vendorStats, setVendorStats] = useState<{rating: number, reviewCount: number, productCount: number} | null>(null)
+  const [vendorInfo, setVendorInfo] = useState<{description: string, verified: boolean} | null>(null)
 
   // Fetch product data from Firestore
   useEffect(() => {
@@ -124,6 +126,34 @@ export default function ProductDetailPage() {
           )
           const purchaseSnapshot = await getDocs(purchaseQuery)
           setHasPurchased(!purchaseSnapshot.empty)
+        }
+        
+        // Fetch vendor information
+        try {
+          const vendorDoc = await getDoc(doc(db, 'users', productData.vendorId))
+          if (vendorDoc.exists()) {
+            const vendorData = vendorDoc.data()
+            setVendorInfo({
+              description: vendorData.storeDescription || vendorData.bio || 'Quality products with excellent customer service.',
+              verified: vendorData.verified || false
+            })
+          }
+          
+          // Get vendor product count
+          const vendorProductsQuery = query(
+            collection(db, 'products'),
+            where('vendorId', '==', productData.vendorId),
+            where('status', '==', 'active')
+          )
+          const vendorProductsSnapshot = await getDocs(vendorProductsQuery)
+          
+          setVendorStats({
+            rating: 4.8, // TODO: Calculate from reviews
+            reviewCount: 0, // TODO: Calculate from reviews
+            productCount: vendorProductsSnapshot.size
+          })
+        } catch (err) {
+          console.error('Error fetching vendor info:', err)
         }
         
       } catch (err) {
@@ -432,22 +462,27 @@ export default function ProductDetailPage() {
                       <div>
                         <h3 className="text-xl font-bold mb-1">{product.vendorName}</h3>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-medium">4.8</span>
-                            <span>(250 reviews)</span>
-                          </div>
-                          <span>•</span>
-                          <span>500+ products</span>
-                          <span>•</span>
-                          <Badge variant="secondary" className="gap-1">
-                            <Check className="h-3 w-3" />
-                            Verified Seller
-                          </Badge>
+                          {vendorStats && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                <span className="font-medium">{vendorStats.rating}</span>
+                                <span>({vendorStats.reviewCount} reviews)</span>
+                              </div>
+                              <span>•</span>
+                              <span>{vendorStats.productCount}+ products</span>
+                              <span>•</span>
+                            </>
+                          )}
+                          {vendorInfo?.verified && (
+                            <Badge variant="secondary" className="gap-1">
+                              <Check className="h-3 w-3" />
+                              Verified Seller
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground max-w-2xl">
-                          Quality products with fast shipping and excellent customer service. 
-                          Join thousands of satisfied customers.
+                          {vendorInfo?.description || 'Quality products with excellent customer service.'}
                         </p>
                       </div>
                     </div>
@@ -498,17 +533,17 @@ export default function ProductDetailPage() {
 
               <TabsContent value="description" className="mt-6">
                 <div className="prose max-w-none">
-                  <p className="text-lg">{product.description}</p>
-                  <h3 className="mt-6 text-xl font-semibold">Key Features</h3>
-                  <ul className="space-y-2">
-                    <li>Active Noise Cancellation (ANC) technology</li>
-                    <li>30-hour battery life with ANC on</li>
-                    <li>Quick charge: 10 min = 5 hours playback</li>
-                    <li>Premium comfort with memory foam ear cushions</li>
-                    <li>Multipoint connection - connect to 2 devices simultaneously</li>
-                    <li>Hi-Res Audio certified</li>
-                    <li>Built-in Alexa and Google Assistant</li>
-                  </ul>
+                  <p className="text-lg whitespace-pre-wrap">{product.description}</p>
+                  {product.features && product.features.length > 0 && (
+                    <>
+                      <h3 className="mt-6 text-xl font-semibold">Key Features</h3>
+                      <ul className="space-y-2">
+                        {product.features.map((feature: string, index: number) => (
+                          <li key={index}>{feature}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
               </TabsContent>
 
@@ -516,44 +551,52 @@ export default function ProductDetailPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card>
                     <CardContent className="p-6">
-                      <h3 className="font-semibold mb-4">Technical Specifications</h3>
+                      <h3 className="font-semibold mb-4">Product Information</h3>
                       <dl className="space-y-2 text-sm">
+                        {product.sku && (
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">SKU:</dt>
+                            <dd className="font-medium">{product.sku}</dd>
+                          </div>
+                        )}
                         <div className="flex justify-between">
-                          <dt className="text-muted-foreground">SKU:</dt>
-                          <dd className="font-medium">{product.sku}</dd>
+                          <dt className="text-muted-foreground">Category:</dt>
+                          <dd className="font-medium capitalize">{product.category}</dd>
                         </div>
+                        {product.subcategory && (
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Subcategory:</dt>
+                            <dd className="font-medium capitalize">{product.subcategory}</dd>
+                          </div>
+                        )}
                         <div className="flex justify-between">
-                          <dt className="text-muted-foreground">Weight:</dt>
-                          <dd className="font-medium">250g</dd>
+                          <dt className="text-muted-foreground">Type:</dt>
+                          <dd className="font-medium capitalize">{product.type || 'Physical'}</dd>
                         </div>
-                        <div className="flex justify-between">
-                          <dt className="text-muted-foreground">Bluetooth:</dt>
-                          <dd className="font-medium">5.2</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-muted-foreground">Driver Size:</dt>
-                          <dd className="font-medium">40mm</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-muted-foreground">Frequency Response:</dt>
-                          <dd className="font-medium">4Hz - 40kHz</dd>
-                        </div>
+                        {product.tags && product.tags.length > 0 && (
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Tags:</dt>
+                            <dd className="font-medium">{product.tags.join(', ')}</dd>
+                          </div>
+                        )}
                       </dl>
                     </CardContent>
                   </Card>
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="font-semibold mb-4">Package Contents</h3>
-                      <ul className="space-y-2 text-sm">
-                        <li>• Wireless Headphones</li>
-                        <li>• USB-C Charging Cable</li>
-                        <li>• 3.5mm Audio Cable</li>
-                        <li>• Carrying Case</li>
-                        <li>• Quick Start Guide</li>
-                        <li>• Warranty Card</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                  {product.specifications && Object.keys(product.specifications).length > 0 && (
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="font-semibold mb-4">Specifications</h3>
+                        <dl className="space-y-2 text-sm">
+                          {Object.entries(product.specifications).map(([key, value]) => (
+                            <div key={key} className="flex justify-between">
+                              <dt className="text-muted-foreground capitalize">{key}:</dt>
+                              <dd className="font-medium">{value as string}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </TabsContent>
 
