@@ -22,7 +22,7 @@ import { toast } from "sonner"
 
 function AddProductContent() {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, userProfile } = useAuth()
   const [images, setImages] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [loading, setLoading] = useState(false)
