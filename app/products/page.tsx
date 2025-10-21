@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useCart } from "@/lib/cart-context"
 import { Grid3x3, List, SlidersHorizontal, Loader2, Package } from "lucide-react"
 import type { Product } from "@/lib/types"
-import { collection, getDocs, query, where, orderBy, limit as firestoreLimit } from "firebase/firestore"
+import { collection, getDocs, query, where, orderBy, limit as firestoreLimit, doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
 
 export default function ProductsPage() {
@@ -49,38 +49,19 @@ export default function ProductsPage() {
         setProducts(fetchedProducts)
         setFilteredProducts(fetchedProducts)
         
-        // Extract unique vendors
+        // Extract unique vendors from products
         const uniqueVendorIds = Array.from(new Set(fetchedProducts.map(p => p.vendorId).filter(Boolean)))
         
-        // Fetch vendor names from products or use vendorId as fallback
-        const vendorsList = await Promise.all(
-          uniqueVendorIds.map(async (vendorId) => {
-            const product = fetchedProducts.find(p => p.vendorId === vendorId)
-            let vendorName = product?.vendorName
-            
-            // If no vendor name in product, try to fetch from users collection
-            if (!vendorName || vendorName === 'Unknown Vendor') {
-              try {
-                const { doc, getDoc } = await import("firebase/firestore")
-                const vendorDoc = await getDoc(doc(db, 'users', vendorId))
-                if (vendorDoc.exists()) {
-                  const vendorData = vendorDoc.data()
-                  vendorName = vendorData.storeName || vendorData.displayName || vendorData.businessName || 'Vendor Store'
-                }
-              } catch (err) {
-                console.error('Error fetching vendor:', err)
-                vendorName = 'Vendor Store'
-              }
-            }
-            
-            return {
-              id: vendorId,
-              name: vendorName || 'Vendor Store'
-            }
-          })
-        )
+        // Get vendor names from products (don't fetch from users to avoid permission issues)
+        const vendorsList = uniqueVendorIds.map(vendorId => {
+          const product = fetchedProducts.find(p => p.vendorId === vendorId)
+          return {
+            id: vendorId,
+            name: product?.vendorName || 'Vendor Store'
+          }
+        })
         
-        setVendors(vendorsList.filter(v => v.id))
+        setVendors(vendorsList)
       } catch (error) {
         console.error("Error fetching products:", error)
         setProducts([])
