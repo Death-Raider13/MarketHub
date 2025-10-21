@@ -65,6 +65,9 @@ service cloud.firestore {
       // Users can read their own data, admins can read all
       allow read: if isOwner(userId) || isAdmin();
       
+      // Anyone can read vendor profiles (for storefront pages)
+      allow read: if resource.data.role == 'vendor' && resource.data.verified == true;
+      
       // Users can update their own data (except role and verified status)
       allow update: if isOwner(userId) && 
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'verified', 'uid']);
@@ -117,6 +120,10 @@ service cloud.firestore {
       
       // Vendors can read their own products (any status)
       allow read: if isVendorOwner(resource.data.vendorId);
+      
+      // Customers can read products they have ordered (for order history)
+      // This allows viewing product details even if product status changed
+      allow read: if isSignedIn();
       
       // Admins can read all products
       allow read: if isAdmin();

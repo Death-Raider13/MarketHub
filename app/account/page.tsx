@@ -871,20 +871,27 @@ function AccountPageContent() {
                                       </div>
                                       <div className="flex-1">
                                         <p className="font-medium">{item.productName || item.name || 'Product'}</p>
-                                        {item.vendorName && (
+                                        {(item.vendorName && item.vendorName !== 'Unknown Vendor') ? (
                                           <Link 
                                             href={`/store/${item.vendorId}`}
                                             className="text-xs text-muted-foreground hover:underline"
                                           >
                                             by {item.vendorName}
                                           </Link>
-                                        )}
+                                        ) : item.vendorId ? (
+                                          <Link 
+                                            href={`/store/${item.vendorId}`}
+                                            className="text-xs text-muted-foreground hover:underline"
+                                          >
+                                            by Vendor
+                                          </Link>
+                                        ) : null}
                                         <p className="text-sm text-muted-foreground">
                                           Qty: {item.quantity || 1}
                                         </p>
                                       </div>
                                       <p className="font-medium">
-                                        ₦{(item.productPrice || item.price || 0).toLocaleString()}
+                                        ₦{((item.productPrice ?? item.price ?? 0) || 0).toLocaleString()}
                                       </p>
                                     </div>
                                   ))
