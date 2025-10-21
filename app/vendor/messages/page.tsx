@@ -74,6 +74,15 @@ function VendorMessagesContent() {
     }
   }, [user])
 
+  // Get product filter from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const productId = urlParams.get('product')
+    if (productId) {
+      setSearchQuery(`product:${productId}`)
+    }
+  }, [])
+
   const loadConversations = async () => {
     if (!user) return
 

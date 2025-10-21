@@ -11,26 +11,25 @@ import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import {
-  LayoutDashboard,
   Package,
-  ShoppingCart,
-  TrendingUp,
-  Megaphone,
-  StoreIcon,
+  Plus,
   Search,
+  Filter,
   MoreVertical,
   Edit,
   Trash2,
   Eye,
-  Plus,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
   Archive,
   Copy,
-  BarChart3,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
   Clock,
+  CheckCircle,
+  BarChart3,
   Loader2,
+  Mail,
+  HelpCircle
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -557,6 +556,18 @@ function VendorProductsContent() {
                                     <Link href={`/vendor/analytics?product=${product.id}`}>
                                       <BarChart3 className="mr-2 h-4 w-4" />
                                       View Analytics
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/vendor/messages?product=${product.id}`}>
+                                      <Mail className="mr-2 h-4 w-4" />
+                                      Product Messages
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/vendor/questions?product=${product.id}`}>
+                                      <HelpCircle className="mr-2 h-4 w-4" />
+                                      Product Q&A
                                     </Link>
                                   </DropdownMenuItem>
                                   {(product.status === "active" || product.status === "inactive") && (

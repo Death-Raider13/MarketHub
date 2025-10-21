@@ -13,10 +13,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { useCart } from "@/lib/cart-context"
 import { useAuth } from "@/lib/firebase/auth-context"
+import { useWishlist } from "@/lib/wishlist-context"
 import { db } from "@/lib/firebase/config"
 import { doc, getDoc, collection, query, where, limit, getDocs } from "firebase/firestore"
 import { ProductReviews } from "@/components/customer/product-reviews"
 import { ContactVendor } from "@/components/customer/contact-vendor"
+import { ProductQA } from "@/components/customer/product-qa"
 import { 
   Star, 
   Heart, 
@@ -54,6 +56,7 @@ export default function ProductDetailPage() {
   const id = params.id as string
   const { user } = useAuth()
   const { addToCart } = useCart()
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
   
   const [product, setProduct] = useState<Product | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
@@ -61,7 +64,6 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [isWishlisted, setIsWishlisted] = useState(false)
   const [hasPurchased, setHasPurchased] = useState(false)
   const [vendorStats, setVendorStats] = useState<{rating: number, reviewCount: number, productCount: number} | null>(null)
   const [vendorInfo, setVendorInfo] = useState<{description: string, verified: boolean} | null>(null)
@@ -96,26 +98,52 @@ export default function ProductDetailPage() {
         
         setProduct(productData)
         
-        // Fetch related products (same category, different vendor or same vendor)
-        const relatedQuery = query(
-          collection(db, 'products'),
-          where('category', '==', productData.category),
-          where('status', '==', 'active'),
-          limit(5)
-        )
+        // Fetch related products (similar tags or same category)
+        let related: Product[] = []
         
-        const relatedSnapshot = await getDocs(relatedQuery)
-        const related = relatedSnapshot.docs
-          .filter(doc => doc.id !== id) // Exclude current product
-          .slice(0, 4) // Limit to 4
-          .map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate(),
-            updatedAt: doc.data().updatedAt?.toDate()
-          })) as Product[]
+        // First, try to find products with similar tags
+        if (productData.tags && productData.tags.length > 0) {
+          const tagQuery = query(
+            collection(db, 'products'),
+            where('tags', 'array-contains-any', productData.tags.slice(0, 10)),
+            where('status', '==', 'active'),
+            limit(10)
+          )
+          
+          const tagSnapshot = await getDocs(tagQuery)
+          related = tagSnapshot.docs
+            .filter(doc => doc.id !== id) // Exclude current product
+            .map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              createdAt: doc.data().createdAt?.toDate(),
+              updatedAt: doc.data().updatedAt?.toDate()
+            })) as Product[]
+        }
         
-        setRelatedProducts(related)
+        // If not enough products with similar tags, add products from same category
+        if (related.length < 4) {
+          const categoryQuery = query(
+            collection(db, 'products'),
+            where('category', '==', productData.category),
+            where('status', '==', 'active'),
+            limit(10)
+          )
+          
+          const categorySnapshot = await getDocs(categoryQuery)
+          const categoryProducts = categorySnapshot.docs
+            .filter(doc => doc.id !== id && !related.some(p => p.id === doc.id))
+            .map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              createdAt: doc.data().createdAt?.toDate(),
+              updatedAt: doc.data().updatedAt?.toDate()
+            })) as Product[]
+          
+          related = [...related, ...categoryProducts]
+        }
+        
+        setRelatedProducts(related.slice(0, 4))
         
         // Check if user has purchased this product (for verified review badge)
         if (user) {
@@ -197,6 +225,35 @@ export default function ProductDetailPage() {
     if (product) {
       addToCart(product, quantity)
       toast.success('Added to cart!')
+    }
+  }
+
+  const handleShare = async () => {
+    if (!product) return
+
+    const shareData = {
+      title: product.name,
+      text: `Check out ${product.name} on MarketHub!`,
+      url: window.location.href
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        // Fallback: Copy to clipboard
+        await navigator.clipboard.writeText(window.location.href)
+        toast.success('Link copied to clipboard!')
+      }
+    } catch (error) {
+      console.error('Error sharing:', error)
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        toast.success('Link copied to clipboard!')
+      } catch (clipboardError) {
+        toast.error('Failed to share')
+      }
     }
   }
   
@@ -425,12 +482,20 @@ export default function ProductDetailPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    onClick={() => setIsWishlisted(!isWishlisted)}
-                    aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    onClick={() => {
+                      if (product) {
+                        if (isInWishlist(product.id)) {
+                          removeFromWishlist(product.id)
+                        } else {
+                          addToWishlist(product)
+                        }
+                      }
+                    }}
+                    aria-label={product && isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                   >
-                    <Heart className={`h-5 w-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                    <Heart className={`h-5 w-5 ${product && isInWishlist(product.id) ? "fill-red-500 text-red-500" : ""}`} />
                   </Button>
-                  <Button size="lg" variant="outline" aria-label="Share product">
+                  <Button size="lg" variant="outline" onClick={handleShare} aria-label="Share product">
                     <Share2 className="h-5 w-5" />
                   </Button>
                 </div>
@@ -665,21 +730,17 @@ export default function ProductDetailPage() {
               </TabsContent>
 
               <TabsContent value="qa" className="mt-6">
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground" />
-                    <h3 className="mt-4 text-lg font-semibold">No questions yet</h3>
-                    <p className="mt-2 text-muted-foreground">Be the first to ask a question about this product</p>
-                    <Button className="mt-4">Ask a Question</Button>
-                  </CardContent>
-                </Card>
+                <ProductQA
+                  productId={product.id}
+                  vendorId={product.vendorId}
+                />
               </TabsContent>
             </Tabs>
           </div>
 
           {/* Related Products */}
           <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-6">Customers Also Viewed</h2>
+            <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {relatedProducts.map((relatedProduct) => (
                 <Card key={relatedProduct.id}>

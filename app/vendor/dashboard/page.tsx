@@ -35,6 +35,8 @@ import {
   Wallet,
   Palette,
   Loader2,
+  HelpCircle,
+  Mail,
 } from "lucide-react"
 import Link from "next/link"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -331,6 +333,18 @@ function VendorDashboardContent() {
                 <Button variant="ghost" className="w-full justify-start">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Orders
+                </Button>
+              </Link>
+              <Link href="/vendor/messages">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Messages
+                </Button>
+              </Link>
+              <Link href="/vendor/questions">
+                <Button variant="ghost" className="w-full justify-start">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Q&A
                 </Button>
               </Link>
               <Link href="/vendor/analytics">

@@ -238,6 +238,56 @@ service cloud.firestore {
     }
     
     // ============================================
+    // QUESTIONS COLLECTION (Product Q&A)
+    // ============================================
+    match /questions/{questionId} {
+      // Anyone can create questions
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['productId', 'vendorId', 'userId', 'question', 'createdAt']);
+      
+      // Everyone can read approved questions
+      allow read: if resource.data.status == 'approved';
+      
+      // Users can read their own questions (any status)
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Vendors can read questions for their products
+      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      
+      // Vendors can answer questions for their products
+      allow update: if isSignedIn() && 
+                      resource.data.vendorId == request.auth.uid &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answer', 'answeredBy', 'answeredAt', 'updatedAt']);
+      
+      // Admins can read, update, and approve/reject questions
+      allow read, update: if isAdmin();
+      
+      // Users can delete their own questions
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Admins can delete any question
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // WISHLISTS COLLECTION
+    // ============================================
+    match /wishlists/{wishlistId} {
+      // Users can create their own wishlist items
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // Users can read their own wishlist items
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own wishlist items
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Admins can read all wishlists
+      allow read: if isAdmin();
+    }
+    
+    // ============================================
     // ADVERTISEMENTS COLLECTION
     // ============================================
     match /ads/{adId} {
