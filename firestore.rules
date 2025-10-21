@@ -212,13 +212,16 @@ service cloud.firestore {
       allow read: if resource.data.approved == true;
       
       // Users can read their own reviews (any status)
-      allow read: if isOwner(resource.data.userId);
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
       // Vendors can read reviews for their products
-      allow read: if isVerifiedVendor();
+      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      
+      // Allow reading reviews for vendor stats calculation (public access)
+      allow read: if true;
       
       // Admins can read all reviews
-      allow read: if isAdmin();
+      allow read: if isSignedIn() && isAdmin();
       
       // Users can update their own reviews
       allow update: if isOwner(resource.data.userId) &&

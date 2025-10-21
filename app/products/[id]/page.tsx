@@ -147,9 +147,29 @@ export default function ProductDetailPage() {
           )
           const vendorProductsSnapshot = await getDocs(vendorProductsQuery)
           
+          // Calculate vendor rating from all their product reviews
+          const reviewsQuery = query(
+            collection(db, 'reviews'),
+            where('vendorId', '==', productData.vendorId)
+          )
+          const reviewsSnapshot = await getDocs(reviewsQuery)
+          
+          let totalRating = 0
+          let reviewCount = 0
+          
+          reviewsSnapshot.forEach(doc => {
+            const review = doc.data()
+            if (review.rating) {
+              totalRating += review.rating
+              reviewCount++
+            }
+          })
+          
+          const averageRating = reviewCount > 0 ? (totalRating / reviewCount) : 0
+          
           setVendorStats({
-            rating: 4.8, // TODO: Calculate from reviews
-            reviewCount: 0, // TODO: Calculate from reviews
+            rating: reviewCount > 0 ? Number(averageRating.toFixed(1)) : 0,
+            reviewCount: reviewCount,
             productCount: vendorProductsSnapshot.size
           })
         } catch (err) {
@@ -285,11 +305,11 @@ export default function ProductDetailPage() {
             <div className="space-y-6">
               <div>
                 <Link 
-                  href={`/vendors/${product.vendorId}`}
+                  href={`/store/${product.vendorId}`}
                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline mb-2"
                 >
                   <Store className="h-4 w-4" />
-                  {product.vendorName}
+                  {product.vendorName || 'Vendor Store'}
                 </Link>
                 <h1 className="text-3xl font-bold">{product.name}</h1>
                 <div className="mt-2 flex items-center gap-4">
@@ -331,49 +351,65 @@ export default function ProductDetailPage() {
                   )}
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Tax included. {product.productType === 'digital' ? 'Instant delivery after payment.' : 'Shipping calculated at checkout.'}
+                  Tax included. {product.type === 'digital' ? 'Instant delivery after payment.' : product.type === 'service' ? 'Service will be scheduled after payment.' : 'Shipping calculated at checkout.'}
                 </p>
               </div>
 
               {/* Stock Status */}
-              <div>
-                {product.stock > 0 ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <Check className="h-5 w-5" />
-                    <span className="font-medium">In Stock ({product.stock} available)</span>
-                  </div>
-                ) : (
-                  <div className="text-red-600 font-medium">Out of Stock</div>
-                )}
-              </div>
+              {product.type === 'physical' && (
+                <div>
+                  {product.stock > 0 ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Check className="h-5 w-5" />
+                      <span className="font-medium">In Stock ({product.stock} available)</span>
+                    </div>
+                  ) : (
+                    <div className="text-red-600 font-medium">Out of Stock</div>
+                  )}
+                </div>
+              )}
+              {product.type === 'digital' && (
+                <div className="flex items-center gap-2 text-green-600">
+                  <Check className="h-5 w-5" />
+                  <span className="font-medium">Available for instant download</span>
+                </div>
+              )}
+              {product.type === 'service' && (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Check className="h-5 w-5" />
+                  <span className="font-medium">Service available</span>
+                </div>
+              )}
 
-              {/* Quantity Selector */}
-              <div>
-                <label className="mb-2 block text-sm font-medium">Quantity</label>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-border rounded-lg">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="w-12 text-center font-medium">{quantity}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                      disabled={quantity >= product.stock}
-                      aria-label="Increase quantity"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+              {/* Quantity Selector - Only for physical products */}
+              {product.type === 'physical' && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Quantity</label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border border-border rounded-lg">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-12 text-center font-medium">{quantity}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                        disabled={quantity >= product.stock}
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-3">
@@ -382,9 +418,9 @@ export default function ProductDetailPage() {
                     size="lg" 
                     className="flex-1" 
                     onClick={handleAddToCart}
-                    disabled={product.productType === 'physical' && product.stock === 0}
+                    disabled={product.type === 'physical' && product.stock === 0}
                   >
-                    Add to Cart
+                    {product.type === 'digital' ? 'Buy Now' : product.type === 'service' ? 'Book Service' : 'Add to Cart'}
                   </Button>
                   <Button
                     size="lg"
@@ -417,14 +453,18 @@ export default function ProductDetailPage() {
               {/* Features */}
               <Card>
                 <CardContent className="p-6 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Truck className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Free Shipping</p>
-                      <p className="text-sm text-muted-foreground">On orders over ₦50,000</p>
-                    </div>
-                  </div>
-                  <Separator />
+                  {product.type === 'physical' && (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <Truck className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Free Shipping</p>
+                          <p className="text-sm text-muted-foreground">On orders over ₦50,000</p>
+                        </div>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
                   <div className="flex items-start gap-3">
                     <Shield className="h-5 w-5 text-primary mt-0.5" />
                     <div>
@@ -432,14 +472,30 @@ export default function ProductDetailPage() {
                       <p className="text-sm text-muted-foreground">100% secure transactions</p>
                     </div>
                   </div>
-                  <Separator />
-                  <div className="flex items-start gap-3">
-                    <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">30-Day Returns</p>
-                      <p className="text-sm text-muted-foreground">Easy returns & refunds</p>
-                    </div>
-                  </div>
+                  {product.type === 'physical' && (
+                    <>
+                      <Separator />
+                      <div className="flex items-start gap-3">
+                        <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">30-Day Returns</p>
+                          <p className="text-sm text-muted-foreground">Easy returns & refunds</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {product.type === 'digital' && (
+                    <>
+                      <Separator />
+                      <div className="flex items-start gap-3">
+                        <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Instant Access</p>
+                          <p className="text-sm text-muted-foreground">Download immediately after purchase</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>
