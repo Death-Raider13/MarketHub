@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
+import { notificationService } from '@/lib/notifications/service'
 
 export async function GET(
   request: NextRequest,
@@ -136,6 +137,28 @@ export async function POST(
 
     // Update product rating statistics
     await updateProductRating(productId)
+
+    // Get product details for notification
+    try {
+      const productDoc = await adminDb.collection('products').doc(productId).get()
+      const productData = productDoc.data()
+      
+      if (productData?.vendorId) {
+        // Notify vendor about new review
+        await notificationService.createNotification(productData.vendorId, 'new_review', {
+          metadata: {
+            productId: productId,
+            productName: productData.name || 'Unknown Product',
+            userName: userName,
+            rating: rating,
+            actionUrl: `/vendor/products`
+          }
+        })
+      }
+    } catch (notificationError) {
+      console.error('Failed to send review notification:', notificationError)
+      // Don't fail the review submission if notification fails
+    }
 
     return NextResponse.json({
       success: true,

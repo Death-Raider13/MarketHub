@@ -28,6 +28,10 @@ import {
   CheckCircle,
   BarChart3,
   Loader2,
+  LayoutDashboard,
+  ShoppingCart,
+  TrendingUp,
+  Store as StoreIcon,
   Mail,
   HelpCircle
 } from "lucide-react"

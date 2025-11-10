@@ -4,7 +4,7 @@ import type React from "react"
 
 import { createContext, useContext, useState, useEffect } from "react"
 import type { Product, CartItem } from "./types"
-
+import { useAuth } from '@/lib/firebase/auth-context';
 interface CartContextType {
   items: CartItem[]
   addToCart: (product: Product, quantity?: number) => void

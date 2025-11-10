@@ -102,10 +102,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get vendor information to ensure proper vendor name
+    let finalVendorName = vendorName || "Vendor"
+    
+    // If no vendor name provided, try to fetch from user profile
+    if (!vendorName || vendorName === "Vendor") {
+      try {
+        const vendorDoc = await adminDb.collection("users").doc(vendorId).get()
+        if (vendorDoc.exists) {
+          const vendorData = vendorDoc.data()
+          finalVendorName = vendorData?.storeName || 
+                           vendorData?.businessName || 
+                           vendorData?.displayName || 
+                           vendorData?.email?.split('@')[0] || 
+                           "Vendor"
+        }
+      } catch (error) {
+        console.warn("Could not fetch vendor name from user profile:", error)
+      }
+    }
+
     // Create product
     const productRef = await adminDb.collection("products").add({
       vendorId,
-      vendorName: vendorName || "Vendor",
+      vendorName: finalVendorName,
       name,
       description: description || "",
       price: parseFloat(price),

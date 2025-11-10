@@ -14,7 +14,9 @@ import { db } from "@/lib/firebase/config"
 
 interface Vendor {
   id: string
-  businessName: string
+  businessName?: string
+  displayName?: string
+  storeName?: string
   email: string
   verified: boolean
   createdAt: any
@@ -60,10 +62,11 @@ export default function VendorsPage() {
   useEffect(() => {
     if (searchQuery.trim()) {
       const searchLower = searchQuery.toLowerCase()
-      const filtered = vendors.filter(v => 
-        v.businessName?.toLowerCase().includes(searchLower) ||
-        v.email?.toLowerCase().includes(searchLower)
-      )
+      const filtered = vendors.filter(v => {
+        const vendorName = v.storeName || v.businessName || v.displayName || v.email?.split('@')[0] || 'Vendor'
+        return vendorName.toLowerCase().includes(searchLower) ||
+               v.email?.toLowerCase().includes(searchLower)
+      })
       setFilteredVendors(filtered)
     } else {
       setFilteredVendors(vendors)
@@ -143,10 +146,10 @@ export default function VendorsPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl">
-                          {vendor.businessName?.charAt(0).toUpperCase() || 'V'}
+                          {(vendor.storeName || vendor.businessName || vendor.displayName || 'V').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h3 className="font-semibold">{vendor.businessName || 'Vendor Store'}</h3>
+                          <h3 className="font-semibold">{vendor.storeName || vendor.businessName || vendor.displayName || vendor.email?.split('@')[0] || 'Vendor Store'}</h3>
                           {vendor.verified && (
                             <Badge variant="secondary" className="text-xs">
                               ✓ Verified

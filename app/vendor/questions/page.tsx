@@ -24,6 +24,16 @@ import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { db } from "@/lib/firebase/config"
 import { collection, query, where, orderBy, getDocs, doc, updateDoc } from "firebase/firestore"
+import { notificationService } from "@/lib/notifications/service"
+
+interface Reply {
+  id: string
+  userId: string
+  userName: string
+  message: string
+  createdAt: string
+  isVendor: boolean
+}
 
 interface Question {
   id: string
@@ -41,6 +51,7 @@ interface Question {
   helpful: number
   createdAt: Date
   updatedAt: Date
+  replies?: Reply[]
 }
 
 function VendorQuestionsContent() {
@@ -50,6 +61,9 @@ function VendorQuestionsContent() {
   const [answeringId, setAnsweringId] = useState<string | null>(null)
   const [answerText, setAnswerText] = useState<Record<string, string>>({})
   const [filter, setFilter] = useState<'all' | 'pending' | 'answered'>('all')
+  const [replyText, setReplyText] = useState<{[key: string]: string}>({})
+  const [showReplyBox, setShowReplyBox] = useState<{[key: string]: boolean}>({})
+  const [submittingReply, setSubmittingReply] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
     if (user) {
@@ -72,30 +86,29 @@ function VendorQuestionsContent() {
 
     try {
       setLoading(true)
-      let q = query(
-        collection(db, 'questions'),
-        where('vendorId', '==', user.uid),
-        orderBy('createdAt', 'desc')
-      )
+      console.log('Loading questions for vendor:', user.uid)
+      
+      // Use API to get questions with replies
+      const response = await fetch(`/api/vendor/questions?vendorId=${user.uid}`)
+      const data = await response.json()
 
-      const questionsSnapshot = await getDocs(q)
-      const questionsData = questionsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-        answeredAt: doc.data().answeredAt?.toDate()
-      })) as Question[]
+      if (data.success) {
+        let questionsData = data.questions || []
+        
+        // Apply filter
+        let filteredQuestions = questionsData
+        if (filter === 'pending') {
+          filteredQuestions = questionsData.filter((q: Question) => !q.answer)
+        } else if (filter === 'answered') {
+          filteredQuestions = questionsData.filter((q: Question) => q.answer)
+        }
 
-      // Apply filter
-      let filteredQuestions = questionsData
-      if (filter === 'pending') {
-        filteredQuestions = questionsData.filter(q => !q.answer)
-      } else if (filter === 'answered') {
-        filteredQuestions = questionsData.filter(q => q.answer)
+        console.log('Loaded', filteredQuestions.length, 'questions for vendor')
+        setQuestions(filteredQuestions)
+      } else {
+        console.error('Failed to load questions:', data.error)
+        toast.error('Failed to load questions')
       }
-
-      setQuestions(filteredQuestions)
     } catch (error) {
       console.error('Error loading questions:', error)
       toast.error('Failed to load questions')
@@ -115,6 +128,9 @@ function VendorQuestionsContent() {
     try {
       setAnsweringId(questionId)
 
+      // Find the question to get customer info
+      const question = questions.find(q => q.id === questionId)
+      
       await updateDoc(doc(db, 'questions', questionId), {
         answer: answer,
         answeredBy: user?.uid,
@@ -122,6 +138,21 @@ function VendorQuestionsContent() {
         status: 'approved',
         updatedAt: new Date()
       })
+
+      // Notify customer that their question was answered
+      if (question?.userId) {
+        try {
+          await notificationService.createNotification(question.userId, 'question_answered', {
+            metadata: {
+              productId: question.productId,
+              productName: question.productName,
+              actionUrl: `/products/${question.productId}`
+            }
+          })
+        } catch (notificationError) {
+          console.error('Failed to send answer notification:', notificationError)
+        }
+      }
 
       toast.success('Answer posted successfully!')
       setAnswerText(prev => ({ ...prev, [questionId]: '' }))
@@ -131,6 +162,79 @@ function VendorQuestionsContent() {
       toast.error('Failed to post answer')
     } finally {
       setAnsweringId(null)
+    }
+  }
+
+  const handleReply = async (questionId: string) => {
+    if (!user) return
+
+    const reply = replyText[questionId]?.trim()
+    if (!reply) {
+      toast.error('Please enter a reply')
+      return
+    }
+
+    try {
+      setSubmittingReply(prev => ({ ...prev, [questionId]: true }))
+
+      const response = await fetch(`/api/products/temp/questions/${questionId}/replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          userName: user.displayName || user.email?.split('@')[0] || 'Vendor',
+          message: reply,
+          isVendor: true
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Add the reply to the question locally
+        setQuestions(prev => prev.map(q => 
+          q.id === questionId 
+            ? { 
+                ...q, 
+                replies: [...(q.replies || []), {
+                  id: data.replyId,
+                  userId: user.uid,
+                  userName: user.displayName || user.email?.split('@')[0] || 'Vendor',
+                  message: reply,
+                  createdAt: new Date().toISOString(),
+                  isVendor: true
+                }]
+              }
+            : q
+        ))
+        setReplyText(prev => ({ ...prev, [questionId]: '' }))
+        setShowReplyBox(prev => ({ ...prev, [questionId]: false }))
+        toast.success('Reply added!')
+      } else {
+        throw new Error(data.error || 'Failed to add reply')
+      }
+    } catch (error) {
+      console.error('Error adding reply:', error)
+      toast.error('Failed to add reply')
+    } finally {
+      setSubmittingReply(prev => ({ ...prev, [questionId]: false }))
+    }
+  }
+
+  // Helper function to safely format dates
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString || dateString === 'null' || dateString === 'undefined') {
+      return 'recently'
+    }
+    
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime()) || date.getTime() === 0) {
+        return 'recently'
+      }
+      return formatDistanceToNow(date, { addSuffix: true })
+    } catch (error) {
+      return 'recently'
     }
   }
 
@@ -204,7 +308,7 @@ function VendorQuestionsContent() {
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              Asked {formatDistanceToNow(question.createdAt, { addSuffix: true })}
+                              Asked {formatDate(question.createdAt?.toString())}
                             </p>
                             {question.productName && (
                               <p className="text-sm text-muted-foreground mt-1">
@@ -229,7 +333,7 @@ function VendorQuestionsContent() {
                           <p>{question.answer}</p>
                           {question.answeredAt && (
                             <p className="text-sm text-muted-foreground mt-2">
-                              Answered {formatDistanceToNow(question.answeredAt, { addSuffix: true })}
+                              Answered {formatDate(question.answeredAt?.toString())}
                             </p>
                           )}
                         </div>
@@ -259,6 +363,81 @@ function VendorQuestionsContent() {
                           </Button>
                         </div>
                       )}
+
+                      {/* Replies Section */}
+                      {question.replies && question.replies.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="text-sm font-medium text-muted-foreground">
+                            {question.replies.length} {question.replies.length === 1 ? 'Reply' : 'Replies'}
+                          </div>
+                          {question.replies.map((reply) => (
+                            <div key={reply.id} className="pl-4 border-l-2 border-muted bg-muted/30 p-3 rounded-r-lg">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`font-medium ${reply.isVendor ? 'text-primary' : ''}`}>
+                                  {reply.userName}
+                                  {reply.isVendor && (
+                                    <span className="ml-1 text-xs bg-primary text-primary-foreground px-1 rounded">
+                                      Vendor
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatDate(reply.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-foreground">{reply.message}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Reply Box */}
+                      <div className="flex items-center gap-2 pt-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setShowReplyBox(prev => ({ ...prev, [question.id]: !prev[question.id] }))}
+                        >
+                          <MessageCircle className="mr-1 h-4 w-4" />
+                          Reply
+                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                          Helpful: {question.helpful}
+                        </span>
+                      </div>
+
+                      {/* Reply Input */}
+                      {showReplyBox[question.id] && (
+                        <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                          <Textarea
+                            value={replyText[question.id] || ''}
+                            onChange={(e) => setReplyText(prev => ({ ...prev, [question.id]: e.target.value }))}
+                            placeholder="Write your reply..."
+                            rows={3}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setShowReplyBox(prev => ({ ...prev, [question.id]: false }))}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={() => handleReply(question.id)}
+                              disabled={submittingReply[question.id] || !replyText[question.id]?.trim()}
+                            >
+                              {submittingReply[question.id] ? (
+                                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Send className="mr-1 h-4 w-4" />
+                              )}
+                              Reply
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))
@@ -274,7 +453,7 @@ function VendorQuestionsContent() {
 
 export default function VendorQuestionsPage() {
   return (
-    <ProtectedRoute requireVendor>
+    <ProtectedRoute>
       <VendorQuestionsContent />
     </ProtectedRoute>
   )

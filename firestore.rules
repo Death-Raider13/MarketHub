@@ -21,9 +21,14 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    // Check if user is admin
+    // Check if user is admin or super admin
     function isAdmin() {
-      return isSignedIn() && getUserData().role == 'admin';
+      return isSignedIn() && (getUserData().role == 'admin' || getUserData().role == 'super_admin');
+    }
+    
+    // Check if user is super admin
+    function isSuperAdmin() {
+      return isSignedIn() && getUserData().role == 'super_admin';
     }
     
     // Check if user is vendor
@@ -290,6 +295,39 @@ service cloud.firestore {
     // ============================================
     // ADVERTISEMENTS COLLECTION
     // ============================================
+    match /advertisements/{adId} {
+      // Verified vendors can create advertisements
+      allow create: if isVerifiedVendor() &&
+                      request.resource.data.vendorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['vendorId', 'type', 'title', 'status', 'createdAt']) &&
+                      request.resource.data.status == 'pending';
+      
+      // Everyone can read active/approved advertisements
+      allow read: if resource.data.status == 'active';
+      
+      // Vendors can read their own advertisements
+      allow read: if isVendorOwner(resource.data.vendorId);
+      
+      // Admins can read all advertisements
+      allow read: if isAdmin();
+      
+      // Vendors can update their own advertisements (except status and metrics)
+      allow update: if isVendorOwner(resource.data.vendorId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'impressions', 'clicks', 'vendorId']);
+      
+      // Admins can approve/reject and update advertisements
+      allow update: if isAdmin();
+      
+      // Vendors can delete their own pending advertisements
+      allow delete: if isVendorOwner(resource.data.vendorId) && resource.data.status == 'pending';
+      
+      // Admins can delete any advertisement
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // ADS COLLECTION (Legacy - keeping for compatibility)
+    // ============================================
     match /ads/{adId} {
       // Verified vendors can create ad campaigns
       allow create: if isVerifiedVendor() &&
@@ -380,18 +418,19 @@ service cloud.firestore {
     // NOTIFICATIONS COLLECTION
     // ============================================
     match /notifications/{notificationId} {
-      // System creates notifications (use Cloud Functions)
-      allow create: if false;
+      // Allow system and admins to create notifications
+      allow create: if isAdmin() || isSignedIn();
       
       // Users can read their own notifications
-      allow read: if isOwner(resource.data.userId);
+      allow read: if isSignedIn() && resource.data.recipientId == request.auth.uid;
       
       // Users can mark their notifications as read
-      allow update: if isOwner(resource.data.userId) &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow update: if isSignedIn() && 
+                      resource.data.recipientId == request.auth.uid &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'readAt']);
       
       // Users can delete their own notifications
-      allow delete: if isOwner(resource.data.userId);
+      allow delete: if isSignedIn() && resource.data.recipientId == request.auth.uid;
       
       // Admins can manage all notifications
       allow read, update, delete: if isAdmin();

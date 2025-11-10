@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { NotificationTriggers } from "@/lib/notifications/triggers"
 
 // PUT - Update order status
 export async function PUT(
@@ -35,8 +36,23 @@ export async function PUT(
       updateData.trackingNumber = trackingNumber
     }
 
+    // Get order data before update to get customer ID
+    const orderDoc = await adminDb.collection("orders").doc(params.id).get()
+    const orderData = orderDoc.data()
+
     // Update order status
     await adminDb.collection("orders").doc(params.id).update(updateData)
+
+    // Trigger notification to customer about status change
+    if (orderData?.customerId || orderData?.userId) {
+      try {
+        const customerId = orderData.customerId || orderData.userId
+        await NotificationTriggers.onOrderStatusChange(params.id, customerId, status)
+      } catch (notificationError) {
+        console.error("Failed to send order status notification:", notificationError)
+        // Don't fail the order update if notification fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

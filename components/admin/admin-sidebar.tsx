@@ -19,11 +19,12 @@ import {
   AlertCircle,
   Flag,
   Wallet,
+  Bell,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/lib/firebase/auth-context';
+import { useAuth, type UserRole } from '@/lib/firebase/auth-context';
 import { hasPermission } from '@/lib/admin/permissions';
 import type { AdminRole } from '@/lib/admin/permissions';
 
@@ -33,6 +34,17 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: number;
   permission?: string;
+}
+
+// Role-specific dashboard routes
+const getRoleDashboard = (role: UserRole) => {
+  switch (role) {
+    case 'super_admin': return '/super-admin'
+    case 'admin': return '/admin/dashboard'
+    case 'moderator': return '/moderator/dashboard'
+    case 'support': return '/support/dashboard'
+    default: return '/admin/dashboard'
+  }
 }
 
 const navItems: NavItem[] = [
@@ -45,14 +57,12 @@ const navItems: NavItem[] = [
     title: 'Vendors',
     href: '/admin/vendors',
     icon: Store,
-    badge: 12,
     permission: 'vendors.view',
   },
   {
     title: 'Products',
     href: '/admin/products',
     icon: Package,
-    badge: 28,
     permission: 'products.view',
   },
   {
@@ -71,14 +81,14 @@ const navItems: NavItem[] = [
     title: 'Advertising',
     href: '/admin/advertising',
     icon: Megaphone,
-    badge: 5,
+
     permission: 'ads.view',
   },
   {
     title: 'Reviews',
     href: '/admin/reviews',
     icon: MessageSquare,
-    badge: 15,
+    
     permission: 'reviews.view',
   },
   {
@@ -115,8 +125,13 @@ const navItems: NavItem[] = [
     title: 'Reported Items',
     href: '/admin/reports-abuse',
     icon: Flag,
-    badge: 3,
     permission: 'reviews.view',
+  },
+  {
+    title: 'Notifications',
+    href: '/admin/notifications',
+    icon: Bell,
+    permission: 'system.maintenance',
   },
   {
     title: 'Settings',
@@ -134,15 +149,23 @@ export function AdminSidebar() {
     if (!item.permission) return true;
     if (!userProfile?.role) return false;
     
-    // Allow admin and super_admin roles access to all admin features
-    return ['admin', 'super_admin', 'moderator', 'support'].includes(userProfile.role);
+    // Use proper permission checking
+    return hasPermission(userProfile.role as AdminRole, item.permission as any);
   };
+
+  // Get role-specific dashboard
+  const dashboardHref = userProfile?.role ? getRoleDashboard(userProfile.role as UserRole) : '/admin/dashboard';
+
+  // Update dashboard item to use role-specific route
+  const updatedNavItems = navItems.map(item => 
+    item.title === 'Dashboard' ? { ...item, href: dashboardHref } : item
+  );
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-muted/10">
       <ScrollArea className="flex-1 px-3 py-4">
         <div className="space-y-1">
-          {navItems.map((item) => {
+          {updatedNavItems.map((item) => {
             if (!canAccessItem(item)) return null;
 
             const Icon = item.icon;
@@ -171,16 +194,34 @@ export function AdminSidebar() {
         </div>
       </ScrollArea>
 
-      {/* Quick Stats */}
+      {/* Role Info & Quick Stats */}
       <div className="border-t p-4">
+        {/* Role Indicator */}
+        <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-800">
+              {userProfile?.role === 'super_admin' ? 'Super Admin' :
+               userProfile?.role === 'admin' ? 'Admin' :
+               userProfile?.role === 'moderator' ? 'Moderator' :
+               userProfile?.role === 'support' ? 'Support' : 'Admin'}
+            </span>
+          </div>
+          <p className="text-xs text-blue-600">
+            {userProfile?.role === 'super_admin' ? 'Full platform control' :
+             userProfile?.role === 'admin' ? 'Operations management' :
+             userProfile?.role === 'moderator' ? 'Content moderation' :
+             userProfile?.role === 'support' ? 'Customer support' : 'Platform management'}
+          </p>
+        </div>
+
+        {/* Quick Stats */}
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Pending Approvals</span>
-            <Badge variant="outline">45</Badge>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Active Issues</span>
-            <Badge variant="destructive">3</Badge>
           </div>
         </div>
       </div>

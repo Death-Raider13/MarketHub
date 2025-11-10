@@ -20,6 +20,7 @@ import { initiatePaystackPayment } from "@/lib/payment/paystack"
 import { db } from "@/lib/firebase/config"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { toast } from "sonner"
+import { NotificationTriggers } from "@/lib/notifications/triggers"
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart()
@@ -135,6 +136,25 @@ export default function CheckoutPage() {
       console.log('Order created with ID:', orderRef.id)
       const orderId = orderRef.id
 
+      // Trigger notifications for order placement
+      try {
+        // Notify customer about order placement
+        await NotificationTriggers.onOrderPlaced(orderId, user!.uid, '', total)
+        
+        // Notify each vendor about their orders
+        const vendorIds = [...new Set(items.map(item => item.product.vendorId))]
+        for (const vendorId of vendorIds) {
+          const vendorItems = items.filter(item => item.product.vendorId === vendorId)
+          const vendorTotal = vendorItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+          await NotificationTriggers.onOrderPlaced(orderId, user!.uid, vendorId, vendorTotal)
+        }
+        
+        console.log('✅ Order notifications sent successfully')
+      } catch (notificationError) {
+        console.error('Failed to send order notifications:', notificationError)
+        // Don't fail the order if notifications fail
+      }
+
       // Initiate Paystack payment (amount in NGN)
       initiatePaystackPayment(
         {
@@ -160,6 +180,15 @@ export default function CheckoutPage() {
             if (response.ok) {
               const data = await response.json()
               console.log('✅ Payment verified successfully:', data)
+              
+              // Trigger payment confirmation notifications
+              try {
+                await NotificationTriggers.onOrderStatusChange(orderId, user!.uid, 'confirmed')
+                console.log('✅ Payment confirmation notifications sent')
+              } catch (notificationError) {
+                console.error('Failed to send payment confirmation notifications:', notificationError)
+              }
+              
               console.log('✅ Setting step to 3...')
               setCompletedOrderId(orderId) // Store order ID for display
               setStep(3) // Show success page
@@ -478,13 +507,13 @@ export default function CheckoutPage() {
                       <p className="text-lg font-bold">#{completedOrderId?.substring(0, 8).toUpperCase() || 'PROCESSING'}</p>
                     </div>
                     <div className="mt-6 flex gap-2">
-                      <Button variant="outline" onClick={() => router.push("/dashboard")} className="flex-1">
+                      <Button variant="outline" onClick={() => router.push("/orders")} className="flex-1">
                         View Orders
                       </Button>
                       <Button
                         onClick={() => {
                           clearCart()
-                          router.push("/")
+                          router.push("/products")
                         }}
                         className="flex-1"
                       >

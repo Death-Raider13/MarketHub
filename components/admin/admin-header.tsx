@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/lib/firebase/auth-context';
+import { useAuth, type UserRole } from '@/lib/firebase/auth-context';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,18 +12,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bell, LogOut, Settings, User, Shield } from 'lucide-react';
+import { LogOut, Settings, User, Shield, LayoutDashboard, Crown, Briefcase, Flag, Headphones } from 'lucide-react';
+import { NotificationBell } from '@/components/notifications/notification-bell';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 
 export function AdminHeader() {
   const { user, userProfile, logout } = useAuth();
-  const [notifications, setNotifications] = useState(0);
-
-  useEffect(() => {
-    // TODO: Fetch real notification count
-    setNotifications(5);
-  }, []);
 
   const getInitials = (name?: string) => {
     if (!name) return 'AD';
@@ -35,6 +29,49 @@ export function AdminHeader() {
       .slice(0, 2);
   };
 
+  // Get role-specific dashboard info
+  const getRoleDashboardInfo = (role?: UserRole) => {
+    switch (role) {
+      case 'super_admin':
+        return {
+          href: '/super-admin',
+          label: 'Super Admin Dashboard',
+          icon: Crown,
+          description: 'Full platform control'
+        };
+      case 'admin':
+        return {
+          href: '/admin/dashboard',
+          label: 'Admin Dashboard',
+          icon: Briefcase,
+          description: 'Operations management'
+        };
+      case 'moderator':
+        return {
+          href: '/moderator/dashboard',
+          label: 'Moderator Dashboard',
+          icon: Flag,
+          description: 'Content moderation'
+        };
+      case 'support':
+        return {
+          href: '/support/dashboard',
+          label: 'Support Dashboard',
+          icon: Headphones,
+          description: 'Customer support'
+        };
+      default:
+        return {
+          href: '/admin/dashboard',
+          label: 'Admin Dashboard',
+          icon: LayoutDashboard,
+          description: 'Platform management'
+        };
+    }
+  };
+
+  const dashboardInfo = getRoleDashboardInfo(userProfile?.role);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -44,20 +81,16 @@ export function AdminHeader() {
             <span className="text-xl font-bold">Admin Panel</span>
           </Link>
           <Badge variant="secondary" className="hidden sm:inline-flex">
-            {userProfile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+            {userProfile?.role === 'super_admin' ? 'Super Admin' :
+             userProfile?.role === 'admin' ? 'Admin' :
+             userProfile?.role === 'moderator' ? 'Moderator' :
+             userProfile?.role === 'support' ? 'Support' : 'Admin'}
           </Badge>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            {notifications > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                {notifications}
-              </span>
-            )}
-          </Button>
+          <NotificationBell />
 
           {/* Admin Menu */}
           <DropdownMenu>
@@ -69,14 +102,38 @@ export function AdminHeader() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-64" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{userProfile?.displayName || 'Admin'}</p>
                   <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <Badge variant="outline" className="text-xs">
+                      {userProfile?.role === 'super_admin' ? 'Super Admin' :
+                       userProfile?.role === 'admin' ? 'Admin' :
+                       userProfile?.role === 'moderator' ? 'Moderator' :
+                       userProfile?.role === 'support' ? 'Support' : 'Admin'}
+                    </Badge>
+                  </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              
+              {/* Role-specific Dashboard Link */}
+              <DropdownMenuItem asChild>
+                <Link href={dashboardInfo.href} className="cursor-pointer">
+                  <div className="flex items-start gap-2 w-full">
+                    <dashboardInfo.icon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{dashboardInfo.label}</span>
+                      <span className="text-xs text-muted-foreground">{dashboardInfo.description}</span>
+                    </div>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
               <DropdownMenuItem asChild>
                 <Link href="/admin/profile" className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />

@@ -3,7 +3,8 @@
 import type React from "react"
 
 import Link from "next/link"
-import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone } from "lucide-react"
+import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare } from "lucide-react"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -20,15 +21,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { useAuth } from "@/lib/firebase/auth-context"
+import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { useCart } from "@/lib/cart-context"
 import { useRouter } from "next/navigation"
+import { useMessages } from "@/hooks/use-messages"
 
 export function Header() {
   const { user, userProfile, logout } = useAuth()
   const { totalItems } = useCart()
+  const { unreadCount } = useMessages()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -39,6 +42,41 @@ export function Header() {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
     }
   }
+
+  // Get role-specific dashboard info
+  const getRoleDashboardInfo = (role?: UserRole) => {
+    switch (role) {
+      case 'super_admin':
+        return {
+          href: '/super-admin',
+          label: 'Super Admin Dashboard',
+          description: 'Full platform control'
+        }
+      case 'admin':
+        return {
+          href: '/admin/dashboard',
+          label: 'Admin Dashboard',
+          description: 'Operations management'
+        }
+      case 'moderator':
+        return {
+          href: '/moderator/dashboard',
+          label: 'Moderator Dashboard',
+          description: 'Content moderation'
+        }
+      case 'support':
+        return {
+          href: '/support/dashboard',
+          label: 'Support Dashboard',
+          description: 'Customer support'
+        }
+      default:
+        return null
+    }
+  }
+
+  const dashboardInfo = getRoleDashboardInfo(userProfile?.role)
+  const isAdminRole = ['admin', 'super_admin', 'moderator', 'support'].includes(userProfile?.role || '')
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -158,6 +196,10 @@ export function Header() {
                         <User className="h-5 w-5" />
                         My Account
                       </Link>
+                      <div className="flex items-center gap-3 text-lg font-medium">
+                        <NotificationBell />
+                        <span>Notifications</span>
+                      </div>
                       <Link 
                         href="/my-purchases" 
                         className="flex items-center gap-3 text-lg font-medium hover:text-primary"
@@ -165,6 +207,21 @@ export function Header() {
                       >
                         <Package className="h-5 w-5" />
                         My Purchases
+                      </Link>
+                      <Link 
+                        href="/messages" 
+                        className="flex items-center justify-between text-lg font-medium hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <MessageSquare className="h-5 w-5" />
+                          Messages
+                        </div>
+                        {unreadCount > 0 && (
+                          <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                            {unreadCount}
+                          </Badge>
+                        )}
                       </Link>
                       <Link 
                         href="/account" 
@@ -196,6 +253,9 @@ export function Header() {
                 </nav>
               </SheetContent>
             </Sheet>
+
+            {/* Notifications - Only show for logged in users */}
+            {user && <NotificationBell />}
 
             {/* Cart */}
             <Link href="/cart" aria-label={`Shopping cart with ${totalItems} items`}>
@@ -259,6 +319,19 @@ export function Header() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
+                        <Link href="/messages" className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Messages
+                          </div>
+                          {unreadCount > 0 && (
+                            <Badge variant="destructive" className="text-xs px-1.5 py-0.5 ml-2">
+                              {unreadCount}
+                            </Badge>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link href="/account">Wishlist</Link>
                       </DropdownMenuItem>
                     </>
@@ -281,20 +354,63 @@ export function Header() {
                     </>
                   )}
 
-                  {userProfile?.role === "admin" && (
+                  {/* Admin Role Dashboard Links */}
+                  {isAdminRole && dashboardInfo && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link href="/admin/dashboard">
+                        <Link href={dashboardInfo.href}>
                           <LayoutDashboard className="mr-2 h-4 w-4" />
-                          Admin Dashboard
+                          {dashboardInfo.label}
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin/vendors">Manage Vendors</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin/products">Moderate Products</Link>
-                      </DropdownMenuItem>
+                      
+                      {/* Additional admin-specific links */}
+                      {userProfile?.role === "admin" && (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/vendors">Manage Vendors</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/products">Moderate Products</Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      
+                      {/* Super Admin specific links */}
+                      {userProfile?.role === "super_admin" && (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/super-admin/#users">Manage Users</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href="/super-admin/#settings">Platform Settings</Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      
+                      {/* Moderator specific links */}
+                      {userProfile?.role === "moderator" && (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/products">Review Products</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/reviews">Moderate Reviews</Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      
+                      {/* Support specific links */}
+                      {userProfile?.role === "support" && (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/orders">View Orders</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/users">Customer Support</Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </>
                   )}
 

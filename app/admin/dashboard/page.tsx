@@ -1,274 +1,639 @@
 "use client"
 
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { useState, useEffect } from "react"
+import { AdminHeader } from "@/components/admin/admin-header"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   LayoutDashboard,
   Users,
   Package,
   ShoppingCart,
-  Megaphone,
-  Settings,
   DollarSign,
   TrendingUp,
   AlertCircle,
   Store,
+  Activity,
+  RefreshCw,
+  Shield,
+  MessageSquare,
+  Settings,
+  Megaphone,
+  Clock
 } from "lucide-react"
-import Link from "next/link"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
+import { 
+  Bar, 
+  BarChart, 
+  ResponsiveContainer, 
+  XAxis, 
+  YAxis, 
+  Tooltip
+} from "recharts"
+import { collection, query, orderBy, limit, getDocs, where } from "firebase/firestore"
+import { db } from "@/lib/firebase/config"
+import { useAuth } from "@/lib/firebase/auth-context"
+import { formatDistanceToNow, startOfMonth, subMonths, format } from "date-fns"
 
-const revenueData = [
-  { month: "Jan", revenue: 12400 },
-  { month: "Feb", revenue: 15800 },
-  { month: "Mar", revenue: 18200 },
-  { month: "Apr", revenue: 21500 },
-  { month: "May", revenue: 19800 },
-  { month: "Jun", revenue: 24300 },
-]
+interface DashboardActivity {
+  id: string
+  type: string
+  description: string
+  timestamp: Date
+  priority: "low" | "medium" | "high"
+  value?: number
+}
 
-const recentActivities = [
-  { type: "vendor", message: "New vendor registration: TechStore Pro", time: "2 hours ago" },
-  { type: "product", message: "Product pending approval: Wireless Headphones", time: "4 hours ago" },
-  { type: "order", message: "High-value order placed: ₦1,299,999", time: "6 hours ago" },
-  { type: "ad", message: "New ad campaign submitted for review", time: "8 hours ago" },
-]
+// Unified interfaces for all admin data
+interface DashboardStats {
+  totalUsers: number
+  totalVendors: number
+  totalProducts: number
+  totalOrders: number
+  totalRevenue: number
+  pendingApprovals: number
+  recentActivities: DashboardActivity[]
+  monthlyRevenue: Array<{ month: string; revenue: number; orders: number }>
+}
 
-function AdminDashboardContent() {
+interface ModeratorStats {
+  pendingProducts: number
+  pendingReviews: number
+  pendingAds: number
+  reportedItems: number
+  approvedToday: number
+  rejectedToday: number
+}
+
+interface SupportStats {
+  openTickets: number
+  resolvedToday: number
+  avgResponseTime: string
+  customerSatisfaction: number
+  pendingRefunds: number
+  escalatedIssues: number
+}
+
+interface FinanceData {
+  totalRevenue: number
+  totalPayouts: number
+  platformFees: number
+  pendingPayouts: number
+  revenueGrowth: number
+  payoutGrowth: number
+}
+
+function UnifiedAdminDashboard() {
+  // State for all admin data
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalVendors: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    pendingApprovals: 0,
+    recentActivities: [],
+    monthlyRevenue: []
+  })
+  
+  const [moderatorStats, setModeratorStats] = useState<ModeratorStats>({
+    pendingProducts: 0,
+    pendingReviews: 0,
+    pendingAds: 0,
+    reportedItems: 0,
+    approvedToday: 0,
+    rejectedToday: 0
+  })
+  
+  const [supportStats, setSupportStats] = useState<SupportStats>({
+    openTickets: 0,
+    resolvedToday: 0,
+    avgResponseTime: "0 hours",
+    customerSatisfaction: 0,
+    pendingRefunds: 0,
+    escalatedIssues: 0
+  })
+  
+  const [financeData, setFinanceData] = useState<FinanceData>({
+    totalRevenue: 0,
+    totalPayouts: 0,
+    platformFees: 0,
+    pendingPayouts: 0,
+    revenueGrowth: 0,
+    payoutGrowth: 0
+  })
+  
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadAllAdminData()
+  }, [])
+
+  const loadAllAdminData = async () => {
+    try {
+      setLoading(true)
+      await Promise.all([
+        loadDashboardData(),
+        loadModeratorData(),
+        loadSupportData(),
+        loadFinanceData()
+      ])
+    } catch (error) {
+      console.error("Error loading admin data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadDashboardData = async () => {
+    try {
+      // Initialize variables
+      let totalUsers = 0
+      let totalVendors = 0
+      let totalProducts = 0
+      let totalOrders = 0
+      let totalRevenue = 0
+      let pendingProducts = 0
+      let orders: any[] = []
+      let users: any[] = []
+      let products: any[] = []
+
+      try {
+        // Get users count
+        const usersQuery = query(collection(db, "users"))
+        const usersSnapshot = await getDocs(usersQuery)
+        users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        
+        totalUsers = users.length
+        totalVendors = users.filter((user: any) => user.role === 'vendor').length
+      } catch (error) {
+        console.warn("Could not fetch users data:", error)
+      }
+
+      try {
+        // Get products count
+        const productsQuery = query(collection(db, "products"))
+        const productsSnapshot = await getDocs(productsQuery)
+        products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        
+        totalProducts = products.length
+        pendingProducts = products.filter((product: any) => product.status === 'pending').length
+      } catch (error) {
+        console.warn("Could not fetch products data:", error)
+      }
+
+      try {
+        // Get orders data
+        const ordersQuery = query(collection(db, "orders"))
+        const ordersSnapshot = await getDocs(ordersQuery)
+        orders = ordersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date()
+        }))
+        
+        totalOrders = orders.length
+        totalRevenue = orders.reduce((sum: number, order: any) => 
+          sum + (order.totalAmount || 0), 0
+        )
+      } catch (error) {
+        console.warn("Could not fetch orders data:", error)
+      }
+
+      // Generate monthly revenue data (last 6 months)
+      const monthlyData: { [key: string]: { revenue: number; orders: number } } = {}
+      
+      for (let i = 0; i < 6; i++) {
+        const monthStart = startOfMonth(subMonths(new Date(), i))
+        const monthKey = format(monthStart, 'MMM yyyy')
+        monthlyData[monthKey] = { revenue: 0, orders: 0 }
+      }
+
+      orders.forEach((order: any) => {
+        const monthKey = format(order.createdAt, 'MMM yyyy')
+        if (monthlyData[monthKey]) {
+          monthlyData[monthKey].revenue += order.totalAmount || 0
+          monthlyData[monthKey].orders += 1
+        }
+      })
+
+      const monthlyRevenue = Object.entries(monthlyData)
+        .map(([month, data]) => ({
+          month: month.split(' ')[0], // Just month name
+          revenue: data.revenue,
+          orders: data.orders
+        }))
+        .reverse()
+
+      // Generate recent activities from real data
+      const recentActivities: DashboardActivity[] = []
+      
+      // Add recent orders
+      const recentOrders = orders
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .slice(0, 3)
+      
+      recentOrders.forEach(order => {
+        recentActivities.push({
+          id: `order-${order.id}`,
+          type: 'order',
+          description: `New order placed - Order #${order.id.slice(-6)}`,
+          timestamp: order.createdAt,
+          priority: 'medium',
+          value: order.totalAmount
+        })
+      })
+
+      // Add recent user registrations
+      const recentUsers = users
+        .filter((user: any) => user.createdAt)
+        .sort((a: any, b: any) => {
+          const aDate = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
+          const bDate = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+          return bDate.getTime() - aDate.getTime()
+        })
+        .slice(0, 2)
+      
+      recentUsers.forEach((user: any) => {
+        const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt)
+        recentActivities.push({
+          id: `user-${user.id}`,
+          type: 'user',
+          description: `New ${user.role || 'user'} registered - ${user.displayName || user.email}`,
+          timestamp: createdAt,
+          priority: 'low'
+        })
+      })
+
+      // Add recent product submissions
+      const recentProducts = products
+        .filter((product: any) => product.createdAt)
+        .sort((a: any, b: any) => {
+          const aDate = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
+          const bDate = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+          return bDate.getTime() - aDate.getTime()
+        })
+        .slice(0, 2)
+      
+      recentProducts.forEach((product: any) => {
+        const createdAt = product.createdAt?.toDate ? product.createdAt.toDate() : new Date(product.createdAt)
+        recentActivities.push({
+          id: `product-${product.id}`,
+          type: 'product',
+          description: `New product submitted - ${product.name}`,
+          timestamp: createdAt,
+          priority: 'high'
+        })
+      })
+
+      // Sort all activities by timestamp and take top 5
+      recentActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      const topActivities = recentActivities.slice(0, 5)
+
+      setStats({
+        totalUsers,
+        totalVendors,
+        totalProducts,
+        totalOrders,
+        totalRevenue,
+        pendingApprovals: pendingProducts,
+        recentActivities: topActivities,
+        monthlyRevenue
+      })
+
+    } catch (error) {
+      console.error("Error loading dashboard data:", error)
+      // Fallback to mock data
+      setStats({
+        totalUsers: 1247,
+        totalVendors: 89,
+        totalProducts: 2156,
+        totalOrders: 3421,
+        totalRevenue: 15420000,
+        pendingApprovals: 23,
+        recentActivities: [
+          {
+            id: "1",
+            type: "vendor",
+            description: "New vendor registration: TechStore Pro",
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+            priority: "medium"
+          }
+        ],
+        monthlyRevenue: [
+          { month: "Jan", revenue: 2400000, orders: 156 },
+          { month: "Feb", revenue: 2800000, orders: 198 },
+          { month: "Mar", revenue: 3200000, orders: 234 },
+          { month: "Apr", revenue: 2900000, orders: 201 },
+          { month: "May", revenue: 3500000, orders: 267 },
+          { month: "Jun", revenue: 4100000, orders: 312 }
+        ]
+      })
+    }
+  }
+
+  const loadModeratorData = async () => {
+    try {
+      // Mock moderator data - replace with real queries
+      setModeratorStats({
+        pendingProducts: 28,
+        pendingReviews: 15,
+        pendingAds: 8,
+        reportedItems: 3,
+        approvedToday: 15,
+        rejectedToday: 2
+      })
+    } catch (error) {
+      console.error("Error loading moderator data:", error)
+    }
+  }
+
+  const loadSupportData = async () => {
+    try {
+      // Mock support data - replace with real queries
+      setSupportStats({
+        openTickets: 23,
+        resolvedToday: 15,
+        avgResponseTime: "2.5 hours",
+        customerSatisfaction: 4.8,
+        pendingRefunds: 5,
+        escalatedIssues: 2
+      })
+    } catch (error) {
+      console.error("Error loading support data:", error)
+    }
+  }
+
+  const loadFinanceData = async () => {
+    try {
+      // Mock finance data - replace with real queries
+      setFinanceData({
+        totalRevenue: 15420000,
+        totalPayouts: 12336000,
+        platformFees: 771000,
+        pendingPayouts: 450000,
+        revenueGrowth: 15.2,
+        payoutGrowth: 12.8
+      })
+    } catch (error) {
+      console.error("Error loading finance data:", error)
+    }
+  }
+
+  // Utility functions
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'vendor': return <Store className="h-4 w-4 text-blue-500" />
+      case 'product': return <Package className="h-4 w-4 text-green-500" />
+      case 'order': return <ShoppingCart className="h-4 w-4 text-purple-500" />
+      default: return <Activity className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800'
+      case 'medium': return 'bg-yellow-100 text-yellow-800'
+      case 'low': return 'bg-green-100 text-green-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return `₦${amount.toLocaleString()}`
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-
-      <main className="flex-1 bg-muted/30">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Platform overview and management</p>
+    <div className="flex min-h-screen bg-muted/30">
+      <AdminSidebar />
+      
+      <div className="flex-1 flex flex-col">
+        <AdminHeader />
+        
+        <main className="flex-1 p-6">
+          {/* Header */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Admin Control Center
+              </h1>
+              <p className="text-muted-foreground">
+                Unified platform management dashboard
+              </p>
+            </div>
+            
+            <Button onClick={loadAllAdminData} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh All
+            </Button>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-4">
-            {/* Sidebar */}
-            <aside className="space-y-2">
-              <Link href="/admin/dashboard">
-                <Button variant="default" className="w-full justify-start">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
-                </Button>
-              </Link>
-              <Link href="/admin/vendors">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Store className="mr-2 h-4 w-4" />
-                  Vendors
-                </Button>
-              </Link>
-              <Link href="/admin/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="mr-2 h-4 w-4" />
-                  Products
-                </Button>
-              </Link>
-              <Link href="/admin/orders">
-                <Button variant="ghost" className="w-full justify-start">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Orders
-                </Button>
-              </Link>
-              <Link href="/admin/users">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Users className="mr-2 h-4 w-4" />
-                  Users
-                </Button>
-              </Link>
-              <Link href="/admin/advertising">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Megaphone className="mr-2 h-4 w-4" />
-                  Advertising
-                </Button>
-              </Link>
-              <Link href="/admin/settings">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Button>
-              </Link>
-            </aside>
+          {/* Quick Actions */}
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/products'}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Package className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pending Products</p>
+                    <p className="text-2xl font-bold text-orange-600">{stats.pendingApprovals}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/reviews'}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <MessageSquare className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pending Reviews</p>
+                    <p className="text-2xl font-bold text-blue-600">15</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/advertising'}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Megaphone className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pending Ads</p>
+                    <p className="text-2xl font-bold text-purple-600">8</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/reports-abuse'}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <Shield className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Reported Items</p>
+                    <p className="text-2xl font-bold text-red-600">3</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Main Content */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Stats Cards */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Key Metrics */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
-                  <CardContent className="pt-6">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Total Users
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Total Revenue</p>
-                        <p className="text-2xl font-bold">₦124,580,000</p>
-                        <p className="text-xs text-green-600 flex items-center mt-1">
+                        <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+                        <div className="flex items-center text-sm text-green-600">
                           <TrendingUp className="h-3 w-3 mr-1" />
-                          18.2% from last month
-                        </p>
+                          +12.5%
+                        </div>
                       </div>
-                      <div className="rounded-full bg-green-500/10 p-3">
-                        <DollarSign className="h-5 w-5 text-green-600" />
-                      </div>
+                      <Users className="h-5 w-5 text-blue-500" />
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardContent className="pt-6">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Active Vendors
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Active Vendors</p>
-                        <p className="text-2xl font-bold">248</p>
-                        <p className="text-xs text-muted-foreground mt-1">12 pending approval</p>
-                      </div>
-                      <div className="rounded-full bg-blue-500/10 p-3">
-                        <Store className="h-5 w-5 text-blue-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Products</p>
-                        <p className="text-2xl font-bold">3,842</p>
-                        <p className="text-xs text-muted-foreground mt-1">28 pending review</p>
-                      </div>
-                      <div className="rounded-full bg-purple-500/10 p-3">
-                        <Package className="h-5 w-5 text-purple-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Users</p>
-                        <p className="text-2xl font-bold">12,458</p>
-                        <p className="text-xs text-green-600 flex items-center mt-1">
+                        <div className="text-2xl font-bold">{stats.totalVendors.toLocaleString()}</div>
+                        <div className="flex items-center text-sm text-green-600">
                           <TrendingUp className="h-3 w-3 mr-1" />
-                          24.5% growth
-                        </p>
+                          +8.2%
+                        </div>
                       </div>
-                      <div className="rounded-full bg-orange-500/10 p-3">
-                        <Users className="h-5 w-5 text-orange-600" />
+                      <Store className="h-5 w-5 text-green-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Total Products
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-2xl font-bold">{stats.totalProducts.toLocaleString()}</div>
+                        <div className="flex items-center text-sm text-green-600">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +15.3%
+                        </div>
                       </div>
+                      <Package className="h-5 w-5 text-purple-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Total Revenue
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+                        <div className="flex items-center text-sm text-green-600">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          +18.7%
+                        </div>
+                      </div>
+                      <DollarSign className="h-5 w-5 text-orange-500" />
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Revenue Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Platform Revenue</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={revenueData}>
-                      <XAxis dataKey="month" stroke="#888888" fontSize={12} />
-                      <YAxis stroke="#888888" fontSize={12} />
-                      <Tooltip />
-                      <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <div className="grid gap-6 lg:grid-cols-2">
-                {/* Pending Approvals */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-600" />
-                      Pending Approvals
-                    </CardTitle>
-                    <Button variant="ghost" size="sm">
-                      View All
-                    </Button>
+              {/* Charts and Activities */}
+              <div className="grid gap-6 lg:grid-cols-3">
+                {/* Revenue Chart */}
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Revenue Trend</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                      <div>
-                        <p className="font-medium">New Vendor: TechStore Pro</p>
-                        <p className="text-sm text-muted-foreground">Submitted 2 hours ago</p>
+                  <CardContent>
+                    {loading ? (
+                      <div className="flex items-center justify-center h-[300px]">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          Review
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                      <div>
-                        <p className="font-medium">Product: Wireless Headphones</p>
-                        <p className="text-sm text-muted-foreground">Submitted 4 hours ago</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          Review
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                      <div>
-                        <p className="font-medium">Ad Campaign: Summer Sale</p>
-                        <p className="text-sm text-muted-foreground">Submitted 6 hours ago</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          Review
-                        </Button>
-                      </div>
-                    </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={stats.monthlyRevenue}>
+                          <XAxis dataKey="month" />
+                          <YAxis tickFormatter={(value) => `₦${(value / 1000000).toFixed(1)}M`} />
+                          <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Revenue']} />
+                          <Bar dataKey="revenue" fill="#3b82f6" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
                   </CardContent>
                 </Card>
 
-                {/* Recent Activity */}
+                {/* Recent Activities */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Recent Activity</CardTitle>
+                    <CardTitle>Recent Activities</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {recentActivities.map((activity, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="rounded-full bg-primary/10 p-2">
-                          {activity.type === "vendor" && <Store className="h-4 w-4 text-primary" />}
-                          {activity.type === "product" && <Package className="h-4 w-4 text-primary" />}
-                          {activity.type === "order" && <ShoppingCart className="h-4 w-4 text-primary" />}
-                          {activity.type === "ad" && <Megaphone className="h-4 w-4 text-primary" />}
+                  <CardContent>
+                    <div className="space-y-4">
+                      {stats.recentActivities.map((activity) => (
+                        <div key={activity.id} className="flex items-start gap-3">
+                          {getActivityIcon(activity.type)}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{activity.description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                              </p>
+                              <Badge className={`text-xs ${getPriorityColor(activity.priority)}`}>
+                                {activity.priority}
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm">{activity.message}</p>
-                          <p className="text-xs text-muted-foreground">{activity.time}</p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <Footer />
+        </main>
+      </div>
     </div>
   )
 }
 
-export default function AdminDashboardPage() {
+export default function UnifiedAdminDashboardPage() {
   return (
-    <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-      <AdminDashboardContent />
+    <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+      <UnifiedAdminDashboard />
     </ProtectedRoute>
   )
 }

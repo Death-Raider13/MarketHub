@@ -31,6 +31,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
+import { VendorName } from "@/components/vendor-name"
 
 interface OrderItem {
   productId: string
@@ -345,7 +346,7 @@ function OrdersContent() {
                                 {item.productName}
                               </Link>
                               <p className="text-sm text-muted-foreground">
-                                by {item.vendorName} • Qty: {item.quantity}
+                                by <VendorName vendorId={item.vendorId} vendorName={item.vendorName} /> • Qty: {item.quantity}
                               </p>
                             </div>
                             <div className="text-right">

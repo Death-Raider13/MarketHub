@@ -541,7 +541,7 @@ function SuperAdminDashboard() {
 
 export default function SuperAdminPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin']}>
+    <ProtectedRoute requiredPermissions={['admins.create', 'system.maintenance']} requireAllPermissions={true}>
       <SuperAdminDashboard />
     </ProtectedRoute>
   );

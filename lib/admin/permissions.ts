@@ -137,10 +137,49 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
 };
 
 /**
+ * Role hierarchy for permission checks
+ */
+const ROLE_HIERARCHY: Record<AdminRole, number> = {
+  'super_admin': 4,
+  'admin': 3,
+  'moderator': 2,
+  'support': 1,
+};
+
+/**
  * Check if a role has a specific permission
  */
 export function hasPermission(role: AdminRole, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role].includes(permission);
+}
+
+/**
+ * Check if a role can manage another role (hierarchical check)
+ */
+export function canManageRole(managerRole: AdminRole, targetRole: AdminRole): boolean {
+  return ROLE_HIERARCHY[managerRole] > ROLE_HIERARCHY[targetRole];
+}
+
+/**
+ * Check if a role can perform an action on a specific user role
+ */
+export function canManageUser(managerRole: AdminRole, targetUserRole: AdminRole, permission: Permission): boolean {
+  // Must have the base permission
+  if (!hasPermission(managerRole, permission)) {
+    return false;
+  }
+  
+  // Super admin can manage anyone
+  if (managerRole === 'super_admin') {
+    return true;
+  }
+  
+  // Cannot manage users of same or higher role
+  if (ROLE_HIERARCHY[managerRole] <= ROLE_HIERARCHY[targetUserRole]) {
+    return false;
+  }
+  
+  return true;
 }
 
 /**

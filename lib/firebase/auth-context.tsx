@@ -13,6 +13,7 @@ import {
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth"
+import { onUserRegistration } from '@/lib/notifications/triggers'
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { auth, db } from "./config"
 import {
@@ -25,7 +26,7 @@ import {
   type Session,
 } from "../session-management"
 
-export type UserRole = "customer" | "vendor" | "admin" | "super_admin"
+export type UserRole = "customer" | "vendor" | "admin" | "super_admin" | "moderator" | "support"
 
 export interface UserProfile {
   uid: string
@@ -167,6 +168,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       await setDoc(doc(db, "users", userCredential.user.uid), userProfile)
       setUserProfile(userProfile)
+      // Trigger notifications for new registration (fire-and-forget)
+      try {
+        onUserRegistration(userCredential.user.uid, displayName || email, role).catch(err => console.error('notify onUserRegistration failed', err))
+      } catch (err) {
+        console.error('Error calling onUserRegistration:', err)
+      }
     } catch (error: any) {
       // Handle rate limit errors
       if (error.code === 'auth/too-many-requests') {

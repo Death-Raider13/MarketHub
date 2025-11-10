@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { AdminHeader } from "@/components/admin/admin-header"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -99,59 +99,27 @@ function AdminSettingsContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-
-      <main className="flex-1 bg-muted/30">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold">Platform Settings</h1>
-            <p className="text-muted-foreground">Configure platform-wide settings and preferences</p>
+    <div className="flex min-h-screen bg-muted/30">
+      <AdminSidebar />
+      
+      <div className="flex-1 flex flex-col">
+        <AdminHeader />
+        
+        <main className="flex-1 p-6">
+          {/* Header */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Platform Settings
+              </h1>
+              <p className="text-muted-foreground">
+                Configure platform-wide settings and preferences
+              </p>
+            </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-4">
-            {/* Sidebar */}
-            <aside className="space-y-2">
-              <Link href="/admin/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
-                </Button>
-              </Link>
-              <Link href="/admin/vendors">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Users className="mr-2 h-4 w-4" />
-                  Vendors
-                </Button>
-              </Link>
-              <Link href="/admin/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="mr-2 h-4 w-4" />
-                  Products
-                </Button>
-              </Link>
-              <Link href="/admin/orders">
-                <Button variant="ghost" className="w-full justify-start">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Orders
-                </Button>
-              </Link>
-              <Link href="/admin/analytics">
-                <Button variant="ghost" className="w-full justify-start">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Analytics
-                </Button>
-              </Link>
-              <Link href="/admin/settings">
-                <Button variant="default" className="w-full justify-start">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Button>
-              </Link>
-            </aside>
-
-            {/* Main Content */}
-            <div className="lg:col-span-3">
+          {/* Content */}
+          <div className="space-y-6">
               <Tabs defaultValue="general" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
                   <TabsTrigger value="general">General</TabsTrigger>
@@ -497,24 +465,20 @@ function AdminSettingsContent() {
                   </Card>
                 </TabsContent>
 
+                {/* Save Button */}
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button variant="outline" onClick={() => router.back()}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSave} disabled={loading}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {loading ? "Saving..." : "Save All Settings"}
+                  </Button>
+                </div>
               </Tabs>
-
-              {/* Save Button */}
-              <div className="flex justify-end gap-2 mt-6">
-                <Button variant="outline" onClick={() => router.back()}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} disabled={loading}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {loading ? "Saving..." : "Save All Settings"}
-                </Button>
-              </div>
-            </div>
           </div>
-        </div>
-      </main>
-
-      <Footer />
+        </main>
+      </div>
     </div>
   )
 }

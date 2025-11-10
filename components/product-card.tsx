@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import type { Product } from "@/lib/types"
+import { useState, useEffect } from "react"
+import { getVendorName } from "@/lib/vendor-utils"
 
 interface ProductCardProps {
   product: Product
@@ -14,6 +16,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const [vendorName, setVendorName] = useState<string>(product.vendorName || 'Vendor')
+  
   // Ensure price is a number
   const price = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0
   const comparePrice = product.comparePrice 
@@ -23,6 +27,22 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const discount = comparePrice > 0
     ? Math.round(((comparePrice - price) / comparePrice) * 100)
     : 0
+
+  // Fetch vendor name if not available or is default
+  useEffect(() => {
+    const fetchVendorName = async () => {
+      if (product.vendorId && (!product.vendorName || product.vendorName === 'Vendor')) {
+        try {
+          const name = await getVendorName(product.vendorId)
+          setVendorName(name)
+        } catch (error) {
+          console.error('Error fetching vendor name:', error)
+        }
+      }
+    }
+
+    fetchVendorName()
+  }, [product.vendorId, product.vendorName])
 
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
@@ -56,7 +76,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </Link>
         {product.vendorId && (
           <Link href={`/store/${product.vendorId}`} className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
-            <span>by {product.vendorName || 'Vendor'}</span>
+            <span>by {vendorName}</span>
           </Link>
         )}
         <div className="mt-2 flex items-center gap-1">

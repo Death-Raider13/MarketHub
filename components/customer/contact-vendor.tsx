@@ -101,7 +101,7 @@ export function ContactVendor({
         throw new Error(messageData.error || 'Failed to send message')
       }
 
-      toast.success('Message sent successfully!')
+      toast.success('Message sent successfully! Check your Messages to see vendor replies.')
       setFormData({ subject: productName ? `Question about ${productName}` : '', message: '' })
       setOpen(false)
 

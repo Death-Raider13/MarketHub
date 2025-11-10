@@ -38,6 +38,7 @@ import { collection, query, where, getDocs, orderBy, limit, addDoc, deleteDoc, d
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth"
 import { useCart } from "@/lib/cart-context"
 import { ProductCard } from "@/components/product-card"
+import { VendorName } from "@/components/vendor-name"
 import type { Product } from "@/lib/types"
 import { toast } from "sonner"
 
@@ -886,21 +887,14 @@ function AccountPageContent() {
                                       </div>
                                       <div className="flex-1">
                                         <p className="font-medium">{item.productName || item.name || 'Product'}</p>
-                                        {(item.vendorName && item.vendorName !== 'Unknown Vendor') ? (
+                                        {item.vendorId && (
                                           <Link 
                                             href={`/store/${item.vendorId}`}
                                             className="text-xs text-muted-foreground hover:underline"
                                           >
-                                            by {item.vendorName}
+                                            by <VendorName vendorId={item.vendorId} vendorName={item.vendorName} />
                                           </Link>
-                                        ) : item.vendorId ? (
-                                          <Link 
-                                            href={`/store/${item.vendorId}`}
-                                            className="text-xs text-muted-foreground hover:underline"
-                                          >
-                                            by Vendor
-                                          </Link>
-                                        ) : null}
+                                        )}
                                         <p className="text-sm text-muted-foreground">
                                           Qty: {item.quantity || 1}
                                         </p>

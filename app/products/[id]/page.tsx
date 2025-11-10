@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { toast } from "sonner"
+import Head from "next/head"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -37,7 +39,6 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { toast } from "sonner"
 import type { Product } from "@/lib/types"
 
 // Currency formatter for Nigerian Naira
@@ -65,8 +66,9 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [hasPurchased, setHasPurchased] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
   const [vendorStats, setVendorStats] = useState<{rating: number, reviewCount: number, productCount: number} | null>(null)
-  const [vendorInfo, setVendorInfo] = useState<{description: string, verified: boolean} | null>(null)
+  const [vendorInfo, setVendorInfo] = useState<{description: string, verified: boolean, name: string} | null>(null)
 
   // Fetch product data from Firestore
   useEffect(() => {
@@ -162,6 +164,7 @@ export default function ProductDetailPage() {
           if (vendorDoc.exists()) {
             const vendorData = vendorDoc.data()
             setVendorInfo({
+              name: vendorData.displayName || vendorData.businessName || vendorData.email?.split('@')[0] || 'Vendor',
               description: vendorData.storeDescription || vendorData.bio || 'Quality products with excellent customer service.',
               verified: vendorData.verified || false
             })
@@ -229,31 +232,61 @@ export default function ProductDetailPage() {
   }
 
   const handleShare = async () => {
-    if (!product) return
+    if (!product || isSharing) return
+
+    // Create rich share content
+    const priceText = formatNGN(product.price)
+    const compareText = product.comparePrice ? ` (was ${formatNGN(product.comparePrice)})` : ''
+    const vendorText = product.vendorName || 'MarketHub Vendor'
+    
+    const shareText = `🛍️ ${product.name}
+
+💰 ${priceText}${compareText}
+🏪 Available at ${vendorText}'s store on MarketHub
+
+${product.description.length > 100 ? product.description.substring(0, 100) + '...' : product.description}
+
+✨ Shop now and get quality products with secure payment!
+
+#MarketHub #Shopping #${product.category}`
 
     const shareData = {
-      title: product.name,
-      text: `Check out ${product.name} on MarketHub!`,
+      title: `${product.name} - ${priceText}`,
+      text: shareText,
       url: window.location.href
     }
 
     try {
-      if (navigator.share) {
+      setIsSharing(true)
+      
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData)
+        toast.success('Shared successfully!')
       } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(window.location.href)
-        toast.success('Link copied to clipboard!')
+        // Fallback: Copy rich text to clipboard
+        const fullShareText = `${shareText}\n\n🔗 ${window.location.href}`
+        await navigator.clipboard.writeText(fullShareText)
+        toast.success('Product details copied to clipboard!')
       }
     } catch (error) {
       console.error('Error sharing:', error)
-      // Fallback: Copy to clipboard
+      
+      // Handle specific share errors
+      if (error instanceof Error && (error.name === 'InvalidStateError' || error.name === 'AbortError')) {
+        // User cancelled or share in progress, don't show error
+        return
+      }
+      
+      // Fallback: Copy rich text to clipboard
       try {
-        await navigator.clipboard.writeText(window.location.href)
-        toast.success('Link copied to clipboard!')
+        const fullShareText = `${shareText}\n\n🔗 ${window.location.href}`
+        await navigator.clipboard.writeText(fullShareText)
+        toast.success('Product details copied to clipboard!')
       } catch (clipboardError) {
         toast.error('Failed to share')
       }
+    } finally {
+      setIsSharing(false)
     }
   }
   
@@ -299,6 +332,32 @@ export default function ProductDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <Head>
+        <title>{product.name} - {formatNGN(product.price)} | MarketHub</title>
+        <meta name="description" content={`${product.description.substring(0, 160)}... Available at ${product.vendorName || 'MarketHub'}'s store. Shop now with secure payment!`} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${product.name} - ${formatNGN(product.price)}`} />
+        <meta property="og:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'MarketHub'}'s store on MarketHub!`} />
+        <meta property="og:image" content={product.images[0] || '/placeholder.svg'} />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:site_name" content="MarketHub" />
+        
+        {/* Product specific */}
+        <meta property="product:price:amount" content={product.price.toString()} />
+        <meta property="product:price:currency" content="NGN" />
+        <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
+        <meta property="product:brand" content={product.vendorName || 'MarketHub'} />
+        <meta property="product:category" content={product.category} />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${product.name} - ${formatNGN(product.price)}`} />
+        <meta name="twitter:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'MarketHub'}'s store on MarketHub!`} />
+        <meta name="twitter:image" content={product.images[0] || '/placeholder.svg'} />
+      </Head>
+      
       <Header />
 
       <main className="flex-1">
@@ -366,7 +425,7 @@ export default function ProductDetailPage() {
                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline mb-2"
                 >
                   <Store className="h-4 w-4" />
-                  {product.vendorName || 'Vendor Store'}
+                  {vendorInfo?.name || 'Vendor Store'}
                 </Link>
                 <h1 className="text-3xl font-bold">{product.name}</h1>
                 <div className="mt-2 flex items-center gap-4">
@@ -495,15 +554,15 @@ export default function ProductDetailPage() {
                   >
                     <Heart className={`h-5 w-5 ${product && isInWishlist(product.id) ? "fill-red-500 text-red-500" : ""}`} />
                   </Button>
-                  <Button size="lg" variant="outline" onClick={handleShare} aria-label="Share product">
-                    <Share2 className="h-5 w-5" />
+                  <Button size="lg" variant="outline" onClick={handleShare} disabled={isSharing} aria-label="Share product">
+                    {isSharing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Share2 className="h-5 w-5" />}
                   </Button>
                 </div>
                 
                 {/* Contact Vendor Button */}
                 <ContactVendor
                   vendorId={product.vendorId}
-                  vendorName={product.vendorName}
+                  vendorName={vendorInfo?.name || 'Vendor'}
                   productId={product.id}
                   productName={product.name}
                   trigger={
@@ -572,16 +631,16 @@ export default function ProductDetailPage() {
               <CardContent className="p-6">
                 <div className="flex items-start gap-6">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${product.vendorName}`} />
+                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${vendorInfo?.name}`} />
                     <AvatarFallback className="text-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                      {product.vendorName?.charAt(0) || 'V'}
+                      {vendorInfo?.name?.charAt(0) || 'V'}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-xl font-bold mb-1">{product.vendorName}</h3>
+                        <h3 className="text-xl font-bold mb-1">{vendorInfo?.name || 'Vendor'}</h3>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                           {vendorStats && (
                             <>
@@ -617,7 +676,7 @@ export default function ProductDetailPage() {
                       </Button>
                       <ContactVendor
                         vendorId={product.vendorId}
-                        vendorName={product.vendorName}
+                        vendorName={vendorInfo?.name || 'Vendor'}
                         productId={product.id}
                         productName={product.name}
                         trigger={
@@ -733,6 +792,7 @@ export default function ProductDetailPage() {
                 <ProductQA
                   productId={product.id}
                   vendorId={product.vendorId}
+                  productName={product.name}
                 />
               </TabsContent>
             </Tabs>

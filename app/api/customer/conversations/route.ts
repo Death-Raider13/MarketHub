@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase/admin'
+import { getAdminFirestore } from '@/lib/firebase/admin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,10 +15,39 @@ export async function POST(request: NextRequest) {
       orderId
     } = await request.json()
 
+    console.log('Creating conversation with data:', {
+      vendorId,
+      vendorName,
+      customerId,
+      customerName,
+      customerEmail,
+      subject,
+      productId,
+      productName,
+      orderId
+    })
+
     if (!vendorId || !vendorName || !customerId || !customerName || !customerEmail || !subject) {
+      console.error('Missing required fields:', {
+        vendorId: !!vendorId,
+        vendorName: !!vendorName,
+        customerId: !!customerId,
+        customerName: !!customerName,
+        customerEmail: !!customerEmail,
+        subject: !!subject
+      })
       return NextResponse.json(
         { error: 'Required fields missing' },
         { status: 400 }
+      )
+    }
+
+    const adminDb = getAdminFirestore()
+    
+    if (!adminDb) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
       )
     }
 

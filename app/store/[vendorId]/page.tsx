@@ -31,6 +31,7 @@ interface VendorData {
   email: string
   displayName?: string
   storeName?: string
+  createdAt?: any // Firebase Timestamp
   storeCustomization?: {
     theme: {
       primaryColor: string
@@ -401,50 +402,27 @@ export default function VendorStorefrontPage() {
       </main>
 
       {/* Footer */}
-      <footer
-        className="border-t mt-16"
-        style={{ borderColor: theme.primaryColor + '20' }}
-      >
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Store Info */}
-            <div>
-              <h3 className="font-bold mb-3">{branding.storeName}</h3>
-              <p className="text-sm opacity-75">
-                {branding.description || "Welcome to our store!"}
-              </p>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="font-bold mb-3">Quick Links</h3>
-              <div className="space-y-2 text-sm">
-                <Link href="/" className="block hover:underline">
-                  Home
-                </Link>
-                <Link href="/about" className="block hover:underline">
-                  About
-                </Link>
-                <Link href="/contact" className="block hover:underline">
-                  Contact
-                </Link>
-              </div>
-            </div>
-
-            {/* Powered By */}
-            <div>
-              <h3 className="font-bold mb-3">Powered By</h3>
-              <Link
-                href="/"
-                className="text-sm hover:underline"
-                style={{ color: theme.primaryColor }}
-              >
-                MarketHub
-              </Link>
-              <p className="text-xs opacity-50 mt-2">
-                © 2025 All rights reserved
-              </p>
-            </div>
+      <footer className="mt-16 py-8 bg-gray-50 border-t">
+        <div className="container mx-auto px-4 text-center">
+          {/* Powered by MarketHub Badge */}
+          <div className="inline-flex items-center justify-center bg-white rounded-full px-6 py-3 shadow-sm border mb-4">
+            <span className="text-gray-600 text-sm mr-2">Powered by</span>
+            <Link 
+              href="/" 
+              className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+            >
+              MarketHub
+            </Link>
+          </div>
+          
+          {/* Store Info */}
+          <div className="text-gray-500 text-sm space-y-1">
+            <p>
+              © {vendor?.createdAt ? new Date(vendor.createdAt.toDate ? vendor.createdAt.toDate() : vendor.createdAt).getFullYear() : new Date().getFullYear()} {branding.storeName || vendor?.displayName || 'Store'}. All Rights Reserved.
+            </p>
+            <p className="text-xs">
+              Storefront built in {vendor?.createdAt ? new Date(vendor.createdAt.toDate ? vendor.createdAt.toDate() : vendor.createdAt).getFullYear() : new Date().getFullYear()}
+            </p>
           </div>
         </div>
       </footer>
