@@ -33,6 +33,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { toast } from "sonner"
+import { CampaignNotifications } from "@/components/advertiser/campaign-notifications"
 
 export default function AdvertiserDashboard() {
   const { user, loading } = useAuth()
@@ -174,15 +175,18 @@ export default function AdvertiserDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            {/* Campaign Notifications */}
+            <CampaignNotifications />
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
@@ -291,6 +295,7 @@ export default function AdvertiserDashboard() {
                         ctr={campaign.stats?.ctr || 0}
                         spent={campaign.budget?.spent || 0}
                         budget={campaign.budget?.total || 0}
+                        reviewReason={campaign.reviewReason}
                       />
                     ))}
                     {campaigns.length > 5 && (
@@ -311,7 +316,10 @@ export default function AdvertiserDashboard() {
           {/* Campaigns Tab */}
           <TabsContent value="campaigns" className="space-y-6">
             {showCreateCampaign ? (
-              <CreateCampaignForm onClose={() => setShowCreateCampaign(false)} />
+              <CreateCampaignForm 
+                onClose={() => setShowCreateCampaign(false)} 
+                advertiserData={advertiserData}
+              />
             ) : (
               <Card>
                 <CardHeader>
@@ -341,6 +349,7 @@ export default function AdvertiserDashboard() {
                           ctr={campaign.stats?.ctr || 0}
                           spent={campaign.budget?.spent || 0}
                           budget={campaign.budget?.total || 0}
+                          reviewReason={campaign.reviewReason}
                           showActions
                         />
                       ))}
@@ -349,6 +358,11 @@ export default function AdvertiserDashboard() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            <CampaignNotifications />
           </TabsContent>
 
           {/* Analytics Tab */}
@@ -461,26 +475,46 @@ function CampaignRow({
   ctr,
   spent,
   budget,
-  showActions = false
+  showActions = false,
+  reviewReason
 }: {
   name: string
-  status: 'active' | 'paused' | 'completed'
+  status: 'active' | 'paused' | 'completed' | 'pending_review' | 'rejected'
   impressions: number
   clicks: number
   ctr: number
   spent: number
   budget: number
   showActions?: boolean
+  reviewReason?: string
 }) {
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-2">
           <h3 className="font-semibold">{name}</h3>
-          <Badge variant={status === 'active' ? 'default' : 'secondary'}>
-            {status}
+          <Badge variant={
+            status === 'active' ? 'default' : 
+            status === 'pending_review' ? 'secondary' :
+            status === 'rejected' ? 'destructive' : 'secondary'
+          }>
+            {status === 'pending_review' ? 'Pending Review' : status}
           </Badge>
         </div>
+        {status === 'pending_review' && (
+          <div className="mb-2 p-2 bg-orange-50 dark:bg-orange-950 rounded text-sm">
+            <p className="text-orange-800 dark:text-orange-200">
+              ⏳ Your campaign is under review by our team. You'll be notified once it's approved.
+            </p>
+          </div>
+        )}
+        {status === 'rejected' && reviewReason && (
+          <div className="mb-2 p-2 bg-red-50 dark:bg-red-950 rounded text-sm">
+            <p className="text-red-800 dark:text-red-200">
+              ❌ Campaign rejected: {reviewReason}
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-4 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Impressions</p>
@@ -520,7 +554,7 @@ function CampaignRow({
 /**
  * Create Campaign Form
  */
-function CreateCampaignForm({ onClose }: { onClose: () => void }) {
+function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; advertiserData: any }) {
   const { user } = useAuth()
   const [campaignData, setCampaignData] = useState({
     name: "",
@@ -675,7 +709,8 @@ function CreateCampaignForm({ onClose }: { onClose: () => void }) {
       const data = await response.json()
 
       if (data.success) {
-        toast.success("Campaign created successfully! It's pending review.")
+        toast.success("Campaign created successfully! It's now pending admin review. You'll be notified once it's approved.")
+        onClose()
         // Reload page to refresh campaigns list
         window.location.reload()
       } else {

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { HomepageBanner } from "@/components/advertising/HomepageBanner"
 import { ShoppingBag, TrendingUp, Shield, Zap, ArrowRight, Star, Store } from "lucide-react"
 
 interface Product {
@@ -183,6 +184,18 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Advertisement Banner Section */}
+      <section className="py-8 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <HomepageBanner 
+            maxAds={5}
+            autoRotate={true}
+            rotationInterval={10}
+            className="rounded-xl shadow-lg"
+          />
         </div>
       </section>
 

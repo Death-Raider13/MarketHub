@@ -81,11 +81,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Top Banner - Optional promotional banner */}
-      <div className="border-b border-border bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 py-2 text-center text-sm">
-          <p>Free shipping on orders over ₦50,000 | 7-day returns | Pay on Delivery Available</p>
-        </div>
-      </div>
+     
 
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">

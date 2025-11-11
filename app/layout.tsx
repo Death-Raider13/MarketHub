@@ -6,6 +6,7 @@ import { AuthProvider } from "@/lib/firebase/auth-context"
 import { CartProvider } from "@/lib/cart-context"
 import { WishlistProvider } from "@/lib/wishlist-context"
 import { NotificationProvider } from "@/contexts/notification-context"
+import { FirebaseErrorHandler } from "@/components/firebase-error-handler"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -27,6 +28,7 @@ export default function RootLayout({
           <NotificationProvider>
             <CartProvider>
               <WishlistProvider>
+                <FirebaseErrorHandler />
                 {children}
               </WishlistProvider>
             </CartProvider>

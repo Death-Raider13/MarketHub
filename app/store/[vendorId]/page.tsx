@@ -25,6 +25,7 @@ import {
 import Link from "next/link"
 import { toast } from "sonner"
 import { AdSlot } from "@/components/advertising/AdSlot"
+import { VendorStoreAds } from "@/components/advertising/VendorStoreAds"
 
 interface VendorData {
   uid: string
@@ -298,13 +299,11 @@ export default function VendorStorefrontPage() {
               </div>
             </div>
 
-            {/* Banner Ad */}
-            <AdSlot
+            {/* Banner Ads */}
+            <VendorStoreAds
               vendorId={vendorId}
               placement="banner"
-              storeCategory="general"
-              storeRating={4.5}
-              storeType="all"
+              maxAds={2}
               className="mb-8"
             />
 
@@ -388,13 +387,11 @@ export default function VendorStorefrontPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
-              {/* Sidebar Ad */}
-              <AdSlot
+              {/* Sidebar Ads */}
+              <VendorStoreAds
                 vendorId={vendorId}
                 placement="sidebar"
-                storeCategory="general"
-                storeRating={4.5}
-                storeType="all"
+                maxAds={3}
               />
             </div>
           </div>

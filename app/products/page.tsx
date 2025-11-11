@@ -14,6 +14,8 @@ import { Grid3x3, List, SlidersHorizontal, Loader2, Package } from "lucide-react
 import type { Product } from "@/lib/types"
 import { collection, getDocs, query, where, orderBy, limit as firestoreLimit, doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
+import { CategoryPageAds } from "@/components/advertising/CategoryPageAds"
+import { SponsoredProducts } from "@/components/advertising/SponsoredProducts"
 
 export default function ProductsPage() {
   const { addToCart } = useCart()
@@ -161,10 +163,25 @@ export default function ProductsPage() {
             <p className="text-muted-foreground">Discover amazing products from our vendors</p>
           </div>
 
+          {/* Category Banner Ads */}
+          <CategoryPageAds 
+            category="general"
+            placement="top"
+            maxAds={2}
+            className="mb-8"
+          />
+
           <div className="flex gap-8">
             {/* Filters Sidebar */}
-            <aside className="hidden w-64 shrink-0 lg:block">
-              <div className="sticky top-24 space-y-6">
+            <aside className="w-80 flex-shrink-0">
+              <div className="sticky top-8 space-y-6">
+                {/* Sidebar Ads */}
+                <CategoryPageAds 
+                  category="general"
+                  placement="sidebar"
+                  maxAds={2}
+                  className="mb-6"
+                />
                 <div>
                   <h3 className="mb-4 font-semibold flex items-center gap-2">
                     <SlidersHorizontal className="h-4 w-4" />
@@ -324,11 +341,22 @@ export default function ProductsPage() {
 
               {/* Products */}
               {!loading && filteredProducts.length > 0 && (
-                <div className={viewMode === "grid" ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" : "flex flex-col gap-4"}>
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
-                  ))}
-                </div>
+                <>
+                  <div className={viewMode === "grid" ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" : "flex flex-col gap-4"}>
+                    {filteredProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+                    ))}
+                  </div>
+                  
+                  {/* Sponsored Products */}
+                  <div className="mt-12">
+                    <SponsoredProducts 
+                      category="general"
+                      layout="grid"
+                      maxAds={6}
+                    />
+                  </div>
+                </>
               )}
             </div>
           </div>

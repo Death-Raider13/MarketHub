@@ -421,16 +421,19 @@ service cloud.firestore {
       // Allow system and admins to create notifications
       allow create: if isAdmin() || isSignedIn();
       
-      // Users can read their own notifications
+      // Users can read their own notifications (using userId field)
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Users can read their own notifications (using recipientId field for backward compatibility)
       allow read: if isSignedIn() && resource.data.recipientId == request.auth.uid;
       
       // Users can mark their notifications as read
       allow update: if isSignedIn() && 
-                      resource.data.recipientId == request.auth.uid &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'readAt']);
+                      (resource.data.userId == request.auth.uid || resource.data.recipientId == request.auth.uid) &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasAny(['read', 'readAt', 'status']);
       
       // Users can delete their own notifications
-      allow delete: if isSignedIn() && resource.data.recipientId == request.auth.uid;
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.recipientId == request.auth.uid);
       
       // Admins can manage all notifications
       allow read, update, delete: if isAdmin();
@@ -530,6 +533,34 @@ service cloud.firestore {
       
       // No one can delete transactions (audit trail)
       allow delete: if false;
+    }
+    
+    // ============================================
+    // ADMINS COLLECTION (Admin User Management)
+    // ============================================
+    match /admins/{adminId} {
+      // Only super admins can create admin accounts
+      allow create: if isSuperAdmin() &&
+                      request.resource.data.keys().hasAll(['email', 'role', 'status', 'createdAt']) &&
+                      request.resource.data.role in ['admin', 'moderator', 'support'] &&
+                      request.resource.data.status == 'active';
+      
+      // Admins can read their own profile
+      allow read: if isSignedIn() && request.auth.uid == adminId;
+      
+      // Super admins can read all admin profiles
+      allow read: if isSuperAdmin();
+      
+      // Admins can update their own profile (except role and status)
+      allow update: if isSignedIn() && 
+                      request.auth.uid == adminId &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'permissions']);
+      
+      // Only super admins can update role, status, and permissions
+      allow update: if isSuperAdmin();
+      
+      // Only super admins can delete admin accounts
+      allow delete: if isSuperAdmin();
     }
     
     // ============================================
@@ -779,6 +810,9 @@ service cloud.firestore {
       
       // Admins can read all campaigns
       allow read: if isAdmin();
+      
+      // IMPORTANT: Allow public read access to ACTIVE campaigns for ad display
+      allow read: if resource.data.status == 'active';
       
       // Advertisers can update their own campaigns (except stats and status if active)
       allow update: if isSignedIn() &&

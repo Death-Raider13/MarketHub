@@ -25,6 +25,7 @@ import {
   initializeSessionManagement,
   type Session,
 } from "../session-management"
+import { tokenRefreshManager, getCurrentToken } from "./token-refresh"
 
 export type UserRole = "customer" | "vendor" | "admin" | "super_admin" | "moderator" | "support"
 
@@ -69,6 +70,8 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>
   resendVerificationEmail: () => Promise<void>
   refreshUserProfile: () => Promise<void>
+  getCurrentToken: () => Promise<string | null>
+  refreshToken: () => Promise<string | null>
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
@@ -276,6 +279,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const getCurrentUserToken = async (): Promise<string | null> => {
+    try {
+      return await getCurrentToken()
+    } catch (error) {
+      console.error("Error getting current token:", error)
+      return null
+    }
+  }
+
+  const refreshToken = async (): Promise<string | null> => {
+    try {
+      if (!user) return null
+      return await tokenRefreshManager.refreshTokenNow(user)
+    } catch (error) {
+      console.error("Error refreshing token:", error)
+      return null
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -288,6 +310,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     resendVerificationEmail,
     refreshUserProfile,
+    getCurrentToken: getCurrentUserToken,
+    refreshToken,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
