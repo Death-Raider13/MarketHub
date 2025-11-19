@@ -102,9 +102,10 @@ export default function AdvertisingRevenuePage() {
       
       const result = await response.json()
       setData(result)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading revenue data:', error)
-      setError(error.message)
+      const message = error instanceof Error ? error.message : 'Failed to load revenue data'
+      setError(message)
     } finally {
       setLoading(false)
     }
