@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase/config'
 import { doc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import type { Product } from '@/lib/types'
 import { toast } from 'sonner'
+import { handleFirestoreError } from '@/lib/production-error-handler'
 
 interface WishlistContextType {
   wishlistItems: Product[]
@@ -52,7 +53,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       
       setWishlistItems(items)
     } catch (error) {
-      console.error('Error loading wishlist:', error)
+      // Use production error handler - don't show error to user for loading
+      handleFirestoreError(error)
     } finally {
       setLoading(false)
     }
@@ -80,15 +82,15 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         userId: user.uid,
         productId: product.id,
         product: product,
-        addedAt: new Date()
+        createdAt: new Date()
       })
 
       // Update local state
       setWishlistItems(prev => [...prev, product])
       toast.success('Added to wishlist!')
     } catch (error) {
-      console.error('Error adding to wishlist:', error)
-      toast.error('Failed to add to wishlist')
+      const errorMessage = handleFirestoreError(error)
+      toast.error(errorMessage)
     }
   }
 
@@ -104,8 +106,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       setWishlistItems(prev => prev.filter(item => item.id !== productId))
       toast.success('Removed from wishlist')
     } catch (error) {
-      console.error('Error removing from wishlist:', error)
-      toast.error('Failed to remove from wishlist')
+      const errorMessage = handleFirestoreError(error)
+      toast.error(errorMessage)
     }
   }
 

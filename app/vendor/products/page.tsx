@@ -33,7 +33,10 @@ import {
   TrendingUp,
   Store as StoreIcon,
   Mail,
-  HelpCircle
+  HelpCircle,
+  Calendar,
+  Wallet,
+  Palette,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -279,15 +282,15 @@ function VendorProductsContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
+           <aside className="space-y-2">
               <Link href="/vendor/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="default" className="w-full justify-start">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>
               </Link>
               <Link href="/vendor/products">
-                <Button variant="default" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start">
                   <Package className="mr-2 h-4 w-4" />
                   Products
                 </Button>
@@ -298,6 +301,24 @@ function VendorProductsContent() {
                   Orders
                 </Button>
               </Link>
+              <Link href="/vendor/services">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Services
+                </Button>
+              </Link>
+              <Link href="/vendor/messages">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Messages
+                </Button>
+              </Link>
+              <Link href="/vendor/questions">
+                <Button variant="ghost" className="w-full justify-start">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Q&A
+                </Button>
+              </Link>
               <Link href="/vendor/analytics">
                 <Button variant="ghost" className="w-full justify-start">
                   <TrendingUp className="mr-2 h-4 w-4" />
@@ -306,8 +327,14 @@ function VendorProductsContent() {
               </Link>
               <Link href="/vendor/store-customize">
                 <Button variant="ghost" className="w-full justify-start">
-                  <StoreIcon className="mr-2 h-4 w-4" />
-                  Store Settings
+                  <Palette className="mr-2 h-4 w-4" />
+                  Customize Store
+                </Button>
+              </Link>
+              <Link href="/vendor/payouts">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Payouts
                 </Button>
               </Link>
             </aside>

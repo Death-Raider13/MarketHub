@@ -242,7 +242,10 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Customer Reviews</span>
+            <span className="flex items-center gap-2">
+              <Star className="w-5 h-5" />
+              Product Reviews
+            </span>
             {canReview && !userReview && (
               <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
                 <DialogTrigger asChild>
@@ -353,32 +356,10 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
         </CardContent>
       </Card>
 
-      {/* User's Review */}
-      {userReview && (
-        <Card className="border-primary">
-          <CardHeader>
-            <CardTitle className="text-sm">Your Review</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                {renderStars(userReview.rating)}
-                <Badge variant="secondary">Verified Purchase</Badge>
-              </div>
-              <h4 className="font-semibold">{userReview.title}</h4>
-              <p className="text-muted-foreground">{userReview.comment}</p>
-              <p className="text-xs text-muted-foreground">
-                Reviewed {formatDistanceToNow(new Date(userReview.createdAt))} ago
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Reviews List */}
       {reviews.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">All Reviews</h3>
+          <h3 className="text-lg font-semibold">Customer Reviews</h3>
           {reviews.map((review) => (
             <Card key={review.id}>
               <CardContent className="p-6">
@@ -413,18 +394,6 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
                   <div>
                     <h4 className="font-semibold mb-2">{review.title}</h4>
                     <p className="text-muted-foreground whitespace-pre-wrap">{review.comment}</p>
-                  </div>
-
-                  <div className="flex items-center gap-4 pt-2 border-t">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => markHelpful(review.id)}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      <ThumbsUp className="mr-2 h-4 w-4" />
-                      Helpful ({review.helpful})
-                    </Button>
                   </div>
                 </div>
               </CardContent>

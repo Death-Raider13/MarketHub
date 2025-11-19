@@ -5,65 +5,54 @@ import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { LayoutDashboard, Package, ShoppingCart, TrendingUp, Megaphone, StoreIcon, Eye, Loader2 } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingCart, StoreIcon, TrendingUp, Truck, CheckCircle, XCircle, Clock, Eye, Loader2,Calendar, Edit,Mail,HelpCircle,Wallet,Palette } from "lucide-react"
 import Link from "next/link"
-import type { Order } from "@/lib/types"
 import { toast } from "sonner"
 
-const mockOrders: Order[] = [
-  {
-    id: "ORD-001",
-    userId: "user1",
-    items: [],
-    subtotal: 199.99,
-    tax: 19.99,
-    shipping: 0,
-    total: 219.98,
-    status: "pending",
-    shippingAddress: {
-      fullName: "John Doe",
-      addressLine1: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "United States",
-      phone: "555-0123",
-    },
-    paymentMethod: "Credit Card",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "ORD-002",
-    userId: "user2",
-    items: [],
-    subtotal: 89.99,
-    tax: 8.99,
-    shipping: 9.99,
-    total: 108.97,
-    status: "processing",
-    shippingAddress: {
-      fullName: "Jane Smith",
-      addressLine1: "456 Oak Ave",
-      city: "Los Angeles",
-      state: "CA",
-      zipCode: "90001",
-      country: "United States",
-      phone: "555-0456",
-    },
-    paymentMethod: "Credit Card",
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    updatedAt: new Date(),
-  },
-]
+interface VendorOrder {
+  id: string
+  userId: string
+  userEmail: string
+  items: any[]
+  subtotal: number
+  tax: number
+  shipping: number
+  total: number
+  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  paymentStatus: string
+  shippingAddress: any
+  paymentMethod: string
+  trackingNumber?: string
+  createdAt: string
+  updatedAt: string
+  paidAt?: string
+  shippedAt?: string
+  deliveredAt?: string
+}
+
+interface StatusUpdateData {
+  status: string
+  trackingNumber?: string
+  notes?: string
+}
+
+interface OrderManagementSystem {
+  orders: VendorOrder[]
+  status: string
+  trackingNumber: string
+  notes: string
+}
 
 function VendorOrdersContent() {
   const { user } = useAuth()
-  const [orders, setOrders] = useState<Order[]>([])
+  const [orders, setOrders] = useState<VendorOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<string>("all")
 
@@ -114,7 +103,7 @@ function VendorOrdersContent() {
     }
   }
 
-  const getStatusColor = (status: Order["status"]) => {
+  const getStatusColor = (status: VendorOrder["status"]) => {
     switch (status) {
       case "delivered":
         return "bg-green-500/10 text-green-600"
@@ -148,7 +137,7 @@ function VendorOrdersContent() {
             {/* Sidebar */}
             <aside className="space-y-2">
               <Link href="/vendor/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="default" className="w-full justify-start">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>
@@ -160,9 +149,27 @@ function VendorOrdersContent() {
                 </Button>
               </Link>
               <Link href="/vendor/orders">
-                <Button variant="default" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Orders
+                </Button>
+              </Link>
+              <Link href="/vendor/services">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Services
+                </Button>
+              </Link>
+              <Link href="/vendor/messages">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Messages
+                </Button>
+              </Link>
+              <Link href="/vendor/questions">
+                <Button variant="ghost" className="w-full justify-start">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Q&A
                 </Button>
               </Link>
               <Link href="/vendor/analytics">
@@ -171,10 +178,16 @@ function VendorOrdersContent() {
                   Analytics
                 </Button>
               </Link>
-              <Link href="/vendor/store">
+              <Link href="/vendor/store-customize">
                 <Button variant="ghost" className="w-full justify-start">
-                  <StoreIcon className="mr-2 h-4 w-4" />
-                  Store Settings
+                  <Palette className="mr-2 h-4 w-4" />
+                  Customize Store
+                </Button>
+              </Link>
+              <Link href="/vendor/payouts">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Payouts
                 </Button>
               </Link>
             </aside>
@@ -265,10 +278,71 @@ function VendorOrdersContent() {
                                 {new Date(order.createdAt).toLocaleDateString()}
                               </td>
                               <td className="p-4">
-                                <Button variant="outline" size="sm">
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View
-                                </Button>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                      <Eye className="mr-2 h-4 w-4" />
+                                      View
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-lg">
+                                    <DialogHeader>
+                                      <DialogTitle>Order Details</DialogTitle>
+                                      <DialogDescription>
+                                        Full details for order {order.id}
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 text-sm">
+                                      <div>
+                                        <h4 className="font-medium mb-1">Order Summary</h4>
+                                        <p>Customer: {order.shippingAddress?.fullName || "N/A"}</p>
+                                        <p>Email: {order.userEmail}</p>
+                                        <p>Status: <span className="capitalize">{order.status}</span></p>
+                                        <p>Date: {new Date(order.createdAt).toLocaleString()}</p>
+                                      </div>
+
+                                      <div>
+                                        <h4 className="font-medium mb-1">Payment</h4>
+                                        <p>Method: {order.paymentMethod}</p>
+                                        <p>Subtotal: ₦{Number(order.subtotal || 0).toLocaleString()}</p>
+                                        <p>Tax: ₦{Number(order.tax || 0).toLocaleString()}</p>
+                                        <p>Shipping: ₦{Number(order.shipping || 0).toLocaleString()}</p>
+                                        <p className="font-semibold mt-1">Total: ₦{Number(order.total || 0).toLocaleString()}</p>
+                                      </div>
+
+                                      {order.shippingAddress && (
+                                        <div>
+                                          <h4 className="font-medium mb-1">Shipping Address</h4>
+                                          <p>
+                                            {order.shippingAddress.fullName}<br />
+                                            {order.shippingAddress.addressLine1}<br />
+                                            {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}<br />
+                                            {order.shippingAddress.phone}
+                                          </p>
+                                        </div>
+                                      )}
+
+                                      <div>
+                                        <h4 className="font-medium mb-1">Items</h4>
+                                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                                          {order.items?.map((item: any, index: number) => (
+                                            <div key={index} className="flex justify-between">
+                                              <div>
+                                                <p className="font-medium">{item.productName || item.name}</p>
+                                                <p className="text-muted-foreground">
+                                                  Qty: {item.quantity} · ₦{Number(item.productPrice || item.price || 0).toLocaleString()}
+                                                </p>
+                                              </div>
+                                              <p className="font-medium">
+                                                ₦{(Number(item.productPrice || item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                                              </p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
                               </td>
                             </tr>
                           ))

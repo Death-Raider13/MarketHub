@@ -23,6 +23,10 @@ import {
   Calendar,
   Users,
   BarChart3,
+  Mail,
+  HelpCircle,
+  Wallet,
+  Palette,
 } from "lucide-react"
 import Link from "next/link"
 import { Line, LineChart, Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
@@ -60,6 +64,13 @@ function VendorAnalyticsContent() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [period, setPeriod] = useState("30") // days
   const [exporting, setExporting] = useState(false)
+
+  const growth = analytics?.growthMetrics ?? {
+    revenueGrowth: 0,
+    ordersGrowth: 0,
+    avgOrderValueGrowth: 0,
+    viewsGrowth: 0,
+  }
 
   useEffect(() => {
     if (user) {
@@ -184,7 +195,7 @@ function VendorAnalyticsContent() {
             {/* Sidebar */}
             <aside className="space-y-2">
               <Link href="/vendor/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="default" className="w-full justify-start">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>
@@ -201,17 +212,40 @@ function VendorAnalyticsContent() {
                   Orders
                 </Button>
               </Link>
+              <Link href="/vendor/services">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Services
+                </Button>
+              </Link>
+              <Link href="/vendor/messages">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Messages
+                </Button>
+              </Link>
+              <Link href="/vendor/questions">
+                <Button variant="ghost" className="w-full justify-start">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Q&A
+                </Button>
+              </Link>
               <Link href="/vendor/analytics">
-                <Button variant="default" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start">
                   <TrendingUp className="mr-2 h-4 w-4" />
                   Analytics
                 </Button>
               </Link>
-             
-              <Link href="/vendor/store">
+              <Link href="/vendor/store-customize">
                 <Button variant="ghost" className="w-full justify-start">
-                  <StoreIcon className="mr-2 h-4 w-4" />
-                  Store Settings
+                  <Palette className="mr-2 h-4 w-4" />
+                  Customize Store
+                </Button>
+              </Link>
+              <Link href="/vendor/payouts">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Payouts
                 </Button>
               </Link>
             </aside>
@@ -227,15 +261,15 @@ function VendorAnalyticsContent() {
                         <p className="text-sm text-muted-foreground">Total Revenue</p>
                         <p className="text-2xl font-bold">₦{analytics?.totalRevenue.toLocaleString()}</p>
                         <div className="flex items-center gap-1 mt-1">
-                          {analytics?.growthMetrics.revenueGrowth >= 0 ? (
+                          {growth.revenueGrowth >= 0 ? (
                             <ArrowUp className="h-3 w-3 text-green-600" />
                           ) : (
                             <ArrowDown className="h-3 w-3 text-red-600" />
                           )}
                           <p className={`text-xs ${
-                            analytics?.growthMetrics.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                            growth.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            {Math.abs(analytics?.growthMetrics.revenueGrowth || 0).toFixed(1)}% from previous period
+                            {Math.abs(growth.revenueGrowth || 0).toFixed(1)}% from previous period
                           </p>
                         </div>
                       </div>
@@ -253,15 +287,15 @@ function VendorAnalyticsContent() {
                         <p className="text-sm text-muted-foreground">Total Orders</p>
                         <p className="text-2xl font-bold">{analytics?.totalOrders}</p>
                         <div className="flex items-center gap-1 mt-1">
-                          {analytics?.growthMetrics.ordersGrowth >= 0 ? (
+                          {growth.ordersGrowth >= 0 ? (
                             <ArrowUp className="h-3 w-3 text-green-600" />
                           ) : (
                             <ArrowDown className="h-3 w-3 text-red-600" />
                           )}
                           <p className={`text-xs ${
-                            analytics?.growthMetrics.ordersGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                            growth.ordersGrowth >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            {Math.abs(analytics?.growthMetrics.ordersGrowth || 0).toFixed(1)}% from previous period
+                            {Math.abs(growth.ordersGrowth || 0).toFixed(1)}% from previous period
                           </p>
                         </div>
                       </div>
@@ -279,15 +313,15 @@ function VendorAnalyticsContent() {
                         <p className="text-sm text-muted-foreground">Avg Order Value</p>
                         <p className="text-2xl font-bold">₦{analytics?.avgOrderValue.toLocaleString()}</p>
                         <div className="flex items-center gap-1 mt-1">
-                          {analytics?.growthMetrics.avgOrderValueGrowth >= 0 ? (
+                          {growth.avgOrderValueGrowth >= 0 ? (
                             <ArrowUp className="h-3 w-3 text-green-600" />
                           ) : (
                             <ArrowDown className="h-3 w-3 text-red-600" />
                           )}
                           <p className={`text-xs ${
-                            analytics?.growthMetrics.avgOrderValueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                            growth.avgOrderValueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            {Math.abs(analytics?.growthMetrics.avgOrderValueGrowth || 0).toFixed(1)}% from previous period
+                            {Math.abs(growth.avgOrderValueGrowth || 0).toFixed(1)}% from previous period
                           </p>
                         </div>
                       </div>

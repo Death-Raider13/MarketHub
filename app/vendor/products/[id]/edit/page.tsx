@@ -11,10 +11,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { Upload, X, Plus, Tag, Star, Package, Save, ArrowLeft, Loader2 } from "lucide-react"
+import { Upload, X, Plus, Tag, Star, Package, Save, ArrowLeft, Loader2, FileText, Truck } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { toast } from "sonner"
+import { DigitalFileUpload } from "@/components/vendor/digital-file-upload"
+import type { DigitalFile } from "@/lib/types"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface Variant {
   id: string
@@ -53,6 +56,37 @@ function EditProductContent() {
   const [uploadingImages, setUploadingImages] = useState(false)
   const [requestReviews, setRequestReviews] = useState(true)
   const [showRelatedProducts, setShowRelatedProducts] = useState(true)
+  
+  // Digital product fields
+  const [digitalFiles, setDigitalFiles] = useState<DigitalFile[]>([])
+  const [accessDuration, setAccessDuration] = useState<number>(0) // 0 = lifetime
+  const [downloadLimit, setDownloadLimit] = useState<number>(0) // 0 = unlimited
+
+  // Helper function to determine if category supports digital products
+  const isDigitalCategory = (category: string) => {
+    const digitalCategories = [
+      'digital-courses',
+      'digital-ebooks', 
+      'digital-software',
+      'digital-templates',
+      'digital-music',
+      'digital-video',
+      'digital-photography',
+      'books' // Books can be digital
+    ]
+    return digitalCategories.includes(category)
+  }
+
+  // Auto-set product type based on category
+  useEffect(() => {
+    if (category && isDigitalCategory(category)) {
+      setProductType('digital')
+    } else if (category && category.startsWith('service-')) {
+      setProductType('service')
+    } else if (category && !category.startsWith('digital-') && !category.startsWith('service-')) {
+      setProductType('physical')
+    }
+  }, [category])
 
   // Load product data from Firestore
   useEffect(() => {
@@ -75,6 +109,9 @@ function EditProductContent() {
           setImages(data.images || [])
           setTags(data.tags || [])
           setStatus(data.status || "active")
+          setDigitalFiles(data.digitalFiles || [])
+          setAccessDuration(data.accessDuration || 0)
+          setDownloadLimit(data.downloadLimit || 0)
         } else {
           toast.error("Product not found")
           router.push("/vendor/products")
@@ -151,6 +188,9 @@ function EditProductContent() {
           images,
           stock,
           type: productType,
+          digitalFiles,
+          accessDuration,
+          downloadLimit,
           tags,
           status,
         }),
@@ -473,6 +513,100 @@ function EditProductContent() {
                   </CardContent>
                 </Card>
 
+                {/* Product Type */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Type</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <RadioGroup value={productType} onValueChange={(value: any) => setProductType(value)}>
+                      <div className="flex items-center space-x-2 rounded-lg border p-4">
+                        <RadioGroupItem value="physical" id="physical" />
+                        <Label htmlFor="physical" className="flex flex-1 cursor-pointer items-center gap-3">
+                          <Truck className="h-5 w-5 text-primary" />
+                          <div>
+                            <div className="font-medium">Physical Product</div>
+                            <div className="text-sm text-muted-foreground">Tangible item that requires shipping</div>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 rounded-lg border p-4">
+                        <RadioGroupItem value="digital" id="digital" />
+                        <Label htmlFor="digital" className="flex flex-1 cursor-pointer items-center gap-3">
+                          <FileText className="h-5 w-5 text-primary" />
+                          <div>
+                            <div className="font-medium">Digital Product</div>
+                            <div className="text-sm text-muted-foreground">Downloadable files (PDF, video, audio, etc.)</div>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 rounded-lg border p-4">
+                        <RadioGroupItem value="service" id="service" />
+                        <Label htmlFor="service" className="flex flex-1 cursor-pointer items-center gap-3">
+                          <Star className="h-5 w-5 text-primary" />
+                          <div>
+                            <div className="font-medium">Service</div>
+                            <div className="text-sm text-muted-foreground">Consultation, booking, or service offering</div>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                    {isDigitalCategory(category) && productType !== 'digital' && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-sm text-blue-800">
+                          💡 <strong>Tip:</strong> This category typically contains digital products. Consider selecting "Digital Product" above.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Digital Files Upload - Only show for digital products */}
+                {productType === "digital" && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Digital Files</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <DigitalFileUpload
+                        onFilesUploaded={setDigitalFiles}
+                        existingFiles={digitalFiles}
+                        maxFiles={10}
+                        maxSizePerFile={500}
+                      />
+                      
+                      <div className="grid gap-4 sm:grid-cols-2 pt-4 border-t">
+                        <div className="space-y-2">
+                          <Label htmlFor="accessDuration">Access Duration (days)</Label>
+                          <Input
+                            id="accessDuration"
+                            type="number"
+                            value={accessDuration}
+                            onChange={(e) => setAccessDuration(Number(e.target.value))}
+                            placeholder="0 for lifetime access"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Set to 0 for lifetime access
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="downloadLimit">Download Limit</Label>
+                          <Input
+                            id="downloadLimit"
+                            type="number"
+                            value={downloadLimit}
+                            onChange={(e) => setDownloadLimit(Number(e.target.value))}
+                            placeholder="0 for unlimited"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Set to 0 for unlimited downloads
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Pricing & Inventory */}
                 <Card>
                   <CardHeader>
@@ -505,14 +639,21 @@ function EditProductContent() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="stock">Stock Quantity *</Label>
+                        <Label htmlFor="stock">Stock Quantity</Label>
                         <Input
                           id="stock"
                           type="number"
                           value={stock}
                           onChange={(e) => setStock(e.target.value)}
-                          required
+                          required={productType === 'physical'}
+                          disabled={productType !== 'physical'}
+                          placeholder={productType === 'digital' ? 'Not applicable for digital products' : '0'}
                         />
+                        {productType !== 'physical' && (
+                          <p className="text-xs text-muted-foreground">
+                            Stock quantity is not applicable for {productType} products
+                          </p>
+                        )}
                       </div>
                     </div>
                   </CardContent>

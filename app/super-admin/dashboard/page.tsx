@@ -402,7 +402,7 @@ function SuperAdminDashboardContent() {
               <div className="flex items-center gap-2">
                 <span>Powered by</span>
                 <a 
-                  href="https://cloudsparkdigital.com" 
+                  href="https://cloudsparkdigital.netlify.app" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-primary hover:underline inline-flex items-center gap-1"

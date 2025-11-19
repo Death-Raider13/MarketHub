@@ -42,19 +42,9 @@ export async function GET(request: NextRequest) {
       p.type === "physical" && p.stock !== null && p.stock < 10
     ).length
 
-    // Calculate total revenue from product stats
-    const totalRevenue = products.reduce((sum: number, p: any) => 
-      sum + (p.stats?.revenue || 0), 0
-    )
-
-    // Calculate total views
+    // Calculate total views from product stats
     const totalViews = products.reduce((sum: number, p: any) => 
       sum + (p.stats?.views || 0), 0
-    )
-
-    // Calculate total sales
-    const totalSales = products.reduce((sum: number, p: any) => 
-      sum + (p.stats?.sales || 0), 0
     )
 
     // Get recent orders from orders collection
@@ -115,15 +105,37 @@ export async function GET(request: NextRequest) {
         .get()
     }
 
-    // Group orders by day
+    // Helper to calculate revenue for this vendor within a single order
+    const calculateVendorOrderRevenue = (order: any): number => {
+      if (!order.items || !Array.isArray(order.items)) return 0
+      return order.items
+        .filter((item: any) => item.vendorId === vendorId)
+        .reduce((sum: number, item: any) => {
+          const price = item.productPrice || item.price || item.product?.price || 0
+          const quantity = item.quantity || 1
+          return sum + price * quantity
+        }, 0)
+    }
+
+    const calculateVendorOrderQuantity = (order: any): number => {
+      if (!order.items || !Array.isArray(order.items)) return 0
+      return order.items
+        .filter((item: any) => item.vendorId === vendorId)
+        .reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
+    }
+
+    // Group orders by day using vendor-specific revenue
     const salesByDay: { [key: string]: number } = {}
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
     recentOrdersSnapshot.docs.forEach((doc: any) => {
       const data = doc.data()
+      if (!data.items?.some((item: any) => item.vendorId === vendorId)) return
+
       const orderDate = data.createdAt?.toDate?.() || new Date()
       const dayName = daysOfWeek[orderDate.getDay()]
-      salesByDay[dayName] = (salesByDay[dayName] || 0) + (data.total || 0)
+      const orderRevenue = calculateVendorOrderRevenue(data)
+      salesByDay[dayName] = (salesByDay[dayName] || 0) + orderRevenue
     })
 
     // Build sales data for last 7 days
@@ -137,6 +149,37 @@ export async function GET(request: NextRequest) {
         sales: salesByDay[dayName] || 0
       })
     }
+
+    // Compute total revenue and total sales across all orders for this vendor
+    let allVendorOrdersSnapshot
+    try {
+      allVendorOrdersSnapshot = await adminDb
+        .collection("orders")
+        .where("vendorIds", "array-contains", vendorId)
+        .get()
+    } catch (error) {
+      allVendorOrdersSnapshot = await adminDb
+        .collection("orders")
+        .get()
+    }
+
+    const allVendorOrders = allVendorOrdersSnapshot.docs
+      .filter((doc: any) => {
+        const data = doc.data()
+        return data.items?.some((item: any) => item.vendorId === vendorId)
+      })
+      .map((doc: any) => doc.data())
+
+    let totalRevenue = 0
+    let totalSales = 0
+
+    allVendorOrders.forEach((order: any) => {
+      const orderRevenue = calculateVendorOrderRevenue(order)
+      if (orderRevenue <= 0) return
+
+      totalRevenue += orderRevenue
+      totalSales += calculateVendorOrderQuantity(order)
+    })
 
     return NextResponse.json({
       stats: {

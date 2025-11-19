@@ -5,6 +5,7 @@ This document lists all pages that display "Powered by CloudSparkDigital" brandi
 ## 🎨 Branding Location
 
 The "Powered by CloudSparkDigital" text appears in the footer of all major pages with:
+
 - Professional styling with primary color
 - External link icon
 - Opens in new tab
@@ -13,6 +14,7 @@ The "Powered by CloudSparkDigital" text appears in the footer of all major pages
 ## 📄 Pages with CloudSparkDigital Branding
 
 ### Customer-Facing Pages (via Footer Component)
+
 All these pages use the `<Footer />` component which includes the CloudSparkDigital branding:
 
 1. **Homepage** - `/`
@@ -33,12 +35,14 @@ All these pages use the `<Footer />` component which includes the CloudSparkDigi
 16. **Returns & Refunds** - `/returns`
 
 ### Authentication Pages
+
 17. **Login** - `/auth/login`
 18. **Sign Up** - `/auth/signup`
 19. **Reset Password** - `/auth/reset-password`
 20. **Verify Email** - `/auth/verify-email`
 
 ### Vendor Dashboard Pages
+
 All vendor pages include the Footer component:
 
 21. **Vendor Dashboard** - `/vendor/dashboard`
@@ -54,6 +58,7 @@ All vendor pages include the Footer component:
 31. **Pending Approval** - `/vendor/pending-approval`
 
 ### Admin Dashboard Pages
+
 All admin pages include the Footer component:
 
 32. **Admin Dashboard** - `/admin/dashboard`
@@ -67,6 +72,7 @@ All admin pages include the Footer component:
 40. **Audit Logs** - `/admin/audit-logs`
 
 ### Super Admin Pages
+
 Super admin pages have custom footer with CloudSparkDigital branding:
 
 41. **Super Admin Dashboard** - `/super-admin/dashboard`
@@ -80,13 +86,14 @@ Super admin pages have custom footer with CloudSparkDigital branding:
 ## 🔧 Implementation Details
 
 ### Footer Component
+
 **File:** `components/layout/footer.tsx`
 
 ```tsx
 <div className="flex items-center gap-2">
   <span>Powered by</span>
-  <Link 
-    href="https://cloudsparkdigital.com" 
+  <Link
+    href="https://cloudsparkdigital.netlify.app"
     target="_blank"
     rel="noopener noreferrer"
     className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
@@ -100,6 +107,7 @@ Super admin pages have custom footer with CloudSparkDigital branding:
 ```
 
 ### Super Admin Footer
+
 **File:** `app/super-admin/dashboard/page.tsx`
 
 The super admin pages have a custom inline footer with the same CloudSparkDigital branding style.
@@ -130,6 +138,7 @@ Powered by CloudSparkDigital ↗
 ## 🚀 Future Enhancements
 
 Consider adding:
+
 - CloudSparkDigital logo/icon
 - Animated hover effects
 - Dark mode optimization
@@ -140,4 +149,4 @@ Consider adding:
 
 **Last Updated:** 2025-09-30
 **Developer:** CloudSparkDigital
-**Website:** https://cloudsparkdigital.com
+**Website:** https://cloudsparkdigital.netlify.app

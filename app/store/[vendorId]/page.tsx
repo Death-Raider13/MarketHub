@@ -26,6 +26,8 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { AdSlot } from "@/components/advertising/AdSlot"
 import { VendorStoreAds } from "@/components/advertising/VendorStoreAds"
+import { useCart } from "@/lib/cart-context"
+import type { Product } from "@/lib/types"
 
 interface VendorData {
   uid: string
@@ -52,19 +54,10 @@ interface VendorData {
   }
 }
 
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  images: string[]
-  category: string
-  vendorId: string
-}
-
 export default function VendorStorefrontPage() {
   const params = useParams()
   const vendorId = params.vendorId as string
+  const { addToCart, totalItems } = useCart()
 
   const [vendor, setVendor] = useState<VendorData | null>(null)
   const [products, setProducts] = useState<Product[]>([])
@@ -74,6 +67,17 @@ export default function VendorStorefrontPage() {
   useEffect(() => {
     loadVendorData()
     loadProducts()
+  }, [vendorId])
+
+  // Track store page view for vendor analytics
+  useEffect(() => {
+    if (!vendorId) return
+
+    fetch(`/api/store/${vendorId}/track-view`, {
+      method: "POST",
+    }).catch(() => {
+      // Ignore client-side errors; logging happens server-side
+    })
   }, [vendorId])
 
   const loadVendorData = async () => {
@@ -123,10 +127,31 @@ export default function VendorStorefrontPage() {
     }
   }
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url)
-    toast.success("Store link copied to clipboard!")
+  const handleShare = async () => {
+    try {
+      const url = window.location.href
+
+      // Use native share sheet when available (mobile/modern browsers)
+      if (navigator.share) {
+        await navigator.share({
+          title: branding.storeName,
+          text: `Check out ${branding.storeName} on MarketHub`,
+          url,
+        })
+        return
+      }
+
+      // Fallback: copy to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url)
+        toast.success("Store link copied to clipboard!")
+      } else {
+        toast.error("Sharing is not supported on this browser. Please copy the URL manually.")
+      }
+    } catch (error) {
+      console.error("Error sharing store:", error)
+      toast.error("Failed to share store. Please copy the link from the address bar.")
+    }
   }
 
   if (loading) {
@@ -250,8 +275,15 @@ export default function VendorStorefrontPage() {
                 }}
               >
                 <Link href="/cart">
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Cart
+                  <div className="flex items-center gap-2">
+                    <ShoppingCart className="h-4 w-4" />
+                    <span>Cart</span>
+                    {totalItems > 0 && (
+                      <span className="rounded-full bg-primary text-white text-xs px-2 py-0.5">
+                        {totalItems}
+                      </span>
+                    )}
+                  </div>
                 </Link>
               </Button>
             </div>
@@ -366,6 +398,10 @@ export default function VendorStorefrontPage() {
                         </span>
                         <Button
                           size="sm"
+                          onClick={() => {
+                            addToCart(product as Product)
+                            toast.success("Added to cart")
+                          }}
                           style={{
                             backgroundColor: theme.primaryColor,
                             color: '#ffffff'

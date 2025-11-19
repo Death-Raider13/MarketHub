@@ -1,13 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true,
+    // Enable ESLint checks during builds for production safety
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // Enable TypeScript error checking for production safety
+    ignoreBuildErrors: false,
   },
   images: {
-    unoptimized: true,
+    // Enable image optimization for production
+    unoptimized: false,
+    domains: [
+      'firebasestorage.googleapis.com', // Firebase Storage
+      'res.cloudinary.com', // Cloudinary
+    ],
   },
 }
 

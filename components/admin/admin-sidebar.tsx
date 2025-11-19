@@ -20,6 +20,8 @@ import {
   Flag,
   Wallet,
   Bell,
+  Star,
+  
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -78,10 +80,15 @@ const navItems: NavItem[] = [
     permission: 'users.view',
   },
   {
+    title: 'Featured Content',
+    href: '/admin/featured',
+    icon: Star,
+    permission: 'products.feature',
+  },
+  {
     title: 'Advertising',
     href: '/admin/advertising',
     icon: Megaphone,
-
     permission: 'ads.view',
   },
   {

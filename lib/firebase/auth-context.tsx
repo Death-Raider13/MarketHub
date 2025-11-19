@@ -16,6 +16,7 @@ import {
 import { onUserRegistration } from '@/lib/notifications/triggers'
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { auth, db } from "./config"
+import { handleAuthError, handleFirestoreError } from '@/lib/production-error-handler'
 import {
   createSession,
   validateSession,
@@ -213,11 +214,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setSession(newSession)
     } catch (error: any) {
-      // Handle rate limit errors
-      if (error.code === 'auth/too-many-requests') {
-        throw new Error('Too many login attempts. Please try again in 15 minutes.')
-      }
-      throw error
+      // Use production error handler for user-friendly messages
+      const userFriendlyMessage = handleAuthError(error)
+      throw new Error(userFriendlyMessage)
     }
   }
 

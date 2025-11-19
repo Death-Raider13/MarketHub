@@ -34,17 +34,86 @@ export default function HomePage() {
         const { db } = await import("@/lib/firebase/config")
         
         const productsRef = collection(db, "products")
-        const q = query(
-          productsRef,
-          where("status", "==", "approved"),
-          orderBy("createdAt", "desc"),
-          limit(8)
-        )
-        const snapshot = await getDocs(q)
-        const products = snapshot.docs.map((doc) => ({
+        
+        // Try multiple query strategies to get products
+        let snapshot: any = null
+        
+        try {
+          // First try: Featured products with active status
+          let q = query(
+            productsRef,
+            where("featured", "==", true),
+            where("status", "==", "active"),
+            limit(8)
+          )
+          snapshot = await getDocs(q)
+        } catch (error) {
+          console.log("Featured active products query failed, trying alternatives...")
+        }
+        
+        // If no featured active products, try featured approved products
+        if (!snapshot || snapshot.empty) {
+          try {
+            let q = query(
+              productsRef,
+              where("featured", "==", true),
+              where("status", "==", "approved"),
+              limit(8)
+            )
+            snapshot = await getDocs(q)
+          } catch (error) {
+            console.log("Featured approved products query failed...")
+          }
+        }
+        
+        // If no featured products, get recent active products
+        if (!snapshot || snapshot.empty) {
+          try {
+            let q = query(
+              productsRef,
+              where("status", "==", "active"),
+              orderBy("createdAt", "desc"),
+              limit(8)
+            )
+            snapshot = await getDocs(q)
+          } catch (error) {
+            console.log("Active products query failed...")
+          }
+        }
+        
+        // If still no products, try with "approved" status
+        if (!snapshot || snapshot.empty) {
+          try {
+            let q = query(
+              productsRef,
+              where("status", "==", "approved"),
+              orderBy("createdAt", "desc"),
+              limit(8)
+            )
+            snapshot = await getDocs(q)
+          } catch (error) {
+            console.log("Approved products query failed...")
+          }
+        }
+        
+        // Last resort: get any products (no status filter)
+        if (!snapshot || snapshot.empty) {
+          try {
+            let q = query(
+              productsRef,
+              orderBy("createdAt", "desc"),
+              limit(8)
+            )
+            snapshot = await getDocs(q)
+          } catch (error) {
+            console.log("All products query failed...")
+          }
+        }
+        
+        const products = (snapshot?.docs?.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        })) as Product[]
+        })) || []) as Product[]
         setFeaturedProducts(products)
       } catch (error) {
         console.error("Error fetching products:", error)
@@ -69,17 +138,55 @@ export default function HomePage() {
         const { collection, getDocs, query, where, limit } = await import("firebase/firestore")
         const { db } = await import("@/lib/firebase/config")
         
-        const vendorsQuery = query(
-          collection(db, 'users'),
-          where('role', '==', 'vendor'),
-          where('verified', '==', true),
-          limit(6)
-        )
-        const snapshot = await getDocs(vendorsQuery)
-        const vendors = snapshot.docs.map(doc => ({
+        // Try multiple query strategies to get vendors
+        let snapshot: any = null
+        
+        try {
+          // First try: Featured vendors
+          let vendorsQuery = query(
+            collection(db, 'users'),
+            where('role', '==', 'vendor'),
+            where('featured', '==', true),
+            limit(6)
+          )
+          snapshot = await getDocs(vendorsQuery)
+        } catch (error) {
+          console.log("Featured vendors query failed, trying alternatives...")
+        }
+        
+        // If no featured vendors, get verified vendors
+        if (!snapshot || snapshot.empty) {
+          try {
+            let vendorsQuery = query(
+              collection(db, 'users'),
+              where('role', '==', 'vendor'),
+              where('verified', '==', true),
+              limit(6)
+            )
+            snapshot = await getDocs(vendorsQuery)
+          } catch (error) {
+            console.log("Verified vendors query failed...")
+          }
+        }
+        
+        // If still no vendors, get any vendors
+        if (!snapshot || snapshot.empty) {
+          try {
+            let vendorsQuery = query(
+              collection(db, 'users'),
+              where('role', '==', 'vendor'),
+              limit(6)
+            )
+            snapshot = await getDocs(vendorsQuery)
+          } catch (error) {
+            console.log("All vendors query failed...")
+          }
+        }
+        
+        const vendors = snapshot?.docs?.map(doc => ({
           id: doc.id,
           ...doc.data(),
-        }))
+        })) || []
         setFeaturedVendors(vendors)
       } catch (error) {
         console.error("Error fetching vendors:", error)
@@ -312,16 +419,26 @@ export default function HomePage() {
                 <Link key={product.id} href={`/products/${product.id}`}>
                   <Card className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer h-full">
                     <div className="relative h-48 bg-gray-100 overflow-hidden rounded-t-lg">
-                      {product.imageUrl ? (
+                      {product.imageUrl || (product.images && product.images[0]) ? (
                         <img
-                          src={product.imageUrl}
+                          src={product.imageUrl || product.images[0]}
                           alt={product.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            target.nextElementSibling?.classList.remove('hidden')
+                          }}
                         />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <ShoppingBag className="h-16 w-16" />
+                      ) : null}
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 absolute inset-0">
+                        <div className="text-center">
+                          <ShoppingBag className="h-16 w-16 mx-auto mb-2" />
+                          <p className="text-sm">No Image</p>
                         </div>
+                      </div>
+                      {product.featured && (
+                        <Badge className="absolute top-2 left-2 bg-yellow-500">Featured</Badge>
                       )}
                       <Badge className="absolute top-2 right-2 bg-green-500">New</Badge>
                     </div>

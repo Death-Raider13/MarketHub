@@ -4,8 +4,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Upload, X, File, FileText, FileVideo, FileAudio, FileArchive } from "lucide-react"
-import { storage } from "@/lib/firebase/config"
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
 import { toast } from "sonner"
 import type { DigitalFile } from "@/lib/types"
 
@@ -66,33 +64,49 @@ export function DigitalFileUpload({
     try {
       const uploadPromises = files.map(async (file) => {
         const fileId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        const storageRef = ref(storage, `digital-products/${fileId}/${file.name}`)
         
+        // Create FormData for Cloudinary upload
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
+        formData.append('folder', 'digital-products')
+        formData.append('public_id', fileId)
+        
+        // Use XMLHttpRequest to track upload progress
         return new Promise<DigitalFile>((resolve, reject) => {
-          const uploadTask = uploadBytesResumable(storageRef, file)
-
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          const xhr = new XMLHttpRequest()
+          
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const progress = (event.loaded / event.total) * 100
               setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
-            },
-            (error) => {
-              console.error('Upload error:', error)
-              reject(error)
-            },
-            async () => {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-              resolve({
-                id: fileId,
-                fileName: file.name,
-                fileUrl: downloadURL,
-                fileSize: file.size,
-                fileType: file.type,
-                uploadedAt: new Date()
-              })
             }
-          )
+          })
+          
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              try {
+                const data = JSON.parse(xhr.responseText)
+                resolve({
+                  id: fileId,
+                  fileName: file.name,
+                  fileUrl: data.secure_url,
+                  fileSize: file.size,
+                  fileType: file.type,
+                  uploadedAt: new Date()
+                })
+              } catch (error) {
+                reject(new Error('Failed to parse response'))
+              }
+            } else {
+              reject(new Error(`Upload failed with status ${xhr.status}`))
+            }
+          }
+          
+          xhr.onerror = () => reject(new Error('Upload failed'))
+          
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload`)
+          xhr.send(formData)
         })
       })
 

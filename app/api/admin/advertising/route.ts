@@ -3,34 +3,55 @@ import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
 import { verifyAdminAuth } from "@/lib/firebase/admin-auth"
 import { hasPermission } from "@/lib/admin/permissions"
+import { createApiLogger, logSecurityEvent, logBusinessEvent } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
+  const logger = createApiLogger(request, '/api/admin/advertising')
+  
   try {
+    logger.info('Admin advertising campaigns fetch requested')
+    
     const adminDb = getAdminFirestore()
     
     if (!adminDb) {
+      logger.error('Firebase Admin SDK not configured')
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
       )
     }
 
-    // TEMPORARY: Skip admin auth for testing
-    // TODO: Re-enable admin authentication after Firebase login is fixed
-    // const authResult = await verifyAdminAuth(request)
-    // if (!authResult.success || !authResult.user) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized" },
-    //     { status: 401 }
-    //   )
-    // }
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth(request)
+    if (!authResult.success || !authResult.user) {
+      logSecurityEvent('unauthorized_admin_access', 'high', {
+        userId: 'unknown',
+        endpoint: '/api/admin/advertising',
+        method: 'GET'
+      })
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
 
-    // if (!hasPermission(authResult.user.role, 'ads.view')) {
-    //   return NextResponse.json(
-    //     { error: "Insufficient permissions" },
-    //     { status: 403 }
-    //   )
-    // }
+    if (!hasPermission(authResult.user.role, 'ads.view')) {
+      logSecurityEvent('insufficient_permissions', 'medium', {
+        userId: authResult.user.uid,
+        role: authResult.user.role,
+        requiredPermission: 'ads.view',
+        endpoint: '/api/admin/advertising'
+      })
+      return NextResponse.json(
+        { error: "Insufficient permissions" },
+        { status: 403 }
+      )
+    }
+
+    logger.info('Admin authentication successful', {
+      userId: authResult.user.uid,
+      role: authResult.user.role
+    })
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -117,15 +138,14 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // TEMPORARY: Skip admin auth for testing
-    // TODO: Re-enable admin authentication after Firebase login is fixed
-    // const authResult = await verifyAdminAuth(request)
-    // if (!authResult.success || !authResult.user) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized" },
-    //     { status: 401 }
-    //   )
-    // }
+    // Verify admin authentication
+    const authResult = await verifyAdminAuth(request)
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
 
     const { campaignId, action, reason } = await request.json()
 
@@ -158,13 +178,13 @@ export async function PATCH(request: NextRequest) {
         )
     }
 
-    // TEMPORARY: Skip permission check for testing
-    // if (!hasPermission(authResult.user.role, requiredPermission as any)) {
-    //   return NextResponse.json(
-    //     { error: "Insufficient permissions" },
-    //     { status: 403 }
-    //   )
-    // }
+    // Check permissions
+    if (!hasPermission(authResult.user.role, requiredPermission as any)) {
+      return NextResponse.json(
+        { error: "Insufficient permissions" },
+        { status: 403 }
+      )
+    }
 
     // Get campaign
     const campaignRef = adminDb.collection("adCampaigns").doc(campaignId)
@@ -187,7 +207,7 @@ export async function PATCH(request: NextRequest) {
 
     let updateData: any = {
       updatedAt: FieldValue.serverTimestamp(),
-      reviewedBy: 'temp-admin', // authResult.user.uid,
+      reviewedBy: authResult.user.uid,
       reviewedAt: FieldValue.serverTimestamp()
     }
 

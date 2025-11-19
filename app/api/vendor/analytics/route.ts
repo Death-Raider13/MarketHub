@@ -50,44 +50,98 @@ export async function GET(request: NextRequest) {
     const activeProducts = products.filter((p: any) => p.status === "active").length
 
     // Get orders for current period
-    const ordersSnapshot = await adminDb
-      .collection("orders")
-      .where("vendorId", "==", vendorId)
-      .where("createdAt", ">=", startDate)
-      .where("createdAt", "<=", endDate)
-      .get()
+    let ordersSnapshot
+    try {
+      ordersSnapshot = await adminDb
+        .collection("orders")
+        .where("vendorIds", "array-contains", vendorId)
+        .where("createdAt", ">=", startDate)
+        .where("createdAt", "<=", endDate)
+        .get()
+    } catch (error) {
+      // Fallback if vendorIds index is not available
+      ordersSnapshot = await adminDb
+        .collection("orders")
+        .where("createdAt", ">=", startDate)
+        .where("createdAt", "<=", endDate)
+        .get()
+    }
 
-    const orders = ordersSnapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.() || new Date()
-    }))
+    const orders = ordersSnapshot.docs
+      .filter((doc: any) => {
+        const data = doc.data()
+        // Ensure this order actually contains items for this vendor
+        return data.items?.some((item: any) => item.vendorId === vendorId)
+      })
+      .map((doc: any) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.() || new Date()
+      }))
 
     // Get orders for previous period (for growth calculation)
-    const prevOrdersSnapshot = await adminDb
-      .collection("orders")
-      .where("vendorId", "==", vendorId)
-      .where("createdAt", ">=", prevStartDate)
-      .where("createdAt", "<", startDate)
-      .get()
+    let prevOrdersSnapshot
+    try {
+      prevOrdersSnapshot = await adminDb
+        .collection("orders")
+        .where("vendorIds", "array-contains", vendorId)
+        .where("createdAt", ">=", prevStartDate)
+        .where("createdAt", "<", startDate)
+        .get()
+    } catch (error) {
+      prevOrdersSnapshot = await adminDb
+        .collection("orders")
+        .where("createdAt", ">=", prevStartDate)
+        .where("createdAt", "<", startDate)
+        .get()
+    }
 
-    const prevOrders = prevOrdersSnapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data()
-    }))
+    const prevOrders = prevOrdersSnapshot.docs
+      .filter((doc: any) => {
+        const data = doc.data()
+        return data.items?.some((item: any) => item.vendorId === vendorId)
+      })
+      .map((doc: any) => ({
+        id: doc.id,
+        ...doc.data()
+      }))
 
-    // Calculate metrics
-    const totalRevenue = orders.reduce((sum: number, order: any) => 
-      sum + (order.total || 0), 0
-    )
-    const totalOrders = orders.length
+    // Helper to calculate revenue for this vendor within a single order
+    const calculateVendorOrderRevenue = (order: any): number => {
+      if (!order.items || !Array.isArray(order.items)) return 0
+      return order.items
+        .filter((item: any) => item.vendorId === vendorId)
+        .reduce((sum: number, item: any) => {
+          const price = item.productPrice || item.price || item.product?.price || 0
+          const quantity = item.quantity || 1
+          return sum + price * quantity
+        }, 0)
+    }
+
+    // Calculate metrics using vendor-specific revenue
+    let totalRevenue = 0
+    let totalOrders = 0
+
+    orders.forEach((order: any) => {
+      const orderRevenue = calculateVendorOrderRevenue(order)
+      if (orderRevenue <= 0) return
+      totalRevenue += orderRevenue
+      totalOrders += 1
+    })
+
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
-    // Previous period metrics
-    const prevRevenue = prevOrders.reduce((sum: number, order: any) => 
-      sum + (order.total || 0), 0
-    )
-    const prevOrderCount = prevOrders.length
+    // Previous period metrics (vendor-specific)
+    let prevRevenue = 0
+    let prevOrderCount = 0
+
+    prevOrders.forEach((order: any) => {
+      const orderRevenue = calculateVendorOrderRevenue(order)
+      if (orderRevenue <= 0) return
+      prevRevenue += orderRevenue
+      prevOrderCount += 1
+    })
+
     const prevAvgOrderValue = prevOrderCount > 0 ? prevRevenue / prevOrderCount : 0
 
     // Calculate growth percentages
@@ -101,31 +155,60 @@ export async function GET(request: NextRequest) {
       ? ((avgOrderValue - prevAvgOrderValue) / prevAvgOrderValue) * 100 
       : 0
 
-    // Calculate store views (from product stats)
-    const storeViews = products.reduce((sum: number, p: any) => 
+    // Calculate product views (from product stats)
+    const productViewsTotal = products.reduce((sum: number, p: any) => 
       sum + (p.stats?.views || 0), 0
     )
 
+    // Load store page views from vendorStats collection
+    let storeViews = 0
+    try {
+      const vendorStatsDoc = await adminDb
+        .collection("vendorStats")
+        .doc(vendorId)
+        .get()
+
+      if (vendorStatsDoc.exists) {
+        const data = vendorStatsDoc.data()
+        storeViews = data?.storeViews || 0
+      }
+    } catch (error) {
+      console.error("Error loading vendorStats for store views:", error)
+    }
+
     // Get all orders for views growth (simplified)
-    const allOrdersSnapshot = await adminDb
-      .collection("orders")
-      .where("vendorId", "==", vendorId)
-      .get()
-    
-    const prevViewsCount = allOrdersSnapshot.size
+    let allOrdersSnapshot
+    try {
+      allOrdersSnapshot = await adminDb
+        .collection("orders")
+        .where("vendorIds", "array-contains", vendorId)
+        .get()
+    } catch (error) {
+      allOrdersSnapshot = await adminDb
+        .collection("orders")
+        .get()
+    }
+
+    const prevViewsCount = allOrdersSnapshot.docs.filter((doc: any) => {
+      const data = doc.data()
+      return data.items?.some((item: any) => item.vendorId === vendorId)
+    }).length
     const viewsGrowth = prevViewsCount > 0 
       ? ((storeViews - prevViewsCount) / prevViewsCount) * 100 
       : 0
 
-    // Build sales data by date
+    // Build sales data by date (vendor-specific revenue)
     const salesByDate: { [key: string]: { revenue: number; orders: number } } = {}
     
     orders.forEach((order: any) => {
+      const orderRevenue = calculateVendorOrderRevenue(order)
+      if (orderRevenue <= 0) return
+
       const dateKey = order.createdAt.toISOString().split('T')[0]
       if (!salesByDate[dateKey]) {
         salesByDate[dateKey] = { revenue: 0, orders: 0 }
       }
-      salesByDate[dateKey].revenue += order.total || 0
+      salesByDate[dateKey].revenue += orderRevenue
       salesByDate[dateKey].orders += 1
     })
 
@@ -152,23 +235,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get top products by revenue
+    // Get top products by revenue (only this vendor's items)
     const productSales: { [key: string]: { sales: number; revenue: number; product: any } } = {}
     
     orders.forEach((order: any) => {
       if (order.items && Array.isArray(order.items)) {
-        order.items.forEach((item: any) => {
-          if (!productSales[item.productId]) {
-            const product = products.find((p: any) => p.id === item.productId)
-            productSales[item.productId] = {
-              sales: 0,
-              revenue: 0,
-              product: product || { name: item.productName || "Unknown", image: "" }
+        order.items
+          .filter((item: any) => item.vendorId === vendorId)
+          .forEach((item: any) => {
+            const productId = item.productId
+            if (!productSales[productId]) {
+              const product = products.find((p: any) => p.id === productId)
+              productSales[productId] = {
+                sales: 0,
+                revenue: 0,
+                product: product || { name: item.productName || "Unknown", image: "" }
+              }
             }
-          }
-          productSales[item.productId].sales += item.quantity || 1
-          productSales[item.productId].revenue += (item.price || 0) * (item.quantity || 1)
-        })
+            productSales[productId].sales += item.quantity || 1
+            const price = item.productPrice || item.price || item.product?.price || 0
+            productSales[productId].revenue += price * (item.quantity || 1)
+          })
       }
     })
 
@@ -183,21 +270,21 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5)
 
-    // Build conversion funnel (simplified estimates)
+    // Build conversion funnel (simplified)
     const storeVisits = storeViews
-    const productViews = Math.floor(storeViews * 0.7) // Estimate 70% view products
+    const productViews = productViewsTotal
     const addToCart = Math.floor(productViews * 0.3) // Estimate 30% add to cart
     const checkout = Math.floor(addToCart * 0.8) // Estimate 80% proceed to checkout
     const purchase = totalOrders
 
-    // Recent orders
+    // Recent orders (with vendor-specific totals)
     const recentOrders = orders
       .sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, 5)
       .map((order: any) => ({
         id: order.id,
         customerName: order.customerName || order.shippingAddress?.fullName || "Guest",
-        total: order.total || 0,
+        total: calculateVendorOrderRevenue(order),
         status: order.status || "pending",
         date: order.createdAt
       }))

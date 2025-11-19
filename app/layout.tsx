@@ -7,6 +7,17 @@ import { CartProvider } from "@/lib/cart-context"
 import { WishlistProvider } from "@/lib/wishlist-context"
 import { NotificationProvider } from "@/contexts/notification-context"
 import { FirebaseErrorHandler } from "@/components/firebase-error-handler"
+import { ProductionErrorBoundary } from "@/components/production-error-boundary"
+import { validateEnvironmentVariables } from "@/lib/env-validation"
+import { initializeProductionErrorHandling } from "@/lib/production-error-handler"
+
+// Validate environment variables on app startup
+validateEnvironmentVariables()
+
+// Initialize production error handling
+if (typeof window !== 'undefined') {
+  initializeProductionErrorHandling()
+}
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -24,16 +35,18 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
-        <AuthProvider>
-          <NotificationProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <FirebaseErrorHandler />
-                {children}
-              </WishlistProvider>
-            </CartProvider>
-          </NotificationProvider>
-        </AuthProvider>
+        <ProductionErrorBoundary>
+          <AuthProvider>
+            <NotificationProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <FirebaseErrorHandler />
+                  {children}
+                </WishlistProvider>
+              </CartProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </ProductionErrorBoundary>
       </body>
     </html>
   )

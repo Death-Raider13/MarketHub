@@ -19,6 +19,8 @@ import { useWishlist } from "@/lib/wishlist-context"
 import { db } from "@/lib/firebase/config"
 import { doc, getDoc, collection, query, where, limit, getDocs } from "firebase/firestore"
 import { ProductReviews } from "@/components/customer/product-reviews"
+import { ServiceReviews } from "@/components/services/service-reviews"
+import { DigitalProductReviews } from "@/components/digital-products/digital-product-reviews"
 import { ContactVendor } from "@/components/customer/contact-vendor"
 import { ProductQA } from "@/components/customer/product-qa"
 import { 
@@ -219,6 +221,18 @@ export default function ProductDetailPage() {
       fetchProduct()
     }
   }, [id, user])
+
+  // Track product view for analytics (counts toward vendor dashboard total views)
+  useEffect(() => {
+    if (!id) return
+
+    // Fire-and-forget; errors are logged in the API route
+    fetch(`/api/products/${id}/track-view`, {
+      method: "POST",
+    }).catch(() => {
+      // Intentionally ignore client-side errors here
+    })
+  }, [id])
 
   const discount = product?.comparePrice 
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
@@ -781,11 +795,21 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
               </TabsContent>
 
               <TabsContent value="reviews" id="reviews" className="mt-6">
-                <ProductReviews
-                  productId={product.id}
-                  vendorId={product.vendorId}
-                  canReview={hasPurchased}
-                />
+                {product.type === 'service' ? (
+                  <ServiceReviews
+                    serviceId={product.id}
+                  />
+                ) : product.type === 'digital' ? (
+                  <DigitalProductReviews
+                    productId={product.id}
+                  />
+                ) : (
+                  <ProductReviews
+                    productId={product.id}
+                    vendorId={product.vendorId}
+                    canReview={hasPurchased}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="qa" className="mt-6">

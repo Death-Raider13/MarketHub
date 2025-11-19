@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert, App } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { getAuth } from 'firebase-admin/auth'
 
 let adminApp: App | undefined
 
@@ -87,6 +88,18 @@ export function getAdminFirestore() {
  */
 export function isAdminAvailable(): boolean {
   return getAdminApp() !== undefined
+}
+
+/**
+ * Get Firebase Admin Auth instance
+ * This provides admin-level authentication operations
+ */
+export function getAdminAuth() {
+  const app = getAdminApp()
+  if (!app) {
+    return null
+  }
+  return getAuth(app)
 }
 
 /**

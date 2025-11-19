@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import type { Product } from "@/lib/types"
 import { useState, useEffect } from "react"
 import { getVendorName } from "@/lib/vendor-utils"
+import { useWishlist } from "@/lib/wishlist-context"
 
 interface ProductCardProps {
   product: Product
@@ -17,6 +18,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [vendorName, setVendorName] = useState<string>(product.vendorName || 'Vendor')
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
   
   // Ensure price is a number
   const price = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0
@@ -44,6 +46,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     fetchVendorName()
   }, [product.vendorId, product.vendorName])
 
+  const inWishlist = isInWishlist(product.id)
+
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
       <Link href={`/products/${product.id}`}>
@@ -60,12 +64,17 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             size="icon"
             variant="secondary"
             className="absolute right-2 bottom-2 opacity-0 transition-opacity group-hover:opacity-100"
+            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => {
               e.preventDefault()
-              // Add to wishlist logic
+              if (inWishlist) {
+                removeFromWishlist(product.id)
+              } else {
+                addToWishlist(product)
+              }
             }}
           >
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${inWishlist ? "fill-red-500 text-red-500" : ""}`} />
           </Button>
         </div>
       </Link>

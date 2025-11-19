@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useCart } from "@/lib/cart-context"
 import { useAuth } from "@/lib/firebase/auth-context"
-import { CreditCard, Truck, CheckCircle2 } from "lucide-react"
+import { CheckCircle2, CreditCard, MapPin, Truck, User, Download, Calendar, Package } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import type { Address } from "@/lib/types"
@@ -43,6 +43,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("card")
   const [shippingMethod, setShippingMethod] = useState("standard")
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null)
+  const [completedOrderItems, setCompletedOrderItems] = useState<any[]>([])
 
   // Check if cart has physical products that require shipping
   const requiresShipping = items.some(item => item.product.requiresShipping)
@@ -103,7 +104,10 @@ export default function CheckoutPage() {
           productPrice: item.product.price,
           quantity: item.quantity,
           vendorId: item.product.vendorId,
-          vendorName: item.product.vendorName || 'Unknown Vendor'
+          vendorName: item.product.vendorName || 'Unknown Vendor',
+          // Include the full product object so server-side verification
+          // and post-payment processing can access product.type/product.digitalFiles
+          product: item.product
         })),
         vendorIds: [...new Set(items.map(item => item.product.vendorId))],
         subtotal: totalPrice,
@@ -191,6 +195,7 @@ export default function CheckoutPage() {
               
               console.log('✅ Setting step to 3...')
               setCompletedOrderId(orderId) // Store order ID for display
+              setCompletedOrderItems([...items]) // Store items before clearing cart
               setStep(3) // Show success page
               console.log('✅ Clearing cart...')
               clearCart()
@@ -506,19 +511,43 @@ export default function CheckoutPage() {
                       <p className="text-sm text-muted-foreground">Order Number</p>
                       <p className="text-lg font-bold">#{completedOrderId?.substring(0, 8).toUpperCase() || 'PROCESSING'}</p>
                     </div>
-                    <div className="mt-6 flex gap-2">
-                      <Button variant="outline" onClick={() => router.push("/orders")} className="flex-1">
-                        View Orders
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          clearCart()
-                          router.push("/products")
-                        }}
-                        className="flex-1"
-                      >
-                        Continue Shopping
-                      </Button>
+                    <div className="mt-6 space-y-3">
+                      {/* Show different actions based on product types in the completed order */}
+                      {completedOrderItems.some(item => item.product.type === 'digital') && (
+                        <Button onClick={() => router.push("/my-purchases")} className="w-full">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Digital Products
+                        </Button>
+                      )}
+                      
+                      {completedOrderItems.some(item => item.product.type === 'service') && (
+                        <Button onClick={() => router.push("/my-services")} className="w-full" variant="outline">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Manage Service Bookings
+                        </Button>
+                      )}
+                      
+                      {completedOrderItems.some(item => item.product.type === 'physical') && (
+                        <Button onClick={() => router.push("/my-orders")} className="w-full" variant="outline">
+                          <Package className="mr-2 h-4 w-4" />
+                          Track Physical Orders
+                        </Button>
+                      )}
+                      
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => router.push("/my-orders")} className="flex-1">
+                          View All Orders
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            clearCart()
+                            router.push("/products")
+                          }}
+                          className="flex-1"
+                        >
+                          Continue Shopping
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { db } from '@/lib/firebase/config';
 import { collection, addDoc, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
+import { updateVendorBalance } from '@/lib/firebase/firestore';
 import { DollarSign, Wallet, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { PayoutRequest, VendorBalance } from '@/lib/types';
@@ -187,6 +188,26 @@ export default function VendorPayoutsPage() {
       }
 
       await addDoc(collection(db, 'payoutRequests'), payoutData);
+
+      // Move funds from available to pending balance for this vendor
+      try {
+        const newAvailable = (balance.availableBalance || 0) - requestAmount;
+        const newPending = (balance.pendingBalance || 0) + requestAmount;
+
+        await updateVendorBalance(user.uid, {
+          ...balance,
+          availableBalance: newAvailable,
+          pendingBalance: newPending,
+        });
+
+        setBalance(prev => prev ? {
+          ...prev,
+          availableBalance: newAvailable,
+          pendingBalance: newPending,
+        } : prev);
+      } catch (balanceError) {
+        console.error('Error updating vendor balance after payout request:', balanceError);
+      }
 
       toast({
         title: 'Payout Request Submitted',

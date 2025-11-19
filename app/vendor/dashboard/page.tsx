@@ -335,6 +335,12 @@ function VendorDashboardContent() {
                   Orders
                 </Button>
               </Link>
+              <Link href="/vendor/services">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Services
+                </Button>
+              </Link>
               <Link href="/vendor/messages">
                 <Button variant="ghost" className="w-full justify-start">
                   <Mail className="mr-2 h-4 w-4" />
@@ -495,6 +501,17 @@ function VendorDashboardContent() {
                         <p className="text-sm font-medium">5 customer messages</p>
                         <Button variant="link" className="h-auto p-0 text-xs" asChild>
                           <Link href="/vendor/messages">Reply now →</Link>
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-full bg-orange-500/10 p-2">
+                        <Calendar className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Service bookings pending</p>
+                        <Button variant="link" className="h-auto p-0 text-xs" asChild>
+                          <Link href="/vendor/services">Manage services →</Link>
                         </Button>
                       </div>
                     </div>

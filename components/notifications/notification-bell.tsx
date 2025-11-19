@@ -231,7 +231,7 @@ export function NotificationBell() {
               className="w-full justify-center text-xs text-red-600 hover:text-red-700"
               onClick={handleClearAllNotifications}
             >
-              🗑️ Clear All (Dev)
+              🗑️ Clear All 
             </Button>
           )}
         </div>

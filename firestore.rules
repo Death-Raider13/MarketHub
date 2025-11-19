@@ -70,8 +70,8 @@ service cloud.firestore {
       // Users can read their own data, admins can read all
       allow read: if isOwner(userId) || isAdmin();
       
-      // Anyone can read vendor profiles (for storefront pages)
-      allow read: if resource.data.role == 'vendor' && resource.data.verified == true;
+      // Anyone can read vendor profiles (for storefront pages and featured vendors)
+      allow read: if resource.data.role == 'vendor';
       
       // Users can update their own data (except role and verified status)
       allow update: if isOwner(userId) && 
@@ -120,8 +120,14 @@ service cloud.firestore {
                       request.resource.data.price > 0 &&
                       request.resource.data.stock >= 0;
       
-      // TEMPORARY: Allow all reads for debugging
-      allow read: if true;
+      // Anyone can read active or approved products (for public browsing)
+      allow read: if resource.data.status == "approved" || resource.data.status == "active";
+      
+      // Vendors can read their own products (all statuses)
+      allow read: if isVendorOwner(resource.data.vendorId);
+      
+      // Admins can read all products
+      allow read: if isAdmin();
       
       // Vendors can update their own products (except approved status)
       allow update: if isVendorOwner(resource.data.vendorId) &&
@@ -172,10 +178,12 @@ service cloud.firestore {
       // Admins can read all orders
       allow read: if isAdmin();
       
-      // Allow payment verification updates (from pending to paid)
-      // TEMPORARY: Allow updates for payment verification from server
-      // This allows the API route to update order status after payment
-      allow update: if true;
+      // Allow payment verification updates from server (specific status transitions only)
+      // Only allow pending->paid status updates with payment data
+      allow update: if resource.data.status == 'pending' && 
+                      request.resource.data.status == 'paid' &&
+                      request.resource.data.keys().hasAll(['paymentStatus', 'paymentReference', 'paidAt']) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['total', 'items', 'userId', 'customerId']);
       
       // Customers can cancel their own orders (only if pending or paid, not shipped yet)
       allow update: if isSignedIn() && 
@@ -280,10 +288,17 @@ service cloud.firestore {
     // ============================================
     match /wishlists/{wishlistId} {
       // Users can create their own wishlist items
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['userId', 'productId', 'product', 'createdAt']);
       
       // Users can read their own wishlist items
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Users can update their own wishlist items (for product data updates)
+      allow update: if isSignedIn() && 
+                      resource.data.userId == request.auth.uid &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'productId']);
       
       // Users can delete their own wishlist items
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
@@ -396,22 +411,86 @@ service cloud.firestore {
     }
     
     // ============================================
-    // WISHLIST COLLECTION
+    // AD CAMPAIGNS COLLECTION (For advertising system)
     // ============================================
-    match /wishlists/{wishlistId} {
-      // Users can create wishlist items
-      allow create: if isSignedIn() &&
-                      request.resource.data.userId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['userId', 'productId', 'createdAt']);
+    match /adCampaigns/{campaignId} {
+      // Verified vendors can create ad campaigns
+      allow create: if isVerifiedVendor() &&
+                      request.resource.data.advertiserId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['advertiserId', 'campaignName', 'budget', 'status', 'createdAt']) &&
+                      request.resource.data.status == 'pending_review';
       
-      // Users can only read their own wishlist items
+      // Vendors can read their own campaigns
+      allow read: if isSignedIn() && resource.data.advertiserId == request.auth.uid;
+      
+      // Admins can read all campaigns
+      allow read: if isAdmin();
+      
+      // Vendors can update their own pending campaigns
+      allow update: if isSignedIn() && 
+                      resource.data.advertiserId == request.auth.uid &&
+                      resource.data.status == 'pending_review' &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['advertiserId', 'status', 'fundsReserved']);
+      
+      // Admins can approve/reject/pause campaigns
+      allow update: if isAdmin();
+      
+      // Vendors can delete their own pending campaigns
+      allow delete: if isSignedIn() && 
+                      resource.data.advertiserId == request.auth.uid &&
+                      resource.data.status == 'pending_review';
+      
+      // Admins can delete any campaign
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // ADVERTISERS COLLECTION (For advertising accounts)
+    // ============================================
+    match /advertisers/{advertiserId} {
+      // Users can create their own advertiser account
+      allow create: if isSignedIn() && 
+                      request.auth.uid == advertiserId &&
+                      request.resource.data.keys().hasAll(['userId', 'companyName', 'contactEmail', 'accountBalance', 'createdAt']) &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.accountBalance == 0;
+      
+      // Users can read their own advertiser account
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Users can update their own wishlist items
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Admins can read all advertiser accounts
+      allow read: if isAdmin();
       
-      // Users can delete their own wishlist items
+      // Users can update their own advertiser profile (except balance and spending)
+      allow update: if isSignedIn() && 
+                      resource.data.userId == request.auth.uid &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'accountBalance', 'totalSpent']);
+      
+      // Admins can update advertiser accounts (including balance management)
+      allow update: if isAdmin();
+      
+      // Users can delete their own advertiser account (if no active campaigns)
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Admins can delete any advertiser account
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // TRANSACTIONS COLLECTION (For financial tracking)
+    // ============================================
+    match /transactions/{transactionId} {
+      // Only system/admins can create transactions
+      allow create: if isAdmin();
+      
+      // Users can read their own transactions
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Admins can read all transactions
+      allow read: if isAdmin();
+      
+      // No updates or deletes allowed (immutable audit trail)
+      allow update, delete: if false;
     }
     
     // ============================================
@@ -458,6 +537,27 @@ service cloud.firestore {
       // No one can delete payouts (for audit trail)
       allow delete: if false;
     }
+
+    // ============================================
+    // PAYOUT REQUESTS COLLECTION (Vendor-Initiated Withdrawals)
+    // ============================================
+    match /payoutRequests/{payoutRequestId} {
+      // Vendors create their own payout requests
+      allow create: if isVendor() &&
+                      request.resource.data.vendorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['vendorId', 'amount', 'paymentMethod', 'status', 'requestedAt']) &&
+                      request.resource.data.amount > 0 &&
+                      request.resource.data.status == 'pending';
+
+      // Vendors can read only their own payout requests
+      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+
+      // Admins can read, update, and manage all payout requests
+      allow read, update: if isAdmin();
+
+      // No one deletes payout requests from client; keep for audit
+      allow delete: if false;
+    }
     
     // ============================================
     // PLATFORM SETTINGS COLLECTION
@@ -468,6 +568,136 @@ service cloud.firestore {
       
       // Only admins can create/update/delete settings
       allow create, update, delete: if isAdmin();
+    }
+    
+    // ============================================
+    // SERVICE BOOKINGS COLLECTION
+    // ============================================
+    match /serviceBookings/{bookingId} {
+      // System can create service bookings (after payment)
+      allow create: if isAdmin();
+      
+      // Customers can read their own service bookings
+      allow read: if isSignedIn() && resource.data.customerId == request.auth.uid;
+      
+      // Vendors can read bookings for their services
+      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      
+      // Admins can read all service bookings
+      allow read: if isAdmin();
+      
+      // Customers can update their own bookings (requirements, notes)
+      allow update: if isSignedIn() && 
+                      resource.data.customerId == request.auth.uid &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['customerId', 'vendorId', 'serviceId', 'orderId']);
+      
+      // Vendors can update their service bookings (scheduling, status, notes)
+      allow update: if isSignedIn() && 
+                      resource.data.vendorId == request.auth.uid &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['customerId', 'vendorId', 'serviceId', 'orderId']);
+      
+      // Admins can update any service booking
+      allow update: if isAdmin();
+      
+      // Only admins can delete service bookings
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // VENDOR AVAILABILITY COLLECTION
+    // ============================================
+    match /vendorAvailability/{availabilityId} {
+      // Vendors can create their own availability
+      allow create: if isSignedIn() && 
+                      request.resource.data.vendorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['vendorId', 'dayOfWeek', 'startTime', 'endTime', 'isAvailable']);
+      
+      // Anyone can read vendor availability (for booking)
+      allow read: if true;
+      
+      // Vendors can update their own availability
+      allow update: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      
+      // Admins can manage all availability
+      allow update, delete: if isAdmin();
+      
+      // Vendors can delete their own availability
+      allow delete: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+    }
+    
+    // ============================================
+    // PURCHASED PRODUCTS COLLECTION (Digital Products)
+    // ============================================
+    match /purchasedProducts/{purchaseId} {
+      // System creates purchase records after payment
+      allow create: if isAdmin();
+      
+      // Users can read their own purchased products
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Vendors can read purchases of their products
+      allow read: if isSignedIn() && resource.data.product.vendorId == request.auth.uid;
+      
+      // Admins can read all purchased products
+      allow read: if isAdmin();
+      
+      // Users can update download count (when downloading)
+      allow update: if isSignedIn() && 
+                      resource.data.userId == request.auth.uid &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasAll(['downloadCount', 'lastDownloadedAt']);
+      
+      // Admins can update any purchase record
+      allow update: if isAdmin();
+      
+      // No one can delete purchase records (audit trail)
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // VENDOR BALANCES COLLECTION
+    // ============================================
+    match /vendorBalances/{vendorId} {
+      // System creates vendor balances
+      allow create: if isAdmin();
+      
+      // Vendors can read their own balance
+      allow read: if isSignedIn() && vendorId == request.auth.uid;
+      
+      // Admins can read all vendor balances
+      allow read: if isAdmin();
+      
+      // System/admins can update balances; vendors can update their own balance
+      // (used when submitting payout requests to move funds between available and pending)
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        vendorId == request.auth.uid &&
+        request.resource.data.vendorId == vendorId &&
+        // Ensure core fields are present and immutable totals are not changed by vendors
+        request.resource.data.keys().hasAll(['vendorId', 'availableBalance', 'pendingBalance', 'totalEarnings', 'totalWithdrawn']) &&
+        resource.data.keys().hasAll(['vendorId', 'availableBalance', 'pendingBalance', 'totalEarnings', 'totalWithdrawn']) &&
+        request.resource.data.totalEarnings == resource.data.totalEarnings &&
+        request.resource.data.totalWithdrawn == resource.data.totalWithdrawn
+      );
+      
+      // No one can delete balance records
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // INVENTORY LOGS COLLECTION (Optional - for tracking)
+    // ============================================
+    match /inventoryLogs/{logId} {
+      // System creates inventory logs
+      allow create: if isAdmin();
+      
+      // Vendors can read logs for their products
+      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      
+      // Admins can read all inventory logs
+      allow read: if isAdmin();
+      
+      // No updates or deletes (immutable audit trail)
+      allow update, delete: if false;
     }
     
     // ============================================

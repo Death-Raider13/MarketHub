@@ -668,14 +668,15 @@ function AccountPageContent() {
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </Button>
-              <Button
-                variant={activeTab === "orders" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab("orders")}
-              >
-                <Package className="mr-2 h-4 w-4" />
-                Orders
-              </Button>
+              <Link href="/my-orders">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                >
+                  <Package className="mr-2 h-4 w-4" />
+                  Orders
+                </Button>
+              </Link>
               <Link href="/my-purchases">
                 <Button
                   variant="ghost"
@@ -808,143 +809,6 @@ function AccountPageContent() {
                     )}
                   </CardContent>
                 </Card>
-              )}
-
-              {/* Orders Tab */}
-              {activeTab === "orders" && (
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Order History</CardTitle>
-                      <CardDescription>View and track your orders</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {loading ? (
-                        <div className="text-center py-12">
-                          <p className="text-muted-foreground">Loading orders...</p>
-                        </div>
-                      ) : orders.length === 0 ? (
-                        <div className="text-center py-12">
-                          <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Start shopping to see your orders here
-                          </p>
-                          <Button asChild>
-                            <Link href="/products">Browse Products</Link>
-                          </Button>
-                        </div>
-                      ) : (
-                        orders.map((order) => (
-                        <Card key={order.id}>
-                          <CardContent className="p-6">
-                            <div className="flex flex-col gap-4">
-                              {/* Order Header */}
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <h3 className="font-semibold">{order.id}</h3>
-                                    <Badge className={getStatusColor(order.status)}>
-                                      {order.status}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    Placed on {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('en-NG', { 
-                                      year: 'numeric', 
-                                      month: 'long', 
-                                      day: 'numeric' 
-                                    }) : 'Invalid Date'}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-semibold">₦{(order.total || 0).toLocaleString()}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {order.items?.length || 0} item(s)
-                                  </p>
-                                </div>
-                              </div>
-
-                              <Separator />
-
-                              {/* Order Items */}
-                              <div className="space-y-3">
-                                {order.items && order.items.length > 0 ? (
-                                  order.items.map((item: any, index: number) => (
-                                    <div key={item.productId || index} className="flex items-center gap-4">
-                                      <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted">
-                                        {item.image ? (
-                                          <Image
-                                            src={item.image}
-                                            alt={item.productName || item.name || 'Product'}
-                                            fill
-                                            className="object-cover"
-                                          />
-                                        ) : (
-                                          <div className="w-full h-full flex items-center justify-center bg-muted">
-                                            <Package className="h-8 w-8 text-muted-foreground" />
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="font-medium">{item.productName || item.name || 'Product'}</p>
-                                        {item.vendorId && (
-                                          <Link 
-                                            href={`/store/${item.vendorId}`}
-                                            className="text-xs text-muted-foreground hover:underline"
-                                          >
-                                            by <VendorName vendorId={item.vendorId} vendorName={item.vendorName} />
-                                          </Link>
-                                        )}
-                                        <p className="text-sm text-muted-foreground">
-                                          Qty: {item.quantity || 1}
-                                        </p>
-                                      </div>
-                                      <p className="font-medium">
-                                        ₦{((item.productPrice ?? item.price ?? 0) || 0).toLocaleString()}
-                                      </p>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <p className="text-sm text-muted-foreground">No items</p>
-                                )}
-                              </div>
-
-                              {/* Order Actions */}
-                              <div className="flex flex-wrap gap-2">
-                                <Button variant="outline" size="sm" disabled>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </Button>
-                                {order.trackingNumber && (
-                                  <Button variant="outline" size="sm" disabled>
-                                    <Truck className="mr-2 h-4 w-4" />
-                                    Track Order
-                                  </Button>
-                                )}
-                                <Button variant="outline" size="sm" disabled>
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Invoice
-                                </Button>
-                                {(order.status === 'pending' || order.status === 'paid') && (
-                                  <Button 
-                                    variant="destructive" 
-                                    size="sm"
-                                    onClick={() => handleCancelOrder(order.id, order.status)}
-                                    disabled={saving}
-                                  >
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Cancel Order
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
               )}
 
               {/* Addresses Tab */}

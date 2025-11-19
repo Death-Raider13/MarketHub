@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -51,6 +49,32 @@ function AddProductContent() {
   const [digitalFiles, setDigitalFiles] = useState<DigitalFile[]>([])
   const [accessDuration, setAccessDuration] = useState<number>(0) // 0 = lifetime
   const [downloadLimit, setDownloadLimit] = useState<number>(0) // 0 = unlimited
+
+  // Helper function to determine if category supports digital products
+  const isDigitalCategory = (category: string) => {
+    const digitalCategories = [
+      'digital-courses',
+      'digital-ebooks', 
+      'digital-software',
+      'digital-templates',
+      'digital-music',
+      'digital-video',
+      'digital-photography',
+      'books' // Books can be digital
+    ]
+    return digitalCategories.includes(category)
+  }
+
+  // Auto-set product type based on category
+  React.useEffect(() => {
+    if (formData.category && isDigitalCategory(formData.category)) {
+      setProductType('digital')
+    } else if (formData.category && formData.category.startsWith('service-')) {
+      setProductType('service')
+    } else if (formData.category && !formData.category.startsWith('digital-') && !formData.category.startsWith('service-')) {
+      setProductType('physical')
+    }
+  }, [formData.category])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -400,6 +424,13 @@ function AddProductContent() {
                         </Label>
                       </div>
                     </RadioGroup>
+                    {isDigitalCategory(formData.category) && productType !== 'digital' && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-sm text-blue-800">
+                          💡 <strong>Tip:</strong> This category typically contains digital products. Consider selecting "Digital Product" above.
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
