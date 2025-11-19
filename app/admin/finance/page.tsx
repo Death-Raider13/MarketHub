@@ -483,7 +483,7 @@ function FinanceDashboardContent() {
                           cy="50%"
                           outerRadius={80}
                           dataKey="revenue"
-                          label={({ category, revenue }) => `${category}: ${formatCurrency(revenue)}`}
+                          label={(entry: any) => `${entry.category}: ${formatCurrency(Number(entry.revenue ?? 0))}`}
                         >
                           {financeData?.revenueByCategory?.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
