@@ -19,7 +19,7 @@ import {
   Download,
   RefreshCw
 } from "lucide-react"
-import { LineChart, Line, BarChart, Bar, PieChart as RechartsPieChart, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, BarChart, Bar, Pie, PieChart as RechartsPieChart, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface AdRevenueData {
   summary: {
@@ -308,7 +308,7 @@ export default function AdvertisingRevenuePage() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percentage }) => `${name}: ${percentage}%`}
+                      label={(entry: any) => `${entry.name}: ${entry.percentage}%`}
                     >
                       {placementData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
