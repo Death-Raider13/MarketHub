@@ -155,14 +155,14 @@ export async function PATCH(
       const { NotificationTriggers } = await import('@/lib/notifications/triggers')
       
       // Notify customer
-      await NotificationTriggers.onOrderStatusChange(orderId, orderData.userId, status, trackingNumber)
+      await NotificationTriggers.onOrderStatusChange(orderId, orderData.userId, status)
       
       // If shipped, notify all vendors in the order
       if (status === 'shipped') {
-        const vendorIds = [...new Set(orderData.items?.map((item: any) => item.vendorId) || [])]
+        const vendorIds = [...new Set<string>(orderData.items?.map((item: any) => item.vendorId) || [])]
         for (const vId of vendorIds) {
           if (vId !== vendorId) { // Don't notify the vendor who updated it
-            await NotificationTriggers.onOrderStatusChange(orderId, vId, status, trackingNumber)
+            await NotificationTriggers.onOrderStatusChange(orderId, vId, status)
           }
         }
       }
