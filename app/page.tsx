@@ -18,6 +18,8 @@ interface Product {
   category: string
   vendorName: string
   status: string
+  images?: string[]
+  featured?: boolean
 }
 
 export default function HomePage() {
