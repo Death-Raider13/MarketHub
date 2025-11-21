@@ -82,6 +82,9 @@ export interface NotificationData {
     userName?: string;
     amount?: number;
     rating?: number;
+    conversationId?: string;
+    senderName?: string;
+    senderRole?: string;
     imageUrl?: string;
     actionUrl?: string;
     actionText?: string;
