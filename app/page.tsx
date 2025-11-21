@@ -110,7 +110,7 @@ export default function HomePage() {
           }
         }
         
-        const products = (snapshot?.docs?.map((doc) => ({
+        const products = (snapshot?.docs?.map((doc: any) => ({
           id: doc.id,
           ...doc.data(),
         })) || []) as Product[]
@@ -183,7 +183,7 @@ export default function HomePage() {
           }
         }
         
-        const vendors = snapshot?.docs?.map(doc => ({
+        const vendors = snapshot?.docs?.map((doc: any) => ({
           id: doc.id,
           ...doc.data(),
         })) || []

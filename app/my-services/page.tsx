@@ -220,7 +220,7 @@ function MyServicesContent() {
               </CardContent>
             </Card>
           ) : (
-            bookings.map((booking) => (
+            bookings.map((booking: ServiceBooking) => (
               <Card key={booking.id}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
