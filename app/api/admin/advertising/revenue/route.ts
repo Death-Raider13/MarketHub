@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { calculatePlatformAdRevenue, calculateCampaignRevenue, DEFAULT_AD_REVENUE_CONFIG } from "@/lib/advertising/revenue-calculator"
 
+type PlacementType = keyof typeof DEFAULT_AD_REVENUE_CONFIG.placementRates
+
 export async function GET(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
@@ -183,7 +185,7 @@ export async function GET(request: NextRequest) {
         const campaign = campaignsSnapshot.docs.find(c => c.id === campaignId)
         
         if (campaign) {
-          const placementType = campaign.data().placement?.type || 'homepage'
+          const placementType = (campaign.data().placement?.type || 'homepage') as PlacementType
           const platformShare = DEFAULT_AD_REVENUE_CONFIG.placementRates[placementType]?.platformShare || 80
           return sum + (cost * (platformShare / 100))
         }
