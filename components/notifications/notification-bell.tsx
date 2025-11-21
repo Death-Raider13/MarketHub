@@ -224,7 +224,7 @@ export function NotificationBell() {
           )}
           
           {/* Development only - Clear all notifications */}
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === 'production' && (
             <Button
               variant="outline"
               size="sm"
