@@ -373,7 +373,7 @@ function MyServicesContent() {
                             <Star
                               key={star}
                               className={`w-4 h-4 ${
-                                star <= booking.rating
+                                star <= (booking.rating ?? 0)
                                   ? 'text-yellow-400 fill-yellow-400'
                                   : 'text-gray-300'
                               }`}
