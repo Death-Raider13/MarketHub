@@ -42,7 +42,7 @@ const mockVendor = {
   followers: 8934,
 }
 
-const mockProducts: Product[] = Array.from({ length: 8 }, (_, i) => ({
+const mockProducts = Array.from({ length: 8 }, (_, i) => ({
   id: `prod-${i + 1}`,
   vendorId: "v1",
   vendorName: "TechStore Pro",
@@ -229,7 +229,7 @@ export default function VendorStorePage() {
 
             <TabsContent value="products" className="mt-8">
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {mockProducts.map((product) => (
+                {(mockProducts as Product[]).map((product) => (
                   <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
                 ))}
               </div>
