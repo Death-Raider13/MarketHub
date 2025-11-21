@@ -407,7 +407,7 @@ function VendorOrdersContent() {
 
 export default function VendorOrdersPage() {
   return (
-    <ProtectedRoute requiredRole="vendor">
+    <ProtectedRoute allowedRoles={["vendor"]}>
       <VendorOrdersContent />
     </ProtectedRoute>
   )
