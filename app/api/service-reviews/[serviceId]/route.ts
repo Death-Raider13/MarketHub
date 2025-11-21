@@ -31,7 +31,7 @@ export async function GET(
         .orderBy('createdAt', 'desc')
         .limit(limit)
         .get()
-    } catch (firestoreError) {
+    } catch (firestoreError: any) {
       console.error('Firestore query error:', firestoreError)
       // Fallback: get all reviews for this service without ordering
       reviewsSnapshot = await adminDb
@@ -41,8 +41,7 @@ export async function GET(
         .get()
     }
 
-
-    const reviews = reviewsSnapshot.docs.map(doc => {
+    const reviews: any[] = reviewsSnapshot.docs.map((doc: any): any => {
       const data = doc.data()
       return {
         id: doc.id,
@@ -52,16 +51,16 @@ export async function GET(
     })
 
     // Calculate average rating
-    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0)
+    const totalRating = reviews.reduce((sum: number, review: any) => sum + (review.rating || 0), 0)
     const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0
 
     // Get rating distribution
     const ratingDistribution = {
-      5: reviews.filter(r => r.rating === 5).length,
-      4: reviews.filter(r => r.rating === 4).length,
-      3: reviews.filter(r => r.rating === 3).length,
-      2: reviews.filter(r => r.rating === 2).length,
-      1: reviews.filter(r => r.rating === 1).length
+      5: reviews.filter((r: any) => r.rating === 5).length,
+      4: reviews.filter((r: any) => r.rating === 4).length,
+      3: reviews.filter((r: any) => r.rating === 3).length,
+      2: reviews.filter((r: any) => r.rating === 2).length,
+      1: reviews.filter((r: any) => r.rating === 1).length
     }
 
     const roundedAverage = Math.round(averageRating * 10) / 10
@@ -73,7 +72,7 @@ export async function GET(
         reviewCount: reviews.length,
         updatedAt: new Date()
       })
-    } catch (updateError) {
+    } catch (updateError: any) {
       console.error('Error syncing service product rating to products doc:', updateError)
       // Do not fail the response if this update fails
     }
@@ -86,7 +85,7 @@ export async function GET(
       ratingDistribution
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching service reviews:', error)
     return NextResponse.json(
       { error: 'Failed to fetch reviews' },
