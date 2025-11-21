@@ -67,7 +67,7 @@ export interface NotificationData {
   recipientRole?: string | null;
   createdAt: Date;
   readAt?: Date;
-  expiresAt?: Date;
+  expiresAt?: Date | null;
   
   // Optional metadata for different notification types
   metadata?: {
