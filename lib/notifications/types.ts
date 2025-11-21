@@ -81,6 +81,7 @@ export interface NotificationData {
     userId?: string;
     userName?: string;
     amount?: number;
+    rating?: number;
     imageUrl?: string;
     actionUrl?: string;
     actionText?: string;
