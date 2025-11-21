@@ -423,7 +423,7 @@ export default function HomePage() {
                     <div className="relative h-48 bg-gray-100 overflow-hidden rounded-t-lg">
                       {product.imageUrl || (product.images && product.images[0]) ? (
                         <img
-                          src={product.imageUrl || product.images[0]}
+                          src={product.imageUrl || product.images?.[0] || ""}
                           alt={product.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
