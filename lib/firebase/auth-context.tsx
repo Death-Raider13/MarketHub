@@ -57,6 +57,7 @@ export interface UserProfile {
   storeDescription?: string
   verified?: boolean
   commission?: number
+  businessName?: string
 }
 
 interface AuthContextType {
