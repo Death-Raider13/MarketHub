@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    let purchases = []
+    let purchases: any[] = []
 
     try {
       // Get all purchases first
-      const purchaseData = purchasesSnapshot.docs.map(doc => {
+      const purchaseData = purchasesSnapshot.docs.map((doc: any): any => {
         const data = doc.data()
 
         const purchasedAt = toDateSafe(data.purchasedAt)
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
       // For digital products, fetch rating information
       purchases = await Promise.all(
-        purchaseData.map(async (purchase) => {
+        purchaseData.map(async (purchase: any) => {
           // Only fetch ratings for digital products
           if (purchase.product?.type === 'digital') {
             try {
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
                   ratedAt: ratedAt ? ratedAt.toISOString() : null
                 }
               }
-            } catch (ratingError) {
+            } catch (ratingError: any) {
               console.error('Error fetching rating for product:', purchase.productId, ratingError)
             }
           }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
           return purchase
         })
       )
-    } catch (mapError) {
+    } catch (mapError: any) {
       console.error('Error mapping purchases snapshot:', mapError)
       return NextResponse.json({ error: 'Failed to process purchases', details: String(mapError) }, { status: 500 })
     }
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       purchases
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching purchases:', error)
     return NextResponse.json(
       { error: 'Failed to fetch purchases' },
