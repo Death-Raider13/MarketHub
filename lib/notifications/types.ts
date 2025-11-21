@@ -85,6 +85,9 @@ export interface NotificationData {
     conversationId?: string;
     senderName?: string;
     senderRole?: string;
+    reportedItemType?: string;
+    reportedItemId?: string;
+    alertType?: string;
     imageUrl?: string;
     actionUrl?: string;
     actionText?: string;
