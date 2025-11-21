@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const campaignStats = new Map()
     
     // Initialize campaign stats
-    campaignsSnapshot.docs.forEach(doc => {
+    campaignsSnapshot.docs.forEach((doc: any) => {
       const campaign = doc.data()
       campaignStats.set(doc.id, {
         id: doc.id,
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Aggregate impressions
-    impressionsSnapshot.docs.forEach(doc => {
+    impressionsSnapshot.docs.forEach((doc: any) => {
       const impression = doc.data()
       const campaignId = impression.campaignId
       
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Aggregate clicks
-    clicksSnapshot.docs.forEach(doc => {
+    clicksSnapshot.docs.forEach((doc: any) => {
       const click = doc.data()
       const campaignId = click.campaignId
       
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
     const previousCampaigns = []
     const previousStats = new Map()
 
-    previousImpressions.docs.forEach(doc => {
+    previousImpressions.docs.forEach((doc: any) => {
       const impression = doc.data()
       const campaignId = impression.campaignId
       
@@ -173,16 +173,16 @@ export async function GET(request: NextRequest) {
       const dayStart = new Date(currentDate)
       const dayEnd = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000)
       
-      const dayImpressions = impressionsSnapshot.docs.filter(doc => {
+      const dayImpressions = impressionsSnapshot.docs.filter((doc: any) => {
         const timestamp = doc.data().timestamp?.toDate() || new Date()
         return timestamp >= dayStart && timestamp < dayEnd
       })
       
-      const dayRevenue = dayImpressions.reduce((sum, doc) => {
+      const dayRevenue = dayImpressions.reduce((sum: number, doc: any) => {
         const impression = doc.data()
         const cost = impression.cost || 0
         const campaignId = impression.campaignId
-        const campaign = campaignsSnapshot.docs.find(c => c.id === campaignId)
+        const campaign = campaignsSnapshot.docs.find((c: { id: string }) => c.id === campaignId)
         
         if (campaign) {
           const placementType = (campaign.data().placement?.type || 'homepage') as PlacementType
@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
         date: dayStart.toISOString().split('T')[0],
         revenue: dayRevenue,
         impressions: dayImpressions.length,
-        clicks: dayImpressions.filter(doc => doc.data().clicked).length
+        clicks: dayImpressions.filter((doc: any) => doc.data().clicked).length
       })
       
       currentDate.setDate(currentDate.getDate() + 1)
@@ -221,7 +221,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(response)
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching advertising revenue:", error)
     return NextResponse.json(
       { error: "Failed to fetch advertising revenue", details: error.message },
