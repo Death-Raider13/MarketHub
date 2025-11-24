@@ -68,7 +68,7 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Sell</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/vendor/register" className="hover:text-foreground">
+                <Link href="/auth/vendor-register-new" className="hover:text-foreground">
                   Become a Vendor
                 </Link>
               </li>
@@ -78,7 +78,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/advertising" className="hover:text-foreground">
+                <Link href="/advertise" className="hover:text-foreground">
                   Advertise
                 </Link>
               </li>

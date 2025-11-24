@@ -75,7 +75,7 @@ export async function handleFirebaseError<T>(
                 
                 // Redirect to login if token refresh fails
                 if (typeof window !== 'undefined') {
-                  window.location.href = '/auth/signin'
+                  window.location.href = '/auth/login'
                 }
                 
                 throw error
@@ -86,7 +86,7 @@ export async function handleFirebaseError<T>(
               }
               
               if (typeof window !== 'undefined') {
-                window.location.href = '/auth/signin'
+                window.location.href = '/auth/login'
               }
               
               throw error
@@ -215,7 +215,7 @@ export function initializeFirebaseErrorHandling() {
     
     // Redirect to login after a delay
     setTimeout(() => {
-      window.location.href = '/auth/signin'
+      window.location.href = '/auth/login'
     }, 2000)
   })
 
