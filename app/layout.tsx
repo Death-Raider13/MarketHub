@@ -22,9 +22,21 @@ if (typeof window !== 'undefined') {
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "MarketHub - Multi-Vendor Marketplace",
-  description: "Your trusted marketplace for quality products from verified sellers",
+  title: {
+    default: "MarketHub - Multi-Vendor Marketplace",
+    template: "%s | MarketHub"
+  },
+  description: "MarketHub is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
   generator: 'v0.app',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  keywords: [
+    "MarketHub",
+    "multivendor marketplace",
+    "multi-vendor marketplace Nigeria",
+    "buy products online Nigeria",
+    "sell goods and services online",
+    "Nigeria ecommerce market"
+  ],
   icons: {
     icon: [
       { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
@@ -33,7 +45,20 @@ export const metadata: Metadata = {
     ],
     apple: "/favicon/apple-touch-icon.png"
   },
-  manifest: "/favicon/site.webmanifest"
+  manifest: "/favicon/site.webmanifest",
+  openGraph: {
+    title: "MarketHub - Multi-Vendor Marketplace",
+    description: "MarketHub is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
+    url: "/",
+    siteName: "MarketHub",
+    locale: "en_NG",
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MarketHub - Multi-Vendor Marketplace",
+    description: "MarketHub is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers."
+  }
 }
 
 export default function RootLayout({
