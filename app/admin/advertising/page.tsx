@@ -17,6 +17,7 @@ import { db } from "@/lib/firebase/config"
 import { toast } from "sonner"
 import { createNotification, createAdminNotification } from "@/lib/notifications/service"
 import { formatDistanceToNow } from "date-fns"
+import { useAuth } from "@/lib/firebase/auth-context"
 
 interface Advertisement {
   id: string
@@ -70,6 +71,7 @@ function AdminAdvertisingContent() {
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | null>(null)
   const [reviewReason, setReviewReason] = useState("")
   const [submittingReview, setSubmittingReview] = useState(false)
+  const { getCurrentToken } = useAuth()
 
   useEffect(() => {
     loadAdvertisements()
@@ -82,10 +84,16 @@ function AdminAdvertisingContent() {
       // TEMPORARY: Skip auth headers for testing
       // TODO: Re-enable after Firebase login is fixed
       
+      const token = await getCurrentToken()
+      if (!token) {
+        throw new Error('Admin authentication required')
+      }
+
       // Fetch from admin API
       const response = await fetch(`/api/admin/advertising?status=${statusFilter}`, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       })
       
@@ -119,11 +127,16 @@ function AdminAdvertisingContent() {
       
       // TEMPORARY: Skip auth headers for testing
       // TODO: Re-enable after Firebase login is fixed
+      const token = await getCurrentToken()
+      if (!token) {
+        throw new Error('Admin authentication required')
+      }
       
       const response = await fetch('/api/admin/advertising', {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           campaignId: selectedCampaign.id,
@@ -152,11 +165,16 @@ function AdminAdvertisingContent() {
     try {
       // TEMPORARY: Skip auth headers for testing
       // TODO: Re-enable after Firebase login is fixed
+      const token = await getCurrentToken()
+      if (!token) {
+        throw new Error('Admin authentication required')
+      }
       
       const response = await fetch('/api/admin/advertising', {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           campaignId: adId,
