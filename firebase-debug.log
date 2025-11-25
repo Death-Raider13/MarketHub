@@ -14,3 +14,8 @@
 [debug] [2025-11-25T06:04:54.044Z] > refreshing access token with scopes: []
 [debug] [2025-11-25T06:04:54.045Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
 [debug] [2025-11-25T06:04:54.045Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-25T06:04:59.349Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-11-25T06:04:59.349Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-25T06:04:59.354Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/marketplace-97508:testIamPermissions [none]
+[debug] [2025-11-25T06:04:59.354Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/marketplace-97508:testIamPermissions x-goog-quota-user=projects/marketplace-97508
+[debug] [2025-11-25T06:04:59.354Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/marketplace-97508:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
