@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { calculatePlatformAdRevenue, calculateCampaignRevenue, DEFAULT_AD_REVENUE_CONFIG } from "@/lib/advertising/revenue-calculator"
 
+export const dynamic = "force-dynamic"
+
 type PlacementType = keyof typeof DEFAULT_AD_REVENUE_CONFIG.placementRates
 
 export async function GET(request: NextRequest) {
