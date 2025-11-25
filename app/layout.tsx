@@ -24,7 +24,16 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 export const metadata: Metadata = {
   title: "MarketHub - Multi-Vendor Marketplace",
   description: "Your trusted marketplace for quality products from verified sellers",
-    generator: 'v0.app'
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      "/favicon/favicon.ico"
+    ],
+    apple: "/favicon/apple-touch-icon.png"
+  },
+  manifest: "/favicon/site.webmanifest"
 }
 
 export default function RootLayout({
