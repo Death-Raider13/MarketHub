@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         // Reduce inventory for physical products
         try {
           const physicalItems = orderData?.items?.filter((item: any) => 
-            item.product?.productType === 'physical'
+            item.product?.productType === 'physical' || item.product?.type === 'physical'
           ).map((item: any) => ({
             productId: item.productId,
             quantity: item.quantity,
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         // Create purchased products records for digital products
         try {
           const digitalItems = orderData.items?.filter((item: any) => 
-            item.product?.type === 'digital'
+            item.product?.productType === 'digital' || item.product?.type === 'digital'
           ) || []
 
           if (digitalItems.length > 0) {
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
         // Create service bookings for service products
         try {
           const serviceItems = orderData.items?.filter((item: any) => 
-            item.product?.type === 'service'
+            item.product?.productType === 'service' || item.product?.type === 'service'
           ) || []
 
           if (serviceItems.length > 0) {
