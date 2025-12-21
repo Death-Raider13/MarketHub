@@ -10,6 +10,7 @@ import { FirebaseErrorHandler } from "@/components/firebase-error-handler"
 import { ProductionErrorBoundary } from "@/components/production-error-boundary"
 import { validateEnvironmentVariables } from "@/lib/env-validation"
 import { initializeProductionErrorHandling } from "@/lib/production-error-handler"
+import { ThemeProvider } from "@/components/theme-provider"
 
 // Validate environment variables on app startup
 validateEnvironmentVariables()
@@ -23,14 +24,14 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
   title: {
-    default: "MarketHub - Multi-Vendor Marketplace",
-    template: "%s | MarketHub"
+    default: "FEROMARKETHUB - Multi-Vendor Marketplace",
+    template: "%s | FEROMARKETHUB"
   },
-  description: "MarketHub is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
+  description: "FEROMARKETHUB is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
   generator: 'v0.app',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   keywords: [
-    "MarketHub",
+    "FEROMARKETHUB",
     "multivendor marketplace",
     "multi-vendor marketplace Nigeria",
     "buy products online Nigeria",
@@ -47,17 +48,17 @@ export const metadata: Metadata = {
   },
   manifest: "/favicon/site.webmanifest",
   openGraph: {
-    title: "MarketHub - Multi-Vendor Marketplace",
-    description: "MarketHub is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
+    title: "FEROMARKETHUB - Multi-Vendor Marketplace",
+    description: "FEROMARKETHUB is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
     url: "/",
-    siteName: "MarketHub",
+    siteName: "FEROMARKETHUB",
     locale: "en_NG",
     type: "website"
   },
   twitter: {
     card: "summary_large_image",
-    title: "MarketHub - Multi-Vendor Marketplace",
-    description: "MarketHub is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers."
+    title: "FEROMARKETHUB - Multi-Vendor Marketplace",
+    description: "FEROMARKETHUB is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers."
   }
 }
 
@@ -67,20 +68,27 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased">
-        <ProductionErrorBoundary>
-          <AuthProvider>
-            <NotificationProvider>
-              <CartProvider>
-                <WishlistProvider>
-                  <FirebaseErrorHandler />
-                  {children}
-                </WishlistProvider>
-              </CartProvider>
-            </NotificationProvider>
-          </AuthProvider>
-        </ProductionErrorBoundary>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`font-sans antialiased ${inter.variable}`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <ProductionErrorBoundary>
+            <AuthProvider>
+              <NotificationProvider>
+                <CartProvider>
+                  <WishlistProvider>
+                    <FirebaseErrorHandler />
+                    {children}
+                  </WishlistProvider>
+                </CartProvider>
+              </NotificationProvider>
+            </AuthProvider>
+          </ProductionErrorBoundary>
+        </ThemeProvider>
       </body>
     </html>
   )

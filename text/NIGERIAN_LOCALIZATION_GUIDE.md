@@ -1,7 +1,7 @@
 # 🇳🇬 Nigerian Localization - Complete Guide
 
 ## Overview
-MarketHub is now fully localized for the Nigerian market with Nigerian currency, banks, shipping, business structures, and local practices.
+FEROMARKETHUB is now fully localized for the Nigerian market with Nigerian currency, banks, shipping, business structures, and local practices.
 
 ---
 
@@ -470,7 +470,7 @@ Nigeria
 
 ## ✅ **Summary**
 
-**MarketHub is now fully Nigerian:**
+**FEROMARKETHUB is now fully Nigerian:**
 - ✅ Naira currency (₦)
 - ✅ 15 Nigerian banks
 - ✅ CAC & FIRS compliance

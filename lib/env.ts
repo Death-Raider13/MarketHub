@@ -77,7 +77,7 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_NAME: z
     .string()
     .min(1, 'App name is required')
-    .default('MarketHub'),
+    .default('FEROMARKETHUB'),
   
   // Feature Flags
   NEXT_PUBLIC_ENABLE_ANALYTICS: z

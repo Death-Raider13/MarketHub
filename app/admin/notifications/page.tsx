@@ -214,7 +214,7 @@ function NotificationManagementContent() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setTitle('Welcome to MarketHub!');
+                      setTitle('Welcome to FEROMARKETHUB!');
                       setMessage('Thank you for joining Nigeria\'s premier e-commerce platform. Start exploring amazing products from verified vendors.');
                       setPriority('medium');
                       setTargetRoles(['customer']);

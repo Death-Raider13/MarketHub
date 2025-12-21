@@ -109,7 +109,7 @@ export default function PrivacyPage() {
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <p className="text-muted-foreground">
-                Email: privacy@markethub.ng<br />
+                Email: privacy@FEROMARKETHUB.ng<br />
                 Address: Lagos, Nigeria
               </p>
             </section>

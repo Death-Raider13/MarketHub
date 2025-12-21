@@ -20,7 +20,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ProtectedRoute } from '@/lib/firebase/protected-route';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
-import { collection, getDocs, query, where, orderBy, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Wallet, TrendingUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -106,15 +106,13 @@ function AdminPayoutsContent() {
 
     setProcessing(true);
     try {
-      const updateData: any = {
-        processedAt: new Date(),
-        processedBy: user.uid,
+      const payload: any = {
+        action: actionDialog,
+        notes,
+        adminUserId: user.uid,
       };
 
-      if (actionDialog === 'approve') {
-        updateData.status = 'approved';
-        if (notes) updateData.notes = notes;
-      } else if (actionDialog === 'reject') {
+      if (actionDialog === 'reject') {
         if (!rejectionReason) {
           toast({
             title: 'Rejection Reason Required',
@@ -124,8 +122,7 @@ function AdminPayoutsContent() {
           setProcessing(false);
           return;
         }
-        updateData.status = 'rejected';
-        updateData.rejectionReason = rejectionReason;
+        payload.rejectionReason = rejectionReason;
       } else if (actionDialog === 'complete') {
         if (!transactionRef) {
           toast({
@@ -136,26 +133,27 @@ function AdminPayoutsContent() {
           setProcessing(false);
           return;
         }
-        updateData.status = 'completed';
-        updateData.transactionReference = transactionRef;
-        if (notes) updateData.notes = notes;
-
-        // Update vendor balance
-        const balanceRef = doc(db, 'vendorBalances', selectedPayout.vendorId);
-        const balanceDoc = await getDoc(balanceRef);
-        
-        if (balanceDoc.exists()) {
-          const currentBalance = balanceDoc.data();
-          await updateDoc(balanceRef, {
-            availableBalance: (currentBalance.availableBalance || 0) - selectedPayout.amount,
-            totalWithdrawn: (currentBalance.totalWithdrawn || 0) + selectedPayout.amount,
-            lastPayoutDate: new Date(),
-            updatedAt: new Date(),
-          });
-        }
+        payload.transactionReference = transactionRef;
       }
 
-      await updateDoc(doc(db, 'payoutRequests', selectedPayout.id), updateData);
+      const response = await fetch(`/api/payouts/${selectedPayout.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        toast({
+          title: 'Error',
+          description: errorData.error || 'Failed to process payout',
+          variant: 'destructive',
+        });
+        setProcessing(false);
+        return;
+      }
 
       toast({
         title: 'Success',

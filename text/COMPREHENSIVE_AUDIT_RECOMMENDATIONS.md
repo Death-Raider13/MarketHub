@@ -499,7 +499,7 @@ export async function sendOrderConfirmation(
   await resend.emails.send({
     from: 'orders@yourdomain.com',
     to,
-    subject: 'Order Confirmation - MarketHub',
+    subject: 'Order Confirmation - FEROMARKETHUB',
     html: `
       <h1>Thank you for your order!</h1>
       <p>Order ID: ${orderDetails.id}</p>
@@ -754,8 +754,8 @@ import QRCode from 'qrcode';
 
 export async function generate2FASecret(email: string) {
   const secret = speakeasy.generateSecret({
-    name: `MarketHub (${email})`,
-    issuer: 'MarketHub',
+    name: `FEROMARKETHUB (${email})`,
+    issuer: 'FEROMARKETHUB',
   });
 
   const qrCode = await QRCode.toDataURL(secret.otpauth_url!);

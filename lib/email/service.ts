@@ -1,18 +1,68 @@
-import { Resend } from 'resend'
-import type { Order, PurchasedProduct, SecureDownloadLink } from '@/lib/types'
+import type { Order, PurchasedProduct, SecureDownloadLink, PayoutRequest } from '@/lib/types'
+import { sendEmail } from './send-email'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const FROM_EMAIL = 'FEROMARKETHUB <orders@FEROMARKETHUB.com>' // Can be overridden via SMTP/Resend config
+const SUPPORT_EMAIL = 'support@FEROMARKETHUB.com'
 
-const FROM_EMAIL = 'MarketHub <orders@markethub.com>' // Change to your verified domain
-const SUPPORT_EMAIL = 'support@markethub.com'
+// Base app URL used in emails. Make sure NEXT_PUBLIC_APP_URL is set in your env.
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXTAUTH_URL ||
+  'http://localhost:3000'
 
 export async function sendOrderConfirmationEmail(
   order: any,
   downloadLinks?: SecureDownloadLink[]
 ) {
   const hasDigitalProducts = order.items.some(
-    (item: any) => item.product?.productType === 'digital'
+    (item: any) => item.product?.productType === 'digital' || item.product?.type === 'digital'
   )
+
+  const hasPhysicalProducts = order.items.some(
+    (item: any) => item.product?.productType === 'physical' || item.product?.type === 'physical'
+  )
+
+   const hasServiceProducts = order.items.some(
+    (item: any) => item.product?.productType === 'service' || item.product?.type === 'service'
+  )
+
+  const introMessage = hasDigitalProducts && hasPhysicalProducts
+    ? 'your digital products are ready for download and your physical items will be shipped soon'
+    : hasDigitalProducts && hasServiceProducts
+      ? 'your digital products are ready for download and your service booking has been confirmed'
+      : hasServiceProducts
+        ? 'your service booking has been confirmed'
+        : hasDigitalProducts
+          ? 'your digital products are ready for download'
+          : 'your order will be shipped soon'
+
+  // Prefer an explicit customerName, then shipping name, then email local-part, then fallback
+  const emailLocalPart = typeof order.userEmail === 'string'
+    ? order.userEmail.split('@')[0]
+    : ''
+
+  const customerName =
+    order.customerName ||
+    order.shippingAddress?.fullName ||
+    order.userName ||
+    emailLocalPart ||
+    'Customer'
+
+  // Handle Firestore Timestamp, Date, string, or number for createdAt
+  let createdAtDate: Date
+  if (order.createdAt && typeof order.createdAt.toDate === 'function') {
+    createdAtDate = order.createdAt.toDate()
+  } else {
+    createdAtDate = new Date(order.createdAt || Date.now())
+  }
+
+  const safeCreatedAt = isNaN(createdAtDate.getTime()) ? new Date() : createdAtDate
+
+  const orderDateString = safeCreatedAt.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 
   const html = `
     <!DOCTYPE html>
@@ -113,6 +163,10 @@ export async function sendOrderConfirmationEmail(
             background: #fef3c7;
             color: #92400e;
           }
+          .badge-service {
+            background: #e0f2fe;
+            color: #075985;
+          }
         </style>
       </head>
       <body>
@@ -122,12 +176,12 @@ export async function sendOrderConfirmationEmail(
           </div>
           
           <div class="content">
-            <p style="font-size: 16px;">Hi <strong>${order.shippingAddress?.fullName || 'Customer'}</strong>,</p>
-            <p>Your order has been confirmed and ${hasDigitalProducts ? 'your digital products are ready for download' : 'will be shipped soon'}!</p>
+            <p style="font-size: 16px;">Hi <strong>${customerName}</strong>,</p>
+            <p>Your order has been confirmed and ${introMessage}!</p>
             
             <div class="order-details">
               <h3 style="margin-top: 0;">Order #${order.id}</h3>
-              <p style="margin: 5px 0;"><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              <p style="margin: 5px 0;"><strong>Order Date:</strong> ${orderDateString}</p>
               <p style="margin: 5px 0;"><strong>Payment Status:</strong> <span style="color: #10b981; font-weight: 600;">Paid</span></p>
               
               <h4 style="margin-top: 20px; margin-bottom: 10px;">Items Ordered:</h4>
@@ -136,8 +190,20 @@ export async function sendOrderConfirmationEmail(
                   <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
                       <strong style="font-size: 16px;">${item.productName || item.product?.name}</strong>
-                      <span class="badge ${item.product?.productType === 'digital' ? 'badge-digital' : 'badge-physical'}">
-                        ${item.product?.productType === 'digital' ? '📥 Digital' : '📦 Physical'}
+                      <span class="badge ${
+                        item.product?.productType === 'digital' || item.product?.type === 'digital'
+                          ? 'badge-digital'
+                          : item.product?.productType === 'service' || item.product?.type === 'service'
+                            ? 'badge-service'
+                            : 'badge-physical'
+                      }">
+                        ${
+                          item.product?.productType === 'digital' || item.product?.type === 'digital'
+                            ? '📥 Digital'
+                            : item.product?.productType === 'service' || item.product?.type === 'service'
+                              ? '🗓 Service'
+                              : '📦 Physical'
+                        }
                       </span>
                       <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
                         Quantity: ${item.quantity} × ₦${item.productPrice?.toLocaleString() || '0'}
@@ -181,12 +247,12 @@ export async function sendOrderConfirmationEmail(
                 `).join('')}
                 <p style="font-size: 13px; color: #6b7280; margin-top: 15px; margin-bottom: 0;">
                   💡 <strong>Tip:</strong> You can also access your downloads anytime from your 
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/my-purchases" style="color: #3b82f6;">Purchase History</a>.
+                  <a href="${APP_URL}/my-purchases" style="color: #3b82f6;">Purchase History</a>.
                 </p>
               </div>
             ` : ''}
             
-            ${!hasDigitalProducts ? `
+            ${hasPhysicalProducts ? `
               <div class="shipping-section">
                 <h3 style="margin-top: 0; color: #92400e;">📦 Shipping Information</h3>
                 <p style="margin: 5px 0;"><strong>Shipping Address:</strong></p>
@@ -199,7 +265,7 @@ export async function sendOrderConfirmationEmail(
                   📞 ${order.shippingAddress?.phone}
                 </p>
                 <p style="margin-top: 15px; margin-bottom: 0;">
-                  <strong>Estimated delivery:</strong> 5-7 business days
+                  <strong>Delivery:</strong> Delivery timelines and costs are defined by each vendor for their products. Check your order details in your account for the latest status.
                 </p>
               </div>
             ` : ''}
@@ -209,17 +275,17 @@ export async function sendOrderConfirmationEmail(
               <p style="margin: 5px 0;">If you have any questions about your order, please contact us:</p>
               <p style="margin: 5px 0;">
                 📧 Email: <a href="mailto:${SUPPORT_EMAIL}" style="color: #3b82f6;">${SUPPORT_EMAIL}</a><br>
-                🌐 Visit: <a href="${process.env.NEXT_PUBLIC_APP_URL}" style="color: #3b82f6;">MarketHub</a>
+                🌐 Visit: <a href="${APP_URL}" style="color: #3b82f6;">FEROMARKETHUB</a>
               </p>
             </div>
           </div>
           
           <div class="footer">
-            <p style="margin: 5px 0;"><strong>© 2025 MarketHub. All rights reserved.</strong></p>
-            <p style="margin: 5px 0;">You received this email because you made a purchase on MarketHub.</p>
+            <p style="margin: 5px 0;"><strong>© 2025 FEROMARKETHUB. All rights reserved.</strong></p>
+            <p style="margin: 5px 0;">You received this email because you made a purchase on FEROMARKETHUB.</p>
             <p style="margin: 5px 0;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/orders" style="color: #3b82f6;">View Order</a> | 
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/help" style="color: #3b82f6;">Help Center</a>
+              <a href="${APP_URL}/dashboard/orders" style="color: #3b82f6;">View Order</a> | 
+              <a href="${APP_URL}/help" style="color: #3b82f6;">Help Center</a>
             </p>
           </div>
         </div>
@@ -228,11 +294,11 @@ export async function sendOrderConfirmationEmail(
   `
 
   try {
-    const result = await resend.emails.send({
+    const result = await sendEmail({
       from: FROM_EMAIL,
       to: order.userEmail || order.shippingAddress?.email || 'customer@example.com',
       subject: `Order Confirmation - ${order.id}`,
-      html: html
+      html: html,
     })
 
     console.log('Order confirmation email sent:', result)
@@ -241,6 +307,99 @@ export async function sendOrderConfirmationEmail(
     console.error('Failed to send order confirmation email:', error)
     throw error
   }
+}
+
+async function sendOrderStatusEmail(
+  order: any,
+  status: 'shipped' | 'delivered' | 'cancelled'
+) {
+  // Prefer an explicit customerName, then shipping name, then email local-part, then fallback
+  const emailLocalPart = typeof order.userEmail === 'string'
+    ? order.userEmail.split('@')[0]
+    : ''
+
+  const customerName =
+    order.customerName ||
+    order.shippingAddress?.fullName ||
+    order.userName ||
+    emailLocalPart ||
+    'Customer'
+
+  let subject: string
+  let bodyIntro: string
+
+  switch (status) {
+    case 'shipped':
+      subject = `Your FEROMARKETHUB order #${order.id} has been shipped`
+      bodyIntro = 'Good news! Your order has been shipped and is on its way.'
+      break
+    case 'delivered':
+      subject = `Your FEROMARKETHUB order #${order.id} has been delivered`
+      bodyIntro = 'Your order has been delivered. We hope you enjoy your purchase.'
+      break
+    case 'cancelled':
+      subject = `Your FEROMARKETHUB order #${order.id} has been cancelled`
+      bodyIntro = 'Your order has been cancelled. If you did not request this, please contact support immediately.'
+      break
+  }
+
+  const trackingLine = order.trackingNumber
+    ? `<p style="margin: 8px 0;"><strong>Tracking number:</strong> <span style="font-family: monospace;">${order.trackingNumber}</span></p>`
+    : ''
+
+  const statusHtml = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #111827; color: #f9fafb;">
+            <h1 style="margin: 0; font-size: 20px;">Order Update</h1>
+          </div>
+          <div style="padding: 24px;">
+            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${customerName}</strong>,</p>
+            <p style="margin: 0 0 16px 0; font-size: 15px;">${bodyIntro}</p>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <p style="margin: 4px 0;"><strong>Order ID:</strong> ${order.id}</p>
+              ${trackingLine}
+              <p style="margin: 4px 0;"><strong>Status:</strong> ${status.charAt(0).toUpperCase() + status.slice(1)}</p>
+            </div>
+            <p style="margin: 16px 0 0 0; font-size: 14px; color: #4b5563;">
+              You can view the latest details for this order any time from your
+              <a href="${APP_URL}/orders" style="color: #2563eb; text-decoration: underline;">orders page</a>.
+            </p>
+          </div>
+          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
+            <p style="margin: 4px 0;">If you have any questions, reply to this email or contact <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>.</p>
+            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  try {
+    return await sendEmail({
+      from: FROM_EMAIL,
+      to: order.userEmail || order.shippingAddress?.email || 'customer@example.com',
+      subject,
+      html: statusHtml,
+    })
+  } catch (error) {
+    console.error('Failed to send order status email:', error)
+    throw error
+  }
+}
+
+export async function sendOrderShippedEmail(order: any) {
+  return sendOrderStatusEmail(order, 'shipped')
+}
+
+export async function sendOrderDeliveredEmail(order: any) {
+  return sendOrderStatusEmail(order, 'delivered')
+}
+
+export async function sendOrderCancelledEmail(order: any) {
+  return sendOrderStatusEmail(order, 'cancelled')
 }
 
 export async function sendVendorSaleNotification(
@@ -285,11 +444,11 @@ export async function sendVendorSaleNotification(
   `
 
   try {
-    const result = await resend.emails.send({
+    const result = await sendEmail({
       from: FROM_EMAIL,
       to: vendorEmail,
       subject: `New Sale - ${orderItem.productName}`,
-      html: html
+      html: html,
     })
 
     console.log('Vendor notification sent:', result)
@@ -322,16 +481,258 @@ export async function sendPasswordResetEmail(
   `
 
   try {
-    const result = await resend.emails.send({
+    const result = await sendEmail({
       from: FROM_EMAIL,
       to: email,
-      subject: 'Reset Your Password - MarketHub',
-      html: html
+      subject: 'Reset Your Password - FEROMARKETHUB',
+      html: html,
     })
 
     return result
   } catch (error) {
     console.error('Failed to send password reset email:', error)
+    throw error
+  }
+}
+
+export async function sendPasswordChangedEmail(email: string) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2>Password Changed</h2>
+          <p>This is a confirmation that the password for your FEROMARKETHUB account was just changed.</p>
+          <p>If you made this change, no further action is required.</p>
+          <p>If you did <strong>not</strong> make this change, please reset your password immediately and contact support at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
+          <p>You can review your account security settings here:</p>
+          <a href="${APP_URL}/account" style="display: inline-block; background: #111827; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+            Review Account Security
+          </a>
+        </div>
+      </body>
+    </html>
+  `
+
+  try {
+    return await sendEmail({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Your FEROMARKETHUB password was changed',
+      html,
+    })
+  } catch (error) {
+    console.error('Failed to send password changed email:', error)
+    throw error
+  }
+}
+
+async function sendPayoutStatusEmail(
+  payout: PayoutRequest | (Partial<PayoutRequest> & { id?: string }),
+  status: 'completed' | 'rejected'
+) {
+  const vendorEmail = payout.vendorEmail
+  if (!vendorEmail) {
+    throw new Error('Missing vendorEmail for payout status email')
+  }
+
+  const vendorName = (payout as any).vendorName || vendorEmail.split('@')[0] || 'Vendor'
+  const amount = payout.amount || 0
+
+  let subject: string
+  let bodyIntro: string
+
+  if (status === 'completed') {
+    subject = `Your payout of ₦${amount.toLocaleString()} has been completed`
+    bodyIntro = `Good news! Your payout request has been processed and marked as completed.`
+  } else {
+    subject = `Your payout request of ₦${amount.toLocaleString()} was rejected`
+    bodyIntro = `Your payout request was rejected. Please review the details below.`
+  }
+
+  const rejectionSection =
+    status === 'rejected' && (payout as any).rejectionReason
+      ? `<p style="margin: 8px 0;"><strong>Reason:</strong> ${(payout as any).rejectionReason}</p>`
+      : ''
+
+  const referenceLine = (payout as any).transactionReference
+    ? `<p style="margin: 8px 0;"><strong>Transaction Reference:</strong> ${(payout as any).transactionReference}</p>`
+    : ''
+
+  const statusLabel = status === 'completed' ? 'Completed' : 'Rejected'
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #111827; color: #f9fafb;">
+            <h1 style="margin: 0; font-size: 20px;">Payout Update</h1>
+          </div>
+          <div style="padding: 24px;">
+            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${vendorName}</strong>,</p>
+            <p style="margin: 0 0 16px 0; font-size: 15px;">${bodyIntro}</p>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <p style="margin: 4px 0;"><strong>Amount:</strong> ₦${amount.toLocaleString()}</p>
+              <p style="margin: 4px 0;"><strong>Status:</strong> ${statusLabel}</p>
+              ${referenceLine}
+              ${rejectionSection}
+            </div>
+            <p style="margin: 16px 0 0 0; font-size: 14px; color: #4b5563;">
+              You can view all your payout requests any time from your
+              <a href="${APP_URL}/vendor/payouts" style="color: #2563eb; text-decoration: underline;">payouts page</a>.
+            </p>
+          </div>
+          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
+            <p style="margin: 4px 0;">If you have any questions, reply to this email or contact <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>.</p>
+            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  try {
+    return await sendEmail({
+      from: FROM_EMAIL,
+      to: vendorEmail,
+      subject,
+      html,
+    })
+  } catch (error) {
+    console.error('Failed to send payout status email:', error)
+    throw error
+  }
+}
+
+export async function sendPayoutCompletedEmail(payout: PayoutRequest | (Partial<PayoutRequest> & { id?: string })) {
+  return sendPayoutStatusEmail(payout, 'completed')
+}
+
+export async function sendPayoutRejectedEmail(payout: PayoutRequest | (Partial<PayoutRequest> & { id?: string })) {
+  return sendPayoutStatusEmail(payout, 'rejected')
+}
+
+type BasicRefund = {
+  id?: string
+  reason?: string
+  status?: string
+  amount?: number
+}
+
+function getRefundCustomerName(order: any) {
+  const emailLocalPart = typeof order.userEmail === 'string'
+    ? order.userEmail.split('@')[0]
+    : ''
+
+  return (
+    order.customerName ||
+    order.shippingAddress?.fullName ||
+    order.userName ||
+    emailLocalPart ||
+    'Customer'
+  )
+}
+
+async function sendRefundEmail(
+  order: any,
+  refund: BasicRefund,
+  phase: 'requested' | 'rejected' | 'processed'
+) {
+  const customerName = getRefundCustomerName(order)
+  const amount = typeof refund.amount === 'number' && refund.amount > 0
+    ? refund.amount
+    : order.total
+
+  let subject: string
+  let intro: string
+  let highlight: string
+
+  if (phase === 'requested') {
+    subject = `We received your refund request for order #${order.id}`
+    intro = 'Your refund request has been submitted and is now under review.'
+    highlight = 'Refund request received'
+  } else if (phase === 'rejected') {
+    subject = `Your refund request for order #${order.id} was rejected`
+    intro = 'We reviewed your refund request and were unable to approve it.'
+    highlight = 'Refund request rejected'
+  } else {
+    subject = `Your refund for order #${order.id} has been processed`
+    intro = 'Your refund has been processed. Depending on your bank, it may take a few days to appear.'
+    highlight = 'Refund processed'
+  }
+
+  const reasonLine = refund.reason
+    ? `<p style="margin: 4px 0;"><strong>Reason:</strong> ${refund.reason}</p>`
+    : ''
+
+  const statusLabel =
+    phase === 'requested' ? 'Pending review' :
+    phase === 'rejected' ? 'Rejected' :
+    'Refunded'
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #111827; color: #f9fafb;">
+            <h1 style="margin: 0; font-size: 20px;">${highlight}</h1>
+          </div>
+          <div style="padding: 24px;">
+            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${customerName}</strong>,</p>
+            <p style="margin: 0 0 16px 0; font-size: 15px;">${intro}</p>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <p style="margin: 4px 0;"><strong>Order ID:</strong> ${order.id}</p>
+              <p style="margin: 4px 0;"><strong>Amount:</strong> ₦${(amount || 0).toLocaleString()}</p>
+              <p style="margin: 4px 0;"><strong>Status:</strong> ${statusLabel}</p>
+              ${reasonLine}
+            </div>
+            <p style="margin: 16px 0 0 0; font-size: 14px; color: #4b5563;">
+              You can view your order details and refund status any time from your
+              <a href="${APP_URL}/orders" style="color: #2563eb; text-decoration: underline;">orders page</a>.
+            </p>
+          </div>
+          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
+            <p style="margin: 4px 0;">If you have any questions, reply to this email or contact <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>.</p>
+            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  return sendEmail({
+    from: FROM_EMAIL,
+    to: order.userEmail || order.shippingAddress?.email || 'customer@example.com',
+    subject,
+    html,
+  })
+}
+
+export async function sendRefundRequestedEmail(order: any, refund: BasicRefund) {
+  try {
+    return await sendRefundEmail(order, refund, 'requested')
+  } catch (error) {
+    console.error('Failed to send refund requested email:', error)
+    throw error
+  }
+}
+
+export async function sendRefundRejectedEmail(order: any, refund: BasicRefund) {
+  try {
+    return await sendRefundEmail(order, refund, 'rejected')
+  } catch (error) {
+    console.error('Failed to send refund rejected email:', error)
+    throw error
+  }
+}
+
+export async function sendRefundProcessedEmail(order: any, refund: BasicRefund) {
+  try {
+    return await sendRefundEmail(order, refund, 'processed')
+  } catch (error) {
+    console.error('Failed to send refund processed email:', error)
     throw error
   }
 }

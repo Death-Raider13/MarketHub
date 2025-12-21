@@ -112,7 +112,7 @@
 - **Custom HTML** (header/footer injection)
 - **Custom JavaScript** (analytics, tracking)
 - **Custom domain** (yourstore.com)
-- **Subdomain** (yourstore.markethub.com)
+- **Subdomain** (yourstore.FEROMARKETHUB.com)
 
 ---
 

@@ -4,11 +4,11 @@
 
 ### **Our Approach vs Selar:**
 
-| Feature | Selar | **MarketHub (Ours)** |
+| Feature | Selar | **FEROMARKETHUB (Ours)** |
 |---------|-------|---------------------|
 | **Signup Steps** | 2-3 basic | 3 beautiful, guided |
 | **Theme Customization** | Limited | 6 gradient themes |
-| **Store URL** | selar.co/store | markethub.com/store |
+| **Store URL** | selar.co/store | FEROMARKETHUB.com/store |
 | **Visual Design** | Basic | Modern gradients & animations |
 | **Progress Tracking** | Simple | Animated with icons |
 | **Business Info** | Optional | Not required |
@@ -49,7 +49,7 @@
 - ✨ Real-time URL availability check
 - ✨ Visual category selection (not dropdown!)
 - ✨ Character counter for description
-- ✨ Shows final URL: `markethub.com/your-store`
+- ✨ Shows final URL: `FEROMARKETHUB.com/your-store`
 
 **Categories:**
 ```
@@ -208,7 +208,7 @@ Forest Green:  [████████] Green → Emerald
 Type store name → URL auto-generates:
 ```
 Store Name: "My Awesome Store"
-URL: markethub.com/my-awesome-store
+URL: FEROMARKETHUB.com/my-awesome-store
 ```
 
 ### **4. Real-Time Validation**
@@ -358,7 +358,7 @@ Best for: Minimalist, Professional, Tech
 ```
 User enters: "My Awesome Store"
 System generates: "my-awesome-store"
-Final URL: markethub.com/my-awesome-store
+Final URL: FEROMARKETHUB.com/my-awesome-store
 ```
 
 ### **URL Rules:**
@@ -371,8 +371,8 @@ Final URL: markethub.com/my-awesome-store
 ### **Future Enhancement:**
 ```
 Custom domains:
-- www.mystore.com → markethub.com/mystore
-- Subdomain: mystore.markethub.com
+- www.mystore.com → FEROMARKETHUB.com/mystore
+- Subdomain: mystore.FEROMARKETHUB.com
 ```
 
 ---

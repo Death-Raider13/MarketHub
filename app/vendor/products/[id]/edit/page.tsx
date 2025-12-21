@@ -56,6 +56,9 @@ function EditProductContent() {
   const [uploadingImages, setUploadingImages] = useState(false)
   const [requestReviews, setRequestReviews] = useState(true)
   const [showRelatedProducts, setShowRelatedProducts] = useState(true)
+  const [baseShippingFee, setBaseShippingFee] = useState("")
+  const [offerFreeShipping, setOfferFreeShipping] = useState(false)
+  const [shippingNotes, setShippingNotes] = useState("")
   
   // Digital product fields
   const [digitalFiles, setDigitalFiles] = useState<DigitalFile[]>([])
@@ -112,6 +115,9 @@ function EditProductContent() {
           setDigitalFiles(data.digitalFiles || [])
           setAccessDuration(data.accessDuration || 0)
           setDownloadLimit(data.downloadLimit || 0)
+          setBaseShippingFee(data.shippingInfo?.baseShippingFee != null ? String(data.shippingInfo.baseShippingFee) : "")
+          setOfferFreeShipping(Boolean(data.shippingInfo?.offerFreeShipping))
+          setShippingNotes(data.shippingInfo?.notes || "")
         } else {
           toast.error("Product not found")
           router.push("/vendor/products")
@@ -128,25 +134,7 @@ function EditProductContent() {
   }, [productId, router])
 
   // Variants
-  const [variants, setVariants] = useState<Variant[]>([
-    {
-      id: "1",
-      name: "Color",
-      options: [
-        { id: "1-1", value: "Black", stock: 15, price: 199.99, sku: "WH-1000-BLK" },
-        { id: "1-2", value: "White", stock: 20, price: 199.99, sku: "WH-1000-WHT" },
-        { id: "1-3", value: "Silver", stock: 10, price: 209.99, sku: "WH-1000-SLV" },
-      ],
-    },
-    {
-      id: "2",
-      name: "Size",
-      options: [
-        { id: "2-1", value: "Standard", stock: 30, sku: "WH-1000-STD" },
-        { id: "2-2", value: "Large", stock: 15, sku: "WH-1000-LRG" },
-      ],
-    },
-  ])
+ 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -188,6 +176,11 @@ function EditProductContent() {
           images,
           stock,
           type: productType,
+          shippingInfo: productType === "physical" ? {
+            baseShippingFee: baseShippingFee ? Number(baseShippingFee) : undefined,
+            offerFreeShipping,
+            notes: shippingNotes || undefined,
+          } : undefined,
           digitalFiles,
           accessDuration,
           downloadLimit,
@@ -281,70 +274,10 @@ function EditProductContent() {
     setTags(tags.filter((tag) => tag !== tagToRemove))
   }
 
-  const addVariant = () => {
-    const newVariant: Variant = {
-      id: Date.now().toString(),
-      name: "",
-      options: [{ id: `${Date.now()}-1`, value: "", stock: 0 }],
-    }
-    setVariants([...variants, newVariant])
-  }
+  
+  
 
-  const removeVariant = (variantId: string) => {
-    setVariants(variants.filter((v) => v.id !== variantId))
-  }
-
-  const updateVariantName = (variantId: string, name: string) => {
-    setVariants(
-      variants.map((v) => (v.id === variantId ? { ...v, name } : v))
-    )
-  }
-
-  const addVariantOption = (variantId: string) => {
-    setVariants(
-      variants.map((v) =>
-        v.id === variantId
-          ? {
-              ...v,
-              options: [
-                ...v.options,
-                { id: `${Date.now()}-${v.options.length}`, value: "", stock: 0 },
-              ],
-            }
-          : v
-      )
-    )
-  }
-
-  const removeVariantOption = (variantId: string, optionId: string) => {
-    setVariants(
-      variants.map((v) =>
-        v.id === variantId
-          ? { ...v, options: v.options.filter((o) => o.id !== optionId) }
-          : v
-      )
-    )
-  }
-
-  const updateVariantOption = (
-    variantId: string,
-    optionId: string,
-    field: keyof VariantOption,
-    value: string | number
-  ) => {
-    setVariants(
-      variants.map((v) =>
-        v.id === variantId
-          ? {
-              ...v,
-              options: v.options.map((o) =>
-                o.id === optionId ? { ...o, [field]: value } : o
-              ),
-            }
-          : v
-      )
-    )
-  }
+ 
 
   // Show loading state while fetching product
   if (loadingProduct) {
@@ -512,6 +445,64 @@ function EditProductContent() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Shipping & Delivery (per product) */}
+                {productType === "physical" && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Truck className="h-5 w-5 text-primary" />
+                        Shipping & Delivery
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="baseShippingFee">Base shipping fee (per item)</Label>
+                        <Input
+                          id="baseShippingFee"
+                          type="number"
+                          min="0"
+                          step="100"
+                          placeholder="e.g. 2500"
+                          value={baseShippingFee}
+                          onChange={(e) => setBaseShippingFee(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Standard shipping amount you charge for each unit of this product.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start space-x-2">
+                        <input
+                          id="offerFreeShipping"
+                          type="checkbox"
+                          checked={offerFreeShipping}
+                          onChange={(e) => setOfferFreeShipping(e.target.checked)}
+                          className="mt-1"
+                        />
+                        <div>
+                          <label htmlFor="offerFreeShipping" className="text-sm font-medium cursor-pointer">
+                            Offer free shipping for this product
+                          </label>
+                          <p className="text-xs text-muted-foreground">
+                            When enabled, this product is treated as free shipping based on your store's shipping configuration.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="shippingNotes">Shipping notes (optional)</Label>
+                        <Textarea
+                          id="shippingNotes"
+                          rows={3}
+                          placeholder="e.g. Free shipping within Lagos, standard rates apply outside Lagos."
+                          value={shippingNotes}
+                          onChange={(e) => setShippingNotes(e.target.value)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Product Type */}
                 <Card>
@@ -769,160 +760,7 @@ function EditProductContent() {
                 </Card>
 
                 {/* Product Variants */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      Product Variants
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Manage different versions of this product (colors, sizes, etc.)
-                    </p>
-
-                    {variants.map((variant, variantIndex) => (
-                      <div
-                        key={variant.id}
-                        className="space-y-3 rounded-lg border border-border p-4"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 mr-4">
-                            <Label>Variant Type</Label>
-                            <Input
-                              placeholder="e.g., Color, Size, Material"
-                              value={variant.name}
-                              onChange={(e) =>
-                                updateVariantName(variant.id, e.target.value)
-                              }
-                              className="mt-1"
-                            />
-                          </div>
-                          {variants.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeVariant(variant.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Options</Label>
-                          {variant.options.map((option, optionIndex) => (
-                            <div
-                              key={option.id}
-                              className="grid gap-2 sm:grid-cols-5 items-end"
-                            >
-                              <div className="sm:col-span-1">
-                                <Label className="text-xs">Value</Label>
-                                <Input
-                                  placeholder="e.g., Red"
-                                  value={option.value}
-                                  onChange={(e) =>
-                                    updateVariantOption(
-                                      variant.id,
-                                      option.id,
-                                      "value",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="h-9"
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-xs">Stock</Label>
-                                <Input
-                                  type="number"
-                                  placeholder="0"
-                                  value={option.stock}
-                                  onChange={(e) =>
-                                    updateVariantOption(
-                                      variant.id,
-                                      option.id,
-                                      "stock",
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  className="h-9"
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-xs">Price ($)</Label>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="Optional"
-                                  value={option.price || ""}
-                                  onChange={(e) =>
-                                    updateVariantOption(
-                                      variant.id,
-                                      option.id,
-                                      "price",
-                                      e.target.value ? Number(e.target.value) : ""
-                                    )
-                                  }
-                                  className="h-9"
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-xs">SKU</Label>
-                                <Input
-                                  placeholder="Optional"
-                                  value={option.sku || ""}
-                                  onChange={(e) =>
-                                    updateVariantOption(
-                                      variant.id,
-                                      option.id,
-                                      "sku",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="h-9"
-                                />
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  removeVariantOption(variant.id, option.id)
-                                }
-                                disabled={variant.options.length === 1}
-                                className="h-9"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addVariantOption(variant.id)}
-                            className="w-full"
-                          >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Option
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addVariant}
-                      className="w-full"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Variant Type
-                    </Button>
-                  </CardContent>
-                </Card>
+              
               </div>
 
               {/* Sidebar */}

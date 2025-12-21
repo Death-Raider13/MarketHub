@@ -210,6 +210,35 @@ export async function POST(request: NextRequest) {
           // Don't fail the payment if balance update fails
         }
 
+        // Notify vendors of new sales via email (best-effort)
+        try {
+          const { sendVendorSaleNotification } = await import('@/lib/email/service')
+
+          const vendorItemsMap = new Map<string, any[]>()
+
+          orderData.items?.forEach((item: any) => {
+            const vendorId = item.product?.vendorId || item.vendorId
+            if (!vendorId) return
+
+            const existing = vendorItemsMap.get(vendorId) || []
+            existing.push(item)
+            vendorItemsMap.set(vendorId, existing)
+          })
+
+          for (const [vendorId, items] of vendorItemsMap.entries()) {
+            const vendorDoc = await adminDb.collection('users').doc(vendorId).get()
+            const vendorEmail = vendorDoc.exists ? vendorDoc.data()?.email : null
+            if (!vendorEmail) continue
+
+            for (const item of items) {
+              await sendVendorSaleNotification(vendorEmail, item, orderId)
+            }
+          }
+        } catch (vendorEmailError) {
+          console.error('⚠️ Failed to send vendor sale notification emails:', vendorEmailError)
+          // Don't fail the payment if vendor emails fail
+        }
+
         // Send confirmation email
         try {
           const { sendOrderConfirmationEmail } = await import('@/lib/email/service')

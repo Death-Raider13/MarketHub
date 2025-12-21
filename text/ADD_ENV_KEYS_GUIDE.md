@@ -1,6 +1,6 @@
 # Adding Environment Variables to Your Website
 
-This guide will help you add the Cloudinary and Paystack keys to your MarketHub e-commerce platform.
+This guide will help you add the Cloudinary and Paystack keys to your FEROMARKETHUB e-commerce platform.
 
 ## 📋 Environment Variables to Add
 

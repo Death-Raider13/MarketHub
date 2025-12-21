@@ -184,7 +184,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.code === 'auth/too-many-requests') {
         throw new Error('Too many signup attempts. Please try again later.')
       }
-      throw error
+      const userFriendlyMessage = handleAuthError(error)
+      throw new Error(userFriendlyMessage)
     }
   }
 
@@ -244,7 +245,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email)
+    try {
+      await sendPasswordResetEmail(auth, email)
+    } catch (error: any) {
+      const userFriendlyMessage = handleAuthError(error)
+      throw new Error(userFriendlyMessage)
+    }
   }
 
   const resendVerificationEmail = async () => {
@@ -263,7 +269,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
       handleCodeInApp: false
     }
-    await sendEmailVerification(user, actionCodeSettings)
+
+    try {
+      await sendEmailVerification(user, actionCodeSettings)
+    } catch (error: any) {
+      const userFriendlyMessage = handleAuthError(error)
+      throw new Error(userFriendlyMessage)
+    }
   }
 
   const refreshUserProfile = async () => {

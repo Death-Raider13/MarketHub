@@ -219,7 +219,7 @@ export default function HomePage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white py-20 px-4">
+      <section className="relative bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 text-white py-20 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
@@ -234,7 +234,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/products">
-                  <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
+                  <Button size="lg" className="bg-white text-blue-700 hover:bg-gray-100">
                     <ShoppingBag className="mr-2 h-5 w-5" />
                     Start Shopping
                   </Button>
@@ -374,7 +374,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.map((category) => (
               <Link key={category.name} href={`/products`}>
-                <Card className="hover:shadow-lg transition-all hover:scale-105 cursor-pointer border-2 hover:border-purple-500">
+                <Card className="hover:shadow-lg transition-all hover:scale-105 cursor-pointer border-2 hover:border-blue-500">
                   <CardContent className="p-6 text-center">
                     <div className="text-5xl mb-3">{category.icon}</div>
                     <h3 className="font-semibold mb-1">{category.name}</h3>
@@ -448,7 +448,7 @@ export default function HomePage() {
                       <h3 className="font-semibold mb-2 line-clamp-2">{product.name}</h3>
                       <p className="text-sm text-gray-500 mb-2">{product.vendorName}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-purple-600">
+                        <span className="text-2xl font-bold text-blue-700">
                           ₦{product.price.toLocaleString()}
                         </span>
                         <div className="flex items-center text-yellow-500">
@@ -500,7 +500,7 @@ export default function HomePage() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-2xl">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-sky-500 to-blue-700 flex items-center justify-center text-white font-bold text-2xl">
                           {vendor.storeName?.charAt(0) || vendor.displayName?.charAt(0) || 'V'}
                         </div>
                         <div>
@@ -543,17 +543,17 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+      <section className="py-20 px-4 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-700 text-white">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Ready to Start Selling?
           </h2>
           <p className="text-xl mb-8 text-white/90">
-            Join thousands of successful vendors on MarketHub. Set up your store in minutes and start earning today.
+            Join thousands of successful vendors on FEROMARKETHUB. Set up your store in minutes and start earning today.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link href="/auth/vendor-register-new">
-              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
+              <Button size="lg" className="bg-white text-blue-700 hover:bg-gray-100">
                 Become a Vendor
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>

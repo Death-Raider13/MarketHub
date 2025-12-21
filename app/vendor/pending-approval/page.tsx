@@ -24,7 +24,7 @@ export default function PendingApprovalPage() {
                 </h1>
                 
                 <p className="text-lg text-muted-foreground mb-8">
-                  Thank you for applying to become a vendor on MarketHub. Your application is currently under review.
+                  Thank you for applying to become a vendor on FEROMARKETHUB. Your application is currently under review.
                 </p>
 
                 <div className="rounded-lg bg-muted p-6 text-left mb-8">

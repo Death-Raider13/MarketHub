@@ -27,7 +27,7 @@
 **AFTER (New custom page):**
 ```
 ┌─────────────────────────────────┐
-│     🏪 MarketHub                │
+│     🏪 FEROMARKETHUB                │
 │  Your Digital Marketplace       │
 ├─────────────────────────────────┤
 │                                 │
@@ -210,7 +210,7 @@ url: `${window.location.origin}/auth/action`
 // Replace with your logo
 
 // Line 38: Change brand name
-<CardTitle className="text-2xl font-bold">MarketHub</CardTitle>
+<CardTitle className="text-2xl font-bold">FEROMARKETHUB</CardTitle>
 // Change to your name
 
 // Line 39: Change tagline

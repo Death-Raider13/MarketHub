@@ -143,7 +143,7 @@ export default function AdvertiserDashboard() {
 ### **Journey 1: First-Time Advertiser**
 ```
 Step 1: Discovery
-├─ Visits MarketHub
+├─ Visits FEROMARKETHUB
 ├─ Sees "Advertise" button
 └─ Clicks button
 

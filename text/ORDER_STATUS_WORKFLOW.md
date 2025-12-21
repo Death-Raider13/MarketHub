@@ -1,7 +1,7 @@
 # Order Status Workflow Documentation
 
 ## Overview
-This document outlines the complete order status workflow for MarketHub, including permissions and status transitions for customers, vendors, and the system.
+This document outlines the complete order status workflow for FEROMARKETHUB, including permissions and status transitions for customers, vendors, and the system.
 
 ---
 

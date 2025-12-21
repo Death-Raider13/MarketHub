@@ -41,24 +41,36 @@ export default function CheckoutPage() {
   })
 
   const [paymentMethod, setPaymentMethod] = useState("card")
-  const [shippingMethod, setShippingMethod] = useState("standard")
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null)
   const [completedOrderItems, setCompletedOrderItems] = useState<any[]>([])
 
-  // Check if cart has physical products that require shipping
-  const requiresShipping = items.some(item => item.product.requiresShipping)
-  
+  // Check if cart has physical products (shipping applies only to physical items)
+  const hasPhysicalProducts = items.some(
+    (item) => item.product.type === "physical" || item.product.productType === "physical"
+  )
+
   const tax = totalPrice * 0.1
-  const shippingCost = requiresShipping 
-    ? (shippingMethod === "express" ? 5000 : totalPrice > 50000 ? 0 : 2500)
-    : 0
+
+  // Shipping is derived from per-product shippingInfo for physical products
+  const shippingCost = items.reduce((sum, item) => {
+    const product = item.product
+    const isPhysical = product.type === "physical" || product.productType === "physical"
+    if (!isPhysical) return sum
+
+    const info = product.shippingInfo
+    if (info?.offerFreeShipping) return sum
+
+    const baseFee = info?.baseShippingFee ?? 0
+    return sum + baseFee * item.quantity
+  }, 0)
+
   const total = totalPrice + tax + shippingCost
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Skip shipping validation for digital-only orders
-    if (!requiresShipping) {
+    // Skip shipping validation for digital/service-only orders
+    if (!hasPhysicalProducts) {
       setStep(2)
       return
     }
@@ -93,6 +105,8 @@ export default function CheckoutPage() {
     setLoading(true)
 
     try {
+      const shippingMethodValue = hasPhysicalProducts ? "vendor_defined" : "none"
+
       // Create order in database first
       const orderData = {
         customerId: user!.uid,
@@ -126,7 +140,7 @@ export default function CheckoutPage() {
           country: shippingAddress.country || 'Nigeria',
           phone: shippingAddress.phone || ''
         },
-        shippingMethod: shippingMethod,
+        shippingMethod: shippingMethodValue,
         paymentMethod: 'paystack',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -168,7 +182,7 @@ export default function CheckoutPage() {
           customerName: shippingAddress.fullName,
           metadata: {
             items: items.length,
-            shipping_method: shippingMethod,
+            shipping_method: shippingMethodValue,
             user_id: user!.uid
           }
         },
@@ -297,7 +311,7 @@ export default function CheckoutPage() {
                 >
                   1
                 </div>
-                <span className="text-sm font-medium">{requiresShipping ? 'Shipping' : 'Details'}</span>
+                <span className="text-sm font-medium">{hasPhysicalProducts ? "Shipping" : "Details"}</span>
               </div>
               <div className="h-px flex-1 bg-border" />
               <div className={`flex items-center gap-2 ${step >= 2 ? "text-primary" : "text-muted-foreground"}`}>
@@ -321,21 +335,21 @@ export default function CheckoutPage() {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              {/* Step 1: Shipping */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Step 1: Shipping / Details */}
               {step === 1 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Truck className="h-5 w-5" />
-                      {requiresShipping ? 'Shipping Information' : 'Contact Information'}
+                      {hasPhysicalProducts ? "Shipping Information" : "Contact Information"}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {!requiresShipping && (
+                    {!hasPhysicalProducts && (
                       <div className="mb-4 rounded-lg bg-blue-50 dark:bg-blue-950 p-4 border border-blue-200 dark:border-blue-800">
                         <p className="text-sm text-blue-900 dark:text-blue-100">
-                          📦 Your order contains digital products only. No shipping required!
+                          📦 Your order contains only digital or service products. No shipping required!
                         </p>
                       </div>
                     )}
@@ -345,9 +359,11 @@ export default function CheckoutPage() {
                           <Label htmlFor="fullName">Full Name</Label>
                           <Input
                             id="fullName"
-                            required
+                            required={hasPhysicalProducts}
                             value={shippingAddress.fullName}
-                            onChange={(e) => setShippingAddress({ ...shippingAddress, fullName: e.target.value })}
+                            onChange={(e) =>
+                              setShippingAddress({ ...shippingAddress, fullName: e.target.value })
+                            }
                           />
                         </div>
 
@@ -355,9 +371,11 @@ export default function CheckoutPage() {
                           <Label htmlFor="addressLine1">Address Line 1</Label>
                           <Input
                             id="addressLine1"
-                            required
+                            required={hasPhysicalProducts}
                             value={shippingAddress.addressLine1}
-                            onChange={(e) => setShippingAddress({ ...shippingAddress, addressLine1: e.target.value })}
+                            onChange={(e) =>
+                              setShippingAddress({ ...shippingAddress, addressLine1: e.target.value })
+                            }
                           />
                         </div>
 
@@ -366,7 +384,9 @@ export default function CheckoutPage() {
                           <Input
                             id="addressLine2"
                             value={shippingAddress.addressLine2}
-                            onChange={(e) => setShippingAddress({ ...shippingAddress, addressLine2: e.target.value })}
+                            onChange={(e) =>
+                              setShippingAddress({ ...shippingAddress, addressLine2: e.target.value })
+                            }
                           />
                         </div>
 
@@ -374,9 +394,11 @@ export default function CheckoutPage() {
                           <Label htmlFor="city">City</Label>
                           <Input
                             id="city"
-                            required
+                            required={hasPhysicalProducts}
                             value={shippingAddress.city}
-                            onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                            onChange={(e) =>
+                              setShippingAddress({ ...shippingAddress, city: e.target.value })
+                            }
                           />
                         </div>
 
@@ -384,9 +406,11 @@ export default function CheckoutPage() {
                           <Label htmlFor="state">State</Label>
                           <Input
                             id="state"
-                            required
+                            required={hasPhysicalProducts}
                             value={shippingAddress.state}
-                            onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
+                            onChange={(e) =>
+                              setShippingAddress({ ...shippingAddress, state: e.target.value })
+                            }
                           />
                         </div>
 
@@ -394,9 +418,11 @@ export default function CheckoutPage() {
                           <Label htmlFor="zipCode">ZIP Code</Label>
                           <Input
                             id="zipCode"
-                            required
+                            required={hasPhysicalProducts}
                             value={shippingAddress.zipCode}
-                            onChange={(e) => setShippingAddress({ ...shippingAddress, zipCode: e.target.value })}
+                            onChange={(e) =>
+                              setShippingAddress({ ...shippingAddress, zipCode: e.target.value })
+                            }
                           />
                         </div>
 
@@ -405,40 +431,14 @@ export default function CheckoutPage() {
                           <Input
                             id="phone"
                             type="tel"
-                            required
+                            required={hasPhysicalProducts}
                             value={shippingAddress.phone}
-                            onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
+                            onChange={(e) =>
+                              setShippingAddress({ ...shippingAddress, phone: e.target.value })
+                            }
                           />
                         </div>
                       </div>
-
-                      {requiresShipping && (
-                        <div className="space-y-3 pt-4">
-                          <Label>Shipping Method</Label>
-                          <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
-                            <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="standard" id="standard" />
-                                <Label htmlFor="standard" className="cursor-pointer">
-                                  <div className="font-medium">Standard Shipping</div>
-                                  <div className="text-sm text-muted-foreground">5-7 business days</div>
-                                </Label>
-                              </div>
-                              <span className="font-medium">{totalPrice > 50000 ? "FREE" : "₦2,500"}</span>
-                            </div>
-                            <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="express" id="express" />
-                                <Label htmlFor="express" className="cursor-pointer">
-                                  <div className="font-medium">Express Shipping</div>
-                                  <div className="text-sm text-muted-foreground">2-3 business days</div>
-                                </Label>
-                              </div>
-                              <span className="font-medium">₦5,000</span>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      )}
 
                       <Button type="submit" className="w-full" size="lg">
                         Continue to Payment
@@ -464,11 +464,16 @@ export default function CheckoutPage() {
                         <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                           <div className="flex items-center space-x-2 rounded-lg border border-border p-4">
                             <RadioGroupItem value="card" id="card" />
-                            <Label htmlFor="card" className="flex flex-1 cursor-pointer items-center gap-2">
+                            <Label
+                              htmlFor="card"
+                              className="flex flex-1 cursor-pointer items-center gap-2"
+                            >
                               <CreditCard className="h-5 w-5" />
                               <div>
                                 <div className="font-medium">Pay with Paystack</div>
-                                <div className="text-sm text-muted-foreground">Secure payment via card, bank transfer, or USSD</div>
+                                <div className="text-sm text-muted-foreground">
+                                  Secure payment via card, bank transfer, or USSD
+                                </div>
                               </div>
                             </Label>
                           </div>
@@ -478,7 +483,8 @@ export default function CheckoutPage() {
                       <div className="rounded-lg bg-muted p-4 space-y-2">
                         <p className="text-sm font-medium">💳 Payment Information</p>
                         <p className="text-sm text-muted-foreground">
-                          You will be redirected to Paystack's secure payment page to complete your transaction.
+                          You will be redirected to Paystack's secure payment page to complete your
+                          transaction.
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Amount to pay: <span className="font-bold">₦{total.toLocaleString()}</span>
@@ -486,7 +492,12 @@ export default function CheckoutPage() {
                       </div>
 
                       <div className="flex gap-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setStep(1)}
+                          className="flex-1"
+                        >
                           Back
                         </Button>
                         <Button type="submit" className="flex-1" disabled={loading}>
@@ -509,33 +520,47 @@ export default function CheckoutPage() {
                     </p>
                     <div className="mt-6 rounded-lg bg-muted p-4">
                       <p className="text-sm text-muted-foreground">Order Number</p>
-                      <p className="text-lg font-bold">#{completedOrderId?.substring(0, 8).toUpperCase() || 'PROCESSING'}</p>
+                      <p className="text-lg font-bold">
+                        #{completedOrderId?.substring(0, 8).toUpperCase() || "PROCESSING"}
+                      </p>
                     </div>
                     <div className="mt-6 space-y-3">
                       {/* Show different actions based on product types in the completed order */}
-                      {completedOrderItems.some(item => item.product.type === 'digital') && (
+                      {completedOrderItems.some((item) => item.product.type === "digital") && (
                         <Button onClick={() => router.push("/my-purchases")} className="w-full">
                           <Download className="mr-2 h-4 w-4" />
                           Download Digital Products
                         </Button>
                       )}
-                      
-                      {completedOrderItems.some(item => item.product.type === 'service') && (
-                        <Button onClick={() => router.push("/my-services")} className="w-full" variant="outline">
+
+                      {completedOrderItems.some((item) => item.product.type === "service") && (
+                        <Button
+                          onClick={() => router.push("/my-services")}
+                          className="w-full"
+                          variant="outline"
+                        >
                           <Calendar className="mr-2 h-4 w-4" />
                           Manage Service Bookings
                         </Button>
                       )}
-                      
-                      {completedOrderItems.some(item => item.product.type === 'physical') && (
-                        <Button onClick={() => router.push("/my-orders")} className="w-full" variant="outline">
+
+                      {completedOrderItems.some((item) => item.product.type === "physical") && (
+                        <Button
+                          onClick={() => router.push("/my-orders")}
+                          className="w-full"
+                          variant="outline"
+                        >
                           <Package className="mr-2 h-4 w-4" />
                           Track Physical Orders
                         </Button>
                       )}
-                      
+
                       <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => router.push("/my-orders")} className="flex-1">
+                        <Button
+                          variant="outline"
+                          onClick={() => router.push("/my-orders")}
+                          className="flex-1"
+                        >
                           View All Orders
                         </Button>
                         <Button
@@ -575,7 +600,9 @@ export default function CheckoutPage() {
                         <div className="flex-1">
                           <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>
                           <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                          <p className="text-sm font-medium">₦{(item.product.price * item.quantity).toLocaleString()}</p>
+                          <p className="text-sm font-medium">
+                            ₦{(item.product.price * item.quantity).toLocaleString()}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -590,16 +617,19 @@ export default function CheckoutPage() {
                       <span className="text-muted-foreground">Tax (10%)</span>
                       <span className="font-medium">₦{tax.toLocaleString()}</span>
                     </div>
-                    {requiresShipping && (
+                    {hasPhysicalProducts ? (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Shipping</span>
-                        <span className="font-medium">{shippingCost === 0 ? "FREE" : `₦${shippingCost.toLocaleString()}`}</span>
+                        <span className="font-medium">
+                          {shippingCost === 0
+                            ? "FREE"
+                            : `₦${shippingCost.toLocaleString()}`}
+                        </span>
                       </div>
-                    )}
-                    {!requiresShipping && (
+                    ) : (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Shipping</span>
-                        <span className="font-medium text-green-600">Digital Product - No Shipping</span>
+                        <span className="font-medium text-green-600">No shipping required</span>
                       </div>
                     )}
                   </div>

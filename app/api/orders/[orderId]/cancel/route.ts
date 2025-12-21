@@ -45,16 +45,41 @@ export async function PUT(
     }
 
     // Update order status to cancelled
-    await adminDb.collection('orders').doc(orderId).update({
+    const cancellationUpdate = {
       status: 'cancelled',
       paymentStatus: 'refunded',
       cancelledAt: new Date(),
       updatedAt: new Date()
-    })
+    }
 
-    // TODO: Process refund if payment was made
-    // TODO: Notify vendor about cancellation
-    // TODO: Update inventory if items were reserved
+    await adminDb.collection('orders').doc(orderId).update(cancellationUpdate)
+
+    // Build latest order data for downstream notifications/emails
+    const latestOrderForEmail = {
+      id: orderId,
+      ...order,
+      ...cancellationUpdate,
+    }
+
+    // Send cancellation email (best-effort)
+    try {
+      const { sendOrderCancelledEmail } = await import('@/lib/email/service')
+      await sendOrderCancelledEmail(latestOrderForEmail)
+    } catch (emailError) {
+      console.error('Failed to send order cancelled email:', emailError)
+      // Do not fail the cancellation if email fails
+    }
+
+    // Trigger in-app order status change notification for the customer
+    try {
+      const { NotificationTriggers } = await import('@/lib/notifications/triggers')
+      if (order?.userId) {
+        await NotificationTriggers.onOrderStatusChange(orderId, order.userId, 'cancelled')
+      }
+    } catch (notificationError) {
+      console.error('Failed to trigger order cancellation notifications:', notificationError)
+      // Do not fail the cancellation if notifications fail
+    }
 
     return NextResponse.json({
       success: true,

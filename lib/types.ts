@@ -20,7 +20,11 @@ export interface Product {
   // Digital Product Fields
   productType: "physical" | "digital" | "service"
   type: "physical" | "digital" | "service" // Alias for productType
-  requiresShipping: boolean
+  shippingInfo?: {
+    baseShippingFee?: number
+    offerFreeShipping?: boolean
+    notes?: string
+  }
   digitalFiles?: DigitalFile[]
   accessType?: "instant" | "scheduled" | "lifetime"
   accessDuration?: number // days (0 = lifetime)

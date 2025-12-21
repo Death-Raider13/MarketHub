@@ -181,6 +181,33 @@ export async function PATCH(
       }
     }
 
+    // Build latest order data for emails (merge original + updates)
+    const latestOrderForEmail = {
+      id: orderId,
+      ...orderData,
+      ...updateData,
+    }
+
+    // Send order status emails (best-effort, non-blocking for response)
+    try {
+      const {
+        sendOrderShippedEmail,
+        sendOrderDeliveredEmail,
+        sendOrderCancelledEmail,
+      } = await import('@/lib/email/service')
+
+      if (status === 'shipped') {
+        await sendOrderShippedEmail(latestOrderForEmail)
+      } else if (status === 'delivered') {
+        await sendOrderDeliveredEmail(latestOrderForEmail)
+      } else if (status === 'cancelled') {
+        await sendOrderCancelledEmail(latestOrderForEmail)
+      }
+    } catch (emailError) {
+      logger.error('Failed to send order status email', { error: emailError })
+      // Do not fail the status update if email fails
+    }
+
     logger.info('Order status updated successfully', {
       orderId,
       oldStatus: currentStatus,

@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-MarketHub now features a comprehensive **four-tier admin hierarchy** system designed for scalable e-commerce platform management. Each tier has specific responsibilities, permissions, and dedicated interfaces.
+FEROMARKETHUB now features a comprehensive **four-tier admin hierarchy** system designed for scalable e-commerce platform management. Each tier has specific responsibilities, permissions, and dedicated interfaces.
 
 ---
 

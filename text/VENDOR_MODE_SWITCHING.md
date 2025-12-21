@@ -235,7 +235,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 ### **Homepage Header:**
 ```
 ┌─────────────────────────────────────────────────┐
-│  🏪 MarketHub  [Search...]  [📊 Switch to      │
+│  🏪 FEROMARKETHUB  [Search...]  [📊 Switch to      │
 │                              Selling] [🛒] [👤] │
 └─────────────────────────────────────────────────┘
 ```

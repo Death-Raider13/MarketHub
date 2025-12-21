@@ -1,7 +1,7 @@
-# 🗺️ MarketHub - Complete Routing Guide
+# 🗺️ FEROMARKETHUB - Complete Routing Guide
 
 ## Overview
-This document explains all routes, role-based access, and navigation flow in the MarketHub platform.
+This document explains all routes, role-based access, and navigation flow in the FEROMARKETHUB platform.
 
 ---
 

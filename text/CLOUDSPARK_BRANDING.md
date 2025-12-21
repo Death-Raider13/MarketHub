@@ -126,7 +126,7 @@ The super admin pages have a custom inline footer with the same CloudSparkDigita
 The branding appears as:
 
 ```
-© 2025 MarketHub. All rights reserved.
+© 2025 FEROMARKETHUB. All rights reserved.
 Powered by CloudSparkDigital ↗
 ```
 

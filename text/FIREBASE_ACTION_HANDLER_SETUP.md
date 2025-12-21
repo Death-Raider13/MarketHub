@@ -53,8 +53,8 @@
      ```
 
 5. **Customize Email Template (Optional):**
-   - Update sender name: "MarketHub"
-   - Customize subject: "Verify your MarketHub account"
+   - Update sender name: "FEROMARKETHUB"
+   - Customize subject: "Verify your FEROMARKETHUB account"
    - Edit email body with your branding
 
 6. **Save Changes**
@@ -250,7 +250,7 @@ text-primary                     // Uses your theme color
 
 ### **Change Text:**
 ```typescript
-<CardTitle>MarketHub</CardTitle>
+<CardTitle>FEROMARKETHUB</CardTitle>
 // Change to your brand name
 
 <p>Your Digital Marketplace</p>

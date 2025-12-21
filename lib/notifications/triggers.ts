@@ -181,6 +181,20 @@ export class NotificationTriggers {
     }
   }
 
+  static async onOrderRefunded(orderId: string, customerId: string, amount: number) {
+    try {
+      await notificationService.createNotification(customerId, 'order_refunded', {
+        metadata: {
+          orderId: orderId,
+          amount: amount,
+          actionUrl: `/orders/${orderId}`
+        }
+      });
+    } catch (error) {
+      console.error('Error triggering order refunded notifications:', error);
+    }
+  }
+
   /**
    * Trigger system maintenance notification
    */
@@ -218,6 +232,18 @@ export class NotificationTriggers {
       });
     } catch (error) {
       console.error('Error triggering security alert notifications:', error);
+    }
+  }
+
+  static async onPasswordChanged(userId: string) {
+    try {
+      await notificationService.createNotification(userId, 'password_changed', {
+        metadata: {
+          actionUrl: '/account/security',
+        },
+      });
+    } catch (error) {
+      console.error('Error triggering password changed notifications:', error);
     }
   }
 
@@ -268,8 +294,10 @@ export const {
   onReviewSubmitted,
   onAbuseReportFiled,
   onPayoutProcessed,
+  onOrderRefunded,
   onSystemMaintenance,
   onSecurityAlert,
+  onPasswordChanged,
   onWishlistItemBackInStock,
   onCartItemPriceDrop
 } = NotificationTriggers;

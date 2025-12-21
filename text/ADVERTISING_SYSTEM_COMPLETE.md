@@ -288,7 +288,7 @@ POST /api/ads/track/click
 ```
 Total Ad Revenue: 100%
 ├── Vendor Share: 70%
-├── Platform (MarketHub): 25%
+├── Platform (FEROMARKETHUB): 25%
 └── Payment Processing: 5%
 ```
 
@@ -661,15 +661,15 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 
 ### **vs Selar:**
 - ❌ Selar: No advertising monetization
-- ✅ MarketHub: Full ad system + 70% revenue share
+- ✅ FEROMARKETHUB: Full ad system + 70% revenue share
 
 ### **vs Jumia:**
 - ❌ Jumia: Only for Jumia products
-- ✅ MarketHub: Open to all advertisers
+- ✅ FEROMARKETHUB: Open to all advertisers
 
 ### **vs Instagram/Facebook:**
 - ❌ Social: Generic targeting
-- ✅ MarketHub: E-commerce specific, better ROI
+- ✅ FEROMARKETHUB: E-commerce specific, better ROI
 
 ### **Unique Value:**
 1. **For Vendors:** Passive income from existing traffic
@@ -742,11 +742,11 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 
 ### **Competitive Edge:**
 
-This advertising system is a **UNIQUE FEATURE** that sets MarketHub apart from competitors like Selar, Gumroad, and other Nigerian e-commerce platforms. It provides:
+This advertising system is a **UNIQUE FEATURE** that sets FEROMARKETHUB apart from competitors like Selar, Gumroad, and other Nigerian e-commerce platforms. It provides:
 
 1. **Additional Revenue** for vendors
 2. **Targeted Advertising** for businesses
-3. **Platform Differentiation** for MarketHub
+3. **Platform Differentiation** for FEROMARKETHUB
 4. **Win-Win-Win** for all parties
 
 ---

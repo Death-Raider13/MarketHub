@@ -49,7 +49,7 @@ export default function AdvertisePage() {
             </Badge>
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
               Reach Your Target Customers on{" "}
-              <span className="text-primary">MarketHub</span>
+              <span className="text-primary">FEROMARKETHUB</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Advertise your products and services to thousands of engaged shoppers
@@ -93,7 +93,7 @@ export default function AdvertisePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Advertise on MarketHub?
+              Why Advertise on FEROMARKETHUB?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Connect with shoppers who are ready to buy
@@ -355,7 +355,7 @@ export default function AdvertisePage() {
             Ready to Start Advertising?
           </h2>
           <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-            Join hundreds of businesses reaching their target customers on MarketHub
+            Join hundreds of businesses reaching their target customers on FEROMARKETHUB
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

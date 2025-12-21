@@ -1,4 +1,4 @@
-# 🚀 MarketHub - Quick Start Testing Guide
+# 🚀 FEROMARKETHUB - Quick Start Testing Guide
 
 ## 🎯 **Test Your New Features**
 

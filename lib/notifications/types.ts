@@ -340,7 +340,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
   
   // General notifications
   welcome: {
-    title: 'Welcome to MarketHub!',
+    title: 'Welcome to FEROMARKETHUB!',
     message: 'Welcome to Nigeria\'s premier e-commerce platform',
     priority: 'medium',
     icon: '🎉'

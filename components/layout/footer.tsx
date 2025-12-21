@@ -10,7 +10,7 @@ export function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2 mb-4">
               <Store className="h-6 w-6" />
-              <span className="text-xl font-bold">MarketHub</span>
+              <span className="text-xl font-bold">FEROMARKETHUB</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               Your trusted multi-vendor marketplace for quality products from verified sellers.
@@ -125,7 +125,7 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} MarketHub. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} FEROMARKETHUB. All rights reserved.</p>
             <div className="flex items-center gap-2">
               <span>Powered by</span>
               <Link 

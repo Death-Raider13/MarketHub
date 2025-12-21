@@ -186,7 +186,7 @@ function getErrorMessage(error: FirebaseError): string {
       return 'Invalid request. Please check your input.'
     
     default:
-      return error.message || 'An error occurred. Please try again.'
+      return 'An error occurred. Please try again.'
   }
 }
 

@@ -212,7 +212,7 @@ export default function VendorRegisterPage() {
           </div>
           <h1 className="text-3xl font-bold mb-2">Become a Vendor</h1>
           <p className="text-muted-foreground">
-            Join thousands of successful sellers on MarketHub
+            Join thousands of successful sellers on FEROMARKETHUB
           </p>
         </div>
 

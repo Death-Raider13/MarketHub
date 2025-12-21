@@ -41,8 +41,8 @@ function AdminSettingsContent() {
   const [loading, setLoading] = useState(false)
 
   // Platform Settings
-  const [platformName, setPlatformName] = useState("MarketHub")
-  const [platformEmail, setPlatformEmail] = useState("support@markethub.com")
+  const [platformName, setPlatformName] = useState("FEROMARKETHUB")
+  const [platformEmail, setPlatformEmail] = useState("support@FEROMARKETHUB.com")
   const [platformPhone, setPlatformPhone] = useState("+1 (800) 123-4567")
   const [platformDescription, setPlatformDescription] = useState("Your trusted online marketplace")
   const [platformLogo, setPlatformLogo] = useState("")
@@ -57,7 +57,7 @@ function AdminSettingsContent() {
   // Email Settings
   const [smtpHost, setSmtpHost] = useState("smtp.gmail.com")
   const [smtpPort, setSmtpPort] = useState("587")
-  const [smtpUsername, setSmtpUsername] = useState("noreply@markethub.com")
+  const [smtpUsername, setSmtpUsername] = useState("noreply@FEROMARKETHUB.com")
   const [smtpPassword, setSmtpPassword] = useState("••••••••")
 
   // Security Settings

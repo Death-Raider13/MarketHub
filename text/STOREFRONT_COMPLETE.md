@@ -13,7 +13,7 @@
 ```
 1. Sign up as vendor
    ↓
-2. Choose store URL: markethub.com/store/my-store
+2. Choose store URL: FEROMARKETHUB.com/store/my-store
    ↓
 3. Email verification
    ↓
@@ -36,7 +36,7 @@
 
 ### **Customer Journey:**
 ```
-1. Visit: markethub.com/store/{vendorId}
+1. Visit: FEROMARKETHUB.com/store/{vendorId}
    ↓
 2. See customized storefront with:
    - Vendor's colors ✅
@@ -157,7 +157,7 @@
 #### **7. Footer:**
 - ✅ Store info
 - ✅ Quick links
-- ✅ "Powered by MarketHub"
+- ✅ "Powered by FEROMARKETHUB"
 - ✅ Copyright
 
 #### **8. Loading States:**
@@ -270,7 +270,7 @@ Vendor changes theme → Saves → Customer refreshes page
 ### **Test Scenario 2: Customer Visit**
 ```
 1. Get vendor's store URL
-2. Visit: markethub.com/store/{vendorId}
+2. Visit: FEROMARKETHUB.com/store/{vendorId}
 3. See vendor's custom colors ✅
 4. See vendor's logo ✅
 5. See vendor's banner ✅
@@ -314,23 +314,23 @@ Vendor changes theme → Saves → Customer refreshes page
 
 ### **1. More Theme Options:**
 - Selar: ~3-4 themes
-- MarketHub: 8 gradient themes ✅
+- FEROMARKETHUB: 8 gradient themes ✅
 
 ### **2. Live Previews:**
 - Selar: Basic preview
-- MarketHub: Multiple preview sections ✅
+- FEROMARKETHUB: Multiple preview sections ✅
 
 ### **3. Custom Colors:**
 - Selar: Limited customization
-- MarketHub: 5 independent color controls ✅
+- FEROMARKETHUB: 5 independent color controls ✅
 
 ### **4. Typography:**
 - Selar: Few font options
-- MarketHub: 6 professional fonts ✅
+- FEROMARKETHUB: 6 professional fonts ✅
 
 ### **5. Real-Time Updates:**
 - Selar: Requires page refresh
-- MarketHub: Instant preview ✅
+- FEROMARKETHUB: Instant preview ✅
 
 ---
 

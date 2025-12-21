@@ -148,9 +148,21 @@ const ROLE_HIERARCHY: Record<AdminRole, number> = {
 
 /**
  * Check if a role has a specific permission
+ *
+ * This is defensive: if an unknown/non-admin role is passed, we log a warning
+ * in development and simply return false instead of throwing at runtime.
  */
 export function hasPermission(role: AdminRole, permission: Permission): boolean {
-  return ROLE_PERMISSIONS[role].includes(permission);
+  const permissions = ROLE_PERMISSIONS[role];
+
+  if (!permissions) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[permissions] hasPermission called with unknown role:', role);
+    }
+    return false;
+  }
+
+  return permissions.includes(permission);
 }
 
 /**
@@ -186,21 +198,48 @@ export function canManageUser(managerRole: AdminRole, targetUserRole: AdminRole,
  * Check if a role has any of the specified permissions
  */
 export function hasAnyPermission(role: AdminRole, permissions: Permission[]): boolean {
-  return permissions.some(permission => hasPermission(role, permission));
+  const rolePermissions = ROLE_PERMISSIONS[role];
+
+  if (!rolePermissions) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[permissions] hasAnyPermission called with unknown role:', role);
+    }
+    return false;
+  }
+
+  return permissions.some(permission => rolePermissions.includes(permission));
 }
 
 /**
  * Check if a role has all of the specified permissions
  */
 export function hasAllPermissions(role: AdminRole, permissions: Permission[]): boolean {
-  return permissions.every(permission => hasPermission(role, permission));
+  const rolePermissions = ROLE_PERMISSIONS[role];
+
+  if (!rolePermissions) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[permissions] hasAllPermissions called with unknown role:', role);
+    }
+    return false;
+  }
+
+  return permissions.every(permission => rolePermissions.includes(permission));
 }
 
 /**
  * Get all permissions for a role
  */
 export function getRolePermissions(role: AdminRole): Permission[] {
-  return ROLE_PERMISSIONS[role];
+  const permissions = ROLE_PERMISSIONS[role];
+
+  if (!permissions) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[permissions] getRolePermissions called with unknown role:', role);
+    }
+    return [];
+  }
+
+  return permissions;
 }
 
 /**

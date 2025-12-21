@@ -1,4 +1,4 @@
-# 📢 MarketHub Advertising System - Complete Guide
+# 📢 FEROMARKETHUB Advertising System - Complete Guide
 
 ## Overview
 This document explains the complete advertising system, pricing strategy, approval workflow, and improvements made.
@@ -31,7 +31,7 @@ This document explains the complete advertising system, pricing strategy, approv
 | **Google Ads** | $2-$10 | $1-$2 | Competitive |
 | **Facebook Ads** | $5-$15 | $0.50-$3 | Competitive |
 | **Amazon Ads** | $15-$50 | $0.50-$5 | Competitive |
-| **MarketHub** | **$25** | **$2.50** | ✅ **Mid-Range** |
+| **FEROMARKETHUB** | **$25** | **$2.50** | ✅ **Mid-Range** |
 
 **Our pricing is competitive and profitable!**
 

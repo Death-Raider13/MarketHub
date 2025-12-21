@@ -250,7 +250,7 @@ export default function VendorRegisterNewPage() {
             Launch Your Store in Minutes
           </h1>
           <p className="text-muted-foreground text-lg">
-            Join thousands of creators selling on MarketHub
+            Join thousands of creators selling on FEROMARKETHUB
           </p>
         </div>
 
@@ -397,7 +397,7 @@ export default function VendorRegisterNewPage() {
                     <div className="flex gap-2">
                       <div className="flex-1 flex items-center gap-2 rounded-lg border bg-muted px-3">
                         <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">markethub.com/</span>
+                        <span className="text-sm text-muted-foreground">FEROMARKETHUB.com/</span>
                         <Input
                           id="storeUrl"
                           placeholder="your-store"
@@ -525,7 +525,7 @@ export default function VendorRegisterNewPage() {
                       <Link href="/privacy" className="text-primary hover:underline" target="_blank">
                         Privacy Policy
                       </Link>
-                      . I understand that MarketHub charges a 15% commission on sales.
+                      . I understand that FEROMARKETHUB charges a 15% commission on sales.
                     </label>
                   </div>
 

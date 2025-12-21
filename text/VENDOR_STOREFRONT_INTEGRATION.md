@@ -1,7 +1,7 @@
 # Vendor Storefront Integration - Complete Guide
 
 ## Overview
-Successfully integrated vendor storefronts into the customer-facing side of MarketHub. Customers can now discover and visit vendor stores from multiple entry points throughout the platform.
+Successfully integrated vendor storefronts into the customer-facing side of FEROMARKETHUB. Customers can now discover and visit vendor stores from multiple entry points throughout the platform.
 
 ---
 

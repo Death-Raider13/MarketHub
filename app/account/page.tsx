@@ -41,6 +41,7 @@ import { ProductCard } from "@/components/product-card"
 import { VendorName } from "@/components/vendor-name"
 import type { Product } from "@/lib/types"
 import { toast } from "sonner"
+import { NotificationTriggers } from "@/lib/notifications/triggers"
 
 // Mock data - replace with real data from Firebase
 const mockOrders = [
@@ -504,6 +505,26 @@ function AccountPageContent() {
       
       // Update password
       await updatePassword(user, passwordForm.newPassword)
+      
+      // Fire off a password-changed security email (best-effort)
+      try {
+        await fetch('/api/account/security/password-changed', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: user.email }),
+        })
+      } catch (notifyError) {
+        console.error('Failed to trigger password changed email:', notifyError)
+      }
+
+      // Best-effort in-app password_changed notification
+      try {
+        await NotificationTriggers.onPasswordChanged(user.uid)
+      } catch (notifyError) {
+        console.error('Failed to create password changed notification:', notifyError)
+      }
       
       // Clear form
       setPasswordForm({

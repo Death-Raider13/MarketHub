@@ -520,7 +520,9 @@ function MyOrdersContent() {
                               <p className="text-sm text-gray-600">Method: {order.paymentMethod}</p>
                               <p className="text-sm text-gray-600">Subtotal: ₦{order.subtotal.toLocaleString()}</p>
                               <p className="text-sm text-gray-600">Tax: ₦{order.tax.toLocaleString()}</p>
-                              <p className="text-sm text-gray-600">Shipping: ₦{order.shipping.toLocaleString()}</p>
+                              <p className="text-sm text-gray-600">
+                                Shipping: {order.shipping === 0 ? 'FREE' : `₦${order.shipping.toLocaleString()}`}
+                              </p>
                               <p className="text-sm font-semibold mt-1">Total: ₦{order.total.toLocaleString()}</p>
                             </div>
 

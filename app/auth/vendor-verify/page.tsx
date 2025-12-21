@@ -95,7 +95,7 @@ export default function VendorVerifyPage() {
           </div>
           <CardTitle className="text-2xl font-bold">Vendor Account Setup</CardTitle>
           <CardDescription>
-            Complete these steps to start selling on MarketHub
+            Complete these steps to start selling on FEROMARKETHUB
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -235,7 +235,7 @@ export default function VendorVerifyPage() {
               asChild
             >
               <Link href="/">
-                Browse MarketHub
+                Browse FEROMARKETHUB
               </Link>
             </Button>
 

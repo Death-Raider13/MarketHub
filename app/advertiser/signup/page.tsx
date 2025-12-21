@@ -107,7 +107,7 @@ export default function AdvertiserSignupPage() {
             </div>
             <CardTitle className="text-2xl">Create Advertiser Account</CardTitle>
             <CardDescription>
-              Set up your advertising account to start promoting your business on MarketHub
+              Set up your advertising account to start promoting your business on FEROMARKETHUB
             </CardDescription>
             {user && (
               <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">

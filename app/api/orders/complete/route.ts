@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
+import { sendEmail } from '@/lib/email/send-email'
 
-// Email service - placeholder for now
-async function sendEmail(options: { to: string; subject: string; html: string }) {
-  console.log('📧 Email would be sent:', options)
-  // TODO: Implement with SendGrid, Mailgun, or other email service
-  return Promise.resolve({ success: true })
-}
+const FROM_EMAIL = 'FEROMARKETHUB <orders@FEROMARKETHUB.com>'
 
 // Complete an order and create digital product access records
 export async function POST(request: NextRequest) {
@@ -130,6 +126,7 @@ export async function POST(request: NextRequest) {
           const digitalProductNames = digitalProducts.map((item: any) => item.product.name).join(', ')
           
           await sendEmail({
+            from: FROM_EMAIL,
             to: userData.email,
             subject: 'Your Digital Products Are Ready!',
             html: `

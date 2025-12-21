@@ -2,7 +2,7 @@
 
 ## ✅ **What's Covered**
 
-Your `firestore.rules` file now includes comprehensive security rules for **ALL** collections in MarketHub.
+Your `firestore.rules` file now includes comprehensive security rules for **ALL** collections in FEROMARKETHUB.
 
 ---
 

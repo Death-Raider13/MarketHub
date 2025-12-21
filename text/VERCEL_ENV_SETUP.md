@@ -7,7 +7,7 @@ You need to manually add these environment variables to your Vercel project dash
 ## Steps to Add Environment Variables to Vercel:
 
 1. Go to your Vercel Dashboard: https://vercel.com/dashboard
-2. Select your project: **MarketHub**
+2. Select your project: **FEROMARKETHUB**
 3. Go to **Settings** → **Environment Variables**
 4. Add each variable below with your actual values
 

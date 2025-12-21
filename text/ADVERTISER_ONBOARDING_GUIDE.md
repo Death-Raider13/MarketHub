@@ -7,7 +7,7 @@
 ## 📍 **Discovery & Access Points**
 
 ### **1. Main Navigation (Header)**
-**Location:** Every page on MarketHub
+**Location:** Every page on FEROMARKETHUB
 
 **Desktop:**
 - Prominent "Advertise" button in header (next to "Switch to Selling")
@@ -33,7 +33,7 @@
 ---
 
 ### **2. Public Landing Page**
-**URL:** `https://markethub.com/advertise`
+**URL:** `https://FEROMARKETHUB.com/advertise`
 
 **Features:**
 - ✅ Hero section with value proposition
@@ -79,7 +79,7 @@ Lands on /advertise page
 ### **Step 2: Landing Page**
 ```
 Hero Section:
-- "Reach Your Target Customers on MarketHub"
+- "Reach Your Target Customers on FEROMARKETHUB"
 - Platform statistics
 - "Get Started" CTA
 
@@ -138,7 +138,7 @@ First-time users see:
 
 ### **Journey 1: New Business Owner**
 ```
-1. Visits MarketHub homepage
+1. Visits FEROMARKETHUB homepage
 2. Sees "Advertise" button in header
 3. Clicks to learn more
 4. Reads about targeting and pricing
@@ -163,8 +163,8 @@ First-time users see:
 
 ### **Journey 3: Marketing Agency**
 ```
-1. Hears about MarketHub ads
-2. Googles "MarketHub advertising"
+1. Hears about FEROMARKETHUB ads
+2. Googles "FEROMARKETHUB advertising"
 3. Finds /advertise page
 4. Reviews pricing and features
 5. Contacts sales team
@@ -178,7 +178,7 @@ First-time users see:
 
 ### **Hero Section**
 ```
-Headline: "Reach Your Target Customers on MarketHub"
+Headline: "Reach Your Target Customers on FEROMARKETHUB"
 Subheadline: "Advertise your products and services to thousands 
               of engaged shoppers across Nigeria's fastest-growing 
               e-commerce marketplace."
@@ -266,7 +266,7 @@ Note: No setup fees • No monthly minimums • Cancel anytime
 ```
 Headline: "Ready to Start Advertising?"
 Subheadline: "Join hundreds of businesses reaching their 
-              target customers on MarketHub"
+              target customers on FEROMARKETHUB"
 
 CTAs:
 - "Get Started Now" (primary)
@@ -322,7 +322,7 @@ CTAs:
 1. **Header Navigation** - Always visible
 2. **Footer Links** - Every page
 3. **Vendor Dashboard** - Cross-sell to vendors
-4. **Blog Posts** - "How to advertise on MarketHub"
+4. **Blog Posts** - "How to advertise on FEROMARKETHUB"
 5. **Help Center** - Advertising guides
 
 ### **Paid Acquisition:**

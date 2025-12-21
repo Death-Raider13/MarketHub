@@ -6,11 +6,11 @@
 
 ### **1. Header Navigation (Most Common)** ⭐
 ```
-Every page on MarketHub has an "Advertise" button
+Every page on FEROMARKETHUB has an "Advertise" button
 
 Desktop:
 ┌─────────────────────────────────────────────┐
-│ MarketHub    [Search]    [Advertise] [Cart] │
+│ FEROMARKETHUB    [Search]    [Advertise] [Cart] │
 └─────────────────────────────────────────────┘
                               ↑
                          Clicks here
@@ -28,7 +28,7 @@ Mobile:
 
 ### **2. Direct URL**
 ```
-https://markethub.com/advertise
+https://FEROMARKETHUB.com/advertise
 
 - Can be shared in emails
 - Can be promoted on social media
@@ -105,7 +105,7 @@ Step 7: TRACK & OPTIMIZE
 ```
 ┌──────────────────────────────────────────────────────┐
 │                                                       │
-│   Reach Your Target Customers on MarketHub          │
+│   Reach Your Target Customers on FEROMARKETHUB          │
 │   Advertise to thousands of engaged shoppers         │
 │                                                       │
 │   [Get Started]  [View Pricing]                     │
@@ -114,7 +114,7 @@ Step 7: TRACK & OPTIMIZE
 │                                                       │
 ├──────────────────────────────────────────────────────┤
 │                                                       │
-│   Why Advertise on MarketHub?                       │
+│   Why Advertise on FEROMARKETHUB?                       │
 │                                                       │
 │   🎯 Targeted Reach    👥 Engaged Audience          │
 │   💰 Flexible Pricing  📊 Real-Time Analytics       │
@@ -239,7 +239,7 @@ ADVERTISER JOURNEY MAP
 ═══════════════════════════════════════════════════
 
 Discovery Phase:
-├─ Visits MarketHub
+├─ Visits FEROMARKETHUB
 ├─ Sees "Advertise" button
 └─ Clicks to learn more
 
@@ -284,7 +284,7 @@ Growth Phase:
 4. **Easy to Use** - Intuitive dashboard
 5. **Easy to Track** - Real-time analytics
 
-### **For MarketHub:**
+### **For FEROMARKETHUB:**
 1. **Multiple Discovery Points** - Header, URL, vendor dashboard
 2. **Clear Value Proposition** - Targeted reach, flexible pricing
 3. **Low Friction Signup** - Only 3 required fields

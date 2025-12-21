@@ -32,8 +32,7 @@ export default function CartPage() {
   const vendorGroups = Object.values(itemsByVendor)
 
   const tax = totalPrice * 0.1
-  const shipping = totalPrice > 50000 ? 0 : 2500
-  const total = totalPrice + tax + shipping
+  const total = totalPrice + tax
 
   if (items.length === 0) {
     return (
@@ -190,18 +189,12 @@ export default function CartPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium">{shipping === 0 ? "FREE" : `₦${shipping.toLocaleString()}`}</span>
+                    <span className="font-medium text-muted-foreground">Calculated at checkout (based on vendor settings)</span>
                   </div>
-
-                  {shipping > 0 && (
-                    <div className="rounded-lg bg-blue-500/10 p-3 text-sm text-blue-600">
-                      Add ₦{(50000 - totalPrice).toLocaleString()} more for free shipping!
-                    </div>
-                  )}
 
                   <div className="border-t border-border pt-4">
                     <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
+                      <span>Estimated Total (excl. shipping)</span>
                       <span>₦{total.toLocaleString()}</span>
                     </div>
                   </div>

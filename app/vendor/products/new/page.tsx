@@ -29,6 +29,9 @@ function AddProductContent() {
   const [variants, setVariants] = useState<Array<{name: string, options: string[]}>>([{name: "Size", options: []}])
   const [requestReviews, setRequestReviews] = useState(true)
   const [showRelatedProducts, setShowRelatedProducts] = useState(true)
+  const [baseShippingFee, setBaseShippingFee] = useState("")
+  const [offerFreeShipping, setOfferFreeShipping] = useState(false)
+  const [shippingNotes, setShippingNotes] = useState("")
   
   // Product form data
   const [formData, setFormData] = useState({
@@ -142,6 +145,11 @@ function AddProductContent() {
           stock: formData.stock,
           sku: formData.sku,
           type: productType,
+          shippingInfo: productType === "physical" ? {
+            baseShippingFee: baseShippingFee ? Number(baseShippingFee) : undefined,
+            offerFreeShipping,
+            notes: shippingNotes || undefined,
+          } : undefined,
           digitalFiles,
           accessDuration,
           downloadLimit,
@@ -527,6 +535,64 @@ function AddProductContent() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Shipping & Delivery (per product) */}
+                {productType === "physical" && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Truck className="h-5 w-5" />
+                        Shipping & Delivery
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="baseShippingFee">Base shipping fee (per item)</Label>
+                        <Input
+                          id="baseShippingFee"
+                          type="number"
+                          min="0"
+                          step="100"
+                          placeholder="e.g. 2500"
+                          value={baseShippingFee}
+                          onChange={(e) => setBaseShippingFee(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          This is the standard shipping fee you charge for this product per item.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start space-x-2">
+                        <input
+                          id="offerFreeShipping"
+                          type="checkbox"
+                          checked={offerFreeShipping}
+                          onChange={(e) => setOfferFreeShipping(e.target.checked)}
+                          className="mt-1"
+                        />
+                        <div>
+                          <label htmlFor="offerFreeShipping" className="text-sm font-medium cursor-pointer">
+                            Offer free shipping for this product
+                          </label>
+                          <p className="text-xs text-muted-foreground">
+                            If enabled, this product will be treated as free shipping based on your store's shipping rules.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="shippingNotes">Shipping notes (optional)</Label>
+                        <Textarea
+                          id="shippingNotes"
+                          placeholder="e.g. Free shipping within Lagos, standard rates apply outside Lagos."
+                          rows={3}
+                          value={shippingNotes}
+                          onChange={(e) => setShippingNotes(e.target.value)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Images */}
                 <Card>

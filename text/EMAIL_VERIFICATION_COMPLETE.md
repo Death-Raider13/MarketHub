@@ -155,7 +155,7 @@ Unverified users:
 
 **From:** Firebase (noreply@your-project.firebaseapp.com)
 
-**Subject:** Verify your email for MarketHub
+**Subject:** Verify your email for FEROMARKETHUB
 
 **Content:**
 - Verification link

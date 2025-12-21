@@ -52,7 +52,7 @@ interface Order {
   tax: number
   shipping: number
   total: number
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'refunded'
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
   shippingAddress: any
   shippingMethod: string
@@ -126,6 +126,10 @@ function OrdersContent() {
         return <CheckCircle className="h-5 w-5 text-green-500" />
       case 'cancelled':
         return <XCircle className="h-5 w-5 text-red-500" />
+      case 'refund_requested':
+        return <RotateCcw className="h-5 w-5 text-purple-500" />
+      case 'refunded':
+        return <RotateCcw className="h-5 w-5 text-green-500" />
       default:
         return <Package className="h-5 w-5" />
     }
@@ -137,7 +141,9 @@ function OrdersContent() {
       processing: 'default',
       shipped: 'default',
       delivered: 'default',
-      cancelled: 'destructive'
+      cancelled: 'destructive',
+      refund_requested: 'secondary',
+      refunded: 'default'
     }
     return (
       <Badge variant={variants[status] || 'secondary'} className="capitalize">
@@ -176,6 +182,56 @@ function OrdersContent() {
       // This would need to fetch the full product data
       toast.info('Reorder functionality coming soon!')
     })
+  }
+
+  const handleRequestRefund = async (order: Order) => {
+    if (!user) return
+
+    if (order.status !== 'delivered' || order.paymentStatus !== 'paid') {
+      toast.error('Refunds are only available for delivered, paid orders')
+      return
+    }
+
+    const createdAt = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt)
+    const now = new Date()
+    const daysDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+
+    if (daysDiff > 7) {
+      toast.error('The 7-day return window for this order has expired')
+      return
+    }
+
+    const reason = window.prompt('Please describe why you are requesting a refund:')
+    if (!reason || !reason.trim()) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/refunds', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          orderId: order.id,
+          reason: reason.trim(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Failed to submit refund request')
+        return
+      }
+
+      toast.success('Refund request submitted successfully')
+      loadOrders()
+    } catch (error) {
+      console.error('Error requesting refund:', error)
+      toast.error('Failed to submit refund request')
+    }
   }
 
   const filteredOrders = orders.filter(order => {
@@ -423,6 +479,16 @@ function OrdersContent() {
                           >
                             <XCircle className="mr-2 h-4 w-4" />
                             Cancel Order
+                          </Button>
+                        )}
+                        {order.status === 'delivered' && order.paymentStatus === 'paid' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRequestRefund(order)}
+                          >
+                            <RotateCcw className="mr-2 h-4 w-4" />
+                            Request Refund
                           </Button>
                         )}
                       </div>

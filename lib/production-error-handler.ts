@@ -139,54 +139,49 @@ export function initializeProductionErrorHandling() {
  * Handle authentication errors gracefully
  */
 export function handleAuthError(error: any): string {
-  // Don't log auth errors to console in production
-  if (!isDevelopment()) {
-    // Return user-friendly error messages
-    switch (error?.code) {
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-        return 'Invalid email or password. Please try again.'
-      case 'auth/too-many-requests':
-        return 'Too many failed attempts. Please try again later.'
-      case 'auth/network-request-failed':
-        return 'Network error. Please check your connection and try again.'
-      case 'auth/user-disabled':
-        return 'This account has been disabled. Please contact support.'
-      case 'auth/invalid-email':
-        return 'Please enter a valid email address.'
-      default:
-        return 'Sign in failed. Please try again.'
-    }
+  if (isDevelopment()) {
+    console.error('Auth error:', error)
   }
 
-  // In development, show the actual error
-  console.error('Auth error:', error)
-  return error?.message || 'Authentication failed'
+  // Return user-friendly error messages (same for dev and production)
+  switch (error?.code) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'Invalid email or password. Please try again.'
+    case 'auth/too-many-requests':
+      return 'Too many failed attempts. Please try again later.'
+    case 'auth/network-request-failed':
+      return 'Network error. Please check your connection and try again.'
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact support.'
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.'
+    default:
+      return 'Sign in failed. Please try again.'
+  }
 }
 
 /**
  * Handle Firestore errors gracefully
  */
 export function handleFirestoreError(error: any): string {
-  // Don't log Firestore errors to console in production
-  if (!isDevelopment()) {
-    switch (error?.code) {
-      case 'permission-denied':
-        return 'Access denied. Please sign in and try again.'
-      case 'not-found':
-        return 'The requested data was not found.'
-      case 'unavailable':
-        return 'Service temporarily unavailable. Please try again.'
-      case 'deadline-exceeded':
-        return 'Request timed out. Please try again.'
-      default:
-        return 'An error occurred. Please try again.'
-    }
+  if (isDevelopment()) {
+    console.error('Firestore error:', error)
   }
 
-  // In development, show the actual error
-  console.error('Firestore error:', error)
-  return error?.message || 'Database error'
+  switch (error?.code) {
+    case 'permission-denied':
+      return 'Access denied. Please sign in and try again.'
+    case 'not-found':
+      return 'The requested data was not found.'
+    case 'unavailable':
+      return 'Service temporarily unavailable. Please try again.'
+    case 'deadline-exceeded':
+      return 'Request timed out. Please try again.'
+    default:
+      return 'An error occurred. Please try again.'
+  }
 }
 
 /**

@@ -15,7 +15,7 @@ export default function SellerHelpPage() {
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4">Seller Help Center</h1>
             <p className="text-xl text-muted-foreground">
-              Everything you need to know about selling on MarketHub
+              Everything you need to know about selling on FEROMARKETHUB
             </p>
           </div>
 

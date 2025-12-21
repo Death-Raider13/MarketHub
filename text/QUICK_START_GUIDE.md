@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide - MarketHub Implementation
+# 🚀 Quick Start Guide - FEROMARKETHUB Implementation
 
 This guide will help you quickly implement the most critical improvements to make your marketplace production-ready.
 
@@ -315,7 +315,7 @@ export async function POST(request: NextRequest) {
     const { to, subject, html } = await request.json()
 
     const data = await resend.emails.send({
-      from: "MarketHub <noreply@markethub.com>",
+      from: "FEROMARKETHUB <noreply@FEROMARKETHUB.com>",
       to,
       subject,
       html,

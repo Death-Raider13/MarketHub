@@ -39,7 +39,7 @@ Create `.env.production` or set in Vercel/hosting:
 ```bash
 # ==================== PRODUCTION URLS ====================
 NEXT_PUBLIC_APP_URL=https://your-domain.com
-NEXT_PUBLIC_APP_NAME=MarketHub
+NEXT_PUBLIC_APP_NAME=FEROMARKETHUB
 NEXT_PUBLIC_ENV=production
 
 # ==================== FIREBASE (Production) ====================
@@ -259,7 +259,7 @@ firebase deploy --only firestore:rules
 #### **B. Update Email Templates:**
 In `lib/email/service.ts`, change:
 ```typescript
-from: 'MarketHub <noreply@your-domain.com>'  // Use your domain
+from: 'FEROMARKETHUB <noreply@your-domain.com>'  // Use your domain
 ```
 
 #### **C. Test Emails:**

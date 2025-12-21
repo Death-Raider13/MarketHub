@@ -20,7 +20,7 @@ export default function ReturnsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">Return Policy Overview</h2>
               <p className="text-muted-foreground mb-4">
-                At MarketHub, we want you to be completely satisfied with your purchase. If you're not happy with your order, we offer a flexible return policy to ensure your peace of mind.
+                At FEROMARKETHUB, we want you to be completely satisfied with your purchase. If you're not happy with your order, we offer a flexible return policy to ensure your peace of mind.
               </p>
             </section>
 
@@ -153,7 +153,7 @@ export default function ReturnsPage() {
                 If you have any questions about returns or refunds, please contact us:
               </p>
               <p className="text-muted-foreground">
-                Email: returns@markethub.ng<br />
+                Email: returns@FEROMARKETHUB.ng<br />
                 Phone: +234 XXX XXX XXXX<br />
                 Hours: Monday - Friday, 9AM - 6PM WAT
               </p>

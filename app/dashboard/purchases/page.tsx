@@ -84,8 +84,7 @@ export default function PurchasesPage() {
 
   const getPhysicalItems = (order: any) => {
     return order.items?.filter((item: any) => 
-      item.product?.productType === 'physical' ||
-      item.product?.requiresShipping === true
+      item.product?.productType === 'physical'
     ) || []
   }
 

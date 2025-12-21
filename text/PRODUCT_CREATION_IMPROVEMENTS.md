@@ -305,7 +305,7 @@ other customers make informed decisions.
 Your feedback is valuable to us and the seller.
 
 Thanks,
-The MarketHub Team
+The FEROMARKETHUB Team
 ```
 
 ### **Timing Strategy:**

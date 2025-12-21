@@ -251,18 +251,18 @@ export default function ProductDetailPage() {
     // Create rich share content
     const priceText = formatNGN(product.price)
     const compareText = product.comparePrice ? ` (was ${formatNGN(product.comparePrice)})` : ''
-    const vendorText = product.vendorName || 'MarketHub Vendor'
+    const vendorText = product.vendorName || 'FEROMARKETHUB Vendor'
     
     const shareText = `🛍️ ${product.name}
 
 💰 ${priceText}${compareText}
-🏪 Available at ${vendorText}'s store on MarketHub
+🏪 Available at ${vendorText}'s store on FEROMARKETHUB
 
 ${product.description.length > 100 ? product.description.substring(0, 100) + '...' : product.description}
 
 ✨ Shop now and get quality products with secure payment!
 
-#MarketHub #Shopping #${product.category}`
+#FEROMARKETHUB #Shopping #${product.category}`
 
     const shareData = {
       title: `${product.name} - ${priceText}`,
@@ -347,28 +347,28 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
   return (
     <div className="flex min-h-screen flex-col">
       <Head>
-        <title>{product.name} - {formatNGN(product.price)} | MarketHub</title>
-        <meta name="description" content={`${product.description.substring(0, 160)}... Available at ${product.vendorName || 'MarketHub'}'s store. Shop now with secure payment!`} />
+        <title>{product.name} - {formatNGN(product.price)} | FEROMARKETHUB</title>
+        <meta name="description" content={`${product.description.substring(0, 160)}... Available at ${product.vendorName || 'FEROMARKETHUB'}'s store. Shop now with secure payment!`} />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="product" />
         <meta property="og:title" content={`${product.name} - ${formatNGN(product.price)}`} />
-        <meta property="og:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'MarketHub'}'s store on MarketHub!`} />
+        <meta property="og:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'FEROMARKETHUB'}'s store on FEROMARKETHUB!`} />
         <meta property="og:image" content={product.images[0] || '/placeholder.svg'} />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:site_name" content="MarketHub" />
+        <meta property="og:site_name" content="FEROMARKETHUB" />
         
         {/* Product specific */}
         <meta property="product:price:amount" content={product.price.toString()} />
         <meta property="product:price:currency" content="NGN" />
         <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
-        <meta property="product:brand" content={product.vendorName || 'MarketHub'} />
+        <meta property="product:brand" content={product.vendorName || 'FEROMARKETHUB'} />
         <meta property="product:category" content={product.category} />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${product.name} - ${formatNGN(product.price)}`} />
-        <meta name="twitter:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'MarketHub'}'s store on MarketHub!`} />
+        <meta name="twitter:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'FEROMARKETHUB'}'s store on FEROMARKETHUB!`} />
         <meta name="twitter:image" content={product.images[0] || '/placeholder.svg'} />
       </Head>
       
@@ -596,8 +596,14 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                       <div className="flex items-start gap-3">
                         <Truck className="h-5 w-5 text-primary mt-0.5" />
                         <div>
-                          <p className="font-medium">Free Shipping</p>
-                          <p className="text-sm text-muted-foreground">On orders over ₦50,000</p>
+                          <p className="font-medium">
+                            {product.shippingInfo?.offerFreeShipping ? "Free Shipping" : "Shipping"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {product.shippingInfo?.offerFreeShipping
+                              ? product.shippingInfo.notes || "This product qualifies for free shipping based on the vendor's shipping settings."
+                              : "Shipping fees are calculated at checkout according to the vendor's shipping rates."}
+                          </p>
                         </div>
                       </div>
                       <Separator />

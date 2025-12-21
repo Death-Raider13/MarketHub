@@ -78,7 +78,7 @@ const helpCategories = [
     title: "General Questions",
     description: "FAQs and general information",
     articles: [
-      "About MarketHub",
+      "About FEROMARKETHUB",
       "How to contact support",
       "Terms of service",
       "Privacy policy",

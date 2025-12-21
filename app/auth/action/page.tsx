@@ -63,7 +63,7 @@ function AuthActionContent() {
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">MarketHub</CardTitle>
+            <CardTitle className="text-2xl font-bold">FEROMARKETHUB</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Your Digital Marketplace</p>
           </div>
         </CardHeader>
@@ -101,7 +101,7 @@ function AuthActionContent() {
                   ✅ You can now:
                 </p>
                 <ul className="text-sm text-green-800 dark:text-green-200 space-y-1 text-left ml-6 list-disc">
-                  <li>Make purchases on MarketHub</li>
+                  <li>Make purchases on FEROMARKETHUB</li>
                   <li>Access all platform features</li>
                   <li>Receive order confirmations</li>
                   <li>Track your orders</li>

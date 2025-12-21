@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare } from "lucide-react"
+import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare, Sun, Moon } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,10 +23,11 @@ import {
 } from "@/components/ui/sheet"
 import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
 import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useCart } from "@/lib/cart-context"
 import { useRouter } from "next/navigation"
 import { useMessages } from "@/hooks/use-messages"
+import { useTheme } from "next-themes"
 
 export function Header() {
   const { user, userProfile, logout } = useAuth()
@@ -35,6 +36,12 @@ export function Header() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,9 +93,9 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2" aria-label="MarketHub Home">
+          <Link href="/" className="flex items-center gap-2" aria-label="FEROMARKETHUB Home">
             <Store className="h-6 w-6" aria-hidden="true" />
-            <span className="text-xl font-bold">MarketHub</span>
+            <span className="text-xl font-bold">FEROMARKETHUB</span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -252,6 +259,22 @@ export function Header() {
 
             {/* Notifications - Only show for logged in users */}
             {user && <NotificationBell />}
+
+            {/* Theme Toggle */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Toggle theme"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Moon className="h-5 w-5" aria-hidden="true" />
+                )}
+              </Button>
+            )}
 
             {/* Cart */}
             <Link href="/cart" aria-label={`Shopping cart with ${totalItems} items`}>

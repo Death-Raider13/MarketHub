@@ -135,7 +135,7 @@ export default function VendorStorefrontPage() {
       if (navigator.share) {
         await navigator.share({
           title: branding.storeName,
-          text: `Check out ${branding.storeName} on MarketHub`,
+          text: `Check out ${branding.storeName} on FEROMARKETHUB`,
           url,
         })
         return
@@ -437,14 +437,14 @@ export default function VendorStorefrontPage() {
       {/* Footer */}
       <footer className="mt-16 py-8 bg-gray-50 border-t">
         <div className="container mx-auto px-4 text-center">
-          {/* Powered by MarketHub Badge */}
+          {/* Powered by FEROMARKETHUB Badge */}
           <div className="inline-flex items-center justify-center bg-white rounded-full px-6 py-3 shadow-sm border mb-4">
             <span className="text-gray-600 text-sm mr-2">Powered by</span>
             <Link 
               href="/" 
               className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
             >
-              MarketHub
+              FEROMARKETHUB
             </Link>
           </div>
           

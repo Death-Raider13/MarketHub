@@ -19,7 +19,7 @@ export default function NotFound() {
           </h1>
 
           <p className="text-lg md:text-xl font-semibold">
-            This MarketHub aisle is empty.
+            This FEROMARKETHUB aisle is empty.
           </p>
           <p className="text-sm md:text-base text-muted-foreground max-w-md">
             The page you are looking for might have been moved, deleted, or never existed. Let&apos;s get you back to shopping.

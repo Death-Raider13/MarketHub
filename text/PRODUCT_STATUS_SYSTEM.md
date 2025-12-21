@@ -297,7 +297,7 @@ Subject: Your product has been approved! 🎉
 Hi [Vendor Name],
 
 Good news! Your product "[Product Name]" has been approved 
-and is now live on MarketHub.
+and is now live on FEROMARKETHUB.
 
 Status: ACTIVE
 Product Link: [link]
@@ -305,7 +305,7 @@ Product Link: [link]
 Start promoting your product to customers!
 
 Thanks,
-MarketHub Team
+FEROMARKETHUB Team
 ```
 
 **Product Rejected:**
@@ -324,7 +324,7 @@ Please review our product guidelines and resubmit.
 Edit Product: [link]
 
 Thanks,
-MarketHub Team
+FEROMARKETHUB Team
 ```
 
 ---

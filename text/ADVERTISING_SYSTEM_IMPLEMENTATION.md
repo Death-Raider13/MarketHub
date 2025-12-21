@@ -11,7 +11,7 @@ A comprehensive advertising system that prevents double booking, manages invento
 ### **Three-Tier System:**
 
 ```
-1. Admin/Platform Level (MarketHub)
+1. Admin/Platform Level (FEROMARKETHUB)
    ↓
 2. Advertiser Level (Businesses buying ads)
    ↓
@@ -397,7 +397,7 @@ function calculateWeight(campaign) {
 ```
 Total Ad Revenue: 100%
 ├── Vendor Share: 70%
-├── Platform (MarketHub): 25%
+├── Platform (FEROMARKETHUB): 25%
 └── Payment Processing: 5%
 ```
 

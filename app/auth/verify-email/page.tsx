@@ -101,7 +101,7 @@ export default function VerifyEmailPage() {
                 📧 Check your email inbox
               </p>
               <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 ml-4 list-decimal">
-                <li>Open the email from MarketHub</li>
+                <li>Open the email from FEROMARKETHUB</li>
                 <li>Click the verification link</li>
                 <li>Return here and click "I've Verified"</li>
               </ol>

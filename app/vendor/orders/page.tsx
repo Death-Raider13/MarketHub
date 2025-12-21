@@ -306,7 +306,11 @@ function VendorOrdersContent() {
                                         <p>Method: {order.paymentMethod}</p>
                                         <p>Subtotal: ₦{Number(order.subtotal || 0).toLocaleString()}</p>
                                         <p>Tax: ₦{Number(order.tax || 0).toLocaleString()}</p>
-                                        <p>Shipping: ₦{Number(order.shipping || 0).toLocaleString()}</p>
+                                        <p>
+                                          Shipping: {Number(order.shipping || 0) === 0
+                                            ? 'FREE'
+                                            : `₦${Number(order.shipping || 0).toLocaleString()}`}
+                                        </p>
                                         <p className="font-semibold mt-1">Total: ₦{Number(order.total || 0).toLocaleString()}</p>
                                       </div>
 

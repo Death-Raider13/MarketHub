@@ -1,4 +1,4 @@
-# MarketHub - Multi-Vendor E-commerce Platform
+# FEROMARKETHUB - Multi-Vendor E-commerce Platform
 
 A modern, scalable multi-vendor marketplace built with Next.js 14, TypeScript, Firebase, and Tailwind CSS.
 
@@ -268,7 +268,7 @@ This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-- 📧 Email: support@markethub.com
+- 📧 Email: support@FEROMARKETHUB.com
 - 📚 Documentation: See `IMPROVEMENTS.md`
 - 🐛 Issues: GitHub Issues
 
