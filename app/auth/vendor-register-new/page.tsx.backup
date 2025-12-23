@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -71,34 +71,29 @@ const THEME_COLORS = [
   { name: "Midnight Dark", value: "#1F2937", gradient: "from-gray-800 to-gray-900" },
 ]
 
-const STEP_CONFIG = [
-  { num: 1, label: "Account", icon: Zap },
-  { num: 2, label: "Store Setup", icon: Store },
-  { num: 3, label: "Design", icon: Palette },
-]
-
 export default function VendorRegisterNewPage() {
-  const { signUp, user } = useAuth()
-  const [step, setStep] = useState(user ? 2 : 1)
+  const [step, setStep] = useState(1)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [checkingUrl, setCheckingUrl] = useState(false)
+  const { signUp, user } = useAuth()
   const router = useRouter()
 
   // Check if user is coming from onboarding (Google user)
-  const [isGoogleUser, setIsGoogleUser] = useState(!!user)
-
+  const [isGoogleUser, setIsGoogleUser] = useState(false)
+  
   useEffect(() => {
+    // If user is authenticated, they're coming from Google onboarding
     if (user) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('suppressRoleRedirect')
-      }
-      setStep(2)
       setIsGoogleUser(true)
+      setStep(2) // Skip to step 2 (Store Setup)
+      
+      // Pre-fill user data from Google account
       setFormData(prev => ({
         ...prev,
         fullName: user.displayName || '',
         email: user.email || '',
+        // Phone and other fields remain empty for user to fill
       }))
     }
   }, [user])
@@ -120,14 +115,8 @@ export default function VendorRegisterNewPage() {
     agreeToTerms: false,
   })
 
-  const visibleSteps = isGoogleUser ? STEP_CONFIG.slice(1) : STEP_CONFIG
-  const currentVisibleIndex = visibleSteps.findIndex((stepConfig) => stepConfig.num === step)
-  const normalizedStepIndex = currentVisibleIndex >= 0 ? currentVisibleIndex : 0
-  const normalizedStepNumber = normalizedStepIndex + 1
-  const totalVisibleSteps = visibleSteps.length
-  const progress = (normalizedStepNumber / totalVisibleSteps) * 100
-  const minStep = isGoogleUser ? 2 : 1
-  const maxStep = 3
+  const totalSteps = isGoogleUser ? 2 : 3 // Google users skip step 1
+  const progress = ((step - (isGoogleUser ? 1 : 0)) / totalSteps) * 100
 
   const updateFormData = (field: keyof VendorFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -206,13 +195,13 @@ export default function VendorRegisterNewPage() {
   const handleNext = () => {
     if (validateStep(step)) {
       setError("")
-      setStep(prev => Math.min(prev + 1, maxStep))
+      setStep(prev => Math.min(prev + 1, totalSteps))
     }
   }
 
   const handleBack = () => {
     setError("")
-    setStep(prev => Math.max(prev - 1, minStep))
+    setStep(prev => Math.max(prev - 1, 1))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -226,53 +215,11 @@ export default function VendorRegisterNewPage() {
     setError("")
 
     try {
-      if (isGoogleUser && user) {
-        // Google-authenticated vendor: just create the store document
-        const storeData = {
-          storeName: formData.storeName,
-          storeUrl: formData.storeUrl,
-          storeDescription: formData.storeDescription,
-          category: formData.category,
-          theme: {
-            primaryColor: formData.primaryColor,
-            logoUrl: formData.logoUrl,
-            bannerUrl: formData.bannerUrl,
-          },
-          socialLinks: formData.socialLinks,
-          phone: formData.phone,
-          ownerId: user.uid,
-          verified: false,
-          isActive: true,
-          createdAt: new Date(),
-        }
-
-        // Vendors collection doc id must match auth uid for rules
-        await setDoc(doc(db, "vendors", user.uid), storeData, { merge: true })
-
-        // Notify applicant and admins (best-effort)
-        try {
-          await fetch('/api/notifications/vendor-application', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              vendorEmail: user.email || '',
-              vendorName: formData.fullName,
-              storeName: formData.storeName,
-              category: formData.category,
-              storeUrl: formData.storeUrl,
-            }),
-          })
-        } catch {}
-
-      toast.success("Store created successfully! 🎉")
-        // Vendor not verified yet
-        router.push("/vendor/pending-approval")
-        return
-      }
-
-      // Email/password path: create account then proceed as before
+      // Create user account with email verification
       await signUp(formData.email, formData.password, "vendor", formData.fullName)
 
+      // Store vendor data in Firestore
+      // Note: User document is created by signUp, we'll add store info
       const storeData = {
         storeName: formData.storeName,
         storeUrl: formData.storeUrl,
@@ -285,28 +232,16 @@ export default function VendorRegisterNewPage() {
         },
         socialLinks: formData.socialLinks,
         phone: formData.phone,
-        verified: false,
+        verified: false, // Admin approval (optional)
         isActive: true,
         createdAt: new Date(),
       }
-      // TODO: Save to Firestore with user UID once available
 
-      // Notify applicant and admins (best-effort)
-      try {
-        await fetch('/api/notifications/vendor-application', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            vendorEmail: formData.email,
-            vendorName: formData.fullName,
-            storeName: formData.storeName,
-            category: formData.category,
-            storeUrl: formData.storeUrl,
-          }),
-        })
-      } catch {}
-
+      // TODO: Save to Firestore with user UID
+      
       toast.success("Store created successfully! 🎉")
+      
+      // Redirect to email verification
       router.push("/auth/verify-email")
     } catch (err: any) {
       setError(err.message || "Failed to create store")
@@ -341,14 +276,18 @@ export default function VendorRegisterNewPage() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium">Step {normalizedStepNumber} of {totalVisibleSteps}</span>
+            <span className="text-sm font-medium">Step {step} of {totalSteps}</span>
             <span className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</span>
           </div>
           <Progress value={progress} className="h-3" />
           
           {/* Step Indicators */}
           <div className="mt-6 flex justify-between">
-            {visibleSteps.map((s) => (
+            {[
+              { num: 1, label: "Account", icon: Zap },
+              { num: 2, label: "Store Setup", icon: Store },
+              { num: 3, label: "Design", icon: Palette }
+            ].map((s) => (
               <div key={s.num} className="flex flex-col items-center flex-1">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
                   step > s.num ? "bg-primary text-primary-foreground shadow-lg scale-110" :
@@ -650,7 +589,7 @@ export default function VendorRegisterNewPage() {
                   </Button>
                 )}
                 
-                {step < maxStep ? (
+                {step < totalSteps ? (
                   <Button
                     type="button"
                     onClick={handleNext}

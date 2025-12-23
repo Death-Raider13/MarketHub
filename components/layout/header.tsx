@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare, Sun, Moon } from "lucide-react"
+import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare, Sun, Moon, LogOut } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -95,7 +95,8 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2" aria-label="FEROMARKETHUB Home">
             <Store className="h-6 w-6" aria-hidden="true" />
-            <span className="text-xl font-bold">FEROMARKETHUB</span>
+            <span className="text-xl font-bold hidden sm:inline">FEROMARKETHUB</span>
+            <span className="text-xl font-bold sm:hidden">FERO</span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -152,104 +153,162 @@ export function Header() {
                   <Menu className="h-5 w-5" aria-hidden="true" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+              <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <nav className="mt-6 flex flex-col gap-4" aria-label="Mobile navigation">
-                  <Link 
-                    href="/products" 
-                    className="flex items-center gap-3 text-lg font-medium hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Package className="h-5 w-5" />
-                    All Products
-                  </Link>
-                  <Link 
-                    href="/categories" 
-                    className="flex items-center gap-3 text-lg font-medium hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Store className="h-5 w-5" />
-                    Categories
-                  </Link>
-                  <Link 
-                    href="/vendors" 
-                    className="flex items-center gap-3 text-lg font-medium hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Store className="h-5 w-5" />
-                    Vendors
-                  </Link>
-                  <Link 
-                    href="/advertise" 
-                    className="flex items-center gap-3 text-lg font-medium hover:text-primary text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Megaphone className="h-5 w-5" />
-                    Advertise
-                  </Link>
-                  {user && (
-                    <>
+                <nav className="mt-6 flex flex-col gap-6" aria-label="Mobile navigation">
+                  {/* Shop Section */}
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Shop</h4>
+                    <div className="flex flex-col gap-3">
                       <Link 
-                        href="/account" 
-                        className="flex items-center gap-3 text-lg font-medium hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <User className="h-5 w-5" />
-                        My Account
-                      </Link>
-                      <div className="flex items-center gap-3 text-lg font-medium">
-                        <NotificationBell />
-                        <span>Notifications</span>
-                      </div>
-                      <Link 
-                        href="/my-purchases" 
-                        className="flex items-center gap-3 text-lg font-medium hover:text-primary"
+                        href="/products" 
+                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Package className="h-5 w-5" />
-                        My Purchases
+                        All Products
                       </Link>
                       <Link 
-                        href="/messages" 
-                        className="flex items-center justify-between text-lg font-medium hover:text-primary"
+                        href="/categories" 
+                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <div className="flex items-center gap-3">
-                          <MessageSquare className="h-5 w-5" />
-                          Messages
-                        </div>
-                        {unreadCount > 0 && (
-                          <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
-                            {unreadCount}
-                          </Badge>
+                        <Store className="h-5 w-5" />
+                        Categories
+                      </Link>
+                      <Link 
+                        href="/vendors" 
+                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Store className="h-5 w-5" />
+                        Vendors
+                      </Link>
+                      <Link 
+                        href="/advertise" 
+                        className="flex items-center gap-3 text-base font-medium hover:text-primary text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Megaphone className="h-5 w-5" />
+                        Advertise
+                      </Link>
+                      {user && userProfile?.role === "vendor" && (
+                        <Link 
+                          href="/vendor/dashboard"
+                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <LayoutDashboard className="h-5 w-5" />
+                          Switch to Selling
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Account Section (only when logged in) */}
+                  {user && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Account</h4>
+                      <div className="flex flex-col gap-3">
+                        <Link 
+                          href="/account" 
+                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <User className="h-5 w-5" />
+                          My Account
+                        </Link>
+                        <Link 
+                          href="/my-purchases" 
+                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Package className="h-5 w-5" />
+                          My Purchases
+                        </Link>
+                        <Link 
+                          href="/messages" 
+                          className="flex items-center justify-between text-base font-medium hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <MessageSquare className="h-5 w-5" />
+                            Messages
+                          </div>
+                          {unreadCount > 0 && (
+                            <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                              {unreadCount}
+                            </Badge>
+                          )}
+                        </Link>
+                        <Link 
+                          href="/account" 
+                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Heart className="h-5 w-5" />
+                          Wishlist
+                        </Link>
+                        {dashboardInfo && (
+                          <Link 
+                            href={dashboardInfo.href}
+                            className="flex items-center gap-3 text-base font-medium hover:text-primary"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <LayoutDashboard className="h-5 w-5" />
+                            {dashboardInfo.label}
+                          </Link>
                         )}
-                      </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Support */}
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Support</h4>
+                    <div className="flex flex-col gap-3">
                       <Link 
-                        href="/account" 
-                        className="flex items-center gap-3 text-lg font-medium hover:text-primary"
+                        href="/help" 
+                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <Heart className="h-5 w-5" />
-                        Wishlist
+                        <MessageSquare className="h-5 w-5" />
+                        Help Center
                       </Link>
-                    </>
-                  )}
-                  <Link 
-                    href="/help" 
-                    className="flex items-center gap-3 text-lg font-medium hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Help Center
-                  </Link>
-                  {!user && (
-                    <div className="mt-4 flex flex-col gap-2">
-                      <Button asChild onClick={() => setMobileMenuOpen(false)}>
-                        <Link href="/auth/login">Login</Link>
-                      </Button>
-                      <Button variant="outline" asChild onClick={() => setMobileMenuOpen(false)}>
-                        <Link href="/auth/signup">Sign Up</Link>
+                    </div>
+                  </div>
+
+                  {/* Auth / Logout */}
+                  {!user ? (
+                    <div className="pt-4 border-t">
+                      <div className="flex flex-col gap-2">
+                        <Button asChild onClick={() => setMobileMenuOpen(false)}>
+                          <Link href="/auth/login">Login</Link>
+                        </Button>
+                        <Button variant="outline" asChild onClick={() => setMobileMenuOpen(false)}>
+                          <Link href="/auth/signup">Sign Up</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-base font-medium"
+                        onClick={async () => {
+                          try {
+                            await logout()
+                            setMobileMenuOpen(false)
+                            router.push("/auth/login")
+                          } catch (error) {
+                            console.error("Logout error:", error)
+                          }
+                        }}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
                       </Button>
                     </div>
                   )}
@@ -261,20 +320,7 @@ export function Header() {
             {user && <NotificationBell />}
 
             {/* Theme Toggle */}
-            {mounted && (
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Toggle theme"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" aria-hidden="true" />
-                ) : (
-                  <Moon className="h-5 w-5" aria-hidden="true" />
-                )}
-              </Button>
-            )}
+           
 
             {/* Cart */}
             <Link href="/cart" aria-label={`Shopping cart with ${totalItems} items`}>
@@ -450,14 +496,24 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden gap-2 md:flex">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/auth/login">Login</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link href="/auth/signup">Sign Up</Link>
-                </Button>
-              </div>
+              <>
+                {/* Mobile: Direct login icon */}
+                <Link href="/auth/login" aria-label="Login" className="md:hidden">
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+
+                {/* Desktop: Login/Sign Up buttons */}
+                <div className="hidden gap-2 md:flex">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/auth/login">Login</Link>
+                  </Button>
+                  <Button size="sm" asChild>
+                    <Link href="/auth/signup">Sign Up</Link>
+                  </Button>
+                </div>
+              </>
             )}
           </div>
         </div>

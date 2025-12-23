@@ -134,17 +134,38 @@ function AdminVendorsContent() {
 
   const updateVendorStatus = async (vendorId: string, newStatus: Vendor['status']) => {
     try {
+      // Read current vendor info for notifications before state changes
+      const currentVendor = vendors.find(v => v.id === vendorId) || null
+
+      // Reflect status + verified on the user document
       await updateDoc(doc(db, "users", vendorId), {
         status: newStatus,
-        updatedAt: new Date()
+        verified: newStatus === "active",
+        updatedAt: new Date(),
       })
-      
-      setVendors(prev => prev.map(vendor => 
+
+      // Update local state
+      setVendors(prev => prev.map(vendor => (
         vendor.id === vendorId ? { ...vendor, status: newStatus } : vendor
-      ))
-      
+      )))
+
+      // Best-effort email to applicant about decision
+      try {
+        const decision = newStatus === "active" ? "approved" : "rejected"
+        const vendorEmail = currentVendor?.email
+        const storeName = currentVendor?.storeName
+        if (vendorEmail) {
+          await fetch('/api/notifications/vendor-decision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vendorEmail, decision, storeName }),
+          })
+        }
+      } catch (e) {
+        console.warn('Failed to send vendor decision email', e)
+      }
+
       toast.success(`Vendor status updated to ${newStatus}`)
-      
     } catch (error) {
       console.error("Error updating vendor status:", error)
       toast.error("Failed to update vendor status")

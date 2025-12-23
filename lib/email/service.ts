@@ -736,3 +736,75 @@ export async function sendRefundProcessedEmail(order: any, refund: BasicRefund) 
     throw error
   }
 }
+
+// ============================================
+// VENDOR APPLICATION EMAILS
+// ============================================
+export async function sendVendorApplicationSubmittedEmail(
+  vendorEmail: string,
+  payload: { vendorName?: string; storeName: string; category?: string; storeUrl?: string }
+) {
+  const name = payload.vendorName || (vendorEmail.split('@')[0] || 'Vendor')
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
+    <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
+      <div style="padding:20px;background:#111827;color:#f9fafb"><h1 style="margin:0;font-size:20px;">Application Received</h1></div>
+      <div style="padding:24px">
+        <p>Hi <strong>${name}</strong>,</p>
+        <p>Thanks for applying to become a vendor on FEROMARKETHUB. Your application is under review.</p>
+        <div style="margin:16px 0;padding:12px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px">
+          <p style="margin:4px 0"><strong>Store:</strong> ${payload.storeName}</p>
+          ${payload.category ? `<p style="margin:4px 0"><strong>Category:</strong> ${payload.category}</p>` : ''}
+          ${payload.storeUrl ? `<p style=\"margin:4px 0\"><strong>URL:</strong> ${APP_URL}/${payload.storeUrl}</p>` : ''}
+        </div>
+        <p>We'll email you once a decision is made (usually 1–3 business days).</p>
+      </div>
+      <div style="padding:16px 20px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;background:#f9fafb">© 2025 FEROMARKETHUB</div>
+    </div></body></html>`
+  return sendEmail({ from: FROM_EMAIL, to: vendorEmail, subject: 'Your vendor application was received', html })
+}
+
+export async function sendAdminNewVendorApplicationEmail(
+  adminTo: string | string[],
+  payload: { vendorEmail: string; vendorName?: string; storeName: string; category?: string; storeUrl?: string }
+) {
+  const to = Array.isArray(adminTo) ? adminTo : [adminTo]
+  const name = payload.vendorName || (payload.vendorEmail.split('@')[0] || 'Vendor')
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
+    <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
+      <div style="padding:20px;background:#0EA5E9;color:#fff"><h1 style="margin:0;font-size:20px;">New Vendor Application</h1></div>
+      <div style="padding:24px">
+        <p><strong>${name}</strong> (<a href="mailto:${payload.vendorEmail}">${payload.vendorEmail}</a>) just applied to become a vendor.</p>
+        <div style="margin:16px 0;padding:12px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px">
+          <p style="margin:4px 0"><strong>Store:</strong> ${payload.storeName}</p>
+          ${payload.category ? `<p style=\"margin:4px 0\"><strong>Category:</strong> ${payload.category}</p>` : ''}
+          ${payload.storeUrl ? `<p style=\"margin:4px 0\"><strong>URL:</strong> ${APP_URL}/${payload.storeUrl}</p>` : ''}
+        </div>
+        <p>Approve or reject from the admin dashboard.</p>
+      </div>
+    </div></body></html>`
+  for (const addr of to) {
+    if (addr && addr.includes('@')) {
+      try {
+        await sendEmail({ from: FROM_EMAIL, to: addr, subject: 'New vendor application received', html })
+      } catch {}
+    }
+  }
+  return { success: true }
+}
+
+export async function sendVendorApplicationDecisionEmail(
+  vendorEmail: string,
+  decision: 'approved' | 'rejected',
+  storeName?: string,
+  reason?: string
+) {
+  const subject = decision === 'approved' ? 'Your vendor application was approved' : 'Your vendor application was rejected'
+  const body = decision === 'approved'
+    ? `<p>Great news! Your vendor application${storeName ? ` for <strong>${storeName}</strong>` : ''} has been approved. You can now access your vendor dashboard and start adding products.</p>
+       <p><a href="${APP_URL}/vendor/dashboard" style="display:inline-block;background:#10b981;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none">Open Vendor Dashboard</a></p>`
+    : `<p>We’re sorry—your vendor application${storeName ? ` for <strong>${storeName}</strong>` : ''} was not approved at this time.</p>
+       ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+       <p>You can reply to this email if you have questions.</p>`
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb"><div style="padding:20px;background:#111827;color:#f9fafb"><h1 style="margin:0;font-size:20px;">Vendor Application Update</h1></div><div style="padding:24px">${body}</div></div></body></html>`
+  return sendEmail({ from: FROM_EMAIL, to: vendorEmail, subject, html })
+}

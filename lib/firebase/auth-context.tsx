@@ -12,6 +12,9 @@ import {
   sendPasswordResetEmail,
   sendEmailVerification,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithPopup,
 } from "firebase/auth"
 import { onUserRegistration } from '@/lib/notifications/triggers'
 import { doc, getDoc, setDoc } from "firebase/firestore"
@@ -67,6 +70,7 @@ interface AuthContextType {
   loading: boolean
   signUp: (email: string, password: string, role: UserRole, displayName?: string) => Promise<void>
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   logout: () => Promise<void>
   logoutAllDevices: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
@@ -189,34 +193,124 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
+  const signInWithGoogle = async () => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const provider = new GoogleAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+      const user = result.user
+
+      // Check if user profile exists
+      const userDoc = await getDoc(doc(db, "users", user.uid))
       
-      // Get user profile to determine role
-      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid))
-      const profile = userDoc.data() as UserProfile
-      
-      // Create session
-      const ipAddress = await fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => data.ip)
-        .catch(() => 'unknown')
-      
-      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
-      
-      const newSession = await createSession(
-        userCredential.user.uid,
-        userCredential.user.email!,
-        profile.role,
-        ipAddress,
-        userAgent,
-        rememberMe
-      )
-      
-      setSession(newSession)
+      if (!userDoc.exists()) {
+        // New user: create a minimal profile and redirect to onboarding
+        const minimalProfile: Partial<UserProfile> = {
+          uid: user.uid,
+          email: user.email || '',
+          displayName: user.displayName || user.email || '',
+          photoURL: user.photoURL || undefined,
+          emailVerified: user.emailVerified,
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+          updatedAt: new Date(),
+        }
+        
+        await setDoc(doc(db, "users", user.uid), minimalProfile)
+        
+        // Set a flag in sessionStorage to show onboarding
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('needsOnboarding', 'true')
+        }
+      } else {
+        // Existing user: update last login and proceed normally
+        const profile = userDoc.data() as UserProfile
+        await setDoc(doc(db, "users", user.uid), {
+          ...profile,
+          lastLoginAt: new Date(),
+          updatedAt: new Date(),
+        }, { merge: true })
+
+        // Only create session if user has a role
+        if (profile.role) {
+          // Create session (best-effort)
+          try {
+            const ipAddress = await fetch('https://api.ipify.org?format=json')
+              .then(res => res.json())
+              .then(data => data.ip)
+              .catch(() => 'unknown')
+            
+            const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+            
+            const newSession = await createSession(
+              user.uid,
+              user.email!,
+              profile.role,
+              ipAddress,
+              userAgent,
+              false
+            )
+            
+            setSession(newSession)
+          } catch (sessionError) {
+            console.error('Session creation failed:', sessionError)
+          }
+        } else {
+          // User exists but has no role, send to onboarding
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('needsOnboarding', 'true')
+          }
+        }
+      }
     } catch (error: any) {
-      // Use production error handler for user-friendly messages
+      const userFriendlyMessage = handleAuthError(error)
+      throw new Error(userFriendlyMessage)
+    }
+  }
+    const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
+    try {
+      // 1) Primary auth step – if this fails, we show an error to the user
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+
+      // 2) Best-effort post-login setup (profile + session). If this fails, we log
+      // it but do NOT treat it as a login failure since the user is already
+      // authenticated and onAuthStateChanged will still fire.
+      try {
+        // Get user profile to determine role
+        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid))
+
+        if (!userDoc.exists()) {
+          console.warn('User profile not found after sign-in; skipping session creation', {
+            uid: userCredential.user.uid,
+          })
+          return
+        }
+
+        const profile = userDoc.data() as UserProfile
+
+        // Create session (best-effort)
+        const ipAddress = await fetch('https://api.ipify.org?format=json')
+          .then(res => res.json())
+          .then(data => data.ip)
+          .catch(() => 'unknown')
+        
+        const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+        
+        const newSession = await createSession(
+          userCredential.user.uid,
+          userCredential.user.email!,
+          profile.role,
+          ipAddress,
+          userAgent,
+          rememberMe
+        )
+        
+        setSession(newSession)
+      } catch (secondaryError: any) {
+        // Log but don't block login flow
+        console.error('Post-sign-in profile/session setup failed:', secondaryError)
+      }
+    } catch (error: any) {
+      // Only true auth failures should surface to the UI
       const userFriendlyMessage = handleAuthError(error)
       throw new Error(userFriendlyMessage)
     }
@@ -317,6 +411,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     logout,
     logoutAllDevices,
     resetPassword,

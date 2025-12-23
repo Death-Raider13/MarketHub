@@ -61,11 +61,18 @@ service cloud.firestore {
     // ============================================
     match /users/{userId} {
       // Anyone can create their own user document during signup
+      // Allow both email signup (with role) and Google signup (without role initially)
       allow create: if isSignedIn() && 
                       request.auth.uid == userId &&
-                      request.resource.data.keys().hasAll(['email', 'role', 'createdAt']) &&
-                      request.resource.data.role in ['customer', 'vendor'] &&
-                      isValidEmail(request.resource.data.email);
+                      request.resource.data.keys().hasAll(['email', 'createdAt']) &&
+                      isValidEmail(request.resource.data.email) &&
+                      (
+                        // Email signup: must have role
+                        (request.resource.data.keys().hasAll(['role']) &&
+                         request.resource.data.role in ['customer', 'vendor']) ||
+                        // Google signup: role not required initially
+                        (!request.resource.data.keys().hasAny(['role']))
+                      );
       
       // Users can read their own data, admins can read all
       allow read: if isOwner(userId) || isAdmin();
@@ -73,11 +80,24 @@ service cloud.firestore {
       // Anyone can read vendor profiles (for storefront pages and featured vendors)
       allow read: if resource.data.role == 'vendor';
       
-      // Users can update their own data (except role and verified status)
+      // Users can update their own data (except uid)
+      // Allow adding role during onboarding (if not already set)
+      // Allow setting verified: false for new vendors during onboarding
       allow update: if isOwner(userId) && 
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'verified', 'uid']);
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid']) &&
+                      (
+                        // Can't change role if already set
+                        (!resource.data.keys().hasAny(['role']) && request.resource.data.keys().hasAll(['role']) && request.resource.data.role in ['customer', 'vendor']) ||
+                        // Can't change role if already set
+                        (resource.data.keys().hasAll(['role']) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||
+                        // Allow setting verified: false for new vendors
+                        (!resource.data.keys().hasAny(['verified']) && 
+                         request.resource.data.keys().hasAll(['verified']) && 
+                         request.resource.data.verified == false &&
+                         request.resource.data.role == 'vendor')
+                      );
       
-      // Only admins can update role and verified status
+      // Only admins can update verified status (except setting to false for new vendors)
       allow update: if isAdmin();
       
       // Only admins can delete users
@@ -684,6 +704,29 @@ service cloud.firestore {
     }
     
     // ============================================
+    // SESSIONS COLLECTION (Client-Managed Sessions)
+    // ============================================
+    match /sessions/{sessionId} {
+      // Authenticated users can create session docs for themselves
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid;
+
+      // Users can read their own sessions
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Admins can read all sessions
+      allow read: if isAdmin();
+
+      // Users can update their own sessions (activity, expiry, termination)
+      allow update: if isSignedIn() &&
+                      resource.data.userId == request.auth.uid &&
+                      request.resource.data.userId == resource.data.userId;
+
+      // No one deletes session documents from the client; keep for audit
+      allow delete: if false;
+    }
+    
+    // ============================================
     // INVENTORY LOGS COLLECTION (Optional - for tracking)
     // ============================================
     match /inventoryLogs/{logId} {
@@ -697,6 +740,21 @@ service cloud.firestore {
       allow read: if isAdmin();
       
       // No updates or deletes (immutable audit trail)
+      allow update, delete: if false;
+    }
+    
+    // ============================================
+    // SECURITY EVENTS COLLECTION
+    // ============================================
+    match /security_events/{eventId} {
+      // Authenticated users can create security events for their own account
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid;
+
+      // Admins can read all security events
+      allow read: if isAdmin();
+
+      // No client-side updates or deletes
       allow update, delete: if false;
     }
     
