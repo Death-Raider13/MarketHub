@@ -17,9 +17,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Star, ThumbsUp, MessageSquare, User, Loader2 } from "lucide-react"
+import { Star, ThumbsUp, MessageSquare, User, Loader2, Flag } from "lucide-react"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
+import { ReportContent } from "@/components/common/report-content"
 
 interface Review {
   id: string
@@ -142,7 +143,7 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
       const data = await response.json()
 
       if (data.success) {
-        toast.success('Review submitted successfully!')
+        toast.success('Review submitted successfully! It will appear after admin approval.')
         setShowReviewDialog(false)
         setReviewForm({ rating: 0, title: '', comment: '' })
         loadReviews()
@@ -332,8 +333,13 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
           ) : reviewStats.totalReviews === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Star className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>No reviews yet</p>
+              <p>No approved reviews yet</p>
               <p className="text-sm">Be the first to review this product!</p>
+              {canReview && (
+                <p className="text-xs mt-2 text-blue-600">
+                  Reviews are moderated and will appear after admin approval.
+                </p>
+              )}
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2">
@@ -389,6 +395,16 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
                         </div>
                       </div>
                     </div>
+                    <ReportContent
+                      type="review"
+                      itemId={review.id}
+                      itemTitle={`Review: ${review.title}`}
+                      trigger={
+                        <Button variant="ghost" size="sm">
+                          <Flag className="h-3 w-3" />
+                        </Button>
+                      }
+                    />
                   </div>
 
                   <div>

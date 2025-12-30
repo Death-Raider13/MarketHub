@@ -16,14 +16,15 @@ export async function GET(
       )
     }
 
-    // Get all reviews for this product
+    // Get all reviews for this product first, then filter by status
     const reviewsSnapshot = await adminDb
       .collection('reviews')
       .where('productId', '==', productId)
       .orderBy('createdAt', 'desc')
       .get()
 
-    const reviews = reviewsSnapshot.docs.map(doc => {
+    // Filter for approved reviews in memory to avoid index issues
+    const allReviews = reviewsSnapshot.docs.map(doc => {
       const data = doc.data()
       return {
         id: doc.id,
@@ -32,6 +33,9 @@ export async function GET(
         updatedAt: data.updatedAt?.toDate()
       }
     })
+
+    // Filter for approved reviews
+    const reviews = allReviews.filter((review: any) => review.status === 'approved')
 
     // Calculate review statistics
     const totalReviews = reviews.length
@@ -129,6 +133,7 @@ export async function POST(
       comment: comment.trim(),
       helpful: 0,
       verified,
+      status: 'pending', // Reviews need approval
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -178,16 +183,19 @@ export async function POST(
 // Helper function to update product rating
 async function updateProductRating(productId: string) {
   try {
-    // Get all reviews for this product
+    // Get all reviews for this product first, then filter by status
     const reviewsSnapshot = await adminDb
       .collection('reviews')
       .where('productId', '==', productId)
       .get()
 
-    const reviews = reviewsSnapshot.docs.map(doc => doc.data())
-    const totalReviews = reviews.length
+    // Filter for approved reviews in memory
+    const allReviews = reviewsSnapshot.docs.map(doc => doc.data())
+    const approvedReviews = allReviews.filter(review => review.status === 'approved')
+    
+    const totalReviews = approvedReviews.length
     const averageRating = totalReviews > 0 
-      ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+      ? approvedReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
       : 0
 
     // Update product document
@@ -196,6 +204,8 @@ async function updateProductRating(productId: string) {
       reviewCount: totalReviews,
       updatedAt: new Date()
     })
+
+    console.log(`Updated product ${productId} rating to ${averageRating} with ${totalReviews} approved reviews`)
 
   } catch (error) {
     console.error('Error updating product rating:', error)

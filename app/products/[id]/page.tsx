@@ -23,6 +23,7 @@ import { ServiceReviews } from "@/components/services/service-reviews"
 import { DigitalProductReviews } from "@/components/digital-products/digital-product-reviews"
 import { ContactVendor } from "@/components/customer/contact-vendor"
 import { ProductQA } from "@/components/customer/product-qa"
+import { ReportContent } from "@/components/common/report-content"
 import { 
   Star, 
   Heart, 
@@ -37,7 +38,8 @@ import {
   Check,
   MessageCircle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Flag
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -571,6 +573,17 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                   <Button size="lg" variant="outline" onClick={handleShare} disabled={isSharing} aria-label="Share product">
                     {isSharing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Share2 className="h-5 w-5" />}
                   </Button>
+                  <ReportContent
+                    type="product"
+                    itemId={product.id}
+                    itemTitle={product.name}
+                    itemUrl={`/products/${product.id}`}
+                    trigger={
+                      <Button size="lg" variant="outline" aria-label="Report product">
+                        <Flag className="h-5 w-5" />
+                      </Button>
+                    }
+                  />
                 </div>
                 
                 {/* Contact Vendor Button */}

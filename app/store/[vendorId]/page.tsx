@@ -21,11 +21,13 @@ import {
   Instagram,
   Facebook,
   Loader2,
+  Flag,
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { AdSlot } from "@/components/advertising/AdSlot"
 import { VendorStoreAds } from "@/components/advertising/VendorStoreAds"
+import { ReportContent } from "@/components/common/report-content"
 import { useCart } from "@/lib/cart-context"
 import type { Product } from "@/lib/types"
 
@@ -266,6 +268,17 @@ export default function VendorStorefrontPage() {
               >
                 <Share2 className="h-5 w-5" />
               </Button>
+              <ReportContent
+                type="vendor"
+                itemId={vendorId}
+                itemTitle={branding.storeName}
+                itemUrl={`/store/${vendorId}`}
+                trigger={
+                  <Button variant="ghost" size="icon">
+                    <Flag className="h-5 w-5" />
+                  </Button>
+                }
+              />
               <Button
                 variant="outline"
                 asChild

@@ -113,10 +113,10 @@ function AnalyticsDashboardContent() {
         createdAt: doc.data().createdAt?.toDate() || new Date()
       }))
 
-      // Calculate analytics
-      const totalRevenue = orders.reduce((sum: number, order: any) => 
-        sum + (order.totalAmount || 0), 0
-      )
+      // Calculate analytics (only paid/completed orders)
+      const totalRevenue = orders
+        .filter((order: any) => order.paymentStatus === 'completed' || order.paymentStatus === 'paid')
+        .reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0)
       
       const totalOrders = orders.length
       const totalUsers = users.length

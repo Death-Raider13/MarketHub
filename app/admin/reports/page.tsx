@@ -108,9 +108,9 @@ function AdminReportsContent() {
         createdAt: doc.data().createdAt?.toDate() || new Date()
       }))
 
-      const totalRevenue = orders.reduce((sum: number, order: any) => 
-        sum + (order.totalAmount || 0), 0
-      )
+      const totalRevenue = orders
+        .filter((order: any) => order.paymentStatus === 'completed' || order.paymentStatus === 'paid')
+        .reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0)
 
       // Generate monthly revenue data
       const monthlyData: { [key: string]: { revenue: number; orders: number } } = {}

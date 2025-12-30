@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
+  Flag,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -739,6 +740,15 @@ function AccountPageContent() {
                 <Shield className="mr-2 h-4 w-4" />
                 Security
               </Button>
+              <Link href="/account/reports">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                >
+                  <Flag className="mr-2 h-4 w-4" />
+                  My Reports
+                </Button>
+              </Link>
             </aside>
 
             {/* Main Content */}

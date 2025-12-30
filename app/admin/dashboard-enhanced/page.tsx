@@ -96,8 +96,10 @@ function EnhancedAdminDashboard() {
       const totalOrders = orders.length;
       const pendingOrders = orders.filter(o => o.status === 'pending').length;
 
-      // Calculate revenue (mock for now)
-      const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+      // Calculate revenue (only paid/completed orders)
+      const totalRevenue = orders
+        .filter((order: any) => order.paymentStatus === 'completed' || order.paymentStatus === 'paid')
+        .reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
 
       setStats({
         totalRevenue,

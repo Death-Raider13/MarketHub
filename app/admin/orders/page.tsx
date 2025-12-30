@@ -46,7 +46,7 @@ import {
   Truck,
   DollarSign
 } from "lucide-react"
-import { collection, query, orderBy, limit, getDocs, doc, updateDoc, where } from "firebase/firestore"
+import { collection, query, orderBy, limit, getDocs, doc, updateDoc, where, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
@@ -67,7 +67,7 @@ interface Order {
   }>
   totalAmount: number
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
+  paymentStatus: 'pending' | 'paid' | 'completed' | 'failed' | 'refunded'
   paymentMethod: string
   shippingAddress: any
   createdAt: Date
@@ -99,18 +99,82 @@ function OrdersManagementContent() {
       const ordersSnapshot = await getDocs(ordersQuery)
       console.log("Orders found:", ordersSnapshot.docs.length)
       
-      const ordersData = ordersSnapshot.docs.map(doc => {
-        const data = doc.data()
+      // Collect unique user IDs and vendor IDs to fetch their names
+      const userIds = new Set<string>()
+      const vendorIds = new Set<string>()
+      
+      ordersSnapshot.docs.forEach(docSnap => {
+        const data = docSnap.data()
+        const userId = data.customerId || data.userId
+        if (userId) userIds.add(userId)
+        
+        // Collect vendor IDs from items
+        if (data.items && Array.isArray(data.items)) {
+          data.items.forEach((item: any) => {
+            if (item.vendorId) vendorIds.add(item.vendorId)
+          })
+        }
+        // Also check vendorIds array
+        if (data.vendorIds && Array.isArray(data.vendorIds)) {
+          data.vendorIds.forEach((vid: string) => vendorIds.add(vid))
+        }
+      })
+      
+      // Fetch user display names
+      const userNames: Record<string, string> = {}
+      await Promise.all(
+        Array.from(userIds).map(async (userId) => {
+          try {
+            const userDoc = await getDoc(doc(db, "users", userId))
+            if (userDoc.exists()) {
+              const userData = userDoc.data()
+              userNames[userId] = userData.displayName || userData.name || ""
+            }
+          } catch (err) {
+            console.error(`Failed to fetch user ${userId}:`, err)
+          }
+        })
+      )
+      
+      // Fetch vendor/store names
+      const vendorNames: Record<string, string> = {}
+      await Promise.all(
+        Array.from(vendorIds).map(async (vendorId) => {
+          try {
+            const vendorDoc = await getDoc(doc(db, "vendors", vendorId))
+            if (vendorDoc.exists()) {
+              const vendorData = vendorDoc.data()
+              vendorNames[vendorId] = vendorData.storeName || vendorData.businessName || vendorData.displayName || ""
+            }
+          } catch (err) {
+            console.error(`Failed to fetch vendor ${vendorId}:`, err)
+          }
+        })
+      )
+      
+      const ordersData = ordersSnapshot.docs.map(docSnap => {
+        const data = docSnap.data()
         console.log("Order data:", data)
         
+        const userId = data.customerId || data.userId || ""
+        const userDisplayName = userNames[userId] || ""
+        
+        // Get vendor names from items
+        const itemVendorNames = (data.items || [])
+          .map((item: any) => item.vendorName || vendorNames[item.vendorId] || "")
+          .filter((name: string) => name)
+        const vendorName = itemVendorNames.length > 0 
+          ? [...new Set(itemVendorNames)].join(", ")
+          : data.vendorName || "Unknown Vendor"
+        
         return {
-          id: doc.id,
-          orderNumber: data.orderNumber || `ORD-${doc.id.slice(-8)}`,
-          customerId: data.customerId || data.userId || "",
-          customerName: data.customerName || data.customerInfo?.name || "Unknown Customer",
-          customerEmail: data.customerEmail || data.customerInfo?.email || "",
+          id: docSnap.id,
+          orderNumber: data.orderNumber || `ORD-${docSnap.id.slice(-8)}`,
+          customerId: userId,
+          customerName: data.customerName || data.customerInfo?.name || data.shippingAddress?.fullName || userDisplayName || "Unknown Customer",
+          customerEmail: data.customerEmail || data.customerInfo?.email || data.userEmail || "",
           vendorId: data.vendorId || "",
-          vendorName: data.vendorName || "Unknown Vendor",
+          vendorName: vendorName,
           items: data.items || [],
           totalAmount: data.totalAmount || data.total || 0,
           status: data.status || 'pending',
@@ -172,7 +236,8 @@ function OrdersManagementContent() {
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800'
+      case 'paid':
+      case 'completed': return 'bg-green-100 text-green-800'
       case 'pending': return 'bg-yellow-100 text-yellow-800'
       case 'failed': return 'bg-red-100 text-red-800'
       case 'refunded': return 'bg-gray-100 text-gray-800'
@@ -199,7 +264,7 @@ function OrdersManagementContent() {
     shipped: orders.filter(o => o.status === 'shipped').length,
     delivered: orders.filter(o => o.status === 'delivered').length,
     totalRevenue: orders
-      .filter(o => o.paymentStatus === 'paid')
+      .filter(o => o.paymentStatus === 'completed' || o.paymentStatus === 'paid')
       .reduce((sum, o) => sum + o.totalAmount, 0)
   }
 

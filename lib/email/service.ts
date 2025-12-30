@@ -808,3 +808,268 @@ export async function sendVendorApplicationDecisionEmail(
   const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb"><div style="padding:20px;background:#111827;color:#f9fafb"><h1 style="margin:0;font-size:20px;">Vendor Application Update</h1></div><div style="padding:24px">${body}</div></div></body></html>`
   return sendEmail({ from: FROM_EMAIL, to: vendorEmail, subject, html })
 }
+
+// ============================================
+// ABUSE REPORT EMAILS
+// ============================================
+
+export async function sendAbuseReportSubmittedEmail(
+  reporterEmail: string,
+  payload: {
+    reporterName: string;
+    reportType: string;
+    reportedItemTitle: string;
+    reportId: string;
+    category: string;
+    reason: string;
+  }
+) {
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
+    <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
+      <div style="padding:20px;background:#dc2626;color:#fff">
+        <h1 style="margin:0;font-size:20px;">🚨 Report Submitted</h1>
+      </div>
+      <div style="padding:24px">
+        <p>Dear ${payload.reporterName},</p>
+        
+        <p>Thank you for reporting inappropriate content on FEROMARKETHUB. We take all reports seriously and will investigate this matter promptly.</p>
+        
+        <div style="background:#f3f4f6;padding:16px;border-radius:6px;margin:16px 0">
+          <h3 style="margin:0 0 8px 0;color:#374151">Report Details:</h3>
+          <p style="margin:4px 0"><strong>Report ID:</strong> ${payload.reportId}</p>
+          <p style="margin:4px 0"><strong>Type:</strong> ${payload.reportType}</p>
+          <p style="margin:4px 0"><strong>Item:</strong> ${payload.reportedItemTitle}</p>
+          <p style="margin:4px 0"><strong>Category:</strong> ${payload.category}</p>
+          <p style="margin:4px 0"><strong>Reason:</strong> ${payload.reason}</p>
+        </div>
+        
+        <p><strong>What happens next?</strong></p>
+        <ul>
+          <li>Our moderation team will review your report within 24-48 hours</li>
+          <li>We'll investigate the reported content thoroughly</li>
+          <li>You'll receive an email update when we've made a decision</li>
+          <li>If appropriate action is needed, we'll take it to maintain platform safety</li>
+        </ul>
+        
+        <p>You can track the status of your report by visiting your account dashboard:</p>
+        <div style="text-align:center;margin:20px 0">
+          <a href="${APP_URL}/account/reports" style="background:#dc2626;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">View My Reports</a>
+        </div>
+        
+        <p style="color:#6b7280;font-size:14px">
+          <strong>Note:</strong> False reports may result in account restrictions. We appreciate your help in keeping FEROMARKETHUB safe for everyone.
+        </p>
+        
+        <p>Best regards,<br>FEROMARKETHUB Safety Team</p>
+      </div>
+    </div>
+  </body></html>`
+
+  return sendEmail({
+    to: reporterEmail,
+    subject: `Report Submitted - ${payload.reportType} Report #${payload.reportId}`,
+    html
+  })
+}
+
+export async function sendAbuseReportNotificationEmail(
+  reportedUserEmail: string,
+  payload: {
+    reportedUserName: string;
+    reportType: string;
+    reportedItemTitle: string;
+    reportId: string;
+    category: string;
+  }
+) {
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-line:1.6; color:#111827;">
+    <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
+      <div style="padding:20px;background:#f59e0b;color:#fff">
+        <h1 style="margin:0;font-size:20px;">⚠️ Content Report Notification</h1>
+      </div>
+      <div style="padding:24px">
+        <p>Dear ${payload.reportedUserName},</p>
+        
+        <p>We're writing to inform you that content associated with your account has been reported by another user on FEROMARKETHUB.</p>
+        
+        <div style="background:#fef3c7;padding:16px;border-radius:6px;margin:16px 0;border-left:4px solid #f59e0b">
+          <h3 style="margin:0 0 8px 0;color:#92400e">Reported Content:</h3>
+          <p style="margin:4px 0"><strong>Type:</strong> ${payload.reportType}</p>
+          <p style="margin:4px 0"><strong>Item:</strong> ${payload.reportedItemTitle}</p>
+          <p style="margin:4px 0"><strong>Category:</strong> ${payload.category}</p>
+          <p style="margin:4px 0"><strong>Report ID:</strong> ${payload.reportId}</p>
+        </div>
+        
+        <p><strong>What this means:</strong></p>
+        <ul>
+          <li>Our moderation team will review the reported content</li>
+          <li>No immediate action has been taken against your account</li>
+          <li>If the report is found to be valid, we may take appropriate action</li>
+          <li>You'll be notified of any decisions that affect your account</li>
+        </ul>
+        
+        <p><strong>Our commitment:</strong></p>
+        <p>We investigate all reports fairly and thoroughly. If you believe this report was made in error, our review process will determine that. We're committed to maintaining a safe and fair marketplace for all users.</p>
+        
+        <p>If you have questions about our community guidelines or this notification, please don't hesitate to contact our support team.</p>
+        
+        <div style="text-align:center;margin:20px 0">
+          <a href="${APP_URL}/contact" style="background:#f59e0b;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">Contact Support</a>
+        </div>
+        
+        <p>Best regards,<br>FEROMARKETHUB Safety Team</p>
+      </div>
+    </div>
+  </body></html>`
+
+  return sendEmail({
+    to: reportedUserEmail,
+    subject: `Content Report Notification - Report #${payload.reportId}`,
+    html
+  })
+}
+
+export async function sendAbuseReportAdminEmail(
+  adminEmails: string[],
+  payload: {
+    reporterName: string;
+    reporterEmail: string;
+    reportType: string;
+    reportedItemTitle: string;
+    reportId: string;
+    category: string;
+    reason: string;
+    priority: string;
+    description?: string;
+  }
+) {
+  const priorityColor = payload.priority === 'critical' ? '#dc2626' : 
+                       payload.priority === 'high' ? '#ea580c' :
+                       payload.priority === 'medium' ? '#d97706' : '#16a34a'
+
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
+    <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
+      <div style="padding:20px;background:${priorityColor};color:#fff">
+        <h1 style="margin:0;font-size:20px;">🚨 New Abuse Report - ${payload.priority.toUpperCase()} Priority</h1>
+      </div>
+      <div style="padding:24px">
+        <p><strong>A new abuse report has been submitted and requires admin attention.</strong></p>
+        
+        <div style="background:#f3f4f6;padding:16px;border-radius:6px;margin:16px 0">
+          <h3 style="margin:0 0 12px 0;color:#374151">Report Details:</h3>
+          <div style="display:grid;gap:8px">
+            <p style="margin:0"><strong>Report ID:</strong> ${payload.reportId}</p>
+            <p style="margin:0"><strong>Priority:</strong> <span style="color:${priorityColor};font-weight:bold">${payload.priority.toUpperCase()}</span></p>
+            <p style="margin:0"><strong>Type:</strong> ${payload.reportType}</p>
+            <p style="margin:0"><strong>Reported Item:</strong> ${payload.reportedItemTitle}</p>
+            <p style="margin:0"><strong>Category:</strong> ${payload.category}</p>
+            <p style="margin:0"><strong>Reason:</strong> ${payload.reason}</p>
+          </div>
+        </div>
+        
+        <div style="background:#fef3c7;padding:16px;border-radius:6px;margin:16px 0">
+          <h3 style="margin:0 0 8px 0;color:#92400e">Reporter Information:</h3>
+          <p style="margin:4px 0"><strong>Name:</strong> ${payload.reporterName}</p>
+          <p style="margin:4px 0"><strong>Email:</strong> ${payload.reporterEmail}</p>
+        </div>
+        
+        ${payload.description ? `
+        <div style="background:#eff6ff;padding:16px;border-radius:6px;margin:16px 0">
+          <h3 style="margin:0 0 8px 0;color:#1e40af">Additional Details:</h3>
+          <p style="margin:0">${payload.description}</p>
+        </div>
+        ` : ''}
+        
+        <p><strong>Required Action:</strong></p>
+        <p>Please review this report in the admin panel and take appropriate action. ${payload.priority === 'critical' || payload.priority === 'high' ? 'This report has been marked as high priority and should be addressed promptly.' : ''}</p>
+        
+        <div style="text-align:center;margin:20px 0">
+          <a href="${APP_URL}/admin/reports-abuse" style="background:${priorityColor};color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">Review Report</a>
+        </div>
+        
+        <p style="color:#6b7280;font-size:14px">
+          This email was sent to all administrators and moderators. Please coordinate to avoid duplicate actions.
+        </p>
+      </div>
+    </div>
+  </body></html>`
+
+  // Send individual emails to each admin
+  const emailPromises = adminEmails.map(email => 
+    sendEmail({
+      to: email,
+      subject: `[${payload.priority.toUpperCase()}] New Abuse Report #${payload.reportId} - ${payload.reportType}`,
+      html
+    })
+  )
+
+  return Promise.all(emailPromises)
+}
+
+export async function sendAbuseReportStatusUpdateEmail(
+  reporterEmail: string,
+  payload: {
+    reporterName: string;
+    reportType: string;
+    reportedItemTitle: string;
+    reportId: string;
+    status: string;
+    resolution?: string;
+  }
+) {
+  const statusColor = payload.status === 'resolved' ? '#16a34a' : 
+                     payload.status === 'dismissed' ? '#6b7280' : '#2563eb'
+  
+  const statusIcon = payload.status === 'resolved' ? '✅' : 
+                    payload.status === 'dismissed' ? '❌' : '🔍'
+
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
+    <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
+      <div style="padding:20px;background:${statusColor};color:#fff">
+        <h1 style="margin:0;font-size:20px;">${statusIcon} Report ${payload.status.charAt(0).toUpperCase() + payload.status.slice(1)}</h1>
+      </div>
+      <div style="padding:24px">
+        <p>Dear ${payload.reporterName},</p>
+        
+        <p>We have an update on the abuse report you submitted to FEROMARKETHUB.</p>
+        
+        <div style="background:#f3f4f6;padding:16px;border-radius:6px;margin:16px 0">
+          <h3 style="margin:0 0 8px 0;color:#374151">Report Update:</h3>
+          <p style="margin:4px 0"><strong>Report ID:</strong> ${payload.reportId}</p>
+          <p style="margin:4px 0"><strong>Reported Item:</strong> ${payload.reportedItemTitle}</p>
+          <p style="margin:4px 0"><strong>Status:</strong> <span style="color:${statusColor};font-weight:bold">${payload.status.toUpperCase()}</span></p>
+        </div>
+        
+        ${payload.resolution ? `
+        <div style="background:#eff6ff;padding:16px;border-radius:6px;margin:16px 0">
+          <h3 style="margin:0 0 8px 0;color:#1e40af">Resolution Details:</h3>
+          <p style="margin:0">${payload.resolution}</p>
+        </div>
+        ` : ''}
+        
+        ${payload.status === 'resolved' ? `
+        <p><strong>Thank you for your report!</strong> Our investigation found that action was warranted, and we've taken appropriate measures to address the issue. Your vigilance helps keep FEROMARKETHUB safe for everyone.</p>
+        ` : payload.status === 'dismissed' ? `
+        <p><strong>Report Conclusion:</strong> After thorough investigation, we determined that no policy violation occurred. We appreciate you taking the time to report your concerns - it's better to report something that turns out to be fine than to let actual violations go unreported.</p>
+        ` : `
+        <p><strong>Investigation Update:</strong> Our team is actively investigating your report. We'll keep you updated as we make progress.</p>
+        `}
+        
+        <p>You can view all your reports and their status in your account dashboard:</p>
+        <div style="text-align:center;margin:20px 0">
+          <a href="${APP_URL}/account/reports" style="background:${statusColor};color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">View My Reports</a>
+        </div>
+        
+        <p>If you have any questions about this decision or need to report additional concerns, please don't hesitate to contact our support team.</p>
+        
+        <p>Best regards,<br>FEROMARKETHUB Safety Team</p>
+      </div>
+    </div>
+  </body></html>`
+
+  return sendEmail({
+    to: reporterEmail,
+    subject: `Report Update - ${payload.status.charAt(0).toUpperCase() + payload.status.slice(1)} #${payload.reportId}`,
+    html
+  })
+}

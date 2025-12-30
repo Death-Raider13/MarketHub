@@ -118,7 +118,9 @@ export interface Order {
   tax: number
   shipping: number
   total: number
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+  totalAmount: number
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "confirmed" | "paid" | "refunded"
+  paymentStatus: "pending" | "completed" | "paid" | "refunded" | "failed"
   shippingAddress: Address
   paymentMethod: string
   trackingNumber?: string

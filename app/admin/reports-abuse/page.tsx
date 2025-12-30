@@ -152,26 +152,34 @@ function AdminReportsAbuseContent() {
     try {
       setLoading(true)
       
-      // In a real app, you would load from Firestore
-      // const reportsQuery = query(
-      //   collection(db, "abuse_reports"),
-      //   orderBy("createdAt", "desc"),
-      //   limit(100)
-      // )
-      // const snapshot = await getDocs(reportsQuery)
-      // const reportsData = snapshot.docs.map(doc => ({
-      //   id: doc.id,
-      //   ...doc.data(),
-      //   createdAt: doc.data().createdAt?.toDate() || new Date(),
-      //   updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      // })) as AbuseReport[]
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (statusFilter !== 'all') params.append('status', statusFilter)
+      if (priorityFilter !== 'all') params.append('priority', priorityFilter)
+      if (typeFilter !== 'all') params.append('type', typeFilter)
       
-      // For now, using mock data
-      setReports(mockReports)
+      const response = await fetch(`/api/reports?${params.toString()}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        const reportsData = data.reports.map((report: any) => ({
+          ...report,
+          createdAt: new Date(report.createdAt),
+          updatedAt: new Date(report.updatedAt)
+        }))
+        setReports(reportsData)
+      } else {
+        console.error('Failed to load reports:', data.error)
+        toast.error('Failed to load reports')
+        // Fallback to mock data for demo
+        setReports(mockReports)
+      }
       
     } catch (error) {
       console.error("Error loading reports:", error)
       toast.error("Failed to load reports")
+      // Fallback to mock data for demo
+      setReports(mockReports)
     } finally {
       setLoading(false)
     }
@@ -179,22 +187,27 @@ function AdminReportsAbuseContent() {
 
   const updateReportStatus = async (reportId: string, status: AbuseReport['status'], resolution?: string) => {
     try {
-      // In a real app, update Firestore
-      // await updateDoc(doc(db, "abuse_reports", reportId), {
-      //   status,
-      //   resolution,
-      //   updatedAt: new Date()
-      // })
+      const response = await fetch(`/api/reports/${reportId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, resolution })
+      })
 
-      setReports(prev => prev.map(report => 
-        report.id === reportId 
-          ? { ...report, status, resolution, updatedAt: new Date() }
-          : report
-      ))
+      const data = await response.json()
 
-      toast.success(`Report ${status}`)
-      setSelectedReport(null)
-      setResolution("")
+      if (data.success) {
+        setReports(prev => prev.map(report => 
+          report.id === reportId 
+            ? { ...report, status, resolution, updatedAt: new Date() }
+            : report
+        ))
+
+        toast.success(`Report ${status}`)
+        setSelectedReport(null)
+        setResolution("")
+      } else {
+        toast.error(data.error || 'Failed to update report')
+      }
       
     } catch (error) {
       console.error("Error updating report:", error)

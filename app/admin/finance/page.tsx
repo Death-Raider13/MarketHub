@@ -103,7 +103,7 @@ function FinanceDashboardContent() {
       const ordersQuery = query(
         collection(db, "orders"),
         where("createdAt", ">=", startDate),
-        where("paymentStatus", "==", "paid"),
+        where("paymentStatus", "in", ["paid", "completed"]),
         orderBy("createdAt", "desc")
       )
       const ordersSnapshot = await getDocs(ordersQuery)

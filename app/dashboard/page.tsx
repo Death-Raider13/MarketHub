@@ -20,7 +20,9 @@ const mockOrders: Order[] = [
     tax: 19.99,
     shipping: 0,
     total: 219.98,
+    totalAmount: 219.98,
     status: "delivered",
+    paymentStatus: "completed",
     shippingAddress: {
       fullName: "John Doe",
       addressLine1: "123 Main St",
@@ -43,7 +45,9 @@ const mockOrders: Order[] = [
     tax: 8.99,
     shipping: 9.99,
     total: 108.97,
+    totalAmount: 108.97,
     status: "shipped",
+    paymentStatus: "completed",
     shippingAddress: {
       fullName: "John Doe",
       addressLine1: "123 Main St",

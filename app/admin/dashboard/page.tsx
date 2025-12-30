@@ -195,9 +195,9 @@ function UnifiedAdminDashboard() {
         }))
         
         totalOrders = orders.length
-        totalRevenue = orders.reduce((sum: number, order: any) => 
-          sum + (order.totalAmount || 0), 0
-        )
+        totalRevenue = orders
+          .filter((order: any) => order.paymentStatus === 'completed' || order.paymentStatus === 'paid')
+          .reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0)
       } catch (error) {
         console.warn("Could not fetch orders data:", error)
       }

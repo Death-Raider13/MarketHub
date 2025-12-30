@@ -31,6 +31,10 @@ export type NotificationType =
   | 'review_pending_moderation'
   | 'ad_pending_approval'
   | 'abuse_report_filed'
+  | 'abuse_report_created'
+  | 'abuse_report_updated'
+  | 'abuse_report_resolved'
+  | 'abuse_report_dismissed'
   | 'system_maintenance'
   | 'security_alert'
   
@@ -272,6 +276,30 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     message: 'A new abuse report has been filed',
     priority: 'high',
     icon: '🚨'
+  },
+  abuse_report_created: {
+    title: 'New Abuse Report',
+    message: 'New {reportType} report: "{reportedItem}" reported by {reportedBy}',
+    priority: 'high',
+    icon: '🚨'
+  },
+  abuse_report_updated: {
+    title: 'Report Status Updated',
+    message: 'Your report about "{reportedItem}" has been updated to {status}',
+    priority: 'medium',
+    icon: '📋'
+  },
+  abuse_report_resolved: {
+    title: 'Report Resolved',
+    message: 'Your report about "{reportedItem}" has been resolved',
+    priority: 'medium',
+    icon: '✅'
+  },
+  abuse_report_dismissed: {
+    title: 'Report Dismissed',
+    message: 'Your report about "{reportedItem}" has been dismissed',
+    priority: 'medium',
+    icon: '❌'
   },
   system_maintenance: {
     title: 'System Maintenance',

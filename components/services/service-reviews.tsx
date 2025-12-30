@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, User } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Star, User, Flag } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
+import { ReportContent } from "@/components/common/report-content"
 
 interface Review {
   id: string
@@ -155,28 +157,40 @@ export function ServiceReviews({ serviceId, className = "" }: ServiceReviewsProp
           <h4 className="font-medium">Customer Reviews</h4>
           {reviews.map((review) => (
             <div key={review.id} className="border-b border-gray-100 pb-4 last:border-b-0">
-              <div className="flex items-start gap-3">
-                <div className="rounded-full bg-gray-100 p-2">
-                  <User className="w-4 h-4 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {renderStars(review.rating)}
-                    <span className="text-sm text-gray-600">
-                      {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
-                    </span>
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="rounded-full bg-gray-100 p-2">
+                    <User className="w-4 h-4 text-gray-600" />
                   </div>
-                  {review.review && (
-                    <p className="text-gray-700 text-sm leading-relaxed">
-                      {review.review}
-                    </p>
-                  )}
-                  <div className="mt-2">
-                    <Badge variant="outline" className="text-xs">
-                      Verified Purchase
-                    </Badge>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      {renderStars(review.rating)}
+                      <span className="text-sm text-gray-600">
+                        {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
+                      </span>
+                    </div>
+                    {review.review && (
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        {review.review}
+                      </p>
+                    )}
+                    <div className="mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        Verified Purchase
+                      </Badge>
+                    </div>
                   </div>
                 </div>
+                <ReportContent
+                  type="review"
+                  itemId={review.id}
+                  itemTitle={`Service Review: ${review.serviceName || 'Service'}`}
+                  trigger={
+                    <Button variant="ghost" size="sm">
+                      <Flag className="h-3 w-3" />
+                    </Button>
+                  }
+                />
               </div>
             </div>
           ))}
