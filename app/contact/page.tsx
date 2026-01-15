@@ -23,14 +23,37 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.category || !formData.message) {
+      alert("Please fill in all required fields.")
+      return
+    }
+
     setIsSubmitting(true)
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    alert("Thank you for contacting us! We'll get back to you within 24 hours.")
-    setFormData({ name: "", email: "", subject: "", category: "", message: "" })
-    setIsSubmitting(false)
+    try {
+      const response = await fetch('/api/support/tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        alert(`Thank you for contacting us! Your support ticket ${data.ticketNumber} has been created. We'll get back to you within 24 hours.`)
+        setFormData({ name: "", email: "", subject: "", category: "", message: "" })
+      } else {
+        alert(`Error: ${data.error || 'Failed to create support ticket'}`)
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error)
+      alert('Failed to submit your request. Please try again or contact us directly.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

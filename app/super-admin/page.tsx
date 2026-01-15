@@ -74,7 +74,7 @@ function SuperAdminContent() {
     totalUsers: 0,
     userGrowth: 24.5,
     totalAdmins: 0,
-    platformCommission: 15,
+    platformCommission: 10,
     databaseSize: '2.4 GB',
     systemUptime: '99.98%',
   });
@@ -95,7 +95,7 @@ function SuperAdminContent() {
   const [orders, setOrders] = useState<any[]>([]);
 
   // Commission settings
-  const [platformCommission, setPlatformCommission] = useState(15);
+  const [platformCommission, setPlatformCommission] = useState(10);
   const [minimumPayout, setMinimumPayout] = useState(5000);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 

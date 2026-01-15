@@ -74,6 +74,12 @@ const navItems: NavItem[] = [
     permission: 'orders.view',
   },
   {
+    title: 'Refunds',
+    href: '/admin/refunds',
+    icon: AlertCircle,
+    permission: 'orders.view',
+  },
+  {
     title: 'Users',
     href: '/admin/users',
     icon: Users,
@@ -94,8 +100,7 @@ const navItems: NavItem[] = [
   {
     title: 'Reviews',
     href: '/admin/reviews',
-    icon: MessageSquare,
-    
+    icon: Star,
     permission: 'reviews.view',
   },
   {

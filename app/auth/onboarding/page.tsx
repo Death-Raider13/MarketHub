@@ -72,7 +72,7 @@ export default function OnboardingPage() {
         role,
         displayName: displayName.trim(),
         updatedAt: new Date(),
-        ...(role === "vendor" && { verified: false, commission: 15 }),
+        ...(role === "vendor" && { verified: false, commission: 10 }),
       }
 
       await setDoc(doc(db, "users", user!.uid), updateData, { merge: true })

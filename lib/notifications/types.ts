@@ -16,6 +16,12 @@ export type NotificationType =
   | 'order_cancelled'
   | 'order_refunded'
   
+  // Support-related
+  | 'support_ticket_created'
+  | 'support_ticket_assigned'
+  | 'support_ticket_response'
+  | 'support_ticket_resolved'
+  
   // Vendor-related
   | 'vendor_approved'
   | 'vendor_rejected'
@@ -202,6 +208,32 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     icon: '💳'
   },
   
+  // Support notifications
+  support_ticket_created: {
+    title: 'New Support Ticket',
+    message: 'A new support ticket has been created: {subject}',
+    priority: 'medium',
+    icon: '🎫'
+  },
+  support_ticket_assigned: {
+    title: 'Ticket Assigned',
+    message: 'Support ticket {ticketNumber} has been assigned to you',
+    priority: 'medium',
+    icon: '👤'
+  },
+  support_ticket_response: {
+    title: 'Ticket Response',
+    message: 'New response on ticket {ticketNumber}',
+    priority: 'medium',
+    icon: '💬'
+  },
+  support_ticket_resolved: {
+    title: 'Ticket Resolved',
+    message: 'Your support ticket {ticketNumber} has been resolved',
+    priority: 'low',
+    icon: '✅'
+  },
+  
   // Vendor notifications
   vendor_approved: {
     title: 'Vendor Account Approved',
@@ -234,10 +266,10 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     icon: '💰'
   },
   payout_pending: {
-    title: 'Payout Pending',
-    message: 'Your payout request is being processed',
-    priority: 'low',
-    icon: '⏳'
+    title: 'New Payout Request',
+    message: 'New payout request from {vendorName} for ₦{amount}',
+    priority: 'medium',
+    icon: '💰'
   },
   
   // Admin notifications

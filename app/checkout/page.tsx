@@ -12,8 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useCart } from "@/lib/cart-context"
 import { useAuth } from "@/lib/firebase/auth-context"
-import { CheckCircle2, CreditCard, MapPin, Truck, User, Download, Calendar, Package } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { CheckCircle2, CreditCard, MapPin, Truck, User, Download, Calendar, Package, Bitcoin } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import type { Address } from "@/lib/types"
 import { initiatePaystackPayment } from "@/lib/payment/paystack"
@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart()
   const { user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
 
@@ -43,7 +44,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("card")
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null)
   const [completedOrderItems, setCompletedOrderItems] = useState<any[]>([])
-
+  const [cryptoPaymentUrl, setCryptoPaymentUrl] = useState<string | null>(null)
   // Check if cart has physical products (shipping applies only to physical items)
   const hasPhysicalProducts = items.some(
     (item) => item.product.type === "physical" || item.product.productType === "physical"
@@ -141,7 +142,7 @@ export default function CheckoutPage() {
           phone: shippingAddress.phone || ''
         },
         shippingMethod: shippingMethodValue,
-        paymentMethod: 'paystack',
+        paymentMethod: paymentMethod === 'crypto' ? 'coinbase' : 'paystack',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }
@@ -173,8 +174,85 @@ export default function CheckoutPage() {
         // Don't fail the order if notifications fail
       }
 
-      // Initiate Paystack payment (amount in NGN)
-      initiatePaystackPayment(
+      // Handle payment based on selected method
+      if (paymentMethod === 'crypto') {
+        // Coinbase Commerce payment
+        try {
+          const response = await fetch('/api/payments/coinbase/create-charge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId,
+              amount: total,
+              customerEmail: user!.email,
+              customerName: shippingAddress.fullName || 'Customer',
+              metadata: {
+                items: items.length,
+                shipping_method: shippingMethodValue,
+                user_id: user!.uid
+              }
+            })
+          })
+
+          if (!response.ok) {
+            const error = await response.json()
+            throw new Error(error.error || 'Failed to create crypto payment')
+          }
+
+          const { charge } = await response.json()
+          console.log('✅ Coinbase charge created:', charge.id)
+          
+          // Store order info before redirecting
+          setCompletedOrderId(orderId)
+          setCompletedOrderItems([...items])
+          setCryptoPaymentUrl(charge.hosted_url)
+          
+          // Open Coinbase Commerce hosted page
+          window.open(charge.hosted_url, '_blank')
+          
+          toast.success('Redirecting to crypto payment page...')
+          
+          // Show waiting state
+          setLoading(false)
+          toast.info('Complete your payment in the new window. We\'ll verify it automatically.')
+          
+          // Start polling for payment confirmation
+          const pollInterval = setInterval(async () => {
+            try {
+              const verifyResponse = await fetch('/api/payments/coinbase/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId })
+              })
+              
+              if (verifyResponse.ok) {
+                const { status } = await verifyResponse.json()
+                if (status === 'completed') {
+                  clearInterval(pollInterval)
+                  setStep(3)
+                  clearCart()
+                  toast.success('🎉 Crypto payment confirmed! Order complete.')
+                } else if (status === 'expired' || status === 'cancelled') {
+                  clearInterval(pollInterval)
+                  toast.error('Payment expired or cancelled. Please try again.')
+                }
+              }
+            } catch (err) {
+              console.error('Payment verification poll error:', err)
+            }
+          }, 10000) // Poll every 10 seconds
+          
+          // Stop polling after 30 minutes
+          setTimeout(() => clearInterval(pollInterval), 30 * 60 * 1000)
+          
+        } catch (error: any) {
+          console.error('Crypto payment error:', error)
+          toast.error(error.message || 'Failed to initiate crypto payment')
+          setLoading(false)
+        }
+      } else {
+        // Paystack payment (existing flow)
+        initiatePaystackPayment(
         {
           email: user!.email!,
           amount: total,
@@ -233,6 +311,7 @@ export default function CheckoutPage() {
           toast.error('Payment cancelled')
         }
       )
+      }
     } catch (error) {
       console.error('Payment error:', error)
       toast.error('Failed to initiate payment')
@@ -250,6 +329,45 @@ export default function CheckoutPage() {
       router.push("/cart")
     }
   }, [user, items.length, step, router])
+
+  // Handle Coinbase payment redirect
+  useEffect(() => {
+    const payment = searchParams.get('payment')
+    const orderId = searchParams.get('orderId')
+    
+    if (payment === 'success' && orderId) {
+      // Verify the crypto payment
+      const verifyPayment = async () => {
+        try {
+          const response = await fetch('/api/payments/coinbase/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId })
+          })
+          
+          if (response.ok) {
+            const { status } = await response.json()
+            if (status === 'completed') {
+              setCompletedOrderId(orderId)
+              setStep(3)
+              clearCart()
+              toast.success('🎉 Crypto payment confirmed! Order complete.')
+              // Clear URL params
+              router.replace('/checkout')
+            } else if (status === 'pending') {
+              toast.info('Payment is being processed. Please wait...')
+            }
+          }
+        } catch (err) {
+          console.error('Payment verification error:', err)
+        }
+      }
+      verifyPayment()
+    } else if (payment === 'cancelled' && orderId) {
+      toast.error('Payment was cancelled. You can try again.')
+      router.replace('/checkout')
+    }
+  }, [searchParams, clearCart, router])
 
   // Show loading while redirecting
   if (!user || (items.length === 0 && step !== 3)) {
@@ -477,19 +595,48 @@ export default function CheckoutPage() {
                               </div>
                             </Label>
                           </div>
+                          <div className="flex items-center space-x-2 rounded-lg border border-border p-4">
+                            <RadioGroupItem value="crypto" id="crypto" />
+                            <Label
+                              htmlFor="crypto"
+                              className="flex flex-1 cursor-pointer items-center gap-2"
+                            >
+                              <Bitcoin className="h-5 w-5 text-orange-500" />
+                              <div>
+                                <div className="font-medium">Pay with Crypto</div>
+                                <div className="text-sm text-muted-foreground">
+                                  Bitcoin, Ethereum, USDC, and more via Coinbase
+                                </div>
+                              </div>
+                            </Label>
+                          </div>
                         </RadioGroup>
                       </div>
 
-                      <div className="rounded-lg bg-muted p-4 space-y-2">
-                        <p className="text-sm font-medium">💳 Payment Information</p>
-                        <p className="text-sm text-muted-foreground">
-                          You will be redirected to Paystack's secure payment page to complete your
-                          transaction.
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Amount to pay: <span className="font-bold">₦{total.toLocaleString()}</span>
-                        </p>
-                      </div>
+                      {paymentMethod === 'card' ? (
+                        <div className="rounded-lg bg-muted p-4 space-y-2">
+                          <p className="text-sm font-medium">💳 Payment Information</p>
+                          <p className="text-sm text-muted-foreground">
+                            You will be redirected to Paystack's secure payment page to complete your
+                            transaction.
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Amount to pay: <span className="font-bold">₦{total.toLocaleString()}</span>
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg bg-orange-50 dark:bg-orange-950 p-4 space-y-2 border border-orange-200 dark:border-orange-800">
+                          <p className="text-sm font-medium">₿ Crypto Payment Information</p>
+                          <p className="text-sm text-muted-foreground">
+                            You will be redirected to Coinbase Commerce to pay with cryptocurrency.
+                            Supported coins: Bitcoin, Ethereum, USDC, DAI, and more.
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Amount to pay: <span className="font-bold">₦{total.toLocaleString()}</span>
+                            <span className="text-xs ml-1">(converted to USD at checkout)</span>
+                          </p>
+                        </div>
+                      )}
 
                       <div className="flex gap-2 pt-4">
                         <Button

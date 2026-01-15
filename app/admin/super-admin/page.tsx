@@ -81,7 +81,7 @@ function SuperAdminDashboard() {
     activeAdmins: 0,
     suspendedAdmins: 0,
     totalRevenue: 0,
-    platformCommission: 15,
+    platformCommission: 10,
     databaseSize: '2.4 GB',
     uptime: '99.98%',
   });

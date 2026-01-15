@@ -605,7 +605,7 @@ export default function VendorRegisterNewPage() {
                       <Link href="/privacy" className="text-primary hover:underline" target="_blank">
                         Privacy Policy
                       </Link>
-                      . I understand that FEROMARKETHUB charges a 15% commission on sales.
+                      . I understand that FEROMARKETHUB charges a 10% commission on sales.
                     </label>
                   </div>
 

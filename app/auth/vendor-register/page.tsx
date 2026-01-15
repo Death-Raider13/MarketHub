@@ -659,7 +659,7 @@ export default function VendorRegisterPage() {
                         required
                       />
                       <label htmlFor="commission" className="text-sm cursor-pointer">
-                        I understand and agree to the 15% commission fee on all sales
+                        I understand and agree to the 10% commission fee on all sales
                       </label>
                     </div>
                   </div>

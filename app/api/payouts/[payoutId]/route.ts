@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase/admin'
+import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { payoutId: string } }
 ) {
   try {
+    const adminDb = getAdminFirestore()
+    
+    if (!adminDb) {
+      console.error('Firebase Admin SDK not initialized')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     const { payoutId } = params
     const { action, transactionReference, rejectionReason, notes, adminUserId } = await request.json()
 

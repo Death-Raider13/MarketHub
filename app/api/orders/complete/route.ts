@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       const vendorId = item.product?.vendorId
       if (vendorId) {
         const itemTotal = item.product.price * item.quantity
-        const commission = 0.15 // 15% platform commission
+        const commission = 0.10 // 10% platform commission
         const vendorEarning = itemTotal * (1 - commission)
         
         vendorUpdates.set(

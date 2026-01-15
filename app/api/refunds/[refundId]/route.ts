@@ -7,7 +7,7 @@ export async function PATCH(
 ) {
   try {
     const { refundId } = params
-    const { action, adminUserId, rejectionReason, resolutionNotes } = await request.json()
+    const { action, adminUserId, rejectionReason, resolutionNotes, transactionId } = await request.json()
 
     if (!refundId || !action) {
       return NextResponse.json(
@@ -51,9 +51,84 @@ export async function PATCH(
     } else if (action === 'approve') {
       updateData.status = 'approved'
       if (resolutionNotes) updateData.resolutionNotes = resolutionNotes
+    } else if (action === 'process_refund') {
+      // Process refund through payment provider
+      try {
+        if (!orderData) {
+          throw new Error('Order data not found')
+        }
+
+        let refundResult
+        const paymentMethod = orderData.paymentMethod
+
+        if (paymentMethod === 'paystack') {
+          const { PaystackRefundService } = await import('@/lib/payment/paystack-refunds')
+          refundResult = await PaystackRefundService.processOrderRefund(
+            refundData.orderId,
+            refundId,
+            adminUserId
+          )
+        } else if (paymentMethod === 'coinbase') {
+          const { CoinbaseRefundService } = await import('@/lib/payment/coinbase-refunds')
+          refundResult = await CoinbaseRefundService.processOrderRefund(
+            refundData.orderId,
+            refundId,
+            adminUserId
+          )
+        } else {
+          // Manual refund for other payment methods
+          updateData.status = 'refunded'
+          updateData.refundedAt = now
+          updateData.manualRefund = true
+          if (resolutionNotes) updateData.resolutionNotes = resolutionNotes
+
+          await orderRef.update({
+            status: 'refunded',
+            paymentStatus: 'refunded',
+            updatedAt: now,
+          })
+        }
+
+        if (refundResult && !refundResult.success) {
+          throw new Error('Payment provider refund failed')
+        }
+
+        // If we get here, the refund was processed successfully
+        // The payment service already updated the refund status
+        const updatedRefundDoc = await refundRef.get()
+        const latestRefund = {
+          id: refundId,
+          ...updatedRefundDoc.data(),
+        }
+
+        return NextResponse.json({
+          success: true,
+          refund: latestRefund,
+          paymentProviderResult: refundResult,
+        })
+
+      } catch (refundError) {
+        console.error('Payment provider refund failed:', refundError)
+        
+        // Update refund status to failed
+        await refundRef.update({
+          status: 'failed',
+          failureReason: refundError instanceof Error ? refundError.message : 'Unknown error',
+          updatedAt: now,
+          processedBy: adminUserId || null,
+        })
+
+        return NextResponse.json(
+          { error: `Refund processing failed: ${refundError instanceof Error ? refundError.message : 'Unknown error'}` },
+          { status: 500 }
+        )
+      }
     } else if (action === 'mark_refunded') {
+      // Manual mark as refunded (for cases where refund was processed outside the system)
       updateData.status = 'refunded'
       updateData.refundedAt = now
+      updateData.manualRefund = true
+      if (transactionId) updateData.externalTransactionId = transactionId
       if (resolutionNotes) updateData.resolutionNotes = resolutionNotes
 
       try {
@@ -64,6 +139,22 @@ export async function PATCH(
         })
       } catch (orderUpdateError) {
         console.error('Failed to update order to refunded:', orderUpdateError)
+      }
+    } else if (action === 'mark_coinbase_completed') {
+      // Special action for marking Coinbase refunds as completed after manual processing
+      if (refundData.paymentMethod === 'coinbase' || orderData?.paymentMethod === 'coinbase') {
+        const { CoinbaseRefundService } = await import('@/lib/payment/coinbase-refunds')
+        const result = await CoinbaseRefundService.markRefundCompleted(refundId, adminUserId, transactionId)
+        
+        return NextResponse.json({
+          success: true,
+          refund: result.refund,
+        })
+      } else {
+        return NextResponse.json(
+          { error: 'This action is only for Coinbase refunds' },
+          { status: 400 }
+        )
       }
     } else {
       return NextResponse.json(
@@ -80,6 +171,7 @@ export async function PATCH(
       ...updateData,
     }
 
+    // Send notifications and emails
     if (orderData && orderData.userId) {
       try {
         const {
@@ -118,6 +210,58 @@ export async function PATCH(
     console.error('Error updating refund request:', error)
     return NextResponse.json(
       { error: 'Failed to update refund request' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { refundId: string } }
+) {
+  try {
+    const { refundId } = params
+
+    const refundRef = adminDb.collection('refunds').doc(refundId)
+    const refundDoc = await refundRef.get()
+
+    if (!refundDoc.exists) {
+      return NextResponse.json(
+        { error: 'Refund request not found' },
+        { status: 404 }
+      )
+    }
+
+    const refundData = refundDoc.data()
+
+    // Get associated order data
+    let orderData = null
+    if (refundData?.orderId) {
+      const orderDoc = await adminDb.collection('orders').doc(refundData.orderId).get()
+      if (orderDoc.exists) {
+        orderData = { id: orderDoc.id, ...orderDoc.data() }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      refund: {
+        id: refundId,
+        ...refundData,
+        createdAt: refundData?.createdAt?.toDate?.() || refundData?.createdAt,
+        updatedAt: refundData?.updatedAt?.toDate?.() || refundData?.updatedAt,
+        refundedAt: refundData?.refundedAt?.toDate?.() || refundData?.refundedAt,
+      },
+      order: orderData ? {
+        ...orderData,
+        createdAt: orderData.createdAt?.toDate?.() || orderData.createdAt,
+        updatedAt: orderData.updatedAt?.toDate?.() || orderData.updatedAt,
+      } : null,
+    })
+  } catch (error) {
+    console.error('Error fetching refund request:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch refund request' },
       { status: 500 }
     )
   }

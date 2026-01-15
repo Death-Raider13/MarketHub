@@ -738,8 +738,231 @@ export async function sendRefundProcessedEmail(order: any, refund: BasicRefund) 
 }
 
 // ============================================
-// VENDOR APPLICATION EMAILS
+// SUPPORT TICKET EMAILS
 // ============================================
+export async function sendSupportTicketCreatedEmail(ticket: {
+  ticketNumber: string
+  customerName: string
+  customerEmail: string
+  subject: string
+  category: string
+  message: string
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #111827; color: #f9fafb;">
+            <h1 style="margin: 0; font-size: 20px;">Support Ticket Created</h1>
+          </div>
+          <div style="padding: 24px;">
+            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${ticket.customerName}</strong>,</p>
+            <p style="margin: 0 0 16px 0; font-size: 15px;">
+              Thank you for contacting FEROMARKETHUB support. We've received your request and created a support ticket for you.
+            </p>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <p style="margin: 4px 0;"><strong>Ticket Number:</strong> ${ticket.ticketNumber}</p>
+              <p style="margin: 4px 0;"><strong>Subject:</strong> ${ticket.subject}</p>
+              <p style="margin: 4px 0;"><strong>Category:</strong> ${ticket.category}</p>
+              <p style="margin: 4px 0;"><strong>Status:</strong> Open</p>
+            </div>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bae6fd;">
+              <p style="margin: 4px 0; color: #0369a1;"><strong>What happens next?</strong></p>
+              <ul style="margin: 8px 0; padding-left: 20px; color: #0369a1;">
+                <li>Our support team will review your request</li>
+                <li>You'll receive a response within 24 hours</li>
+                <li>We'll keep you updated on the progress</li>
+                <li>You can reply to this email to add more information</li>
+              </ul>
+            </div>
+            <p style="margin: 16px 0 0 0; font-size: 14px; color: #4b5563;">
+              You can track your ticket status by replying to this email with your ticket number: <strong>${ticket.ticketNumber}</strong>
+            </p>
+          </div>
+          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
+            <p style="margin: 4px 0;">Need immediate help? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a> or call ${SUPPORT_PHONE}.</p>
+            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  return sendEmail({
+    from: FROM_EMAIL,
+    to: ticket.customerEmail,
+    subject: `Support Ticket Created - ${ticket.ticketNumber}`,
+    html,
+  })
+}
+
+export async function sendSupportTicketNotificationEmail(ticket: {
+  ticketId: string
+  ticketNumber: string
+  customerName: string
+  customerEmail: string
+  subject: string
+  category: string
+  message: string
+  priority: string
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #dc2626; color: #ffffff;">
+            <h1 style="margin: 0; font-size: 20px;">🎫 New Support Ticket</h1>
+          </div>
+          <div style="padding: 24px;">
+            <p style="margin: 0 0 16px 0; font-size: 15px;">
+              A new support ticket has been created and requires attention.
+            </p>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <p style="margin: 4px 0;"><strong>Ticket:</strong> ${ticket.ticketNumber}</p>
+              <p style="margin: 4px 0;"><strong>Customer:</strong> ${ticket.customerName} (${ticket.customerEmail})</p>
+              <p style="margin: 4px 0;"><strong>Subject:</strong> ${ticket.subject}</p>
+              <p style="margin: 4px 0;"><strong>Category:</strong> ${ticket.category}</p>
+              <p style="margin: 4px 0;"><strong>Priority:</strong> <span style="color: ${ticket.priority === 'high' ? '#dc2626' : ticket.priority === 'medium' ? '#d97706' : '#059669'};">${ticket.priority.toUpperCase()}</span></p>
+            </div>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f8fafc; border-radius: 6px; border-left: 4px solid #3b82f6;">
+              <p style="margin: 0; font-weight: 600; color: #1e40af;">Customer Message:</p>
+              <p style="margin: 8px 0 0 0; color: #374151;">${ticket.message}</p>
+            </div>
+            <div style="margin: 24px 0; text-align: center;">
+              <a href="${APP_URL}/support/tickets/${ticket.ticketId}" 
+                 style="display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                View Ticket
+              </a>
+            </div>
+          </div>
+          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
+            <p style="margin: 4px 0;">FEROMARKETHUB Support System</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  // Send to all admin emails
+  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [SUPPORT_EMAIL]
+  
+  for (const adminEmail of adminEmails) {
+    try {
+      await sendEmail({
+        from: FROM_EMAIL,
+        to: adminEmail.trim(),
+        subject: `🎫 New Support Ticket: ${ticket.subject} [${ticket.ticketNumber}]`,
+        html,
+      })
+    } catch (error) {
+      console.error(`Failed to send notification to ${adminEmail}:`, error)
+    }
+  }
+}
+
+export async function sendSupportTicketResponseEmail(data: {
+  ticketNumber: string
+  customerName: string
+  customerEmail: string
+  subject: string
+  response: string
+  responderName: string
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #059669; color: #ffffff;">
+            <h1 style="margin: 0; font-size: 20px;">Support Team Response</h1>
+          </div>
+          <div style="padding: 24px;">
+            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${data.customerName}</strong>,</p>
+            <p style="margin: 0 0 16px 0; font-size: 15px;">
+              Our support team has responded to your ticket <strong>${data.ticketNumber}</strong>.
+            </p>
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #2563eb;">
+              <p style="margin: 0 0 8px 0; font-weight: 600; color: #1e40af;">Response from ${data.responderName}:</p>
+              <p style="margin: 0; color: #374151; white-space: pre-wrap;">${data.response}</p>
+            </div>
+            <div style="margin: 24px 0; text-align: center;">
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #4b5563;">
+                Need to add more information? Simply reply to this email.
+              </p>
+            </div>
+          </div>
+          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
+            <p style="margin: 4px 0;">Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a></p>
+            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  return sendEmail({
+    from: FROM_EMAIL,
+    to: data.customerEmail,
+    subject: `Re: ${data.subject} [${data.ticketNumber}]`,
+    html,
+  })
+}
+
+export async function sendSupportTicketResolvedEmail(data: {
+  ticketNumber: string
+  customerName: string
+  customerEmail: string
+  subject: string
+  resolutionSummary?: string
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; background: #059669; color: #ffffff;">
+            <h1 style="margin: 0; font-size: 20px;">✅ Ticket Resolved</h1>
+          </div>
+          <div style="padding: 24px;">
+            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${data.customerName}</strong>,</p>
+            <p style="margin: 0 0 16px 0; font-size: 15px;">
+              Great news! Your support ticket <strong>${data.ticketNumber}</strong> has been resolved.
+            </p>
+            ${data.resolutionSummary ? `
+            <div style="margin: 16px 0; padding: 12px 16px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #059669;">
+              <p style="margin: 0 0 8px 0; font-weight: 600; color: #047857;">Resolution Summary:</p>
+              <p style="margin: 0; color: #374151;">${data.resolutionSummary}</p>
+            </div>
+            ` : ''}
+            <div style="margin: 24px 0; text-align: center;">
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #4b5563;">
+                How was our support? Please rate your experience:
+              </p>
+              <div style="margin: 16px 0;">
+                <a href="${APP_URL}/support/feedback?ticket=${data.ticketNumber}&rating=5" style="display: inline-block; margin: 0 4px; padding: 8px 12px; background: #059669; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">⭐⭐⭐⭐⭐ Excellent</a>
+                <a href="${APP_URL}/support/feedback?ticket=${data.ticketNumber}&rating=4" style="display: inline-block; margin: 0 4px; padding: 8px 12px; background: #0891b2; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">⭐⭐⭐⭐ Good</a>
+                <a href="${APP_URL}/support/feedback?ticket=${data.ticketNumber}&rating=3" style="display: inline-block; margin: 0 4px; padding: 8px 12px; background: #d97706; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">⭐⭐⭐ Average</a>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
+            <p style="margin: 4px 0;">Still need help? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a></p>
+            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  return sendEmail({
+    from: FROM_EMAIL,
+    to: data.customerEmail,
+    subject: `✅ Resolved: ${data.subject} [${data.ticketNumber}]`,
+    html,
+  })
+}
 export async function sendVendorApplicationSubmittedEmail(
   vendorEmail: string,
   payload: { vendorName?: string; storeName: string; category?: string; storeUrl?: string }
@@ -1072,4 +1295,143 @@ export async function sendAbuseReportStatusUpdateEmail(
     subject: `Report Update - ${payload.status.charAt(0).toUpperCase() + payload.status.slice(1)} #${payload.reportId}`,
     html
   })
+}
+
+// PAYOUT REQUEST EMAILS
+// ============================================
+
+export async function sendPayoutRequestSubmittedEmail(
+  vendorEmail: string,
+  payload: {
+    vendorName: string;
+    amount: number;
+    paymentMethod: string;
+    payoutId: string;
+    requestedAt: Date;
+  }
+) {
+  const html = `<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payout Request Submitted</title>
+  </head>
+  <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px">
+    <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin-bottom:20px">
+      <h1 style="color:#10b981;margin:0;font-size:24px">💰 Payout Request Submitted</h1>
+      <p style="margin:10px 0 0 0;color:#6b7280">Your withdrawal request is being processed</p>
+    </div>
+    
+    <div style="background:white;padding:20px;border-radius:8px;border:1px solid #e5e7eb">
+      <p>Hi <strong>${payload.vendorName}</strong>,</p>
+      
+      <p>We've received your payout request and it's now being reviewed by our team.</p>
+      
+      <div style="background:#f0f9ff;padding:15px;border-radius:6px;margin:20px 0;border-left:4px solid #0ea5e9">
+        <h3 style="color:#0c4a6e;margin:0 0 10px 0">Request Details</h3>
+        <div style="margin-bottom:8px"><strong>Amount:</strong> ₦${payload.amount.toLocaleString()}</div>
+        <div style="margin-bottom:8px"><strong>Payment Method:</strong> ${payload.paymentMethod.replace('_', ' ').toUpperCase()}</div>
+        <div style="margin-bottom:8px"><strong>Request ID:</strong> #${payload.payoutId}</div>
+        <div style="margin-bottom:8px"><strong>Requested:</strong> ${payload.requestedAt.toLocaleDateString()}</div>
+      </div>
+      
+      <div style="background:#fef3c7;padding:15px;border-radius:6px;margin:20px 0;border-left:4px solid #f59e0b">
+        <h3 style="color:#92400e;margin:0 0 10px 0">What happens next?</h3>
+        <ul style="margin:0;padding-left:20px;color:#92400e">
+          <li>Our team will review your request (usually within 1-2 business days)</li>
+          <li>You'll receive an email notification once approved</li>
+          <li>Funds will be transferred to your selected payment method</li>
+          <li>You'll get a confirmation email with transaction details</li>
+        </ul>
+      </div>
+      
+      <div style="text-align:center;margin:30px 0">
+        <a href="${APP_URL}/vendor/payouts" 
+           style="background:#10b981;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">
+          View Payout Status
+        </a>
+      </div>
+      
+      <p style="color:#6b7280;font-size:14px">
+        If you have any questions about your payout request, please contact our support team at 
+        <a href="mailto:${SUPPORT_EMAIL}" style="color:#10b981">${SUPPORT_EMAIL}</a>.
+      </p>
+    </div>
+  </body></html>`
+
+  return sendEmail({
+    to: vendorEmail,
+    subject: `Payout Request Submitted - ₦${payload.amount.toLocaleString()} #${payload.payoutId}`,
+    html
+  })
+}
+
+export async function sendPayoutRequestAdminEmail(
+  adminEmails: string[],
+  payload: {
+    vendorName: string;
+    vendorEmail: string;
+    amount: number;
+    paymentMethod: string;
+    payoutId: string;
+    requestedAt: Date;
+  }
+) {
+  const html = `<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Payout Request</title>
+  </head>
+  <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px">
+    <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin-bottom:20px">
+      <h1 style="color:#dc2626;margin:0;font-size:24px">💰 New Payout Request</h1>
+      <p style="margin:10px 0 0 0;color:#6b7280">Requires admin approval</p>
+    </div>
+    
+    <div style="background:white;padding:20px;border-radius:8px;border:1px solid #e5e7eb">
+      <h2 style="color:#374151;margin-top:0">Payout Request Details</h2>
+      
+      <div style="background:#f9fafb;padding:15px;border-radius:6px;margin:15px 0">
+        <div style="margin-bottom:10px"><strong>Vendor:</strong> ${payload.vendorName} (${payload.vendorEmail})</div>
+        <div style="margin-bottom:10px"><strong>Amount:</strong> ₦${payload.amount.toLocaleString()}</div>
+        <div style="margin-bottom:10px"><strong>Payment Method:</strong> ${payload.paymentMethod.replace('_', ' ').toUpperCase()}</div>
+        <div style="margin-bottom:10px"><strong>Request ID:</strong> #${payload.payoutId}</div>
+        <div style="margin-bottom:10px"><strong>Requested:</strong> ${payload.requestedAt.toLocaleDateString()} at ${payload.requestedAt.toLocaleTimeString()}</div>
+      </div>
+      
+      <div style="background:#fef3c7;padding:15px;border-radius:6px;margin:20px 0;border-left:4px solid #f59e0b">
+        <h3 style="color:#92400e;margin:0 0 10px 0">Action Required</h3>
+        <p style="margin:0;color:#92400e">
+          Please review this payout request and approve or reject it from the admin panel.
+        </p>
+      </div>
+      
+      <div style="text-align:center;margin:30px 0">
+        <a href="${APP_URL}/admin/payouts" 
+           style="background:#dc2626;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">
+          Review Payout Request
+        </a>
+      </div>
+      
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb">
+        <p style="color:#6b7280;font-size:14px">
+          This email was sent to all administrators. Please coordinate to avoid duplicate actions.
+        </p>
+      </div>
+    </div>
+  </body></html>`
+
+  // Send individual emails to each admin
+  const emailPromises = adminEmails.map(email => 
+    sendEmail({
+      to: email,
+      subject: `New Payout Request - ₦${payload.amount.toLocaleString()} from ${payload.vendorName}`,
+      html
+    })
+  )
+
+  return Promise.all(emailPromises)
 }

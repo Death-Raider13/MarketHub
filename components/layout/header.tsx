@@ -116,6 +116,19 @@ export function Header() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+            {/* Help/Support Button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              asChild 
+              className="hidden lg:flex text-muted-foreground hover:text-foreground"
+            >
+              <Link href="/help">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Help
+              </Link>
+            </Button>
+
             {/* Advertise Button */}
             <Button 
               variant="ghost" 

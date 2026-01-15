@@ -852,6 +852,47 @@ service cloud.firestore {
     }
     
     // ============================================
+    // ============================================
+    // SUPPORT TICKETS COLLECTION
+    // ============================================
+    match /support_tickets/{ticketId} {
+      // Anyone can create support tickets
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'subject', 'category', 'message', 'status', 'createdAt']) &&
+                      request.resource.data.status == 'open';
+      
+      // Users can read their own tickets
+      allow read: if request.auth != null && 
+                    (resource.data.userId == request.auth.uid || 
+                     resource.data.email == request.auth.token.email);
+      
+      // Support staff can read all tickets
+      allow read: if isAdmin() || isSupport();
+      
+      // Only support staff can update tickets
+      allow update: if isAdmin() || isSupport();
+      
+      // Only admins can delete tickets
+      allow delete: if isAdmin();
+      
+      // ============================================
+      // TICKET RESPONSES SUBCOLLECTION
+      // ============================================
+      match /responses/{responseId} {
+        // Support staff can create responses
+        allow create: if (isAdmin() || isSupport()) &&
+                        request.resource.data.keys().hasAll(['message', 'responderId', 'responderName', 'responderRole', 'createdAt']);
+        
+        // Ticket participants can read responses
+        allow read: if request.auth != null && 
+                      (get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid ||
+                       get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.email == request.auth.token.email ||
+                       isAdmin() || isSupport());
+        
+        // No one can update or delete responses (audit trail)
+        allow update, delete: if false;
+      }
+    }
+    
     // REFUNDS COLLECTION
     // ============================================
     match /refunds/{refundId} {
@@ -871,9 +912,12 @@ service cloud.firestore {
       allow read: if isAdmin();
       
       // Only admins can update refund status
-      allow update: if isAdmin();
+      allow update: if isAdmin() &&
+                      // Ensure critical fields aren't changed by non-super-admins
+                      (isSuperAdmin() || 
+                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'orderId', 'amount'])));
       
-      // No one can delete refunds
+      // No one can delete refunds (for audit trail)
       allow delete: if false;
     }
     

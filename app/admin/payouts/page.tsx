@@ -32,7 +32,7 @@ function AdminPayoutsContent() {
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPayout, setSelectedPayout] = useState<PayoutRequest | null>(null);
-  const [actionDialog, setActionDialog] = useState<'approve' | 'reject' | 'complete' | null>(null);
+  const [actionDialog, setActionDialog] = useState<'approve' | 'reject' | 'complete' | 'process' | null>(null);
   const [transactionRef, setTransactionRef] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [notes, setNotes] = useState('');
@@ -93,7 +93,7 @@ function AdminPayoutsContent() {
     }
   };
 
-  const handleAction = (payout: PayoutRequest, action: 'approve' | 'reject' | 'complete') => {
+  const handleAction = (payout: PayoutRequest, action: 'approve' | 'reject' | 'complete' | 'process') => {
     setSelectedPayout(payout);
     setActionDialog(action);
     setTransactionRef('');
@@ -134,6 +134,38 @@ function AdminPayoutsContent() {
           return;
         }
         payload.transactionReference = transactionRef;
+      } else if (actionDialog === 'process') {
+        // Process transfer via Paystack
+        const processResponse = await fetch(`/api/payouts/${selectedPayout.id}/process`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ adminUserId: user.uid }),
+        });
+
+        if (!processResponse.ok) {
+          const errorData = await processResponse.json().catch(() => ({}));
+          toast({
+            title: 'Transfer Failed',
+            description: errorData.error || 'Failed to process transfer via Paystack',
+            variant: 'destructive',
+          });
+          setProcessing(false);
+          return;
+        }
+
+        const processResult = await processResponse.json();
+        toast({
+          title: 'Transfer Successful',
+          description: `Transfer processed successfully via Paystack. Reference: ${processResult.reference}`,
+        });
+
+        setActionDialog(null);
+        setSelectedPayout(null);
+        loadPayouts();
+        setProcessing(false);
+        return;
       }
 
       const response = await fetch(`/api/payouts/${selectedPayout.id}`, {
@@ -182,6 +214,7 @@ function AdminPayoutsContent() {
       processing: { variant: 'default', icon: AlertCircle, color: 'text-blue-600' },
       completed: { variant: 'default', icon: CheckCircle, color: 'text-green-600' },
       rejected: { variant: 'destructive', icon: XCircle, color: 'text-red-600' },
+      cancelled: { variant: 'secondary', icon: XCircle, color: 'text-gray-600' },
     };
     
     const { variant, icon: Icon, color } = variants[status];
@@ -290,14 +323,26 @@ function AdminPayoutsContent() {
           )}
 
           {(payout.status === 'approved' || payout.status === 'processing') && (
-            <Button
-              size="sm"
-              onClick={() => handleAction(payout, 'complete')}
-              className="w-full"
-            >
-              <CheckCircle className="h-4 w-4 mr-1" />
-              Mark as Completed
-            </Button>
+            <div className="flex gap-2 pt-2">
+              {payout.paymentMethod === 'bank_transfer' && payout.status === 'approved' && (
+                <Button
+                  size="sm"
+                  onClick={() => handleAction(payout, 'process')}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <DollarSign className="h-4 w-4 mr-1" />
+                  Process Transfer
+                </Button>
+              )}
+              <Button
+                size="sm"
+                onClick={() => handleAction(payout, 'complete')}
+                className="flex-1"
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Mark as Completed
+              </Button>
+            </div>
           )}
         </div>
       </CardContent>
@@ -566,6 +611,46 @@ function AdminPayoutsContent() {
             </Button>
             <Button onClick={confirmAction} disabled={processing}>
               {processing ? 'Processing...' : 'Complete Payout'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={actionDialog === 'process'} onOpenChange={() => setActionDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Process Transfer via Paystack</DialogTitle>
+            <DialogDescription>
+              This will initiate a bank transfer of ₦{selectedPayout?.amount.toLocaleString()} via Paystack
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedPayout && (
+              <div className="bg-muted p-4 rounded-lg space-y-2">
+                <h4 className="font-medium">Transfer Details</h4>
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">Vendor:</span> {selectedPayout.vendorName}</p>
+                  <p><span className="font-medium">Amount:</span> ₦{selectedPayout.amount.toLocaleString()}</p>
+                  <p><span className="font-medium">Bank:</span> {selectedPayout.bankDetails?.bankName}</p>
+                  <p><span className="font-medium">Account:</span> {selectedPayout.bankDetails?.accountNumber}</p>
+                  <p><span className="font-medium">Account Name:</span> {selectedPayout.bankDetails?.accountName}</p>
+                </div>
+              </div>
+            )}
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                This will create a transfer recipient and initiate the transfer via Paystack. 
+                The transfer will be processed immediately and cannot be undone.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActionDialog(null)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmAction} disabled={processing} className="bg-green-600 hover:bg-green-700">
+              {processing ? 'Processing Transfer...' : 'Process Transfer'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailVerified: false, // Track email verification status
         lastLoginAt: new Date(),
         updatedAt: new Date(),
-        ...(role === "vendor" && { verified: false, commission: 15 }),
+        ...(role === "vendor" && { verified: false, commission: 10 }),
       }
 
       await setDoc(doc(db, "users", userCredential.user.uid), userProfile)

@@ -42,7 +42,7 @@ function SuperAdminDashboardContent() {
     totalUsers: 0,
     userGrowth: 24.5,
     totalAdmins: 0,
-    platformCommission: 15,
+    platformCommission: 10,
     databaseSize: '2.4 GB',
     systemUptime: '99.98%',
   });

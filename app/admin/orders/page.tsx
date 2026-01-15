@@ -66,7 +66,7 @@ interface Order {
     price: number
   }>
   totalAmount: number
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | 'refund_requested' | 'refund_processing'
   paymentStatus: 'pending' | 'paid' | 'completed' | 'failed' | 'refunded'
   paymentMethod: string
   shippingAddress: any
@@ -230,6 +230,8 @@ function OrdersManagementContent() {
       case 'delivered': return 'bg-green-100 text-green-800 border-green-200'
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200'
       case 'refunded': return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'refund_requested': return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'refund_processing': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
       default: return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
@@ -383,6 +385,8 @@ function OrdersManagementContent() {
                       <SelectItem value="delivered">Delivered</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                       <SelectItem value="refunded">Refunded</SelectItem>
+                      <SelectItem value="refund_requested">Refund Requested</SelectItem>
+                      <SelectItem value="refund_processing">Refund Processing</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

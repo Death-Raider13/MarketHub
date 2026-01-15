@@ -70,6 +70,9 @@ export async function POST(request: NextRequest) {
       reason,
       status: 'pending',
       amount: orderData.total || 0,
+      paymentMethod: orderData.paymentMethod || 'unknown',
+      paymentReference: orderData.paymentReference || null,
+      coinbaseChargeId: orderData.coinbaseChargeId || null,
       createdAt: now,
       updatedAt: now,
     }
@@ -100,6 +103,118 @@ export async function POST(request: NextRequest) {
     console.error('Error creating refund request:', error)
     return NextResponse.json(
       { error: 'Failed to create refund request' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+    const userId = searchParams.get('userId')
+    const vendorId = searchParams.get('vendorId')
+    const orderId = searchParams.get('orderId')
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const page = parseInt(searchParams.get('page') || '1')
+
+    let query = adminDb.collection('refunds')
+
+    // Apply filters
+    if (status) {
+      query = query.where('status', '==', status)
+    }
+    if (userId) {
+      query = query.where('userId', '==', userId)
+    }
+    if (vendorId) {
+      query = query.where('vendorId', '==', vendorId)
+    }
+    if (orderId) {
+      query = query.where('orderId', '==', orderId)
+    }
+
+    // Order by creation date (newest first)
+    query = query.orderBy('createdAt', 'desc')
+
+    // Apply pagination
+    const offset = (page - 1) * limit
+    if (offset > 0) {
+      const offsetSnapshot = await query.limit(offset).get()
+      if (!offsetSnapshot.empty) {
+        const lastDoc = offsetSnapshot.docs[offsetSnapshot.docs.length - 1]
+        query = query.startAfter(lastDoc)
+      }
+    }
+
+    query = query.limit(limit)
+
+    const snapshot = await query.get()
+    
+    const refunds = await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const refundData = doc.data()
+        
+        // Get associated order data
+        let orderData = null
+        if (refundData.orderId) {
+          try {
+            const orderDoc = await adminDb.collection('orders').doc(refundData.orderId).get()
+            if (orderDoc.exists) {
+              const order = orderDoc.data()
+              orderData = {
+                id: orderDoc.id,
+                orderNumber: order?.orderNumber,
+                customerName: order?.customerName,
+                customerEmail: order?.customerEmail || order?.userEmail,
+                totalAmount: order?.totalAmount || order?.total,
+                paymentMethod: order?.paymentMethod,
+                createdAt: order?.createdAt?.toDate?.() || order?.createdAt,
+              }
+            }
+          } catch (orderError) {
+            console.error(`Failed to fetch order ${refundData.orderId}:`, orderError)
+          }
+        }
+
+        return {
+          id: doc.id,
+          ...refundData,
+          createdAt: refundData.createdAt?.toDate?.() || refundData.createdAt,
+          updatedAt: refundData.updatedAt?.toDate?.() || refundData.updatedAt,
+          refundedAt: refundData.refundedAt?.toDate?.() || refundData.refundedAt,
+          order: orderData,
+        }
+      })
+    )
+
+    // Get total count for pagination
+    const totalQuery = adminDb.collection('refunds')
+    let countQuery = totalQuery
+    if (status) countQuery = countQuery.where('status', '==', status)
+    if (userId) countQuery = countQuery.where('userId', '==', userId)
+    if (vendorId) countQuery = countQuery.where('vendorId', '==', vendorId)
+    if (orderId) countQuery = countQuery.where('orderId', '==', orderId)
+
+    const totalSnapshot = await countQuery.get()
+    const total = totalSnapshot.size
+
+    return NextResponse.json({
+      success: true,
+      refunds,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching refunds:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch refunds' },
       { status: 500 }
     )
   }

@@ -49,7 +49,7 @@ function AdminSettingsContent() {
   const [platformFavicon, setPlatformFavicon] = useState("")
 
   // Commission Settings
-  const [vendorCommission, setVendorCommission] = useState("15")
+  const [vendorCommission, setVendorCommission] = useState("10")
   const [transactionFee, setTransactionFee] = useState("2.5")
   const [minimumPayout, setMinimumPayout] = useState("50")
   const [payoutSchedule, setPayoutSchedule] = useState("weekly")

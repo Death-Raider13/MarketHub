@@ -72,18 +72,18 @@ function SupportDashboardContent() {
       )
       const resolvedTodaySnapshot = await getDocs(resolvedTodayQuery)
 
-      // Get pending refunds from orders
+      // Get pending refunds from refunds collection
       const pendingRefundsQuery = query(
-        collection(db, "orders"),
-        where("status", "==", "refund_requested")
+        collection(db, "refunds"),
+        where("status", "==", "pending")
       )
       const pendingRefundsSnapshot = await getDocs(pendingRefundsQuery)
 
-      // Get escalated issues
+      // Get escalated issues (high priority open tickets)
       const escalatedQuery = query(
         collection(db, "support_tickets"),
-        where("priority", "==", "urgent"),
-        where("status", "!=", "resolved")
+        where("priority", "==", "high"),
+        where("status", "in", ["open", "in_progress"])
       )
       const escalatedSnapshot = await getDocs(escalatedQuery)
 
@@ -101,9 +101,39 @@ function SupportDashboardContent() {
         createdAt: doc.data().createdAt?.toDate()
       }))
 
-      // Calculate average response time (mock for now)
-      const avgResponseTime = "2.5 hours"
-      const customerSatisfaction = 4.8
+      // Calculate average response time from tickets with firstResponseAt
+      const ticketsWithResponse = recentTicketsSnapshot.docs
+        .map(doc => doc.data())
+        .filter(ticket => ticket.firstResponseAt && ticket.createdAt)
+
+      let avgResponseTime = "N/A"
+      if (ticketsWithResponse.length > 0) {
+        const totalResponseTime = ticketsWithResponse.reduce((sum, ticket) => {
+          const created = ticket.createdAt.toDate().getTime()
+          const responded = ticket.firstResponseAt.toDate().getTime()
+          return sum + (responded - created)
+        }, 0)
+        
+        const avgMs = totalResponseTime / ticketsWithResponse.length
+        const avgHours = avgMs / (1000 * 60 * 60)
+        avgResponseTime = `${avgHours.toFixed(1)} hours`
+      }
+
+      // Calculate customer satisfaction from resolved tickets
+      const satisfactionQuery = query(
+        collection(db, "support_tickets"),
+        where("status", "==", "resolved"),
+        where("customerSatisfaction", "!=", null),
+        limit(50)
+      )
+      const satisfactionSnapshot = await getDocs(satisfactionQuery)
+      
+      let customerSatisfaction = 0
+      if (!satisfactionSnapshot.empty) {
+        const scores = satisfactionSnapshot.docs.map(doc => doc.data().customerSatisfaction)
+        const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
+        customerSatisfaction = Math.round(avgScore * 10) / 10
+      }
 
       setStats({
         openTickets: openTicketsSnapshot.size,
@@ -157,7 +187,7 @@ function SupportDashboardContent() {
     {
       title: "View Open Tickets",
       description: `${stats.openTickets} tickets need attention`,
-      href: "/admin/support/tickets",
+      href: "/support/tickets",
       icon: MessageSquare,
       color: "bg-blue-500",
       urgent: stats.openTickets > 20
@@ -165,7 +195,7 @@ function SupportDashboardContent() {
     {
       title: "Process Refunds",
       description: `${stats.pendingRefunds} refunds pending`,
-      href: "/admin/orders?filter=refunds",
+      href: "/admin/refunds",
       icon: RefreshCw,
       color: "bg-green-500",
       urgent: stats.pendingRefunds > 3

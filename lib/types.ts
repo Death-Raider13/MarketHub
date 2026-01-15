@@ -158,7 +158,7 @@ export interface PayoutRequest {
     accountName: string
   }
   paypalEmail?: string
-  status: "pending" | "approved" | "processing" | "completed" | "rejected"
+  status: "pending" | "approved" | "processing" | "completed" | "rejected" | "cancelled"
   requestedAt: Date
   processedAt?: Date
   processedBy?: string

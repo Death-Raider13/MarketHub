@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
               0
             const quantity = item.quantity || 1
             const itemTotal = price * quantity
-            const commission = 0.15 // 15% platform commission
+            const commission = 0.10 // 10% platform commission
             const vendorEarning = itemTotal * (1 - commission)
 
             vendorUpdates.set(
