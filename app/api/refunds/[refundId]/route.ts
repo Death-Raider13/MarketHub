@@ -248,14 +248,14 @@ export async function GET(
       refund: {
         id: refundId,
         ...refundData,
-        createdAt: refundData?.createdAt?.toDate?.() || refundData?.createdAt,
-        updatedAt: refundData?.updatedAt?.toDate?.() || refundData?.updatedAt,
+        createdAt: (refundData as any)?.createdAt?.toDate?.() || (refundData as any)?.createdAt,
+        updatedAt: (refundData as any)?.updatedAt?.toDate?.() || (refundData as any)?.updatedAt,
         refundedAt: refundData?.refundedAt?.toDate?.() || refundData?.refundedAt,
       },
       order: orderData ? {
         ...orderData,
-        createdAt: orderData.createdAt?.toDate?.() || orderData.createdAt,
-        updatedAt: orderData.updatedAt?.toDate?.() || orderData.updatedAt,
+        createdAt: (orderData as any).createdAt?.toDate?.() || (orderData as any).createdAt,
+        updatedAt: (orderData as any).updatedAt?.toDate?.() || (orderData as any).updatedAt,
       } : null,
     })
   } catch (error) {

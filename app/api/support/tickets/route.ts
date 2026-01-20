@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
               customerName: name,
               customerEmail: email,
               actionUrl: `/support/tickets/${ticketRef.id}`
-            }
+            } as any
           }
         )
       }
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const page = parseInt(searchParams.get('page') || '1')
 
-    let query = adminDb.collection('support_tickets')
+    let query: any = adminDb.collection('support_tickets')
 
     // Apply filters
     if (status) {
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
 
     const snapshot = await query.get()
     
-    const tickets = snapshot.docs.map(doc => ({
+    const tickets = snapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
@@ -189,7 +189,7 @@ export async function GET(request: NextRequest) {
 
     // Get total count for pagination
     const totalQuery = adminDb.collection('support_tickets')
-    let countQuery = totalQuery
+    let countQuery: any = totalQuery
     if (status) countQuery = countQuery.where('status', '==', status)
     if (category) countQuery = countQuery.where('category', '==', category)
     if (priority) countQuery = countQuery.where('priority', '==', priority)

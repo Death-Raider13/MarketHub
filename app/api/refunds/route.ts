@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const page = parseInt(searchParams.get('page') || '1')
 
-    let query = adminDb.collection('refunds')
+    let query: any = adminDb.collection('refunds')
 
     // Apply filters
     if (status) {
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
     const snapshot = await query.get()
     
     const refunds = await Promise.all(
-      snapshot.docs.map(async (doc) => {
+      snapshot.docs.map(async (doc: any) => {
         const refundData = doc.data()
         
         // Get associated order data
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
 
     // Get total count for pagination
     const totalQuery = adminDb.collection('refunds')
-    let countQuery = totalQuery
+    let countQuery: any = totalQuery
     if (status) countQuery = countQuery.where('status', '==', status)
     if (userId) countQuery = countQuery.where('userId', '==', userId)
     if (vendorId) countQuery = countQuery.where('vendorId', '==', vendorId)

@@ -52,7 +52,7 @@ import {
 } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
 import { toast } from "sonner"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/lib/firebase/auth-context"
 
 interface SupportTicket {
   id: string

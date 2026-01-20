@@ -195,7 +195,9 @@ async function testRefundWorkflow() {
 
         // Cleanup: Delete test refund
         try {
-          await adminDb.collection('refunds').doc(testRefund.refundId).delete()
+          if (testRefund.refundId) {
+            await adminDb.collection('refunds').doc(testRefund.refundId).delete()
+          }
           results.push({
             step: 'cleanup',
             status: 'success',

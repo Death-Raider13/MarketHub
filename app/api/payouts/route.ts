@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const snapshot = await query.limit(limit).get()
     
-    const payouts = snapshot.docs.map(doc => {
+    const payouts = snapshot.docs.map((doc: any) => {
       const data = doc.data()
       return {
         id: doc.id,

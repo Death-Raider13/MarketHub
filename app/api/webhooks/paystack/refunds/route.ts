@@ -115,7 +115,7 @@ async function handleRefundProcessed(refundData: any) {
             const orderData = orderDoc.data()
             await sendRefundProcessedEmail(
               { id: refund.orderId, ...orderData },
-              { id: refundId, ...refund, status: 'refunded', refundedAt: new Date() }
+              { id: refundId, ...refund, status: 'refunded', refundedAt: new Date() } as any
             )
           }
         }

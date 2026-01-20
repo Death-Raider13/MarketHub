@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -21,7 +21,8 @@ import {
   Loader2,
   Download,
   Calendar,
-  Star
+  Star,
+  RotateCcw
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
@@ -36,8 +37,8 @@ interface Order {
   tax: number
   shipping: number
   total: number
-  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-  paymentStatus: string
+  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refund_requested' | 'refunded'
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
   shippingAddress: any
   paymentMethod: string
   trackingNumber?: string
@@ -138,7 +139,9 @@ function MyOrdersContent() {
       processing: { color: 'bg-orange-100 text-orange-800', icon: Package },
       shipped: { color: 'bg-purple-100 text-purple-800', icon: Truck },
       delivered: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      cancelled: { color: 'bg-red-100 text-red-800', icon: XCircle }
+      cancelled: { color: 'bg-red-100 text-red-800', icon: XCircle },
+      refund_requested: { color: 'bg-purple-100 text-purple-800', icon: RotateCcw },
+      refunded: { color: 'bg-green-100 text-green-800', icon: RotateCcw }
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
@@ -147,7 +150,7 @@ function MyOrdersContent() {
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>
         <Icon className="w-3 h-3" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
       </Badge>
     )
   }
@@ -220,6 +223,91 @@ function MyOrdersContent() {
       toast.error('Failed to submit review')
     } finally {
       setSubmittingRating(false)
+    }
+  }
+
+  // Helper function to determine if refund button should be shown
+  const shouldShowRefundButton = (order: Order) => {
+    // Only show refund for physical products
+    const hasPhysicalProducts = order.items?.some(item => item.product?.type === 'physical')
+    if (!hasPhysicalProducts) return false
+
+    // Order must be delivered and paid
+    if (order.status !== 'delivered' || order.paymentStatus !== 'paid') return false
+
+    // Check if within 7-day refund window
+    const createdAt = new Date(order.createdAt)
+    const now = new Date()
+    const daysDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+    
+    return daysDiff <= 7
+  }
+
+  // Handle cancel order
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm('Are you sure you want to cancel this order?')) return
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.uid })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success('Order cancelled successfully')
+        loadOrders()
+      } else {
+        toast.error(data.error || 'Failed to cancel order')
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      toast.error('Failed to cancel order')
+    }
+  }
+
+  // Handle refund request
+  const handleRequestRefund = async (order: Order) => {
+    if (!user) return
+
+    // Double-check conditions
+    if (!shouldShowRefundButton(order)) {
+      toast.error('This order is not eligible for refund')
+      return
+    }
+
+    const reason = window.prompt('Please describe why you are requesting a refund:')
+    if (!reason || !reason.trim()) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/refunds', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          orderId: order.id,
+          reason: reason.trim(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || 'Failed to submit refund request')
+        return
+      }
+
+      toast.success('Refund request submitted successfully! We will review it within 1-2 business days.')
+      loadOrders()
+    } catch (error) {
+      console.error('Error requesting refund:', error)
+      toast.error('Failed to submit refund request')
     }
   }
 
@@ -471,6 +559,31 @@ function MyOrdersContent() {
                         <Button size="sm" variant="outline">
                           <Truck className="w-4 h-4 mr-2" />
                           Track Package
+                        </Button>
+                      )}
+
+                      {/* Cancel Order - Only for pending orders */}
+                      {order.status === 'pending' && (
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleCancelOrder(order.id)}
+                        >
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Cancel Order
+                        </Button>
+                      )}
+
+                      {/* Request Refund - Only for physical products that are delivered and paid */}
+                      {shouldShowRefundButton(order) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRequestRefund(order)}
+                          className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          Request Refund
                         </Button>
                       )}
 

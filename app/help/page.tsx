@@ -23,10 +23,10 @@ const helpCategories = [
     title: "Orders & Shipping",
     description: "Track orders, shipping info, and delivery",
     articles: [
-      "How to track my order",
-      "Shipping methods and costs",
-      "International shipping",
-      "Order modifications",
+      "How to Track My Order",
+      "Shipping Methods and Costs",
+      "International Shipping",
+      "Order Modifications",
     ],
   },
   {
@@ -34,10 +34,10 @@ const helpCategories = [
     title: "Returns & Refunds",
     description: "Return policy, refunds, and exchanges",
     articles: [
-      "How to return an item",
-      "Refund processing time",
-      "Exchange policy",
-      "Return shipping costs",
+      "How to Return an Item",
+      "Refund Processing Time",
+      "Exchange Policy",
+      "Return Shipping Costs",
     ],
   },
   {
@@ -45,10 +45,10 @@ const helpCategories = [
     title: "Payment & Billing",
     description: "Payment methods, invoices, and billing",
     articles: [
-      "Accepted payment methods",
-      "Payment security",
-      "How to get an invoice",
-      "Promo codes and discounts",
+      "Accepted Payment Methods",
+      "Payment Security",
+      "How to Get an Invoice",
+      "Promo Codes and Discounts",
     ],
   },
   {
@@ -56,10 +56,10 @@ const helpCategories = [
     title: "Account & Security",
     description: "Account settings, security, and privacy",
     articles: [
-      "Create an account",
-      "Reset password",
-      "Update profile information",
-      "Account security tips",
+      "Create an Account",
+      "Reset Password",
+      "Update Profile Information",
+      "Account Security Tips",
     ],
   },
   {
@@ -67,10 +67,10 @@ const helpCategories = [
     title: "Vendor Information",
     description: "Selling on our platform",
     articles: [
-      "How to become a vendor",
-      "Vendor dashboard guide",
-      "Commission structure",
-      "Vendor policies",
+      "How to Become a Vendor",
+      "Vendor Dashboard Guide",
+      "Commission Structure",
+      "Vendor Policies",
     ],
   },
   {
@@ -79,22 +79,22 @@ const helpCategories = [
     description: "FAQs and general information",
     articles: [
       "About FEROMARKETHUB",
-      "How to contact support",
-      "Terms of service",
-      "Privacy policy",
+      "How to Contact Support",
+      "Terms of Service",
+      "Privacy Policy",
     ],
   },
 ]
 
 const popularArticles = [
-  "How do I track my order?",
-  "What is your return policy?",
-  "How long does shipping take?",
-  "How do I reset my password?",
-  "What payment methods do you accept?",
-  "How do I contact a vendor?",
-  "How do I cancel my order?",
-  "Do you ship internationally?",
+  "How to Track My Order",
+  "How to Return an Item", 
+  "Shipping Methods and Costs",
+  "Reset Password",
+  "Accepted Payment Methods",
+  "How to Contact Support",
+  "Order Modifications",
+  "International Shipping",
 ]
 
 export default function HelpCenterPage() {

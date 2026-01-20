@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     // Get all payouts
     const payoutsSnapshot = await payoutsQuery.get()
-    const payouts = payoutsSnapshot.docs.map(doc => {
+    const payouts = payoutsSnapshot.docs.map((doc: any) => {
       const data = doc.data()
       return {
         id: doc.id,

@@ -3,6 +3,7 @@ import { sendEmail } from './send-email'
 
 const FROM_EMAIL = 'FEROMARKETHUB <orders@FEROMARKETHUB.com>' // Can be overridden via SMTP/Resend config
 const SUPPORT_EMAIL = 'support@FEROMARKETHUB.com'
+const SUPPORT_PHONE = '+234-800-MARKET'
 
 // Base app URL used in emails. Make sure NEXT_PUBLIC_APP_URL is set in your env.
 const APP_URL =
@@ -281,7 +282,7 @@ export async function sendOrderConfirmationEmail(
           </div>
           
           <div class="footer">
-            <p style="margin: 5px 0;"><strong>© 2025 FEROMARKETHUB. All rights reserved.</strong></p>
+            <p style="margin: 5px 0;"><strong>&copy; 2025 FEROMARKETHUB. All rights reserved.</strong></p>
             <p style="margin: 5px 0;">You received this email because you made a purchase on FEROMARKETHUB.</p>
             <p style="margin: 5px 0;">
               <a href="${APP_URL}/dashboard/orders" style="color: #3b82f6;">View Order</a> | 
@@ -370,7 +371,7 @@ async function sendOrderStatusEmail(
           </div>
           <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
             <p style="margin: 4px 0;">If you have any questions, reply to this email or contact <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>.</p>
-            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+            <p style="margin: 4px 0;">&copy; 2025 FEROMARKETHUB</p>
           </div>
         </div>
       </body>
@@ -585,7 +586,7 @@ async function sendPayoutStatusEmail(
           </div>
           <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
             <p style="margin: 4px 0;">If you have any questions, reply to this email or contact <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>.</p>
-            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+            <p style="margin: 4px 0;">&copy; 2025 FEROMARKETHUB</p>
           </div>
         </div>
       </body>
@@ -695,7 +696,7 @@ async function sendRefundEmail(
           </div>
           <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
             <p style="margin: 4px 0;">If you have any questions, reply to this email or contact <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>.</p>
-            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+            <p style="margin: 4px 0;">&copy; 2025 FEROMARKETHUB</p>
           </div>
         </div>
       </body>
@@ -782,7 +783,7 @@ export async function sendSupportTicketCreatedEmail(ticket: {
           </div>
           <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
             <p style="margin: 4px 0;">Need immediate help? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a> or call ${SUPPORT_PHONE}.</p>
-            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+            <p style="margin: 4px 0;">&copy; 2025 FEROMARKETHUB</p>
           </div>
         </div>
       </body>
@@ -895,7 +896,7 @@ export async function sendSupportTicketResponseEmail(data: {
           </div>
           <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
             <p style="margin: 4px 0;">Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a></p>
-            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+            <p style="margin: 4px 0;">&copy; 2025 FEROMARKETHUB</p>
           </div>
         </div>
       </body>
@@ -949,7 +950,7 @@ export async function sendSupportTicketResolvedEmail(data: {
           </div>
           <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
             <p style="margin: 4px 0;">Still need help? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a></p>
-            <p style="margin: 4px 0;">© 2025 FEROMARKETHUB</p>
+            <p style="margin: 4px 0;">&copy; 2025 FEROMARKETHUB</p>
           </div>
         </div>
       </body>
@@ -981,7 +982,7 @@ export async function sendVendorApplicationSubmittedEmail(
         </div>
         <p>We'll email you once a decision is made (usually 1–3 business days).</p>
       </div>
-      <div style="padding:16px 20px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;background:#f9fafb">© 2025 FEROMARKETHUB</div>
+      <div style="padding:16px 20px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;background:#f9fafb">&copy; 2025 FEROMARKETHUB</div>
     </div></body></html>`
   return sendEmail({ from: FROM_EMAIL, to: vendorEmail, subject: 'Your vendor application was received', html })
 }

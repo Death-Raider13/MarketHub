@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     const fromDate = searchParams.get('fromDate')
     const toDate = searchParams.get('toDate')
 
-    let query = adminDb.collection('refunds')
+    let query: any = adminDb.collection('refunds')
 
     // Apply filters
     if (status) {
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
 
     const snapshot = await query.get()
     
-    let refunds = snapshot.docs.map(doc => ({
+    let refunds = snapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
         if (refund.orderId) {
           try {
             const orderDoc = await adminDb.collection('orders').doc(refund.orderId).get()
-            if (orderDoc.exists()) {
+            if (orderDoc.exists) {
               const order = orderDoc.data()
               orderData = {
                 id: orderDoc.id,

@@ -2,6 +2,8 @@
 
 import type React from "react"
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
