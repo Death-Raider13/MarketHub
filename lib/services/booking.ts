@@ -94,6 +94,35 @@ export async function createServiceBooking(
       logger.error('Failed to notify vendor of new booking', { error: notificationError })
     }
 
+    // Send customer confirmation email for service booking
+    try {
+      // Get customer details
+      const customerDoc = await adminDb.collection('users').doc(customerId).get()
+      const customerData = customerDoc.data()
+      const customerEmail = customerData?.email
+      const customerName = customerData?.displayName || customerData?.name || customerEmail?.split('@')[0] || 'Customer'
+
+      if (customerEmail) {
+        const { sendServiceBookingConfirmationEmail } = await import('@/lib/email/service')
+        await sendServiceBookingConfirmationEmail(
+          customerEmail,
+          customerName,
+          {
+            id: bookingRef.id,
+            orderId,
+            serviceName: serviceItem.productName,
+            serviceDescription: serviceItem.product?.description || '',
+            vendorId: serviceItem.vendorId
+          },
+          serviceItem.productPrice * serviceItem.quantity
+        )
+        console.log('✅ Service booking confirmation email sent to customer')
+      }
+    } catch (emailError) {
+      logger.error('Failed to send service booking confirmation email', { error: emailError })
+      // Don't fail the booking creation if email fails
+    }
+
     logger.info('Service booking created', {
       bookingId: bookingRef.id,
       orderId,

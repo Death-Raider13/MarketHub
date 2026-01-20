@@ -180,10 +180,49 @@ async function handlePaymentCompleted(
     console.error('⚠️ Vendor balance update failed:', err)
   }
 
-  // Send confirmation email
+  // Generate download links for digital products and send confirmation email
   try {
     const { sendOrderConfirmationEmail } = await import('@/lib/email/service')
-    await sendOrderConfirmationEmail({ id: orderId, ...orderData })
+    let downloadLinks: any[] | undefined = undefined
+
+    // Generate download links for digital products
+    const digitalItems = orderData?.items?.filter((item: any) => 
+      item.product?.productType === 'digital' || item.product?.type === 'digital'
+    ) || []
+
+    if (digitalItems.length > 0) {
+      const { generateDownloadLinks } = await import('@/lib/digital-products/download-links')
+      
+      // Extract digital files from all digital products
+      const allDigitalFiles = digitalItems.flatMap((item: any) => 
+        item.product?.digitalFiles || []
+      ).filter((file: any) => file && file.id && file.fileName && file.fileUrl)
+
+      if (allDigitalFiles.length > 0) {
+        // Get the first purchase record ID for this order (for tracking)
+        let purchaseId = undefined
+        try {
+          const purchaseQuery = await adminDb
+            .collection('purchasedProducts')
+            .where('orderId', '==', orderId)
+            .where('userId', '==', orderData.userId)
+            .limit(1)
+            .get()
+          
+          if (!purchaseQuery.empty) {
+            purchaseId = purchaseQuery.docs[0].id
+          }
+        } catch (purchaseError) {
+          console.warn('Could not get purchase ID for download links:', purchaseError)
+        }
+
+        downloadLinks = await generateDownloadLinks(allDigitalFiles, 24, purchaseId)
+        console.log('✅ Generated', downloadLinks.length, 'download links for digital products')
+      }
+    }
+
+    await sendOrderConfirmationEmail({ id: orderId, ...orderData }, downloadLinks)
+    console.log('✅ Confirmation email sent with', downloadLinks?.length || 0, 'download links')
   } catch (err) {
     console.error('⚠️ Confirmation email failed:', err)
   }

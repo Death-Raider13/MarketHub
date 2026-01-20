@@ -4,7 +4,7 @@ import type React from "react"
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useCart } from "@/lib/cart-context"
 import { useAuth } from "@/lib/firebase/auth-context"
-import { CheckCircle2, CreditCard, MapPin, Truck, User, Download, Calendar, Package, Bitcoin } from "lucide-react"
+import { CheckCircle2, CreditCard, Truck, Download, Calendar, Package, Bitcoin } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import type { Address } from "@/lib/types"
@@ -24,7 +24,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { toast } from "sonner"
 import { NotificationTriggers } from "@/lib/notifications/triggers"
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { items, totalPrice, clearCart } = useCart()
   const { user } = useAuth()
   const router = useRouter()
@@ -46,7 +46,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("card")
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null)
   const [completedOrderItems, setCompletedOrderItems] = useState<any[]>([])
-  const [cryptoPaymentUrl, setCryptoPaymentUrl] = useState<string | null>(null)
+  
   // Check if cart has physical products (shipping applies only to physical items)
   const hasPhysicalProducts = items.some(
     (item) => item.product.type === "physical" || item.product.productType === "physical"
@@ -207,7 +207,6 @@ export default function CheckoutPage() {
           // Store order info before redirecting
           setCompletedOrderId(orderId)
           setCompletedOrderItems([...items])
-          setCryptoPaymentUrl(charge.hosted_url)
           
           // Open Coinbase Commerce hosted page
           window.open(charge.hosted_url, '_blank')
@@ -798,5 +797,30 @@ export default function CheckoutPage() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 bg-muted/30">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <Card className="w-full max-w-md">
+                <CardContent className="pt-6 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-4 text-muted-foreground">Loading checkout...</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }

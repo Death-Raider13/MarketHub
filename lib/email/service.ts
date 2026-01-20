@@ -11,6 +11,144 @@ const APP_URL =
   process.env.NEXTAUTH_URL ||
   'http://localhost:3000'
 
+export async function sendServiceBookingConfirmationEmail(
+  customerEmail: string,
+  customerName: string,
+  booking: {
+    id: string
+    orderId: string
+    serviceName: string
+    serviceDescription: string
+    vendorId: string
+  },
+  orderTotal?: number
+) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6; 
+            color: #333; 
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 20px auto; 
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
+          .header { 
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+          }
+          .header h1 { margin: 0; font-size: 24px; }
+          .content { padding: 30px 20px; }
+          .booking-details { 
+            background: #f0f9ff; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px;
+            border-left: 4px solid #0891b2;
+          }
+          .next-steps {
+            background: #fef3c7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #f59e0b;
+          }
+          .footer { 
+            text-align: center; 
+            padding: 20px; 
+            color: #6b7280; 
+            font-size: 14px;
+            background: #f9fafb;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🗓 Service Booking Confirmed!</h1>
+          </div>
+          
+          <div class="content">
+            <p style="font-size: 16px;">Hi <strong>${customerName}</strong>,</p>
+            <p>Great news! Your service booking has been confirmed and the vendor has been notified.</p>
+            
+            <div class="booking-details">
+              <h3 style="margin-top: 0; color: #0891b2;">📋 Booking Details</h3>
+              <p style="margin: 5px 0;"><strong>Service:</strong> ${booking.serviceName}</p>
+              <p style="margin: 5px 0;"><strong>Description:</strong> ${booking.serviceDescription}</p>
+              <p style="margin: 5px 0;"><strong>Booking ID:</strong> ${booking.id}</p>
+              <p style="margin: 5px 0;"><strong>Order ID:</strong> ${booking.orderId}</p>
+              ${orderTotal ? `<p style="margin: 5px 0;"><strong>Amount Paid:</strong> ₦${orderTotal.toLocaleString()}</p>` : ''}
+              <p style="margin: 5px 0;"><strong>Status:</strong> <span style="color: #f59e0b; font-weight: 600;">Pending Schedule</span></p>
+            </div>
+            
+            <div class="next-steps">
+              <h3 style="margin-top: 0; color: #92400e;">📅 What Happens Next?</h3>
+              <ul style="margin: 10px 0; padding-left: 20px;">
+                <li><strong>Vendor Contact:</strong> The service provider will contact you within 24-48 hours to schedule your appointment</li>
+                <li><strong>Scheduling:</strong> You'll work together to find a convenient time and location</li>
+                <li><strong>Confirmation:</strong> Once scheduled, you'll receive another email with the appointment details</li>
+                <li><strong>Service Delivery:</strong> Meet with the vendor at the agreed time and location</li>
+              </ul>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 20px; background: #f9fafb; border-radius: 8px;">
+              <h4 style="margin-top: 0;">Need Help?</h4>
+              <p style="margin: 5px 0;">If you have any questions about your service booking, please contact us:</p>
+              <p style="margin: 5px 0;">
+                📧 Email: <a href="mailto:${SUPPORT_EMAIL}" style="color: #0891b2;">${SUPPORT_EMAIL}</a><br>
+                🌐 Visit: <a href="${APP_URL}" style="color: #0891b2;">FEROMARKETHUB</a>
+              </p>
+              <p style="margin: 15px 0 5px 0;">
+                <a href="${APP_URL}/my-services" style="display: inline-block; background: #0891b2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                  View My Services
+                </a>
+              </p>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p style="margin: 5px 0;"><strong>&copy; 2025 FEROMARKETHUB. All rights reserved.</strong></p>
+            <p style="margin: 5px 0;">You received this email because you booked a service on FEROMARKETHUB.</p>
+            <p style="margin: 5px 0;">
+              <a href="${APP_URL}/my-services" style="color: #0891b2;">View Services</a> | 
+              <a href="${APP_URL}/help" style="color: #0891b2;">Help Center</a>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  try {
+    const result = await sendEmail({
+      from: FROM_EMAIL,
+      to: customerEmail,
+      subject: `Service Booking Confirmed - ${booking.serviceName}`,
+      html: html,
+    })
+
+    console.log('Service booking confirmation email sent:', result)
+    return result
+  } catch (error) {
+    console.error('Failed to send service booking confirmation email:', error)
+    throw error
+  }
+}
+
 export async function sendOrderConfirmationEmail(
   order: any,
   downloadLinks?: SecureDownloadLink[]

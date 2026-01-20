@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Star, CheckCircle, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 
-export default function SupportFeedbackPage() {
+function FeedbackForm() {
   const searchParams = useSearchParams()
   const ticketNumber = searchParams.get('ticket')
   const initialRating = parseInt(searchParams.get('rating') || '0')
@@ -223,5 +223,26 @@ export default function SupportFeedbackPage() {
       
       <Footer />
     </div>
+  )
+}
+
+export default function SupportFeedbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading...</p>
+            </CardContent>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <FeedbackForm />
+    </Suspense>
   )
 }

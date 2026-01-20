@@ -1,29 +1,36 @@
 import { storage } from '@/lib/firebase/config'
 import { ref, getDownloadURL } from 'firebase/storage'
 import type { SecureDownloadLink, DigitalFile } from '@/lib/types'
+import { createProxyDownloadUrl } from './cloudinary-download'
 
 /**
  * Generate secure, time-limited download links for digital products
  * @param files - Array of digital files
  * @param expirationHours - Hours until link expires (default 24)
+ * @param purchaseId - Purchase record ID for tracking
  * @returns Array of secure download links
  */
 export async function generateDownloadLinks(
   files: DigitalFile[],
-  expirationHours: number = 24
+  expirationHours: number = 24,
+  purchaseId?: string
 ): Promise<SecureDownloadLink[]> {
   try {
     const links = await Promise.all(
       files.map(async (file) => {
-        // Firebase Storage URLs are already secure and include tokens
-        // The URL itself acts as the access control
         const expiresAt = new Date()
         expiresAt.setHours(expiresAt.getHours() + expirationHours)
+
+        // Use proxy download URL if purchaseId is available
+        let downloadUrl = file.fileUrl
+        if (purchaseId && file.id) {
+          downloadUrl = createProxyDownloadUrl(file.id, purchaseId)
+        }
 
         return {
           fileId: file.id,
           fileName: file.fileName,
-          url: file.fileUrl, // Firebase Storage URL with token
+          url: downloadUrl,
           expiresAt: expiresAt
         }
       })

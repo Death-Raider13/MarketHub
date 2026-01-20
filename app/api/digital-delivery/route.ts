@@ -177,15 +177,14 @@ export async function POST(request: NextRequest) {
             continue
           }
 
-          // For Cloudinary, we can use the URL directly or create a secure download token
-          // Since Cloudinary URLs are already secure, we'll use them directly
+          // Use proxy download URL for better security and tracking
           productLinks.push({
             fileId: digitalFile.id,
             fileName: digitalFile.fileName,
             fileSize: digitalFile.fileSize,
             fileType: digitalFile.fileType,
-            downloadUrl: digitalFile.fileUrl,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours for Cloudinary
+            downloadUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/digital-products/download?fileId=${digitalFile.id}&purchaseId=${purchaseDoc?.id}&userId=${userId}`,
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
           })
         } catch (error) {
           // Skip file on error
