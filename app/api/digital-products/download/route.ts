@@ -10,6 +10,7 @@ const MAX_PROXY_BYTES = 100 * 1024 * 1024
 
 export async function GET(request: NextRequest) {
   try {
+
     const { searchParams } = new URL(request.url)
     const fileId = searchParams.get('fileId')
     const purchaseId = searchParams.get('purchaseId')
@@ -94,18 +95,18 @@ export async function GET(request: NextRequest) {
     const fileName: string = digitalFile.fileName || 'download'
     const fileType: string | undefined = digitalFile.fileType
 
-    // Generate proper download URL
-    let downloadUrl = originalUrl
-
-    // If it's a Cloudinary URL, generate a proper download URL
-    if (downloadUrl.includes('cloudinary.com')) {
-      downloadUrl = generateCloudinaryDownloadUrl(downloadUrl, digitalFile.fileName)
-    }
+    // For proxying we fetch the ORIGINAL URL to avoid Cloudinary transformation quirks
+    // across file types (PDF/ZIP/etc.). We still force download via our own
+    // Content-Disposition header.
+    const downloadUrl = originalUrl
 
     // Proxy download through our server to ensure consistent download behavior
     // across file types (PDF/ZIP/etc.). We cap to 100MB to avoid serverless limits.
     const upstreamHead = await fetch(downloadUrl, {
-      method: 'HEAD'
+      method: 'GET',
+      headers: {
+        Range: 'bytes=0-0'
+      }
     }).catch(() => null)
 
     const upstreamLengthHeader = upstreamHead?.headers?.get('content-length') || null
@@ -120,9 +121,11 @@ export async function GET(request: NextRequest) {
 
     const upstream = await fetch(downloadUrl)
     if (!upstream.ok) {
+      const status = upstream.status
+      const statusText = upstream.statusText
       return NextResponse.json(
-        { error: 'File is currently unavailable. Please contact support.' },
-        { status: 404 }
+        { error: 'File is currently unavailable. Please contact support.', upstreamStatus: status, upstreamStatusText: statusText },
+        { status: 502 }
       )
     }
 
