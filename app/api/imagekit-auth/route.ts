@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import ImageKit from 'imagekit'
+import ImageKit from '@imagekit/nodejs'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
