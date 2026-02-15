@@ -21,37 +21,41 @@ export function generateCloudinaryDownloadUrl(
 ): string {
   try {
     const url = new URL(originalUrl)
-    
+
     // Ensure it's a Cloudinary URL
     if (!url.hostname.includes('cloudinary.com')) {
       throw new Error('Not a valid Cloudinary URL')
     }
 
-    // Extract the public ID from the URL
+    // Preserve the exact asset path (folders, version, extension, etc.) and only inject
+    // `fl_attachment` to force download.
+    // Examples:
+    //  - /<cloud>/raw/upload/v123/folder/file.pdf
+    //  - /<cloud>/raw/upload/folder/file
     const pathParts = url.pathname.split('/')
-    const uploadIndex = pathParts.findIndex(part => part === 'upload')
-    
+    const uploadIndex = pathParts.findIndex((part) => part === 'upload')
+
     if (uploadIndex === -1) {
       throw new Error('Invalid Cloudinary URL format')
     }
 
-    // Get the public ID (everything after version or upload)
-    const publicIdParts = pathParts.slice(uploadIndex + 1)
-    
-    // Remove version if present (starts with 'v' followed by numbers)
-    if (publicIdParts[0] && /^v\d+$/.test(publicIdParts[0])) {
-      publicIdParts.shift()
+    const hasExistingTransformations =
+      typeof pathParts[uploadIndex + 1] === 'string' &&
+      pathParts[uploadIndex + 1].length > 0 &&
+      !/^v\d+$/.test(pathParts[uploadIndex + 1])
+
+    const attachmentTransformation = `fl_attachment${fileName ? `:${encodeURIComponent(fileName)}` : ''}`
+
+    if (hasExistingTransformations) {
+      // Merge with existing transformation string
+      pathParts[uploadIndex + 1] = `${pathParts[uploadIndex + 1]},${attachmentTransformation}`
+    } else {
+      // Insert transformation segment after /upload
+      pathParts.splice(uploadIndex + 1, 0, attachmentTransformation)
     }
 
-    const publicId = publicIdParts.join('/').replace(/\.[^/.]+$/, '') // Remove file extension
-
-    // Get cloud name from hostname
-    const cloudName = url.hostname.split('.')[0]
-
-    // Create download URL with proper transformations
-    const downloadUrl = `https://res.cloudinary.com/${cloudName}/raw/upload/fl_attachment${fileName ? `:${encodeURIComponent(fileName)}` : ''}/${publicId}`
-
-    return downloadUrl
+    url.pathname = pathParts.join('/')
+    return url.toString()
 
   } catch (error) {
     console.error('Error generating Cloudinary download URL:', error)
@@ -67,7 +71,14 @@ export function generateCloudinaryDownloadUrl(
  */
 export async function validateCloudinaryUrl(url: string): Promise<boolean> {
   try {
-    const response = await fetch(url, { method: 'HEAD' })
+    // Some CDNs / Cloudinary configurations don't reliably support HEAD.
+    // Use a tiny ranged GET instead.
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Range: 'bytes=0-0'
+      }
+    })
     return response.ok
   } catch (error) {
     console.error('Error validating Cloudinary URL:', error)
