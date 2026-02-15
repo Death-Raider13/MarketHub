@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase/admin'
+import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -13,6 +13,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
+      )
+    }
+
+    const adminDb = getAdminFirestore()
+    if (!adminDb) {
+      console.error('❌ Admin Firestore not available')
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 500 }
       )
     }
 

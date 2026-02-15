@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { generateCloudinaryDownloadUrl, validateCloudinaryUrl } from '@/lib/digital-products/cloudinary-download'
 
+// Mark this route as dynamic since it handles download requests with query params
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
