@@ -81,22 +81,46 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const originalUrl: string | undefined = digitalFile.fileUrl
+    if (!originalUrl) {
+      return NextResponse.json(
+        { error: 'Digital file is missing a file URL' },
+        { status: 500 }
+      )
+    }
+
     // Generate proper download URL
-    let downloadUrl = digitalFile.fileUrl
+    let downloadUrl = originalUrl
 
     // If it's a Cloudinary URL, generate a proper download URL
     if (downloadUrl.includes('cloudinary.com')) {
       downloadUrl = generateCloudinaryDownloadUrl(downloadUrl, digitalFile.fileName)
     }
 
-    // Validate the URL is accessible
-    const isValid = await validateCloudinaryUrl(downloadUrl)
+    // Validate the URL is accessible. If validation fails for the transformed URL,
+    // try the original URL (some transformations or methods can be blocked).
+    let isValid = await validateCloudinaryUrl(downloadUrl)
+    if (!isValid && originalUrl !== downloadUrl) {
+      console.warn('Download URL validation failed, retrying with original URL', {
+        purchaseId,
+        fileId,
+        downloadUrl,
+        originalUrl
+      })
+      isValid = await validateCloudinaryUrl(originalUrl)
+      if (isValid) {
+        downloadUrl = originalUrl
+      }
+    }
+
+    // Do not hard-fail the download when validation fails; allow redirect and let
+    // the provider return the final status. This avoids false negatives.
     if (!isValid) {
-      console.error('Invalid or inaccessible file URL:', downloadUrl)
-      return NextResponse.json(
-        { error: 'File is currently unavailable. Please contact support.' },
-        { status: 404 }
-      )
+      console.warn('Download URL could not be validated; redirecting anyway', {
+        purchaseId,
+        fileId,
+        downloadUrl
+      })
     }
 
     // Update download count
