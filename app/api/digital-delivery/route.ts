@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase/admin'
-import { getAuth } from 'firebase-admin/auth'
+import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 
 // Generate secure download links for purchased digital products
 export async function POST(request: NextRequest) {
@@ -11,6 +10,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Order ID and User ID are required' },
         { status: 400 }
+      )
+    }
+
+    const adminDb = getAdminFirestore()
+    if (!adminDb) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 500 }
       )
     }
 
@@ -53,19 +60,50 @@ export async function POST(request: NextRequest) {
     let digitalProducts: any[] = []
 
     if (!purchasedProductsQuery.empty) {
-      // Use purchased products data (more reliable)
-      digitalProducts = purchasedProductsQuery.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter((purchase: any) => {
-          const p = purchase.product || {}
-          const isDigital = (p.productType === 'digital' || p.type === 'digital')
-          const hasFiles = Array.isArray(p.digitalFiles) && p.digitalFiles.length > 0
-          return isDigital && hasFiles
-        })
-        .map((purchase: any) => ({
-          product: purchase.product,
-          purchaseDoc: { id: purchase.id, data: () => purchase }
-        }))
+      // Use purchased products data, but fetch fresh product data if files are missing
+      const purchasedDocs = purchasedProductsQuery.docs.map((doc: any) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }))
+
+      for (const purchase of purchasedDocs) {
+        const p = purchase.product || {}
+        const isDigital = (p.productType === 'digital' || p.type === 'digital')
+        
+        if (!isDigital) continue
+
+        let productData = p
+        const hasFiles = Array.isArray(p.digitalFiles) && p.digitalFiles.length > 0
+
+        // If no files in purchase record, fetch fresh product data
+        if (!hasFiles && p.id) {
+          try {
+            const freshProductDoc = await adminDb.collection('products').doc(p.id).get()
+            if (freshProductDoc.exists) {
+              const freshProduct = freshProductDoc.data()
+              if (freshProduct && Array.isArray(freshProduct.digitalFiles) && freshProduct.digitalFiles.length > 0) {
+                productData = { ...p, digitalFiles: freshProduct.digitalFiles }
+                
+                // Update purchase record with fresh files
+                await adminDb.collection('purchasedProducts').doc(purchase.id).update({
+                  'product.digitalFiles': freshProduct.digitalFiles
+                })
+                
+                console.log(`✅ Updated purchase ${purchase.id} with ${freshProduct.digitalFiles.length} files from product`)
+              }
+            }
+          } catch (fetchError) {
+            console.error('Error fetching fresh product data:', fetchError)
+          }
+        }
+
+        if (Array.isArray(productData.digitalFiles) && productData.digitalFiles.length > 0) {
+          digitalProducts.push({
+            product: productData,
+            purchaseDoc: { id: purchase.id, data: () => purchase }
+          })
+        }
+      }
     } else {
       // Fallback to order items data
       digitalProducts = order?.items?.filter((item: any) => {
@@ -81,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     if (digitalProducts.length === 0) {
       // Check if there are digital products without files
-      const digitalProductsWithoutFiles = (purchasedProductsQuery.empty ? order?.items : purchasedProductsQuery.docs.map(doc => ({ product: doc.data().product })))
+      const digitalProductsWithoutFiles = (purchasedProductsQuery.empty ? order?.items : purchasedProductsQuery.docs.map((doc: any) => ({ product: doc.data().product })))
         ?.filter((item: any) => {
           const p = item.product || {}
           const isDigital = (p.productType === 'digital' || p.type === 'digital')
@@ -227,6 +265,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         { error: 'Purchase ID, File ID, and User ID are required' },
         { status: 400 }
+      )
+    }
+
+    const adminDb = getAdminFirestore()
+    if (!adminDb) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 500 }
       )
     }
 
