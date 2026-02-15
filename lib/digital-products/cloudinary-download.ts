@@ -44,7 +44,12 @@ export function generateCloudinaryDownloadUrl(
       pathParts[uploadIndex + 1].length > 0 &&
       !/^v\d+$/.test(pathParts[uploadIndex + 1])
 
-    const attachmentTransformation = `fl_attachment${fileName ? `:${encodeURIComponent(fileName)}` : ''}`
+    // Cloudinary's attachment flag is `fl_attachment`. To suggest a filename, use
+    // `fl_attachment=<filename>` (not `:`). A colon will produce invalid URLs (HTTP 400).
+    const safeFileName = fileName ? fileName.replace(/\//g, '_') : undefined
+    const attachmentTransformation = safeFileName
+      ? `fl_attachment=${encodeURIComponent(safeFileName)}`
+      : 'fl_attachment'
 
     if (hasExistingTransformations) {
       // Merge with existing transformation string
