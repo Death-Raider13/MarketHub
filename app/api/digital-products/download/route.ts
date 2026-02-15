@@ -6,6 +6,8 @@ import { generateCloudinaryDownloadUrl, validateCloudinaryUrl } from '@/lib/digi
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+const MAX_PROXY_BYTES = 100 * 1024 * 1024
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -89,6 +91,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const fileName: string = digitalFile.fileName || 'download'
+    const fileType: string | undefined = digitalFile.fileType
+
     // Generate proper download URL
     let downloadUrl = originalUrl
 
@@ -97,33 +102,41 @@ export async function GET(request: NextRequest) {
       downloadUrl = generateCloudinaryDownloadUrl(downloadUrl, digitalFile.fileName)
     }
 
-    // Validate the URL is accessible. If validation fails for the transformed URL,
-    // try the original URL (some transformations or methods can be blocked).
-    let isValid = await validateCloudinaryUrl(downloadUrl)
-    if (!isValid && originalUrl !== downloadUrl) {
-      console.warn('Download URL validation failed, retrying with original URL', {
-        purchaseId,
-        fileId,
-        downloadUrl,
-        originalUrl
-      })
-      isValid = await validateCloudinaryUrl(originalUrl)
-      if (isValid) {
-        downloadUrl = originalUrl
-      }
+    // Proxy download through our server to ensure consistent download behavior
+    // across file types (PDF/ZIP/etc.). We cap to 100MB to avoid serverless limits.
+    const upstreamHead = await fetch(downloadUrl, {
+      method: 'HEAD'
+    }).catch(() => null)
+
+    const upstreamLengthHeader = upstreamHead?.headers?.get('content-length') || null
+    const upstreamLength = upstreamLengthHeader ? Number(upstreamLengthHeader) : NaN
+
+    if (!Number.isNaN(upstreamLength) && upstreamLength > MAX_PROXY_BYTES) {
+      return NextResponse.json(
+        { error: 'File too large to download via proxy. Please reduce file size to 100MB or less.' },
+        { status: 413 }
+      )
     }
 
-    // Do not hard-fail the download when validation fails; allow redirect and let
-    // the provider return the final status. This avoids false negatives.
-    if (!isValid) {
-      console.warn('Download URL could not be validated; redirecting anyway', {
-        purchaseId,
-        fileId,
-        downloadUrl
-      })
+    const upstream = await fetch(downloadUrl)
+    if (!upstream.ok) {
+      return NextResponse.json(
+        { error: 'File is currently unavailable. Please contact support.' },
+        { status: 404 }
+      )
     }
 
-    // Update download count
+    const arrayBuffer = await upstream.arrayBuffer()
+    if (arrayBuffer.byteLength > MAX_PROXY_BYTES) {
+      return NextResponse.json(
+        { error: 'File too large to download via proxy. Please reduce file size to 100MB or less.' },
+        { status: 413 }
+      )
+    }
+
+    const contentType = upstream.headers.get('content-type') || fileType || 'application/octet-stream'
+
+    // Update download count (best effort)
     try {
       await adminDb.collection('purchasedProducts').doc(purchaseId).update({
         downloadCount: (purchaseData.downloadCount || 0) + 1,
@@ -131,11 +144,16 @@ export async function GET(request: NextRequest) {
       })
     } catch (updateError) {
       console.error('Failed to update download count:', updateError)
-      // Don't fail the download if we can't update the count
     }
 
-    // Redirect to the actual file URL
-    return NextResponse.redirect(downloadUrl)
+    return new NextResponse(arrayBuffer, {
+      status: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
+        'Cache-Control': 'no-store'
+      }
+    })
 
   } catch (error) {
     console.error('Download error:', error)
