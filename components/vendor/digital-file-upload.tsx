@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ImageKit } from "@imagekit/javascript"
+import { upload } from "@imagekit/javascript"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Upload, X, File, FileText, FileVideo, FileAudio, FileArchive } from "lucide-react"
@@ -66,47 +66,58 @@ export function DigitalFileUpload({
       const uploadPromises = files.map(async (file) => {
         const fileId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-        const imagekit = new ImageKit({
-          publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || process.env.IMAGEKIT_PUBLIC_KEY || "",
-          urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT || "",
-          authenticationEndpoint: "/api/imagekit-auth"
-        })
+        const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || process.env.IMAGEKIT_PUBLIC_KEY || ""
+        const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT || ""
 
-        if (!imagekit.options.publicKey || !imagekit.options.urlEndpoint) {
+        if (!publicKey || !urlEndpoint) {
           throw new Error('ImageKit is not configured on the client')
+        }
+
+        const authResp = await fetch('/api/imagekit-auth')
+        if (!authResp.ok) {
+          throw new Error('Failed to get ImageKit auth parameters')
+        }
+
+        const auth = await authResp.json()
+        const token: string | undefined = auth?.token
+        const signature: string | undefined = auth?.signature
+        const expire: number | undefined = auth?.expire
+
+        if (!token || !signature || !expire) {
+          throw new Error('Invalid ImageKit auth parameters')
         }
         
         return new Promise<DigitalFile>((resolve, reject) => {
-          imagekit.upload(
-            {
-              file,
-              fileName: file.name,
-              folder: '/digital-products',
-              useUniqueFileName: true,
-              tags: ['digital-product']
-            },
-            (err, result) => {
-              if (err || !result) {
-                reject(err || new Error('Upload failed'))
-                return
+          upload({
+            file,
+            fileName: file.name,
+            folder: '/digital-products',
+            useUniqueFileName: true,
+            tags: ['digital-product'],
+            publicKey,
+            token,
+            signature,
+            expire,
+            onProgress: (event: ProgressEvent) => {
+              if (event.lengthComputable) {
+                const progress = (event.loaded / event.total) * 100
+                setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
               }
-
+            }
+          })
+            .then((result: any) => {
               resolve({
                 id: fileId,
                 fileName: file.name,
-                fileUrl: result.url,
+                fileUrl: `${urlEndpoint}${result.filePath}`,
                 fileSize: file.size,
                 fileType: file.type,
                 uploadedAt: new Date()
               })
-            },
-            (progressEvent) => {
-              if (progressEvent.lengthComputable) {
-                const progress = (progressEvent.loaded / progressEvent.total) * 100
-                setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
-              }
-            }
-          )
+            })
+            .catch((err: unknown) => {
+              reject(err || new Error('Upload failed'))
+            })
         })
       })
 
