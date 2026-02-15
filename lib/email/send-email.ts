@@ -9,11 +9,24 @@ interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions) {
   const from = options.from || process.env.FROM_EMAIL || 'noreply@FEROMARKETHUB.com'
+  const isProd = process.env.NODE_ENV === 'production'
 
   // 1) Prefer SMTP via Nodemailer if configured
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
       const nodemailer = await import('nodemailer')
+
+      if (isProd) {
+        console.log('📧 SMTP configured (production-safe):', {
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT || 587),
+          secure:
+            process.env.SMTP_SECURE === 'true' ||
+            Number(process.env.SMTP_PORT || 587) === 465,
+          user: process.env.SMTP_USER,
+          from,
+        })
+      }
 
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -56,6 +69,16 @@ export async function sendEmail(options: EmailOptions) {
   }
 
   // 3) Final fallback: just log the email so nothing explodes in development
+  if (isProd) {
+    const configured = {
+      smtp: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+      resend: !!process.env.RESEND_API_KEY
+    }
+    throw new Error(
+      `Email provider not configured in production. Configure SMTP_* or RESEND_API_KEY. Current: ${JSON.stringify(configured)}`
+    )
+  }
+
   console.log('📧 Email would be sent (no provider configured):', {
     to: options.to,
     subject: options.subject,

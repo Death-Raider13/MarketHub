@@ -218,17 +218,12 @@ export async function POST(request: NextRequest) {
             continue
           }
           
-          // Validate Cloudinary URL
+          // Validate file URL
           let url: URL
           try {
             url = new URL(digitalFile.fileUrl)
           } catch (urlError) {
             console.error('❌ Invalid file URL:', digitalFile.fileUrl, urlError)
-            continue
-          }
-          
-          if (!url.hostname.includes('cloudinary.com')) {
-            console.warn('⚠️ File URL is not from Cloudinary:', digitalFile.fileUrl)
             continue
           }
 
