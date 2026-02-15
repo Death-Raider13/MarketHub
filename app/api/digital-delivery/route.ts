@@ -72,6 +72,14 @@ export async function POST(request: NextRequest) {
         
         if (!isDigital) continue
 
+        console.log('📦 Processing purchase:', {
+          purchaseId: purchase.id,
+          productId: p.id,
+          productName: p.name,
+          hasFiles: Array.isArray(p.digitalFiles),
+          fileCount: p.digitalFiles?.length || 0
+        })
+
         let productData = p
         const hasFiles = Array.isArray(p.digitalFiles) && p.digitalFiles.length > 0
 
@@ -206,25 +214,37 @@ export async function POST(request: NextRequest) {
       for (const digitalFile of product.digitalFiles) {
         try {
           if (!digitalFile.fileUrl) {
+            console.warn('⚠️ Digital file missing fileUrl:', digitalFile)
             continue
           }
           
           // Validate Cloudinary URL
-          const url = new URL(digitalFile.fileUrl)
+          let url: URL
+          try {
+            url = new URL(digitalFile.fileUrl)
+          } catch (urlError) {
+            console.error('❌ Invalid file URL:', digitalFile.fileUrl, urlError)
+            continue
+          }
+          
           if (!url.hostname.includes('cloudinary.com')) {
+            console.warn('⚠️ File URL is not from Cloudinary:', digitalFile.fileUrl)
             continue
           }
 
           // Use proxy download URL for better security and tracking
           productLinks.push({
-            fileId: digitalFile.id,
-            fileName: digitalFile.fileName,
-            fileSize: digitalFile.fileSize,
-            fileType: digitalFile.fileType,
-            downloadUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/digital-products/download?fileId=${digitalFile.id}&purchaseId=${purchaseDoc?.id}&userId=${userId}`,
+            fileId: digitalFile.id || `file-${Date.now()}`,
+            fileName: digitalFile.fileName || 'download',
+            fileSize: digitalFile.fileSize || 0,
+            fileType: digitalFile.fileType || 'file',
+            downloadUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/digital-products/download?fileId=${digitalFile.id || 'unknown'}&purchaseId=${purchaseDoc?.id}&userId=${userId}`,
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
           })
+          
+          console.log('✅ Added download link for file:', digitalFile.fileName)
         } catch (error) {
+          console.error('❌ Error processing digital file:', error, digitalFile)
           // Skip file on error
         }
       }
