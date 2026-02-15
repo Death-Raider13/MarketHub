@@ -104,8 +104,14 @@ export function DigitalFileUpload({
           }
           
           xhr.onerror = () => reject(new Error('Upload failed'))
-          
-          xhr.open('POST', `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload`)
+
+          // Cloudinary can return 401 for PDFs when uploaded/served as raw on some accounts.
+          // Upload PDFs as image resources (Cloudinary supports PDF under image type), and
+          // keep other digital formats under raw.
+          const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+          const resourceType = isPdf ? 'image' : 'raw'
+
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`)
           xhr.send(formData)
         })
       })
