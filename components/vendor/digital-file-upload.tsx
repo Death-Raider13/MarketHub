@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import ImageKit from "@imagekit/javascript"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Upload, X, File, FileText, FileVideo, FileAudio, FileArchive } from "lucide-react"
@@ -64,55 +65,48 @@ export function DigitalFileUpload({
     try {
       const uploadPromises = files.map(async (file) => {
         const fileId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+        const imagekit = new ImageKit({
+          publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || process.env.IMAGEKIT_PUBLIC_KEY || "",
+          urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT || "",
+          authenticationEndpoint: "/api/imagekit-auth"
+        })
+
+        if (!imagekit.options.publicKey || !imagekit.options.urlEndpoint) {
+          throw new Error('ImageKit is not configured on the client')
+        }
         
-        // Create FormData for Cloudinary upload
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
-        formData.append('folder', 'digital-products')
-        formData.append('public_id', fileId)
-        
-        // Use XMLHttpRequest to track upload progress
         return new Promise<DigitalFile>((resolve, reject) => {
-          const xhr = new XMLHttpRequest()
-          
-          xhr.upload.addEventListener('progress', (event) => {
-            if (event.lengthComputable) {
-              const progress = (event.loaded / event.total) * 100
-              setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
-            }
-          })
-          
-          xhr.onload = () => {
-            if (xhr.status === 200) {
-              try {
-                const data = JSON.parse(xhr.responseText)
-                resolve({
-                  id: fileId,
-                  fileName: file.name,
-                  fileUrl: data.secure_url,
-                  fileSize: file.size,
-                  fileType: file.type,
-                  uploadedAt: new Date()
-                })
-              } catch (error) {
-                reject(new Error('Failed to parse response'))
+          imagekit.upload(
+            {
+              file,
+              fileName: file.name,
+              folder: '/digital-products',
+              useUniqueFileName: true,
+              tags: ['digital-product']
+            },
+            (err, result) => {
+              if (err || !result) {
+                reject(err || new Error('Upload failed'))
+                return
               }
-            } else {
-              reject(new Error(`Upload failed with status ${xhr.status}`))
+
+              resolve({
+                id: fileId,
+                fileName: file.name,
+                fileUrl: result.url,
+                fileSize: file.size,
+                fileType: file.type,
+                uploadedAt: new Date()
+              })
+            },
+            (progressEvent) => {
+              if (progressEvent.lengthComputable) {
+                const progress = (progressEvent.loaded / progressEvent.total) * 100
+                setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
+              }
             }
-          }
-          
-          xhr.onerror = () => reject(new Error('Upload failed'))
-
-          // Cloudinary can return 401 for PDFs when uploaded/served as raw on some accounts.
-          // Upload PDFs as image resources (Cloudinary supports PDF under image type), and
-          // keep other digital formats under raw.
-          const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
-          const resourceType = isPdf ? 'image' : 'raw'
-
-          xhr.open('POST', `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`)
-          xhr.send(formData)
+          )
         })
       })
 
