@@ -14,8 +14,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    const event: CoinbaseWebhookEvent = JSON.parse(rawBody)
-    console.log('📥 Coinbase webhook received:', event.type)
+    let event: CoinbaseWebhookEvent | any
+    try {
+      event = JSON.parse(rawBody)
+    } catch (parseError) {
+      console.error('Coinbase webhook error: invalid JSON body')
+      return NextResponse.json({ received: true })
+    }
+
+    console.log('📥 Coinbase webhook received:', event?.type)
+
+    // Coinbase expects a 2xx response; avoid throwing for malformed payloads.
+    if (!event || typeof event !== 'object' || !event.data) {
+      console.error('Coinbase webhook error: missing event.data')
+      return NextResponse.json({ received: true })
+    }
 
     const adminDb = getAdminFirestore()
     if (!adminDb) {
@@ -24,11 +37,11 @@ export async function POST(request: NextRequest) {
     }
 
     const chargeData = event.data
-    const orderId = chargeData.metadata?.order_id
+    const orderId = chargeData?.metadata?.order_id
 
     if (!orderId) {
       console.error('No order_id in webhook metadata')
-      return NextResponse.json({ error: 'Missing order_id' }, { status: 400 })
+      return NextResponse.json({ received: true })
     }
 
     const orderRef = adminDb.collection('orders').doc(orderId)
@@ -36,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     if (!orderDoc.exists) {
       console.error('Order not found:', orderId)
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      return NextResponse.json({ received: true })
     }
 
     // Handle different event types
@@ -53,6 +66,9 @@ export async function POST(request: NextRequest) {
         break
       case 'charge:pending':
         await orderRef.update({ paymentStatus: 'pending', updatedAt: new Date() })
+        break
+      default:
+        console.log('Coinbase webhook: unhandled event type:', event.type)
         break
     }
 

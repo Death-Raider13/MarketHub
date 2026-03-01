@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Store, Facebook, Twitter, Instagram, Youtube } from "lucide-react"
-
+  
 export function Footer() {
   return (
     <footer className="border-t border-border bg-muted/30">
@@ -19,10 +19,17 @@ export function Footer() {
               <Link href="#" className="text-muted-foreground hover:text-foreground">
                 <Facebook className="h-5 w-5" />
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
-                <Twitter className="h-5 w-5" />
+              <Link href="https://tiktok.com/@market.hub76" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M16.5 3c.4 3.4 2.4 5.5 5.5 5.7V12c-1.7 0-3.3-.5-4.7-1.5V16c0 3.6-2.9 6.5-6.5 6.5S4.3 19.6 4.3 16.1c0-3.6 2.9-6.5 6.5-6.5.3 0 .7 0 1 .1v3.6c-.3-.2-.6-.2-1-.2-1.6 0-2.9 1.3-2.9 2.9 0 1.6 1.3 2.9 2.9 2.9 1.6 0 3-1.1 3-3.3V3h2.7Z" />
+                </svg>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
+              <Link href="https://www.instagram.com/fero_mark_ethub25?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                 <Instagram className="h-5 w-5" />
               </Link>
               <Link href="#" className="text-muted-foreground hover:text-foreground">
