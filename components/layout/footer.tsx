@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Store, Facebook, Twitter, Instagram, Youtube } from "lucide-react"
   
 export function Footer() {
@@ -9,8 +10,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <Store className="h-6 w-6" />
-              <span className="text-xl font-bold">FEROMARKETHUB</span>
+              <Image src="/favicon/FERO.png" alt="FEROMARKETHUB" width={200} height={200} priority />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               Your trusted multi-vendor marketplace for quality products from verified sellers.

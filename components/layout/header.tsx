@@ -2,6 +2,7 @@
 
 import type React from "react"
 
+import Image from "next/image"
 import Link from "next/link"
 import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare, Sun, Moon, LogOut } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
@@ -93,10 +94,8 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2" aria-label="FEROMARKETHUB Home">
-            <Store className="h-6 w-6" aria-hidden="true" />
-            <span className="text-xl font-bold hidden sm:inline">FEROMARKETHUB</span>
-            <span className="text-xl font-bold sm:hidden">FERO</span>
+          <Link href="/">
+            <Image src="/favicon/FERO.png" alt="FEROMARKETHUB" width={200} height={200} priority />
           </Link>
 
           {/* Search Bar - Desktop */}
