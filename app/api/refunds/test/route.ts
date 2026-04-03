@@ -68,10 +68,10 @@ export async function POST(request: NextRequest) {
 async function testPaystackConnection() {
   try {
     const { PaystackRefundService } = await import('@/lib/payment/paystack-refunds')
-    
+
     // Test API connection by listing refunds
     const response = await PaystackRefundService.listRefunds({ perPage: 1 })
-    
+
     return {
       status: 'success',
       message: 'Paystack API connection successful',
@@ -89,10 +89,10 @@ async function testPaystackConnection() {
 async function testCoinbaseConnection() {
   try {
     const { CoinbaseRefundService } = await import('@/lib/payment/coinbase-refunds')
-    
+
     // Test API connection by listing charges
     const response = await CoinbaseRefundService.listCharges({ limit: 1 })
-    
+
     return {
       status: 'success',
       message: 'Coinbase API connection successful',
@@ -113,7 +113,7 @@ async function createTestRefund(orderId: string, userId: string) {
     const refundData = {
       userId,
       orderId,
-      vendorId: 'test_vendor',
+      creatorId: 'test_creator',
       reason: 'Test refund request for system validation',
       status: 'pending',
       amount: 1000, // ₦10.00
@@ -242,7 +242,7 @@ async function testEmailNotifications() {
     // Test email service availability
     try {
       const { sendRefundRequestedEmail } = await import('@/lib/email/service')
-      
+
       // Create mock data for testing
       const mockOrder = {
         id: 'test_order_123',
@@ -278,7 +278,7 @@ async function testEmailNotifications() {
     // Test notification service
     try {
       const { NotificationTriggers } = await import('@/lib/notifications/triggers')
-      
+
       results.push({
         service: 'notification_triggers',
         status: 'available',

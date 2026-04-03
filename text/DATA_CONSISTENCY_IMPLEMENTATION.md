@@ -2,9 +2,9 @@
 
 ## 🎯 **What Was Fixed:**
 
-### **1. Created Vendor Profile Page** ✅
-**Location:** `/app/vendor/profile/page.tsx`
-**API:** `/app/api/vendor/profile/route.ts`
+### **1. Created creator Profile Page** ✅
+**Location:** `/app/creator/profile/page.tsx`
+**API:** `/app/api/creator/profile/route.ts`
 
 **Features:**
 - Edit store name (syncs everywhere)
@@ -47,7 +47,7 @@ whatsapp: ""  // Optional WhatsApp number (can be different from main phone)
   <CardHeader>
     <CardTitle>Store Information (from Profile)</CardTitle>
     <CardDescription>
-      To edit these, go to your <Link href="/vendor/profile">Profile Settings</Link>
+      To edit these, go to your <Link href="/creator/profile">Profile Settings</Link>
     </CardDescription>
   </CardHeader>
   <CardContent>
@@ -65,7 +65,7 @@ whatsapp: ""  // Optional WhatsApp number (can be different from main phone)
         <p className="font-medium">{userProfile?.phone}</p>
       </div>
       <Button asChild variant="outline" size="sm">
-        <Link href="/vendor/profile">
+        <Link href="/creator/profile">
           Edit Profile →
         </Link>
       </Button>
@@ -120,7 +120,7 @@ privacyPolicy: ""
   <CardHeader>
     <CardTitle>Contact Information (from Profile)</CardTitle>
     <CardDescription>
-      To edit these, go to your <Link href="/vendor/profile">Profile Settings</Link>
+      To edit these, go to your <Link href="/creator/profile">Profile Settings</Link>
     </CardDescription>
   </CardHeader>
   <CardContent>
@@ -145,7 +145,7 @@ privacyPolicy: ""
         </p>
       </div>
       <Button asChild variant="outline" size="sm">
-        <Link href="/vendor/profile">
+        <Link href="/creator/profile">
           Edit Profile →
         </Link>
       </Button>
@@ -158,11 +158,11 @@ privacyPolicy: ""
 
 ## 📊 **Final Data Structure:**
 
-### **users/{vendorId}** (PRIMARY SOURCE)
+### **users/{creatorId}** (PRIMARY SOURCE)
 ```javascript
 {
   storeName: "TechStore Pro",          // ← EDIT HERE
-  email: "vendor@example.com",         // ← EDIT HERE (via auth)
+  email: "creator@example.com",         // ← EDIT HERE (via auth)
   phone: "+234 803 123 4567",          // ← EDIT HERE
   storeDescription: "...",             // ← EDIT HERE
   address: {
@@ -172,12 +172,12 @@ privacyPolicy: ""
     zipCode: "..."
   },
   storeCategory: ["electronics"],
-  role: "vendor",
+  role: "creator",
   verified: true
 }
 ```
 
-### **storeCustomization/{vendorId}** (VISUAL ONLY)
+### **storeCustomization/{creatorId}** (VISUAL ONLY)
 ```javascript
 {
   theme: { colors, fonts },
@@ -193,7 +193,7 @@ privacyPolicy: ""
 }
 ```
 
-### **storeSettings/{vendorId}** (BUSINESS CONFIG)
+### **storeSettings/{creatorId}** (BUSINESS CONFIG)
 ```javascript
 {
   businessInfo: {
@@ -219,13 +219,13 @@ privacyPolicy: ""
 2. **No Data Duplication** - Prevents inconsistency
 3. **Easy Updates** - Change once, reflects everywhere
 4. **Clear Separation** - Profile vs Visual vs Business
-5. **Better UX** - Vendors know where to edit what
+5. **Better UX** - creators know where to edit what
 
 ---
 
 ## 🚀 **Next Steps:**
 
-1. ✅ Vendor Profile page created
+1. ✅ creator Profile page created
 2. ⚠️ Update Store Customization (remove duplicates)
 3. ⚠️ Update Store Settings (remove duplicates)
 4. ⚠️ Test complete flow
@@ -233,4 +233,4 @@ privacyPolicy: ""
 
 ---
 
-**This ensures data consistency across the entire vendor system!** 🎯
+**This ensures data consistency across the entire creator system!** 🎯

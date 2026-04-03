@@ -28,10 +28,10 @@ export default function ProductsPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [minRating, setMinRating] = useState<number>(0)
   const [sortBy, setSortBy] = useState<string>("newest")
-  const [selectedVendors, setSelectedVendors] = useState<string[]>([])
-  const [vendors, setVendors] = useState<{id: string, name: string}[]>([])
+  const [selectedcreators, setSelectedcreators] = useState<string[]>([])
+  const [creators, setcreators] = useState<{ id: string, name: string }[]>([])
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  
+
   // Fetch products from Firestore
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,29 +43,29 @@ export default function ProductsPage() {
           where('status', 'in', ['active', 'approved']),
           firestoreLimit(100) // Fetch up to 100 products
         )
-        
+
         const snapshot = await getDocs(q)
         const fetchedProducts = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as Product[]
-        
+
         setProducts(fetchedProducts)
         setFilteredProducts(fetchedProducts)
-        
-        // Extract unique vendors from products
-        const uniqueVendorIds = Array.from(new Set(fetchedProducts.map(p => p.vendorId).filter(Boolean)))
-        
-        // Get vendor names from products (don't fetch from users to avoid permission issues)
-        const vendorsList = uniqueVendorIds.map(vendorId => {
-          const product = fetchedProducts.find(p => p.vendorId === vendorId)
+
+        // Extract unique creators from products
+        const uniquecreatorIds = Array.from(new Set(fetchedProducts.map(p => p.creatorId).filter(Boolean)))
+
+        // Get creator names from products (don't fetch from users to avoid permission issues)
+        const creatorsList = uniquecreatorIds.map(creatorId => {
+          const product = fetchedProducts.find(p => p.creatorId === creatorId)
           return {
-            id: vendorId,
-            name: product?.vendorName || 'Vendor Store'
+            id: creatorId,
+            name: product?.creatorName || 'creator Store'
           }
         })
-        
-        setVendors(vendorsList)
+
+        setcreators(creatorsList)
       } catch (error) {
         console.error("Error fetching products:", error)
         setProducts([])
@@ -74,40 +74,40 @@ export default function ProductsPage() {
         setLoading(false)
       }
     }
-    
+
     fetchProducts()
   }, [])
-  
+
   // Apply filters whenever filter criteria change
   useEffect(() => {
     let filtered = [...products]
-    
+
     // Filter by price range
-    filtered = filtered.filter(p => 
+    filtered = filtered.filter(p =>
       p.price >= priceRange[0] && p.price <= priceRange[1]
     )
-    
+
     // Filter by categories
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         selectedCategories.includes(p.category)
       )
     }
-    
+
     // Filter by rating (if rating data exists)
     if (minRating > 0) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         (p.rating || 0) >= minRating
       )
     }
-    
-    // Filter by vendors
-    if (selectedVendors.length > 0) {
-      filtered = filtered.filter(p => 
-        selectedVendors.includes(p.vendorId)
+
+    // Filter by creators
+    if (selectedcreators.length > 0) {
+      filtered = filtered.filter(p =>
+        selectedcreators.includes(p.creatorId)
       )
     }
-    
+
     // Sort products
     switch (sortBy) {
       case 'price-low':
@@ -130,27 +130,27 @@ export default function ProductsPage() {
         filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
         break
     }
-    
+
     setFilteredProducts(filtered)
   }, [products, priceRange, selectedCategories, minRating, sortBy])
-  
+
   const handleCategoryToggle = (category: string) => {
-    setSelectedCategories(prev => 
+    setSelectedCategories(prev =>
       prev.includes(category)
         ? prev.filter(c => c !== category)
         : [...prev, category]
     )
   }
-  
+
   const handleRatingToggle = (rating: number) => {
     setMinRating(prev => prev === rating ? 0 : rating)
   }
-  
-  const handleVendorToggle = (vendorId: string) => {
-    setSelectedVendors(prev => 
-      prev.includes(vendorId)
-        ? prev.filter(v => v !== vendorId)
-        : [...prev, vendorId]
+
+  const handlecreatorToggle = (creatorId: string) => {
+    setSelectedcreators(prev =>
+      prev.includes(creatorId)
+        ? prev.filter(v => v !== creatorId)
+        : [...prev, creatorId]
     )
   }
 
@@ -162,11 +162,11 @@ export default function ProductsPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="mb-6">
             <h1 className="text-3xl font-bold">All Products</h1>
-            <p className="text-muted-foreground">Discover amazing products from our vendors</p>
+            <p className="text-muted-foreground">Discover amazing products from our creators</p>
           </div>
 
           {/* Category Banner Ads */}
-          <CategoryPageAds 
+          <CategoryPageAds
             category="general"
             placement="top"
             maxAds={2}
@@ -178,7 +178,7 @@ export default function ProductsPage() {
             <aside className="hidden w-full lg:block lg:w-80 lg:flex-shrink-0">
               <div className="sticky top-8 space-y-6">
                 {/* Sidebar Ads */}
-                <CategoryPageAds 
+                <CategoryPageAds
                   category="general"
                   placement="sidebar"
                   maxAds={2}
@@ -193,12 +193,12 @@ export default function ProductsPage() {
                   {/* Price Range */}
                   <div className="space-y-4 rounded-lg border border-border p-4">
                     <Label>Price Range</Label>
-                    <Slider 
-                      value={priceRange} 
-                      onValueChange={setPriceRange} 
-                      max={1000000} 
-                      step={10000} 
-                      className="mt-2" 
+                    <Slider
+                      value={priceRange}
+                      onValueChange={setPriceRange}
+                      max={1000000}
+                      step={10000}
+                      className="mt-2"
                     />
                     <div className="flex items-center justify-between text-sm">
                       <span>₦{priceRange[0].toLocaleString()}</span>
@@ -212,8 +212,8 @@ export default function ProductsPage() {
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {["electronics", "computers", "phones", "gaming", "fashion-men", "fashion-women", "fashion-kids", "shoes", "bags", "beauty", "jewelry", "home", "furniture", "appliances", "kitchen", "sports", "books", "food", "health", "automotive", "toys", "baby", "digital-courses", "digital-ebooks", "digital-software", "service-consulting", "service-design", "other"].map((cat) => (
                         <div key={cat} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={cat} 
+                          <Checkbox
+                            id={cat}
                             checked={selectedCategories.includes(cat)}
                             onCheckedChange={() => handleCategoryToggle(cat)}
                           />
@@ -231,7 +231,7 @@ export default function ProductsPage() {
                     <div className="space-y-2">
                       {[4, 3, 2, 1].map((rating) => (
                         <div key={rating} className="flex items-center space-x-2">
-                          <Checkbox 
+                          <Checkbox
                             id={`rating-${rating}`}
                             checked={minRating === rating}
                             onCheckedChange={() => handleRatingToggle(rating)}
@@ -244,25 +244,25 @@ export default function ProductsPage() {
                     </div>
                   </div>
 
-                  {/* Vendors */}
+                  {/* creators */}
                   <div className="mt-6 space-y-4 rounded-lg border border-border p-4">
-                    <Label>Vendors</Label>
+                    <Label>creators</Label>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {vendors.length > 0 ? (
-                        vendors.map((vendor) => (
-                          <div key={vendor.id} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`vendor-${vendor.id}`}
-                              checked={selectedVendors.includes(vendor.id)}
-                              onCheckedChange={() => handleVendorToggle(vendor.id)}
+                      {creators.length > 0 ? (
+                        creators.map((creator) => (
+                          <div key={creator.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`creator-${creator.id}`}
+                              checked={selectedcreators.includes(creator.id)}
+                              onCheckedChange={() => handlecreatorToggle(creator.id)}
                             />
-                            <label htmlFor={`vendor-${vendor.id}`} className="text-sm cursor-pointer">
-                              {vendor.name}
+                            <label htmlFor={`creator-${creator.id}`} className="text-sm cursor-pointer">
+                              {creator.name}
                             </label>
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-muted-foreground">No vendors found</p>
+                        <p className="text-sm text-muted-foreground">No creators found</p>
                       )}
                     </div>
                   </div>
@@ -280,12 +280,12 @@ export default function ProductsPage() {
                     {/* Price Range */}
                     <div className="space-y-4 rounded-lg border border-border p-4">
                       <Label>Price Range</Label>
-                      <Slider 
-                        value={priceRange} 
-                        onValueChange={setPriceRange} 
-                        max={1000000} 
-                        step={10000} 
-                        className="mt-2" 
+                      <Slider
+                        value={priceRange}
+                        onValueChange={setPriceRange}
+                        max={1000000}
+                        step={10000}
+                        className="mt-2"
                       />
                       <div className="flex items-center justify-between text-sm">
                         <span>₦{priceRange[0].toLocaleString()}</span>
@@ -299,7 +299,7 @@ export default function ProductsPage() {
                       <div className="space-y-2 max-h-60 overflow-y-auto">
                         {["electronics", "computers", "phones", "gaming", "fashion-men", "fashion-women", "fashion-kids", "shoes", "bags", "beauty", "jewelry", "home", "furniture", "appliances", "kitchen", "sports", "books", "food", "health", "automotive", "toys", "baby", "digital-courses", "digital-ebooks", "digital-software", "service-consulting", "service-design", "other"].map((cat) => (
                           <div key={cat} className="flex items-center space-x-2">
-                            <Checkbox 
+                            <Checkbox
                               id={`mobile-${cat}`}
                               checked={selectedCategories.includes(cat)}
                               onCheckedChange={() => handleCategoryToggle(cat)}
@@ -318,7 +318,7 @@ export default function ProductsPage() {
                       <div className="space-y-2">
                         {[4, 3, 2, 1].map((rating) => (
                           <div key={rating} className="flex items-center space-x-2">
-                            <Checkbox 
+                            <Checkbox
                               id={`mobile-rating-${rating}`}
                               checked={minRating === rating}
                               onCheckedChange={() => handleRatingToggle(rating)}
@@ -331,25 +331,25 @@ export default function ProductsPage() {
                       </div>
                     </div>
 
-                    {/* Vendors */}
+                    {/* creators */}
                     <div className="space-y-4 rounded-lg border border-border p-4">
-                      <Label>Vendors</Label>
+                      <Label>creators</Label>
                       <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {vendors.length > 0 ? (
-                          vendors.map((vendor) => (
-                            <div key={vendor.id} className="flex items-center space-x-2">
-                              <Checkbox 
-                                id={`mobile-vendor-${vendor.id}`}
-                                checked={selectedVendors.includes(vendor.id)}
-                                onCheckedChange={() => handleVendorToggle(vendor.id)}
+                        {creators.length > 0 ? (
+                          creators.map((creator) => (
+                            <div key={creator.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`mobile-creator-${creator.id}`}
+                                checked={selectedcreators.includes(creator.id)}
+                                onCheckedChange={() => handlecreatorToggle(creator.id)}
                               />
-                              <label htmlFor={`mobile-vendor-${vendor.id}`} className="text-sm cursor-pointer">
-                                {vendor.name}
+                              <label htmlFor={`mobile-creator-${creator.id}`} className="text-sm cursor-pointer">
+                                {creator.name}
                               </label>
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-muted-foreground">No vendors found</p>
+                          <p className="text-sm text-muted-foreground">No creators found</p>
                         )}
                       </div>
                     </div>
@@ -427,7 +427,7 @@ export default function ProductsPage() {
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your filters or search criteria
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setPriceRange([0, 1000000])
                       setSelectedCategories([])
@@ -447,10 +447,10 @@ export default function ProductsPage() {
                       <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
                     ))}
                   </div>
-                  
+
                   {/* Sponsored Products */}
                   <div className="mt-12">
-                    <SponsoredProducts 
+                    <SponsoredProducts
                       category="general"
                       layout="grid"
                       maxAds={6}

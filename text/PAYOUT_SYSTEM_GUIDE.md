@@ -1,12 +1,12 @@
-# Vendor Payout System Guide
+# creator Payout System Guide
 
 ## Overview
 
-The payout system allows vendors to withdraw their earnings from the marketplace. Admins can review, approve, and process these withdrawal requests. The system supports multiple payment methods including bank transfers, mobile money, and PayPal.
+The payout system allows creators to withdraw their earnings from the marketplace. Admins can review, approve, and process these withdrawal requests. The system supports multiple payment methods including bank transfers, mobile money, and PayPal.
 
 ## Features
 
-### For Vendors
+### For creators
 
 1. **View Balance Information**
    - Available Balance: Money ready to withdraw
@@ -30,7 +30,7 @@ The payout system allows vendors to withdraw their earnings from the marketplace
 
 1. **Review Payout Requests**
    - View all pending requests
-   - See vendor details and payment information
+   - See creator details and payment information
    - Filter by status (pending, processing, completed, all)
 
 2. **Process Payouts**
@@ -47,7 +47,7 @@ The payout system allows vendors to withdraw their earnings from the marketplace
 ## Payment Methods
 
 ### 1. Bank Transfer (Nigeria)
-Vendors provide:
+creators provide:
 - Account Name
 - Account Number (10 digits)
 - Bank Name (from dropdown list)
@@ -71,23 +71,23 @@ Vendors provide:
 - PalmPay
 
 ### 2. Mobile Money
-Vendors provide:
+creators provide:
 - Provider (MTN, Airtel, 9mobile, Glo)
 - Phone Number
 - Account Name
 
 ### 3. PayPal
-Vendors provide:
+creators provide:
 - PayPal Email Address
 
 **Note:** PayPal withdrawals may incur additional fees and take longer to process.
 
 ## Workflow
 
-### Vendor Workflow
+### creator Workflow
 
 1. **Check Balance**
-   - Navigate to `/vendor/payouts`
+   - Navigate to `/creator/payouts`
    - View available balance and earnings
 
 2. **Request Withdrawal**
@@ -107,7 +107,7 @@ Vendors provide:
 1. **Review Requests**
    - Navigate to `/admin/payouts`
    - View pending requests in "Pending" tab
-   - Review vendor details and payment information
+   - Review creator details and payment information
 
 2. **Approve Request**
    - Click "Approve" button
@@ -127,7 +127,7 @@ Vendors provide:
    - Click "Reject" button
    - Provide rejection reason (required)
    - Confirm rejection
-   - Vendor will see rejection reason
+   - creator will see rejection reason
 
 ## Payout Statuses
 
@@ -137,7 +137,7 @@ Vendors provide:
 | **Approved** | Admin approved, ready for payment | Admin processes payment |
 | **Processing** | Payment is being processed | Admin completes transaction |
 | **Completed** | Payment successfully sent | No action needed |
-| **Rejected** | Request rejected by admin | Vendor can submit new request |
+| **Rejected** | Request rejected by admin | creator can submit new request |
 
 ## Database Structure
 
@@ -147,9 +147,9 @@ Vendors provide:
 ```typescript
 {
   id: string
-  vendorId: string
-  vendorName: string
-  vendorEmail: string
+  creatorId: string
+  creatorName: string
+  creatorEmail: string
   amount: number
   paymentMethod: "bank_transfer" | "mobile_money" | "paypal"
   bankDetails?: {
@@ -174,10 +174,10 @@ Vendors provide:
 }
 ```
 
-#### `vendorBalances`
+#### `creatorBalances`
 ```typescript
 {
-  vendorId: string
+  creatorId: string
   availableBalance: number
   pendingBalance: number
   totalEarnings: number
@@ -189,8 +189,8 @@ Vendors provide:
 
 ## Security & Validation
 
-### Vendor Side
-- Must be authenticated as vendor
+### creator Side
+- Must be authenticated as creator
 - Can only withdraw available balance
 - Minimum withdrawal amount enforced
 - Payment details validated before submission
@@ -208,11 +208,11 @@ Vendors provide:
 ### 1. Order Completion
 When an order is marked as "delivered":
 ```typescript
-// Update vendor balance
-const vendorBalance = await getVendorBalance(vendorId);
-await updateVendorBalance(vendorId, {
-  availableBalance: vendorBalance.availableBalance + orderAmount,
-  totalEarnings: vendorBalance.totalEarnings + orderAmount,
+// Update creator balance
+const creatorBalance = await getcreatorBalance(creatorId);
+await updatecreatorBalance(creatorId, {
+  availableBalance: creatorBalance.availableBalance + orderAmount,
+  totalEarnings: creatorBalance.totalEarnings + orderAmount,
 });
 ```
 
@@ -220,7 +220,7 @@ await updateVendorBalance(vendorId, {
 When admin marks payout as completed:
 ```typescript
 // Deduct from available balance
-await updateVendorBalance(vendorId, {
+await updatecreatorBalance(creatorId, {
   availableBalance: currentBalance - payoutAmount,
   totalWithdrawn: totalWithdrawn + payoutAmount,
   lastPayoutDate: new Date(),
@@ -229,9 +229,9 @@ await updateVendorBalance(vendorId, {
 
 ## Access URLs
 
-### Vendor Pages
-- **Payout Dashboard:** `/vendor/payouts`
-- **Vendor Dashboard:** `/vendor/dashboard` (includes payout quick access)
+### creator Pages
+- **Payout Dashboard:** `/creator/payouts`
+- **creator Dashboard:** `/creator/dashboard` (includes payout quick access)
 
 ### Admin Pages
 - **Payout Management:** `/admin/payouts`
@@ -239,14 +239,14 @@ await updateVendorBalance(vendorId, {
 
 ## Best Practices
 
-### For Vendors
+### For creators
 1. Verify payment details before submitting
 2. Keep minimum balance for withdrawal fees
 3. Track transaction references for records
 4. Contact support if payout is delayed
 
 ### For Admins
-1. Verify vendor identity before approval
+1. Verify creator identity before approval
 2. Double-check payment details
 3. Always provide transaction references
 4. Add notes for complex transactions
@@ -257,7 +257,7 @@ await updateVendorBalance(vendorId, {
 
 Consider implementing:
 1. **Automated Payouts** - Integration with payment gateways
-2. **Email Notifications** - Alert vendors on status changes
+2. **Email Notifications** - Alert creators on status changes
 3. **Withdrawal Schedules** - Weekly/monthly automatic payouts
 4. **Fee Management** - Deduct processing fees automatically
 5. **Multi-currency Support** - Support for USD, EUR, etc.
@@ -269,7 +269,7 @@ Consider implementing:
 
 ### Common Issues
 
-**Vendor cannot submit payout:**
+**creator cannot submit payout:**
 - Check available balance is ≥ ₦1,000
 - Verify all payment details are filled
 - Ensure no pending payout exists

@@ -39,7 +39,7 @@ import { collection, query, where, getDocs, orderBy, limit, addDoc, deleteDoc, d
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth"
 import { useCart } from "@/lib/cart-context"
 import { ProductCard } from "@/components/product-card"
-import { VendorName } from "@/components/vendor-name"
+import { DashboardStats } from "@/components/creator/dashboard-stats"
 import type { Product } from "@/lib/types"
 import { toast } from "sonner"
 import { NotificationTriggers } from "@/lib/notifications/triggers"
@@ -166,7 +166,7 @@ function AccountPageContent() {
   useEffect(() => {
     async function loadOrders() {
       if (!user) return
-      
+
       try {
         setLoading(true)
         const ordersQuery = query(
@@ -176,12 +176,12 @@ function AccountPageContent() {
           limit(10)
         )
         const snapshot = await getDocs(ordersQuery)
-        
+
         // Fetch product details for each order
         const ordersData = await Promise.all(
           snapshot.docs.map(async (docSnap) => {
             const orderData = docSnap.data()
-            
+
             // Enrich items with product images
             const enrichedItems = await Promise.all(
               (orderData.items || []).map(async (item: any) => {
@@ -190,30 +190,30 @@ function AccountPageContent() {
                   if (item.productId) {
                     const productDocRef = doc(db, 'products', item.productId)
                     const productDoc = await getDoc(productDocRef)
-                    
+
                     if (productDoc.exists()) {
                       const productData = productDoc.data()
-                      
-                      // Fetch vendor name if not in product data
-                      let vendorName = productData.vendorName || item.vendorName
-                      if (!vendorName && productData.vendorId) {
+
+                      // Fetch creator name if not in product data
+                      let creatorName = productData.creatorName || item.creatorName
+                      if (!creatorName && productData.creatorId) {
                         try {
-                          const vendorDoc = await getDoc(doc(db, 'users', productData.vendorId))
-                          if (vendorDoc.exists()) {
-                            const vendorData = vendorDoc.data()
-                            vendorName = vendorData.storeName || vendorData.displayName || vendorData.businessName
+                          const creatorDoc = await getDoc(doc(db, 'users', productData.creatorId))
+                          if (creatorDoc.exists()) {
+                            const creatorData = creatorDoc.data()
+                            creatorName = creatorData.storeName || creatorData.displayName || creatorData.businessName
                           }
                         } catch (err) {
-                          console.error('Error fetching vendor name:', err)
+                          console.error('Error fetching creator name:', err)
                         }
                       }
-                      
+
                       return {
                         ...item,
                         image: productData.images?.[0] || null,
                         productType: productData.productType || 'physical',
-                        vendorName: vendorName,
-                        vendorId: productData.vendorId || item.vendorId
+                        creatorName: creatorName,
+                        creatorId: productData.creatorId || item.creatorId
                       }
                     }
                   }
@@ -223,7 +223,7 @@ function AccountPageContent() {
                 return item
               })
             )
-            
+
             return {
               id: docSnap.id,
               ...orderData,
@@ -232,7 +232,7 @@ function AccountPageContent() {
             }
           })
         )
-        
+
         setOrders(ordersData)
       } catch (error) {
         console.error('Error loading orders:', error)
@@ -240,7 +240,7 @@ function AccountPageContent() {
         setLoading(false)
       }
     }
-    
+
     loadOrders()
   }, [user])
 
@@ -259,7 +259,7 @@ function AccountPageContent() {
   useEffect(() => {
     async function loadAddresses() {
       if (!user) return
-      
+
       try {
         const addressesQuery = query(
           collection(db, 'addresses'),
@@ -275,7 +275,7 @@ function AccountPageContent() {
         console.error('Error loading addresses:', error)
       }
     }
-    
+
     loadAddresses()
   }, [user])
 
@@ -283,7 +283,7 @@ function AccountPageContent() {
   useEffect(() => {
     async function loadWishlist() {
       if (!user) return
-      
+
       try {
         const wishlistQuery = query(
           collection(db, 'wishlists'),
@@ -291,7 +291,7 @@ function AccountPageContent() {
         )
         const snapshot = await getDocs(wishlistQuery)
         const productIds = snapshot.docs.map(doc => doc.data().productId)
-        
+
         if (productIds.length > 0) {
           const productsQuery = query(
             collection(db, 'products'),
@@ -308,13 +308,13 @@ function AccountPageContent() {
         console.error('Error loading wishlist:', error)
       }
     }
-    
+
     loadWishlist()
   }, [user])
 
   const removeFromWishlist = async (productId: string) => {
     if (!user) return
-    
+
     try {
       const wishlistQuery = query(
         collection(db, 'wishlists'),
@@ -322,11 +322,11 @@ function AccountPageContent() {
         where('productId', '==', productId)
       )
       const snapshot = await getDocs(wishlistQuery)
-      
+
       for (const docSnap of snapshot.docs) {
         await deleteDoc(doc(db, 'wishlists', docSnap.id))
       }
-      
+
       setWishlist(wishlist.filter(p => p.id !== productId))
       toast.success('Removed from wishlist')
     } catch (error) {
@@ -337,10 +337,10 @@ function AccountPageContent() {
 
   const handleSaveProfile = async () => {
     if (!user) return
-    
+
     try {
       setSaving(true)
-      
+
       // Update user profile in Firestore
       const userRef = doc(db, 'users', user.uid)
       await updateDoc(userRef, {
@@ -349,7 +349,7 @@ function AccountPageContent() {
         birthday: profileData.birthday,
         updatedAt: new Date()
       })
-      
+
       setIsEditing(false)
       toast.success('Profile updated successfully!')
     } catch (error) {
@@ -396,10 +396,10 @@ function AccountPageContent() {
 
   const handleSaveAddress = async () => {
     if (!user) return
-    
+
     try {
       setSaving(true)
-      
+
       if (editingAddress) {
         // Update existing address
         const addressRef = doc(db, 'addresses', editingAddress.id)
@@ -407,8 +407,8 @@ function AccountPageContent() {
           ...addressForm,
           updatedAt: new Date()
         })
-        
-        setAddresses(addresses.map(addr => 
+
+        setAddresses(addresses.map(addr =>
           addr.id === editingAddress.id ? { ...addr, ...addressForm } : addr
         ))
         toast.success('Address updated successfully!')
@@ -420,12 +420,12 @@ function AccountPageContent() {
           createdAt: new Date(),
           updatedAt: new Date()
         }
-        
+
         const docRef = await addDoc(collection(db, 'addresses'), newAddress)
         setAddresses([...addresses, { id: docRef.id, ...newAddress }])
         toast.success('Address added successfully!')
       }
-      
+
       setShowAddressForm(false)
       setEditingAddress(null)
     } catch (error) {
@@ -438,7 +438,7 @@ function AccountPageContent() {
 
   const handleDeleteAddress = async (addressId: string) => {
     if (!user || !confirm('Are you sure you want to delete this address?')) return
-    
+
     try {
       await deleteDoc(doc(db, 'addresses', addressId))
       setAddresses(addresses.filter(addr => addr.id !== addressId))
@@ -451,7 +451,7 @@ function AccountPageContent() {
 
   const handleSetDefaultAddress = async (addressId: string) => {
     if (!user) return
-    
+
     try {
       // Update all addresses to not default
       const batch = addresses.map(async (addr) => {
@@ -460,14 +460,14 @@ function AccountPageContent() {
           isDefault: addr.id === addressId
         })
       })
-      
+
       await Promise.all(batch)
-      
+
       setAddresses(addresses.map(addr => ({
         ...addr,
         isDefault: addr.id === addressId
       })))
-      
+
       toast.success('Default address updated!')
     } catch (error) {
       console.error('Error setting default address:', error)
@@ -477,36 +477,36 @@ function AccountPageContent() {
 
   const handleChangePassword = async () => {
     if (!user) return
-    
+
     // Validation
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
       toast.error('Please fill in all password fields')
       return
     }
-    
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error('New passwords do not match')
       return
     }
-    
+
     if (passwordForm.newPassword.length < 6) {
       toast.error('Password must be at least 6 characters')
       return
     }
-    
+
     try {
       setChangingPassword(true)
-      
+
       // Re-authenticate user before changing password
       const credential = EmailAuthProvider.credential(
         user.email!,
         passwordForm.currentPassword
       )
       await reauthenticateWithCredential(user, credential)
-      
+
       // Update password
       await updatePassword(user, passwordForm.newPassword)
-      
+
       // Fire off a password-changed security email (best-effort)
       try {
         await fetch('/api/account/security/password-changed', {
@@ -526,14 +526,14 @@ function AccountPageContent() {
       } catch (notifyError) {
         console.error('Failed to create password changed notification:', notifyError)
       }
-      
+
       // Clear form
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       })
-      
+
       toast.success('Password updated successfully!')
     } catch (error: any) {
       console.error('Error changing password:', error)
@@ -551,10 +551,10 @@ function AccountPageContent() {
 
   const handleDeleteAccount = async () => {
     if (!user) return
-    
+
     try {
       setSaving(true)
-      
+
       // Delete user data from Firestore
       const collections = ['orders', 'addresses', 'wishlists']
       for (const collectionName of collections) {
@@ -564,13 +564,13 @@ function AccountPageContent() {
           await deleteDoc(doc(db, collectionName, docSnap.id))
         }
       }
-      
+
       // Delete user profile
       await deleteDoc(doc(db, 'users', user.uid))
-      
+
       // Delete Firebase Auth account
       await deleteUser(user)
-      
+
       toast.success('Account deleted successfully')
       // User will be automatically logged out
     } catch (error: any) {
@@ -592,9 +592,9 @@ function AccountPageContent() {
       toast.error('This order cannot be cancelled as it has already been processed')
       return
     }
-    
+
     if (!user || !confirm('Are you sure you want to cancel this order?')) return
-    
+
     try {
       setSaving(true)
       const orderRef = doc(db, 'orders', orderId)
@@ -604,12 +604,12 @@ function AccountPageContent() {
         cancelledBy: 'customer',
         updatedAt: new Date()
       })
-      
+
       // Update local state
-      setOrders(orders.map(order => 
+      setOrders(orders.map(order =>
         order.id === orderId ? { ...order, status: 'cancelled' } : order
       ))
-      
+
       toast.success('Order cancelled successfully')
     } catch (error) {
       console.error('Error cancelling order:', error)
@@ -777,7 +777,7 @@ function AccountPageContent() {
                         <Input
                           id="fullName"
                           value={profileData.displayName}
-                          onChange={(e) => setProfileData({...profileData, displayName: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
                           disabled={!isEditing}
                         />
                       </div>
@@ -800,7 +800,7 @@ function AccountPageContent() {
                           type="tel"
                           placeholder="+234 (800) 123-4567"
                           value={profileData.phone}
-                          onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                           disabled={!isEditing}
                         />
                       </div>
@@ -810,7 +810,7 @@ function AccountPageContent() {
                           id="birthday"
                           type="date"
                           value={profileData.birthday}
-                          onChange={(e) => setProfileData({...profileData, birthday: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, birthday: e.target.value })}
                           disabled={!isEditing}
                         />
                       </div>
@@ -818,8 +818,8 @@ function AccountPageContent() {
 
                     {isEditing && (
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           onClick={() => {
                             setIsEditing(false)
                             // Reset to original values
@@ -870,7 +870,7 @@ function AccountPageContent() {
                                   id="addressType"
                                   placeholder="Home, Office, etc."
                                   value={addressForm.type}
-                                  onChange={(e) => setAddressForm({...addressForm, type: e.target.value})}
+                                  onChange={(e) => setAddressForm({ ...addressForm, type: e.target.value })}
                                 />
                               </div>
                               <div className="space-y-2">
@@ -878,7 +878,7 @@ function AccountPageContent() {
                                 <Input
                                   id="addressFullName"
                                   value={addressForm.fullName}
-                                  onChange={(e) => setAddressForm({...addressForm, fullName: e.target.value})}
+                                  onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
                                 />
                               </div>
                             </div>
@@ -887,7 +887,7 @@ function AccountPageContent() {
                               <Input
                                 id="addressLine1"
                                 value={addressForm.addressLine1}
-                                onChange={(e) => setAddressForm({...addressForm, addressLine1: e.target.value})}
+                                onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
                               />
                             </div>
                             <div className="space-y-2">
@@ -895,7 +895,7 @@ function AccountPageContent() {
                               <Input
                                 id="addressLine2"
                                 value={addressForm.addressLine2}
-                                onChange={(e) => setAddressForm({...addressForm, addressLine2: e.target.value})}
+                                onChange={(e) => setAddressForm({ ...addressForm, addressLine2: e.target.value })}
                               />
                             </div>
                             <div className="grid gap-4 sm:grid-cols-3">
@@ -904,7 +904,7 @@ function AccountPageContent() {
                                 <Input
                                   id="city"
                                   value={addressForm.city}
-                                  onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
+                                  onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
                                 />
                               </div>
                               <div className="space-y-2">
@@ -912,7 +912,7 @@ function AccountPageContent() {
                                 <Input
                                   id="state"
                                   value={addressForm.state}
-                                  onChange={(e) => setAddressForm({...addressForm, state: e.target.value})}
+                                  onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
                                 />
                               </div>
                               <div className="space-y-2">
@@ -920,7 +920,7 @@ function AccountPageContent() {
                                 <Input
                                   id="zipCode"
                                   value={addressForm.zipCode}
-                                  onChange={(e) => setAddressForm({...addressForm, zipCode: e.target.value})}
+                                  onChange={(e) => setAddressForm({ ...addressForm, zipCode: e.target.value })}
                                 />
                               </div>
                             </div>
@@ -931,7 +931,7 @@ function AccountPageContent() {
                                   id="addressPhone"
                                   type="tel"
                                   value={addressForm.phone}
-                                  onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
+                                  onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
                                 />
                               </div>
                               <div className="space-y-2">
@@ -939,7 +939,7 @@ function AccountPageContent() {
                                 <Input
                                   id="country"
                                   value={addressForm.country}
-                                  onChange={(e) => setAddressForm({...addressForm, country: e.target.value})}
+                                  onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
                                 />
                               </div>
                             </div>
@@ -948,14 +948,14 @@ function AccountPageContent() {
                                 type="checkbox"
                                 id="isDefault"
                                 checked={addressForm.isDefault}
-                                onChange={(e) => setAddressForm({...addressForm, isDefault: e.target.checked})}
+                                onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
                                 className="h-4 w-4"
                               />
                               <Label htmlFor="isDefault" className="cursor-pointer">Set as default address</Label>
                             </div>
                             <div className="flex gap-2">
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 onClick={() => {
                                   setShowAddressForm(false)
                                   setEditingAddress(null)
@@ -971,7 +971,7 @@ function AccountPageContent() {
                           </CardContent>
                         </Card>
                       )}
-                      
+
                       {addresses.length === 0 && !showAddressForm ? (
                         <div className="text-center py-12">
                           <MapPin className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -986,56 +986,56 @@ function AccountPageContent() {
                         </div>
                       ) : (
                         addresses.map((address) => (
-                        <Card key={address.id}>
-                          <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="font-semibold">{address.type}</h3>
-                                  {address.isDefault && (
-                                    <Badge variant="secondary">Default</Badge>
-                                  )}
+                          <Card key={address.id}>
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h3 className="font-semibold">{address.type}</h3>
+                                    {address.isDefault && (
+                                      <Badge variant="secondary">Default</Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm">{address.fullName}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {address.addressLine1}
+                                    {address.addressLine2 && `, ${address.addressLine2}`}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {address.city}, {address.state} {address.zipCode}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">{address.country}</p>
+                                  <p className="text-sm text-muted-foreground mt-1">{address.phone}</p>
                                 </div>
-                                <p className="text-sm">{address.fullName}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {address.addressLine1}
-                                  {address.addressLine2 && `, ${address.addressLine2}`}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {address.city}, {address.state} {address.zipCode}
-                                </p>
-                                <p className="text-sm text-muted-foreground">{address.country}</p>
-                                <p className="text-sm text-muted-foreground mt-1">{address.phone}</p>
-                              </div>
-                              <div className="flex gap-2">
-                                {!address.isDefault && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => handleSetDefaultAddress(address.id)}
+                                <div className="flex gap-2">
+                                  {!address.isDefault && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleSetDefaultAddress(address.id)}
+                                    >
+                                      Set Default
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditAddress(address)}
                                   >
-                                    Set Default
+                                    <Edit className="h-4 w-4" />
                                   </Button>
-                                )}
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleEditAddress(address)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleDeleteAddress(address.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeleteAddress(address.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
+                            </CardContent>
+                          </Card>
+                        ))
                       )}
                     </CardContent>
                   </Card>
@@ -1148,30 +1148,30 @@ function AccountPageContent() {
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="currentPassword">Current Password</Label>
-                        <Input 
-                          id="currentPassword" 
+                        <Input
+                          id="currentPassword"
                           type="password"
                           value={passwordForm.currentPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                         />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="newPassword">New Password</Label>
-                        <Input 
-                          id="newPassword" 
+                        <Input
+                          id="newPassword"
                           type="password"
                           value={passwordForm.newPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                         />
                         <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                        <Input 
-                          id="confirmPassword" 
+                        <Input
+                          id="confirmPassword"
                           type="password"
                           value={passwordForm.confirmPassword}
-                          onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                         />
                       </div>
                       <Button onClick={handleChangePassword} disabled={changingPassword}>
@@ -1191,8 +1191,8 @@ function AccountPageContent() {
                           <p className="text-sm text-muted-foreground mb-4">
                             Once you delete your account, there is no going back. All your orders, addresses, and wishlist will be permanently deleted.
                           </p>
-                          <Button 
-                            variant="destructive" 
+                          <Button
+                            variant="destructive"
                             onClick={() => setShowDeleteConfirm(true)}
                           >
                             Delete Account
@@ -1213,15 +1213,15 @@ function AccountPageContent() {
                             </ul>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={() => setShowDeleteConfirm(false)}
                               disabled={saving}
                             >
                               Cancel
                             </Button>
-                            <Button 
-                              variant="destructive" 
+                            <Button
+                              variant="destructive"
                               onClick={handleDeleteAccount}
                               disabled={saving}
                             >
@@ -1246,7 +1246,7 @@ function AccountPageContent() {
 
 export default function AccountPage() {
   return (
-    <ProtectedRoute allowedRoles={["customer", "vendor", "admin"]}>
+    <ProtectedRoute allowedRoles={["customer", "creator", "admin"]}>
       <AccountPageContent />
     </ProtectedRoute>
   )

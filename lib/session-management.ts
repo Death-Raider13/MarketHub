@@ -35,7 +35,7 @@ export interface Session {
   sessionId: string;
   userId: string;
   email: string;
-  role: 'customer' | 'vendor' | 'admin' | 'super_admin' | 'moderator' | 'support';
+  role: 'customer' | 'creator' | 'admin' | 'super_admin' | 'moderator' | 'support';
   createdAt: Date;
   lastActivity: Date;
   expiresAt: Date;
@@ -153,9 +153,14 @@ class SessionStore {
  * Generate unique session ID
  */
 export function generateSessionId(): string {
-  const timestamp = Date.now().toString(36);
-  const randomStr = Math.random().toString(36).substring(2, 15);
-  return `${timestamp}-${randomStr}`;
+  // Use cryptographically secure random UUID
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older environments
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -196,7 +201,7 @@ export function getDeviceInfo(userAgent: string): DeviceInfo {
 export async function createSession(
   userId: string,
   email: string,
-  role: 'customer' | 'vendor' | 'admin' | 'super_admin' | 'moderator' | 'support',
+  role: 'customer' | 'creator' | 'admin' | 'super_admin' | 'moderator' | 'support',
   ipAddress: string,
   userAgent: string,
   rememberMe: boolean = false

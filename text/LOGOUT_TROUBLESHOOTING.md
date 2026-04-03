@@ -266,7 +266,7 @@ Run through this checklist:
 2. **Expected:** Should see:
    - Your name
    - Your email
-   - Role badge (admin/vendor/customer)
+   - Role badge (admin/creator/customer)
    - Menu items for your role
    - Logout button at bottom
 3. **If missing:** User profile not loaded from Firestore

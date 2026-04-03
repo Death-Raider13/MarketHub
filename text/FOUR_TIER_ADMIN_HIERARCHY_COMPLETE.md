@@ -33,7 +33,7 @@ FEROMARKETHUB now features a comprehensive **four-tier admin hierarchy** system 
 **Dashboard:** `/admin/dashboard`
 
 **Core Responsibilities:**
-- ✅ Approve vendors & products
+- ✅ Approve creators & products
 - ✅ Process orders & refunds
 - ✅ Manage customer disputes
 - ✅ Handle financial operations (except settings)
@@ -168,7 +168,7 @@ FEROMARKETHUB now features a comprehensive **four-tier admin hierarchy** system 
 | Feature Category | Super Admin | Admin | Moderator | Support |
 |-----------------|-------------|-------|-----------|---------|
 | **User Management** | ✅ Full | ✅ Most | 🔍 View/Ban | 🔍 View Only |
-| **Vendor Management** | ✅ Full | ✅ Most | 🔍 View Only | 🔍 View Only |
+| **creator Management** | ✅ Full | ✅ Most | 🔍 View Only | 🔍 View Only |
 | **Product Management** | ✅ Full | ✅ Full | ✅ Approve/Reject | 🔍 View Only |
 | **Order Management** | ✅ Full | ✅ Full | 🔍 View Only | ✅ Basic Edit |
 | **Financial Controls** | ✅ Full | 🔍 View/Process | ❌ None | ❌ None |
@@ -180,7 +180,7 @@ FEROMARKETHUB now features a comprehensive **four-tier admin hierarchy** system 
 ## 🎯 Workflow Examples
 
 ### **Product Approval Workflow**
-1. **Vendor** submits product → Status: `pending`
+1. **creator** submits product → Status: `pending`
 2. **Moderator** reviews → Approves/Rejects
 3. **Admin** can override decisions if needed
 4. **Super Admin** has full control over all products

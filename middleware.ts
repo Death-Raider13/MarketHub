@@ -6,7 +6,14 @@ import type { NextRequest } from 'next/server';
  * Runs on every request to protect the application
  */
 
-// Simple in-memory rate limit store
+/**
+ * Simple in-memory rate limiter.
+ * 
+ * TODO (Phase 3 Architecture): Move to Redis (Upstash) or Vercel KV for production.
+ * In-memory map won't work across multiple serverless function instances
+ * and will reset on every deployment. This is currently functional for
+ * a single-instance deployment but must be upgraded before scaling out.
+ */
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 // Rate limit configuration
@@ -26,6 +33,7 @@ const PATH_LIMITS: Record<string, { windowMs: number; maxRequests: number }> = {
   '/api/messages': { windowMs: 60 * 1000, maxRequests: 20 },
   '/api/upload': { windowMs: 60 * 1000, maxRequests: 10 },
   '/api/payment': { windowMs: 60 * 1000, maxRequests: 3 },
+  '/api/download': { windowMs: 5 * 60 * 1000, maxRequests: 5 }, // 5 downloads per 5 minutes
 };
 
 function getClientIP(request: NextRequest): string {
@@ -157,10 +165,31 @@ export function middleware(request: NextRequest) {
         }
       );
   
-  // Add rate limit headers
+  // 1. Add rate limit headers
   response.headers.set('X-RateLimit-Limit', String(config.maxRequests));
   response.headers.set('X-RateLimit-Remaining', String(result.remaining));
   response.headers.set('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + (config.windowMs / 1000)));
+
+  // 2. Add CORS headers for API routes
+  if (pathname.startsWith('/api')) {
+    response.headers.set('Access-Control-Allow-Origin', '*'); // Adjust this in production if needed
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: response.headers
+      });
+    }
+  }
+
+  // 3. Add Security Headers
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
   return response;
 }

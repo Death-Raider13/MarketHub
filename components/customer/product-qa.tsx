@@ -24,13 +24,13 @@ interface Reply {
   userName: string
   message: string
   createdAt: string
-  isVendor: boolean
+  iscreator: boolean
 }
 
 interface Question {
   id: string
   productId: string
-  vendorId: string
+  creatorId: string
   userId: string
   userName: string
   userEmail: string
@@ -46,7 +46,7 @@ interface Question {
 
 interface ProductQAProps {
   productId: string
-  vendorId: string
+  creatorId: string
   productName?: string
 }
 
@@ -55,7 +55,7 @@ const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString || dateString === 'null' || dateString === 'undefined') {
     return 'recently'
   }
-  
+
   try {
     const date = new Date(dateString)
     if (isNaN(date.getTime()) || date.getTime() === 0) {
@@ -68,17 +68,17 @@ const formatDate = (dateString: string | null | undefined): string => {
   }
 }
 
-export function ProductQA({ productId, vendorId, productName }: ProductQAProps) {
+export function ProductQA({ productId, creatorId, productName }: ProductQAProps) {
   const { user } = useAuth()
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [showQuestionDialog, setShowQuestionDialog] = useState(false)
   const [questionText, setQuestionText] = useState('')
-  const [replyText, setReplyText] = useState<{[key: string]: string}>({})
-  const [showReplyBox, setShowReplyBox] = useState<{[key: string]: boolean}>({})
-  const [submittingReply, setSubmittingReply] = useState<{[key: string]: boolean}>({})
-  const [helpfulLoading, setHelpfulLoading] = useState<{[key: string]: boolean}>({})
+  const [replyText, setReplyText] = useState<{ [key: string]: string }>({})
+  const [showReplyBox, setShowReplyBox] = useState<{ [key: string]: boolean }>({})
+  const [submittingReply, setSubmittingReply] = useState<{ [key: string]: boolean }>({})
+  const [helpfulLoading, setHelpfulLoading] = useState<{ [key: string]: boolean }>({})
 
   useEffect(() => {
     loadQuestions()
@@ -90,7 +90,7 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
       console.log('Loading questions for productId:', productId)
       const response = await fetch(`/api/products/${productId}/questions`)
       console.log('Questions response status:', response.status)
-      
+
       const data = await response.json()
       console.log('Questions response data:', data)
 
@@ -127,7 +127,7 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
 
       console.log('Submitting question:', {
         productId,
-        vendorId,
+        creatorId,
         userId: user.uid,
         userName: user.displayName || user.email?.split('@')[0] || 'Customer',
         userEmail: user.email || '',
@@ -142,7 +142,7 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
           userName: user.displayName || user.email?.split('@')[0] || 'Customer',
           userEmail: user.email || '',
           question: questionText.trim(),
-          vendorId,
+          creatorId,
           productName: productName || 'Unknown Product'
         })
       })
@@ -189,8 +189,8 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
 
       if (data.success) {
         // Update the question's helpful count locally
-        setQuestions(prev => prev.map(q => 
-          q.id === questionId 
+        setQuestions(prev => prev.map(q =>
+          q.id === questionId
             ? { ...q, helpful: data.helpfulCount }
             : q
         ))
@@ -228,7 +228,7 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
           userId: user.uid,
           userName: user.displayName || user.email?.split('@')[0] || 'User',
           message: reply,
-          isVendor: user.uid === vendorId
+          iscreator: user.uid === creatorId
         })
       })
 
@@ -236,19 +236,19 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
 
       if (data.success) {
         // Add the reply to the question locally
-        setQuestions(prev => prev.map(q => 
-          q.id === questionId 
-            ? { 
-                ...q, 
-                replies: [...(q.replies || []), {
-                  id: data.replyId,
-                  userId: user.uid,
-                  userName: user.displayName || user.email?.split('@')[0] || 'User',
-                  message: reply,
-                  createdAt: new Date().toISOString(),
-                  isVendor: user.uid === vendorId
-                }]
-              }
+        setQuestions(prev => prev.map(q =>
+          q.id === questionId
+            ? {
+              ...q,
+              replies: [...(q.replies || []), {
+                id: data.replyId,
+                userId: user.uid,
+                userName: user.displayName || user.email?.split('@')[0] || 'User',
+                message: reply,
+                createdAt: new Date().toISOString(),
+                iscreator: user.uid === creatorId
+              }]
+            }
             : q
         ))
         setReplyText(prev => ({ ...prev, [questionId]: '' }))
@@ -289,7 +289,7 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
             <DialogHeader>
               <DialogTitle>Ask a Question</DialogTitle>
               <DialogDescription>
-                Ask anything about this product. The vendor will answer your question.
+                Ask anything about this product. The creator will answer your question.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmitQuestion} className="space-y-4">
@@ -366,7 +366,7 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
                     {qa.answer && (
                       <div className="mt-4 pl-4 border-l-2 border-primary">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-primary">Vendor</span>
+                          <span className="font-medium text-primary">creator</span>
                           {qa.answeredAt && qa.answeredAt !== null && (
                             <span className="text-sm text-muted-foreground">
                               answered {formatDate(qa.answeredAt)}
@@ -379,8 +379,8 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
 
                     {/* Helpful Button and Reply */}
                     <div className="mt-4 flex items-center gap-2">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleHelpful(qa.id)}
                         disabled={helpfulLoading[qa.id]}
@@ -392,9 +392,9 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
                         )}
                         Helpful ({qa.helpful})
                       </Button>
-                      
-                      <Button 
-                        variant="ghost" 
+
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => setShowReplyBox(prev => ({ ...prev, [qa.id]: !prev[qa.id] }))}
                       >
@@ -414,14 +414,14 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
                           rows={3}
                         />
                         <div className="flex justify-end gap-2 mt-2">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => setShowReplyBox(prev => ({ ...prev, [qa.id]: false }))}
                           >
                             Cancel
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={() => handleReply(qa.id)}
                             disabled={submittingReply[qa.id]}
@@ -446,11 +446,11 @@ export function ProductQA({ productId, vendorId, productName }: ProductQAProps) 
                         {qa.replies.map((reply) => (
                           <div key={reply.id} className="pl-4 border-l-2 border-muted">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className={`font-medium ${reply.isVendor ? 'text-primary' : ''}`}>
+                              <span className={`font-medium ${reply.iscreator ? 'text-primary' : ''}`}>
                                 {reply.userName}
-                                {reply.isVendor && (
+                                {reply.iscreator && (
                                   <span className="ml-1 text-xs bg-primary text-primary-foreground px-1 rounded">
-                                    Vendor
+                                    creator
                                   </span>
                                 )}
                               </span>

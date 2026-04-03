@@ -9,9 +9,9 @@
 
 ## 📊 **What Was Implemented:**
 
-### **1. Created Vendor Profile Page** ✅
-**Location:** `/vendor/profile`
-**API:** `/api/vendor/profile`
+### **1. Created creator Profile Page** ✅
+**Location:** `/creator/profile`
+**API:** `/api/creator/profile`
 
 **Single Source of Truth for:**
 - ✅ Store Name
@@ -28,7 +28,7 @@
 ---
 
 ### **2. Updated Store Customization** ✅
-**Location:** `/vendor/store-customize`
+**Location:** `/creator/store-customize`
 
 **REMOVED Duplicate Fields:**
 - ❌ `branding.storeName` → Now from user profile
@@ -48,13 +48,13 @@
 
 **Added:**
 - ✅ Read-only profile info display
-- ✅ "Edit Profile" button linking to `/vendor/profile`
+- ✅ "Edit Profile" button linking to `/creator/profile`
 - ✅ Clear messaging about where to edit core info
 
 ---
 
 ### **3. Updated Store Settings** ✅
-**Location:** `/vendor/store`
+**Location:** `/creator/store`
 
 **REMOVED Duplicate Fields:**
 - ❌ `storeInfo.name` → Now from user profile
@@ -75,7 +75,7 @@
 
 **Added:**
 - ✅ Read-only profile info display
-- ✅ "Edit Profile" button linking to `/vendor/profile`
+- ✅ "Edit Profile" button linking to `/creator/profile`
 - ✅ Clear separation of business config vs contact info
 
 ---
@@ -89,7 +89,7 @@
 ❌ Phone in 3 places
 ❌ Address in 3 places
 ❌ Data inconsistency
-❌ Confusing for vendors
+❌ Confusing for creators
 ```
 
 ### **After (Unified):**
@@ -108,7 +108,7 @@
 
 ### **Primary Data (users collection):**
 ```javascript
-users/{vendorId}
+users/{creatorId}
 ├── storeName          ← EDIT IN PROFILE
 ├── email              ← EDIT IN PROFILE
 ├── phone              ← EDIT IN PROFILE
@@ -123,7 +123,7 @@ users/{vendorId}
 
 ### **Visual Design (storeCustomization collection):**
 ```javascript
-storeCustomization/{vendorId}
+storeCustomization/{creatorId}
 ├── theme (colors, fonts)
 ├── branding (logo, banner, tagline)
 ├── layout (grid, header)
@@ -133,7 +133,7 @@ storeCustomization/{vendorId}
 
 ### **Business Config (storeSettings collection):**
 ```javascript
-storeSettings/{vendorId}
+storeSettings/{creatorId}
 ├── businessInfo (legal name, TIN, CAC)
 ├── paymentSettings (bank details)
 ├── shippingSettings (rates, zones)
@@ -145,8 +145,8 @@ storeSettings/{vendorId}
 
 ## 🔄 **How It Works:**
 
-### **Scenario 1: Vendor Changes Store Name**
-1. Vendor goes to `/vendor/profile`
+### **Scenario 1: creator Changes Store Name**
+1. creator goes to `/creator/profile`
 2. Updates store name
 3. Saves → Updates `users` collection
 4. Store name automatically reflects in:
@@ -157,15 +157,15 @@ storeSettings/{vendorId}
    - ✅ Product listings
    - ✅ Order confirmations
 
-### **Scenario 2: Vendor Customizes Store**
-1. Vendor goes to `/vendor/store-customize`
+### **Scenario 2: creator Customizes Store**
+1. creator goes to `/creator/store-customize`
 2. Sees read-only contact info from profile
 3. Edits visual elements (logo, colors, theme)
 4. Saves → Updates `storeCustomization` collection only
 5. Core contact info remains unchanged
 
-### **Scenario 3: Vendor Configures Business**
-1. Vendor goes to `/vendor/store` (Store Settings)
+### **Scenario 3: creator Configures Business**
+1. creator goes to `/creator/store` (Store Settings)
 2. Sees read-only contact info from profile
 3. Edits business config (bank, shipping, policies)
 4. Saves → Updates `storeSettings` collection only
@@ -189,7 +189,7 @@ storeSettings/{vendorId}
    - Settings = Business config
 
 4. **Better UX**
-   - Vendors know exactly where to go
+   - creators know exactly where to go
    - Less duplicate data entry
    - Clearer purpose for each page
 
@@ -228,18 +228,18 @@ storeSettings/{vendorId}
 ## 📝 **Files Modified:**
 
 ### **Created:**
-- ✅ `/app/vendor/profile/page.tsx` - Profile edit page
-- ✅ `/app/api/vendor/profile/route.ts` - Profile API
+- ✅ `/app/creator/profile/page.tsx` - Profile edit page
+- ✅ `/app/api/creator/profile/route.ts` - Profile API
 
 ### **Updated:**
-- ✅ `/app/vendor/store-customize/page.tsx` - Removed duplicates
-- ✅ `/app/vendor/store/page.tsx` - Removed duplicates
+- ✅ `/app/creator/store-customize/page.tsx` - Removed duplicates
+- ✅ `/app/creator/store/page.tsx` - Removed duplicates
 
 ---
 
 ## 🎊 **Result:**
 
-**Data consistency is now enforced across the entire vendor system!**
+**Data consistency is now enforced across the entire creator system!**
 
 - ✅ No more duplicate fields
 - ✅ Single source of truth

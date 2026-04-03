@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 
-// POST - Fix vendor names for existing products
+// POST - Fix creator names for existing products
 export async function POST(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -13,10 +13,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get all products with missing or default vendor names
+    // Get all products with missing or default creator names
     const productsSnapshot = await adminDb
       .collection("products")
-      .where("vendorName", "in", ["Vendor", "", null])
+      .where("creatorName", "in", ["creator", "", null])
       .get()
 
     let updatedCount = 0
@@ -26,36 +26,36 @@ export async function POST(request: NextRequest) {
     for (const productDoc of productsSnapshot.docs) {
       try {
         const productData = productDoc.data()
-        const vendorId = productData.vendorId
+        const creatorId = productData.creatorId
 
-        if (!vendorId) {
-          console.warn(`Product ${productDoc.id} has no vendorId`)
+        if (!creatorId) {
+          console.warn(`Product ${productDoc.id} has no creatorId`)
           errorCount++
           continue
         }
 
-        // Get vendor information
-        const vendorDoc = await adminDb.collection("users").doc(vendorId).get()
-        
-        if (vendorDoc.exists) {
-          const vendorData = vendorDoc.data()
-          const vendorName = vendorData?.storeName || 
-                           vendorData?.businessName || 
-                           vendorData?.displayName || 
-                           vendorData?.email?.split('@')[0] || 
-                           "Vendor Store"
+        // Get creator information
+        const creatorDoc = await adminDb.collection("users").doc(creatorId).get()
 
-          // Update product with proper vendor name
-          batch.update(productDoc.ref, { 
-            vendorName: vendorName,
+        if (creatorDoc.exists) {
+          const creatorData = creatorDoc.data()
+          const creatorName = creatorData?.storeName ||
+            creatorData?.businessName ||
+            creatorData?.displayName ||
+            creatorData?.email?.split('@')[0] ||
+            "creator Store"
+
+          // Update product with proper creator name
+          batch.update(productDoc.ref, {
+            creatorName: creatorName,
             updatedAt: new Date()
           })
           updatedCount++
         } else {
-          console.warn(`Vendor ${vendorId} not found for product ${productDoc.id}`)
-          // Set a default name for products with missing vendors
-          batch.update(productDoc.ref, { 
-            vendorName: "Vendor Store",
+          console.warn(`creator ${creatorId} not found for product ${productDoc.id}`)
+          // Set a default name for products with missing creators
+          batch.update(productDoc.ref, {
+            creatorName: "creator Store",
             updatedAt: new Date()
           })
           updatedCount++
@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error("Error fixing vendor names:", error)
+    console.error("Error fixing creator names:", error)
     return NextResponse.json(
-      { error: "Failed to fix vendor names" },
+      { error: "Failed to fix creator names" },
       { status: 500 }
     )
   }

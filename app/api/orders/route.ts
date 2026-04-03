@@ -1,31 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimitMiddleware, getRateLimitIdentifier, getClientIP } from '@/lib/rate-limit';
 import { orderSchema } from '@/lib/validation';
-import { collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { verifyAuthToken } from '@/lib/api-auth';
+import { getAdminFirestore } from '@/lib/firebase/admin-simple';
 
-// GET - Fetch user orders
+// GET - Fetch user orders (authenticated)
 export async function GET(request: NextRequest) {
+  // Verify authentication
+  const authResult = await verifyAuthToken(request);
+  if ('error' in authResult) return authResult.error;
+
+  const { uid } = authResult.user;
+
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     
-    if (!userId) {
+    // Users can only fetch their own orders (admins handled separately)
+    if (userId && userId !== uid) {
       return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
+        { error: 'Unauthorized: cannot access other users\' orders' },
+        { status: 403 }
       );
     }
-    
-    // Build query
-    const q = query(
-      collection(db, 'orders'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const snapshot = await getDocs(q);
-    const orders = snapshot.docs.map(doc => ({
+
+    const adminDb = getAdminFirestore();
+    if (!adminDb) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
+    const snapshot = await adminDb
+      .collection('orders')
+      .where('userId', '==', uid)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const orders = snapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
     }));
@@ -41,18 +54,26 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create order
+// POST - Create order (authenticated)
 export async function POST(request: NextRequest) {
+  // Verify authentication
+  const authResult = await verifyAuthToken(request);
+  if ('error' in authResult) return authResult.error;
+
+  const { uid } = authResult.user;
+
   try {
     // Get client IP
     const ip = getClientIP(request);
     
     // Parse request body
     const body = await request.json();
-    const { userId } = body;
+    
+    // Ensure the order is created for the authenticated user
+    body.userId = uid;
     
     // Create rate limit identifier
-    const identifier = getRateLimitIdentifier(ip, userId);
+    const identifier = getRateLimitIdentifier(ip, uid);
     
     // Check rate limit
     const rateLimitResult = await rateLimitMiddleware(identifier, 'ORDER_CREATE');
@@ -89,16 +110,25 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+
+      const adminDb = getAdminFirestore();
+      if (!adminDb) {
+        return NextResponse.json(
+          { error: 'Server configuration error' },
+          { status: 500 }
+        );
+      }
       
-      // Create order in Firestore
+      // 3. Create order in Firestore using Admin SDK
       const orderData = {
         ...validatedData,
         status: 'pending',
+        fulfillmentStatus: 'not_applicable', // Digital/Service don't use physical fulfillment
         createdAt: new Date(),
         updatedAt: new Date(),
       };
       
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      const docRef = await adminDb.collection('orders').add(orderData);
       
       return NextResponse.json(
         { 

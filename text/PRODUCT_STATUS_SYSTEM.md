@@ -1,7 +1,7 @@
 # 📊 Product Status System - Complete Guide
 
 ## Overview
-This document explains the complete product status workflow, from creation to approval to vendor management.
+This document explains the complete product status workflow, from creation to approval to creator management.
 
 ---
 
@@ -11,23 +11,23 @@ This document explains the complete product status workflow, from creation to ap
 
 1. **🟠 Pending** - Awaiting admin approval
 2. **🟢 Active** - Approved and visible to customers
-3. **⚪ Inactive** - Vendor deactivated (hidden from customers)
+3. **⚪ Inactive** - creator deactivated (hidden from customers)
 4. **🔴 Rejected** - Admin rejected (needs revision)
 
 ---
 
 ## 📋 **Complete Workflow**
 
-### **Step 1: Vendor Creates Product**
+### **Step 1: creator Creates Product**
 ```
-Vendor adds new product
+creator adds new product
 ↓
 Status: PENDING 🟠
 ↓
 Sent to admin for review
 ```
 
-**What vendor sees:**
+**What creator sees:**
 - Badge: "Pending" (orange)
 - Text: "Awaiting approval"
 - Cannot toggle status
@@ -48,7 +48,7 @@ Status: ACTIVE 🟢
 ↓
 Product visible to customers
 ↓
-Vendor can now toggle active/inactive
+creator can now toggle active/inactive
 ```
 
 #### **Option B: Reject ❌**
@@ -59,10 +59,10 @@ Status: REJECTED 🔴
 ↓
 Product hidden from customers
 ↓
-Vendor sees rejection message
+creator sees rejection message
 ```
 
-**What vendor sees:**
+**What creator sees:**
 - Badge: "Rejected" (red)
 - Text: "Admin rejected"
 - Cannot toggle status
@@ -75,17 +75,17 @@ Admin requests changes
 ↓
 Status: PENDING 🟠
 ↓
-Vendor edits product
+creator edits product
 ↓
 Resubmits for review
 ```
 
 ---
 
-### **Step 3: Vendor Management**
+### **Step 3: creator Management**
 
 #### **Active Products (🟢):**
-Vendor can:
+creator can:
 - ✅ Toggle to Inactive
 - ✅ Edit details
 - ✅ Update stock
@@ -94,7 +94,7 @@ Vendor can:
 - ✅ Delete
 
 #### **Inactive Products (⚪):**
-Vendor can:
+creator can:
 - ✅ Toggle to Active
 - ✅ Edit details
 - ✅ Update stock
@@ -103,14 +103,14 @@ Vendor can:
 - ✅ Delete
 
 #### **Pending Products (🟠):**
-Vendor can:
+creator can:
 - ❌ Cannot toggle status
 - ✅ Edit details (resubmits for review)
 - ✅ Update stock
 - ✅ Delete
 
 #### **Rejected Products (🔴):**
-Vendor can:
+creator can:
 - ❌ Cannot toggle status
 - ✅ Edit details (resubmits for review)
 - ✅ Delete
@@ -161,7 +161,7 @@ Vendor can:
    - Works for all statuses
 
 2. **✏️ Edit Details**
-   - Links to: `/vendor/products/${product.id}/edit`
+   - Links to: `/creator/products/${product.id}/edit`
    - Edit product information
    - If pending/rejected, resubmits for approval
    - Works for all statuses
@@ -172,7 +172,7 @@ Vendor can:
    - Works for all statuses
 
 4. **📊 View Analytics**
-   - Links to: `/vendor/analytics?product=${product.id}`
+   - Links to: `/creator/analytics?product=${product.id}`
    - Shows product performance
    - Sales, views, conversion rate
    - Works for all statuses
@@ -202,7 +202,7 @@ Vendor can:
 
 ### **Scenario 1: New Product**
 ```
-1. Vendor creates "Wireless Mouse"
+1. creator creates "Wireless Mouse"
 2. Status: PENDING 🟠
 3. Admin reviews and approves
 4. Status: ACTIVE 🟢
@@ -213,23 +213,23 @@ Vendor can:
 ### **Scenario 2: Out of Stock**
 ```
 1. Product sells out
-2. Vendor clicks status badge
+2. creator clicks status badge
 3. Status: INACTIVE ⚪
 4. Product hidden from customers
-5. Vendor restocks
-6. Vendor clicks status badge
+5. creator restocks
+6. creator clicks status badge
 7. Status: ACTIVE 🟢
 8. Product visible again
 ```
 
 ### **Scenario 3: Rejected Product**
 ```
-1. Vendor submits "Fake Rolex"
+1. creator submits "Fake Rolex"
 2. Status: PENDING 🟠
 3. Admin rejects (prohibited item)
 4. Status: REJECTED 🔴
-5. Vendor sees rejection
-6. Vendor can:
+5. creator sees rejection
+6. creator can:
    - Edit and resubmit
    - Or delete product
 ```
@@ -239,20 +239,20 @@ Vendor can:
 1. "Christmas Decorations" active in December
 2. Status: ACTIVE 🟢
 3. January arrives
-4. Vendor clicks status → INACTIVE ⚪
+4. creator clicks status → INACTIVE ⚪
 5. Product hidden until next December
 6. December arrives
-7. Vendor clicks status → ACTIVE 🟢
+7. creator clicks status → ACTIVE 🟢
 8. Product visible again
 ```
 
 ### **Scenario 5: Duplicate Product**
 ```
-1. Vendor has "Red T-Shirt" (active)
+1. creator has "Red T-Shirt" (active)
 2. Clicks "Duplicate Product"
 3. Creates "Red T-Shirt (Copy)"
 4. New product status: PENDING 🟠
-5. Vendor edits to "Blue T-Shirt"
+5. creator edits to "Blue T-Shirt"
 6. Admin approves
 7. Status: ACTIVE 🟢
 8. Now has both colors
@@ -262,7 +262,7 @@ Vendor can:
 
 ## 🚦 **Status Rules**
 
-### **Vendor Permissions:**
+### **creator Permissions:**
 
 | Action | Pending | Active | Inactive | Rejected |
 |--------|---------|--------|----------|----------|
@@ -288,13 +288,13 @@ Vendor can:
 
 ## 📧 **Email Notifications**
 
-### **To Vendor:**
+### **To creator:**
 
 **Product Approved:**
 ```
 Subject: Your product has been approved! 🎉
 
-Hi [Vendor Name],
+Hi [creator Name],
 
 Good news! Your product "[Product Name]" has been approved 
 and is now live on FEROMARKETHUB.
@@ -312,7 +312,7 @@ FEROMARKETHUB Team
 ```
 Subject: Product submission needs revision
 
-Hi [Vendor Name],
+Hi [creator Name],
 
 Your product "[Product Name]" requires some changes before 
 it can be approved.
@@ -331,7 +331,7 @@ FEROMARKETHUB Team
 
 ## 🎯 **Best Practices**
 
-### **For Vendors:**
+### **For creators:**
 
 1. **New Products:**
    - Submit complete information
@@ -379,8 +379,8 @@ FEROMARKETHUB Team
 ### **Status Change Rules:**
 
 ```typescript
-// Vendors can only toggle active ↔ inactive
-if (userRole === "vendor") {
+// creators can only toggle active ↔ inactive
+if (userRole === "creator") {
   if (currentStatus === "active") {
     allowedNewStatus = "inactive"
   } else if (currentStatus === "inactive") {
@@ -403,7 +403,7 @@ if (userRole === "admin") {
 
 ### **Status Metrics:**
 
-**Vendor Dashboard:**
+**creator Dashboard:**
 - Total products
 - Active products
 - Pending approval
@@ -415,7 +415,7 @@ if (userRole === "admin") {
 - Approval rate
 - Average review time
 - Rejection reasons
-- Top vendors
+- Top creators
 
 ---
 
@@ -425,17 +425,17 @@ if (userRole === "admin") {
 
 1. ✅ **4 distinct statuses** (pending, active, inactive, rejected)
 2. ✅ **Color-coded badges** for easy identification
-3. ✅ **Smart status toggling** (vendors can only toggle active/inactive)
+3. ✅ **Smart status toggling** (creators can only toggle active/inactive)
 4. ✅ **Admin approval workflow** required for new products
 5. ✅ **All action buttons working** (view, edit, stock, analytics, duplicate, delete)
 6. ✅ **Two-step delete confirmation** prevents accidents
 7. ✅ **Duplicate creates pending** products (requires approval)
 8. ✅ **Clear visual feedback** with icons and helper text
-9. ✅ **Proper permissions** (vendors vs admins)
+9. ✅ **Proper permissions** (creators vs admins)
 10. ✅ **Email notifications** for status changes
 
 ---
 
 **Your product status system is now complete and professional!** 🚀
 
-Vendors have full control over their inventory while admins maintain quality control through the approval process.
+creators have full control over their inventory while admins maintain quality control through the approval process.

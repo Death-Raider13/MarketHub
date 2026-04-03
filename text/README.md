@@ -1,6 +1,6 @@
-# FEROMARKETHUB - Multi-Vendor E-commerce Platform
+# FEROMARKETHUB - Multi-creator E-commerce Platform
 
-A modern, scalable multi-vendor marketplace built with Next.js 14, TypeScript, Firebase, and Tailwind CSS.
+A modern, scalable multi-creator marketplace built with Next.js 14, TypeScript, Firebase, and Tailwind CSS.
 
 ## 🚀 Features
 
@@ -15,12 +15,12 @@ A modern, scalable multi-vendor marketplace built with Next.js 14, TypeScript, F
 - 📦 Order management
 - ⭐ Product reviews and ratings
 - ❤️ Wishlist functionality
-- 🏪 Vendor storefronts
+- 🏪 creator storefronts
 - 📱 Fully responsive design
 - ♿ Accessibility features (WCAG 2.1 AA compliant)
 
-#### Vendor Features
-- 📊 Vendor dashboard
+#### creator Features
+- 📊 creator dashboard
 - 📦 Product management
 - 📈 Analytics and insights
 - 💰 Order management
@@ -29,7 +29,7 @@ A modern, scalable multi-vendor marketplace built with Next.js 14, TypeScript, F
 #### Admin Features
 - 🔧 Admin dashboard
 - 👥 User management
-- 🏪 Vendor management
+- 🏪 creator management
 - 📦 Product moderation
 - 📊 Platform analytics
 
@@ -61,7 +61,7 @@ marketplace-ecommerce/
 ├── app/                      # Next.js app directory
 │   ├── (auth)/              # Authentication pages
 │   ├── admin/               # Admin dashboard
-│   ├── vendor/              # Vendor dashboard
+│   ├── creator/              # creator dashboard
 │   ├── products/            # Product pages
 │   ├── cart/                # Shopping cart
 │   ├── checkout/            # Checkout process
@@ -141,7 +141,7 @@ marketplace-ecommerce/
 - **Search** (`/search`) - Search results page
 - **Cart** (`/cart`) - Shopping cart
 - **Checkout** (`/checkout`) - Checkout process
-- **Vendor Store** (`/vendors/[id]`) - Individual vendor storefront
+- **creator Store** (`/creators/[id]`) - Individual creator storefront
 - **Help Center** (`/help`) - Customer support
 - **Contact** (`/contact`) - Contact form
 
@@ -149,7 +149,7 @@ marketplace-ecommerce/
 
 Users can sign up as:
 - **Customer** - Browse and purchase products
-- **Vendor** - Sell products on the platform
+- **creator** - Sell products on the platform
 - **Admin** - Manage the entire platform
 
 ### Database Schema
@@ -166,7 +166,7 @@ You need to create these collections in Firestore:
 2. **products** - Product listings
 3. **orders** - Order records
 4. **reviews** - Product reviews
-5. **vendors** - Vendor information
+5. **creators** - creator information
 6. **categories** - Product categories
 
 ### Firestore Security Rules
@@ -184,7 +184,7 @@ service cloud.firestore {
     match /products/{productId} {
       allow read: if true;
       allow write: if request.auth != null && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor' ||
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'creator' ||
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
     

@@ -15,7 +15,7 @@ A comprehensive advertising system that prevents double booking, manages invento
    ↓
 2. Advertiser Level (Businesses buying ads)
    ↓
-3. Vendor Level (Store owners hosting ads)
+3. creator Level (Store owners hosting ads)
 ```
 
 ---
@@ -138,7 +138,7 @@ A comprehensive advertising system that prevents double booking, manages invento
       ageRange: [18, 45],
       interests: ["tech", "shopping"]
     },
-    vendorTiers: ["premium", "verified"] // Only show on certain stores
+    creatorTiers: ["premium", "verified"] // Only show on certain stores
   },
   
   // Placement
@@ -185,7 +185,7 @@ A comprehensive advertising system that prevents double booking, manages invento
 // Ad Slots Collection (Inventory Management)
 {
   slotId: "slot_789",
-  vendorId: "vendor_123",
+  creatorId: "creator_123",
   storeName: "Tech Store",
   
   // Slot Details
@@ -206,7 +206,7 @@ A comprehensive advertising system that prevents double booking, manages invento
   pricing: {
     baseRate: 30, // ₦30 per 1000 impressions
     premiumMultiplier: 1.5,
-    vendorShare: 0.70 // 70% to vendor
+    creatorshare: 0.70 // 70% to creator
   },
   
   // Current Bookings (Time-based)
@@ -240,7 +240,7 @@ A comprehensive advertising system that prevents double booking, manages invento
     totalImpressions: 50000,
     totalClicks: 1200,
     revenue: 15000,
-    vendorEarnings: 10500
+    creatorEarnings: 10500
   }
 }
 
@@ -249,7 +249,7 @@ A comprehensive advertising system that prevents double booking, manages invento
   impressionId: "imp_abc",
   campaignId: "camp_123",
   slotId: "slot_789",
-  vendorId: "vendor_123",
+  creatorId: "creator_123",
   
   // User Context
   userId: "user_456", // If logged in
@@ -267,7 +267,7 @@ A comprehensive advertising system that prevents double booking, manages invento
   
   // Revenue
   cost: 0.05, // ₦0.05 per impression
-  vendorEarning: 0.035 // 70% share
+  creatorEarning: 0.035 // 70% share
 }
 ```
 
@@ -396,7 +396,7 @@ function calculateWeight(campaign) {
 
 ```
 Total Ad Revenue: 100%
-├── Vendor Share: 70%
+├── creator Share: 70%
 ├── Platform (FEROMARKETHUB): 25%
 └── Payment Processing: 5%
 ```
@@ -405,17 +405,17 @@ Total Ad Revenue: 100%
 
 1. **CPM (Cost Per Mille/1000 Impressions)**
    - Advertiser pays: ₦500-2000 per 1000 views
-   - Vendor earns: ₦350-1400 (70%)
+   - creator earns: ₦350-1400 (70%)
    - Best for: Brand awareness
 
 2. **CPC (Cost Per Click)**
    - Advertiser pays: ₦20-100 per click
-   - Vendor earns: ₦14-70 (70%)
+   - creator earns: ₦14-70 (70%)
    - Best for: Traffic generation
 
 3. **CPA (Cost Per Action/Conversion)**
    - Advertiser pays: ₦500-5000 per sale
-   - Vendor earns: ₦350-3500 (70%)
+   - creator earns: ₦350-3500 (70%)
    - Best for: Performance marketing
 
 ---
@@ -488,7 +488,7 @@ Mobile Banners: ₦40 per 1000 impressions
 10. Optimize or Renew
 ```
 
-### **For Vendors:**
+### **For creators:**
 
 ```
 1. Enable Advertising (in customize store)
@@ -531,10 +531,10 @@ Mobile Banners: ₦40 per 1000 impressions
 - Click-through rates
 - Conversion tracking
 - Revenue reports
-- Vendor earnings
+- creator earnings
 - Top performing ads
 
-### **Vendor Payouts:**
+### **creator Payouts:**
 - Earnings dashboard
 - Payment history
 - Payout requests
@@ -642,7 +642,7 @@ const displayRules = {
   respectDoNotTrack: true,
   loadAsync: true,
   timeout: 3000, // Don't wait more than 3s
-  fallback: "Show vendor's own promotion"
+  fallback: "Show creator's own promotion"
 }
 ```
 
@@ -652,7 +652,7 @@ const displayRules = {
 
 ### **Phase 1: MVP (Month 1-2)**
 - ✅ Basic ad slot system
-- ✅ Vendor enable/disable
+- ✅ creator enable/disable
 - ✅ Simple rotation algorithm
 - ✅ Manual ad upload
 - ✅ Basic tracking
@@ -691,7 +691,7 @@ const displayRules = {
 ### **2. Gather Data:**
 - Track everything
 - Analyze performance
-- Get vendor feedback
+- Get creator feedback
 - Monitor user experience
 
 ### **3. Iterate:**
@@ -719,7 +719,7 @@ const displayRules = {
 - adPayouts
 ```
 
-### **Step 2: Vendor Integration**
+### **Step 2: creator Integration**
 ```javascript
 // Already done in customize store!
 - Enable/disable ads
@@ -732,9 +732,9 @@ const displayRules = {
 ```javascript
 // In storefront page
 <AdSlot 
-  vendorId={vendorId}
+  creatorId={creatorId}
   placement="sidebar"
-  fallback={<VendorPromotion />}
+  fallback={<creatorPromotion />}
 />
 ```
 
@@ -747,9 +747,9 @@ trackClick(adId, slotId, context)
 
 ### **Step 5: Payouts**
 ```javascript
-// Calculate and process vendor earnings
-calculateEarnings(vendorId, period)
-processPayouts(vendorId, amount)
+// Calculate and process creator earnings
+calculateEarnings(creatorId, period)
+processPayouts(creatorId, amount)
 ```
 
 ---
@@ -763,19 +763,19 @@ Month 1-3 (MVP):
 - 10 advertisers
 - ₦500K total ad spend
 - ₦125K platform revenue
-- ₦350K vendor earnings
+- ₦350K creator earnings
 
 Month 4-6 (Growth):
 - 50 advertisers
 - ₦2.5M total ad spend
 - ₦625K platform revenue
-- ₦1.75M vendor earnings
+- ₦1.75M creator earnings
 
 Month 7-12 (Scale):
 - 200+ advertisers
 - ₦10M+ total ad spend
 - ₦2.5M+ platform revenue
-- ₦7M+ vendor earnings
+- ₦7M+ creator earnings
 ```
 
 ---

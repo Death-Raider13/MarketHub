@@ -72,9 +72,9 @@ export default function AdvertisingPage() {
                   Contact Us
                 </Button>
               </Link>
-              <Link href="/auth/vendor-register-new">
+              <Link href="/auth/creator-register-new">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  Become a Vendor
+                  Become a Creator
                 </Button>
               </Link>
             </div>

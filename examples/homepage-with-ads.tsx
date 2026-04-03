@@ -16,10 +16,10 @@ export default function Homepage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        
+
         {/* 1. HOMEPAGE BANNER ADS - Top of page */}
         <section className="mb-12">
-          <HomepageBanner 
+          <HomepageBanner
             maxAds={5}
             autoRotate={true}
             rotationInterval={8}
@@ -45,14 +45,14 @@ export default function Homepage() {
         {/* 3. SPONSORED PRODUCTS - Mixed with featured products */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
-          
+
           {/* Regular featured products grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
             {/* Your existing featured products */}
           </div>
-          
+
           {/* Sponsored products section */}
-          <SponsoredProducts 
+          <SponsoredProducts
             category="general"
             layout="grid"
             maxAds={6}
@@ -60,11 +60,11 @@ export default function Homepage() {
           />
         </section>
 
-        {/* 4. Popular Vendors */}
+        {/* 4. Popular creators */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Popular Vendors</h2>
+          <h2 className="text-2xl font-bold mb-6">Popular creators</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Your existing vendor cards */}
+            {/* Your existing creator cards */}
           </div>
         </section>
 

@@ -10,13 +10,13 @@ Your `firestore.rules` file now includes comprehensive security rules for **ALL*
 
 ### **Core Collections:**
 1. ✅ **users** - User profiles and authentication
-2. ✅ **vendors** - Vendor store information
+2. ✅ **creators** - creator store information
 3. ✅ **products** - Product listings
 4. ✅ **orders** - Customer orders
 5. ✅ **reviews** - Product reviews
 
 ### **Messaging & Communication:**
-6. ✅ **conversations** - Vendor-customer conversations
+6. ✅ **conversations** - creator-customer conversations
 7. ✅ **messages** - Individual messages (subcollection)
 8. ✅ **notifications** - User notifications
 
@@ -26,13 +26,13 @@ Your `firestore.rules` file now includes comprehensive security rules for **ALL*
 ### **Advertising System:**
 10. ✅ **advertisers** - Advertiser profiles
 11. ✅ **adCampaigns** - Ad campaigns
-12. ✅ **adSlots** - Vendor ad spaces
+12. ✅ **adSlots** - creator ad spaces
 13. ✅ **adImpressions** - Ad impression tracking
 14. ✅ **adClicks** - Ad click tracking
-15. ✅ **vendorAdEarnings** - Vendor ad revenue
+15. ✅ **creatorAdEarnings** - creator ad revenue
 
 ### **Financial:**
-16. ✅ **payouts** - Vendor payouts
+16. ✅ **payouts** - creator payouts
 17. ✅ **transactions** - Payment records
 18. ✅ **refunds** - Refund requests
 
@@ -48,7 +48,7 @@ Your `firestore.rules` file now includes comprehensive security rules for **ALL*
 25. ✅ **addresses** - Shipping addresses
 
 ### **Admin & System:**
-26. ✅ **vendor_applications** - Vendor signup applications
+26. ✅ **creator_applications** - creator signup applications
 27. ✅ **reports** - Abuse reports
 28. ✅ **audit_logs** - Admin action logs
 29. ✅ **shipping** - Delivery tracking
@@ -61,7 +61,7 @@ Your `firestore.rules` file now includes comprehensive security rules for **ALL*
 
 ### **Role-Based Access:**
 - ✅ **Customers** - Can only access their own data
-- ✅ **Vendors** - Can access their products, orders, and earnings
+- ✅ **creators** - Can access their products, orders, and earnings
 - ✅ **Admins** - Full access to all collections
 - ✅ **Anonymous** - Read-only access to public data (products, categories)
 
@@ -75,7 +75,7 @@ Your `firestore.rules` file now includes comprehensive security rules for **ALL*
 
 ### **Ownership Protection:**
 - ✅ Users can only modify their own data
-- ✅ Vendors can only edit their own products
+- ✅ creators can only edit their own products
 - ✅ Customers can only see their own orders
 - ✅ Conversation participants only
 
@@ -98,14 +98,14 @@ Your `firestore.rules` file now includes comprehensive security rules for **ALL*
 
 ### **1. Conversations Collection**
 ```javascript
-// Customers can create conversations with vendors
+// Customers can create conversations with creators
 // Both parties can read and update their conversations
 // Messages are in a subcollection with 2000 char limit
 ```
 
 **Features:**
 - ✅ Customer initiates conversation
-- ✅ Both vendor and customer can send messages
+- ✅ Both creator and customer can send messages
 - ✅ Messages cannot be edited or deleted (audit trail)
 - ✅ Conversation status can be updated by participants
 
@@ -113,13 +113,13 @@ Your `firestore.rules` file now includes comprehensive security rules for **ALL*
 ```javascript
 // System creates records after purchase
 // Customers can read their purchases
-// Vendors can see what they sold
+// creators can see what they sold
 ```
 
 **Features:**
 - ✅ Created via API with Admin SDK only
 - ✅ Customers access their downloads
-- ✅ Vendors track digital sales
+- ✅ creators track digital sales
 - ✅ Download count tracking
 - ✅ Records cannot be deleted
 
@@ -151,11 +151,11 @@ After deploying rules, test these scenarios:
 - [ ] Can place orders
 - [ ] Can view own orders only
 - [ ] Can leave reviews
-- [ ] Can message vendors
+- [ ] Can message creators
 - [ ] Can access digital downloads
 - [ ] Cannot see other users' data
 
-### **Vendor Tests:**
+### **creator Tests:**
 - [ ] Can create products
 - [ ] Can view own products only
 - [ ] Can see orders for their products
@@ -163,11 +163,11 @@ After deploying rules, test these scenarios:
 - [ ] Can read customer messages
 - [ ] Can reply to messages
 - [ ] Can view analytics
-- [ ] Cannot access other vendors' data
+- [ ] Cannot access other creators' data
 
 ### **Admin Tests:**
 - [ ] Can view all users
-- [ ] Can approve vendors
+- [ ] Can approve creators
 - [ ] Can manage products
 - [ ] Can view all orders
 - [ ] Can process payouts
@@ -177,7 +177,7 @@ After deploying rules, test these scenarios:
 ### **Security Tests:**
 - [ ] Unauthenticated users can only view public data
 - [ ] Users cannot modify other users' data
-- [ ] Vendors cannot see other vendors' sales
+- [ ] creators cannot see other creators' sales
 - [ ] Customers cannot see other customers' orders
 - [ ] System collections cannot be modified directly
 
@@ -208,7 +208,7 @@ After deploying rules, test these scenarios:
 - **Total Collections:** 31
 - **Total Rules:** 150+
 - **Helper Functions:** 10
-- **Role Types:** 4 (Customer, Vendor, Admin, Anonymous)
+- **Role Types:** 4 (Customer, creator, Admin, Anonymous)
 - **Validation Rules:** 25+
 - **Audit Trail Collections:** 8
 

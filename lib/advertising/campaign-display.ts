@@ -19,8 +19,8 @@ export interface DisplayCampaign {
     ctaText: string
   }
   placement: {
-    type: 'homepage' | 'category' | 'vendor_store' | 'sponsored_product'
-    targetVendors: string[]
+    type: 'homepage' | 'category' | 'creator_hub' | 'sponsored_product'
+    targetCreators: string[]
     targetCategories: string[]
   }
   budget: {
@@ -44,16 +44,16 @@ export interface DisplayCampaign {
  * Get active campaigns for a specific placement type
  */
 export async function getActiveCampaignsForPlacement(
-  placementType: 'homepage' | 'category' | 'vendor_store' | 'sponsored_product',
+  placementType: 'homepage' | 'category' | 'creator_hub' | 'sponsored_product',
   options: {
-    vendorId?: string
+    creatorId?: string
     category?: string
     maxCount?: number
   } = {}
 ): Promise<DisplayCampaign[]> {
   return handleFirebaseError(async () => {
     const campaignsRef = collection(db, "adCampaigns")
-    
+
     // Base query for active campaigns of the specified placement type
     let q = query(
       campaignsRef,
@@ -74,14 +74,14 @@ export async function getActiveCampaignsForPlacement(
     campaigns = campaigns.filter(campaign => {
       // Check if campaign has remaining budget
       if (campaign.budget.remaining <= 0) return false
-      
+
       // Check daily limit
       if (campaign.budget.spent >= campaign.budget.dailyLimit) return false
 
-      // Filter by vendor targeting
-      if (options.vendorId && placementType === 'vendor_store') {
-        const targetVendors = campaign.placement.targetVendors || []
-        if (targetVendors.length > 0 && !targetVendors.includes(options.vendorId)) {
+      // Filter by creator targeting
+      if (options.creatorId && placementType === 'creator_hub') {
+        const targetCreators = (campaign.placement as any).targetCreators || (campaign.placement as any).targetcreators || []
+        if (targetCreators.length > 0 && !targetCreators.includes(options.creatorId)) {
           return false
         }
       }
@@ -123,10 +123,10 @@ export async function getHomepageBannerCampaigns(maxCount: number = 5): Promise<
 }
 
 /**
- * Get campaigns for vendor store ads
+ * Get campaigns for creator hub ads
  */
-export async function getVendorStoreCampaigns(vendorId: string, maxCount: number = 3): Promise<DisplayCampaign[]> {
-  return getActiveCampaignsForPlacement('vendor_store', { vendorId, maxCount })
+export async function getCreatorHubCampaigns(creatorId: string, maxCount: number = 3): Promise<DisplayCampaign[]> {
+  return getActiveCampaignsForPlacement('creator_hub', { creatorId, maxCount })
 }
 
 /**
@@ -206,14 +206,14 @@ export function selectWeightedRandomCampaign(campaigns: DisplayCampaign[]): Disp
 
   const totalWeight = campaigns.reduce((sum, campaign) => sum + campaign.weight, 0)
   let random = Math.random() * totalWeight
-  
+
   for (const campaign of campaigns) {
     random -= campaign.weight
     if (random <= 0) {
       return campaign
     }
   }
-  
+
   return campaigns[0] // Fallback
 }
 
@@ -222,7 +222,7 @@ export function selectWeightedRandomCampaign(campaigns: DisplayCampaign[]): Disp
  */
 export async function trackCampaignImpression(campaignId: string, context: {
   placement: string
-  vendorId?: string
+  creatorId?: string
   category?: string
   deviceType: string
   userAgent: string
@@ -247,7 +247,7 @@ export async function trackCampaignImpression(campaignId: string, context: {
  */
 export async function trackCampaignClick(campaignId: string, context: {
   placement: string
-  vendorId?: string
+  creatorId?: string
   category?: string
   deviceType: string
   userAgent: string

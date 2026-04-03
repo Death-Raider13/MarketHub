@@ -71,8 +71,8 @@ Or in Vercel dashboard:
 After redeployment:
 
 1. Go to your site: `https://marketplace-ecommerce-one.vercel.app`
-2. Login as vendor
-3. Go to `/vendor/dashboard`
+2. Login as creator
+3. Go to `/creator/dashboard`
 4. **Should see:** Stats loading successfully
 5. **Should NOT see:** 500 errors
 
@@ -80,7 +80,7 @@ After redeployment:
 
 Test if admin is working:
 ```
-https://marketplace-ecommerce-one.vercel.app/api/vendor/stats/debug?vendorId=YOUR_VENDOR_ID
+https://marketplace-ecommerce-one.vercel.app/api/creator/stats/debug?creatorId=YOUR_creator_ID
 ```
 
 Should return:
@@ -89,7 +89,7 @@ Should return:
   "success": true,
   "message": "Admin DB working",
   "productsCount": 0,
-  "vendorId": "..."
+  "creatorId": "..."
 }
 ```
 
@@ -200,11 +200,11 @@ After setup:
 ## 🎯 **Expected Result**
 
 Once Firebase Admin is configured:
-- ✅ `/api/vendor/stats` returns 200
-- ✅ `/api/vendor/orders` returns 200
+- ✅ `/api/creator/stats` returns 200
+- ✅ `/api/creator/orders` returns 200
 - ✅ Dashboard displays stats
 - ✅ No "Admin DB is null" errors
-- ✅ All vendor features work
+- ✅ All creator features work
 
 ---
 
@@ -218,7 +218,7 @@ If errors persist after adding credentials:
    - Check **Functions** tab for errors
 
 2. **Test Debug Endpoint:**
-   - Visit `/api/vendor/stats/debug?vendorId=YOUR_ID`
+   - Visit `/api/creator/stats/debug?creatorId=YOUR_ID`
    - Check the error message
 
 3. **Verify JSON Format:**

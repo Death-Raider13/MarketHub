@@ -14,16 +14,16 @@ export type AuditAction =
   | 'user.ban'
   | 'user.unban'
   | 'user.verify'
-  
-  // Vendor Actions
-  | 'vendor.approve'
-  | 'vendor.reject'
-  | 'vendor.suspend'
-  | 'vendor.unsuspend'
-  | 'vendor.edit'
-  | 'vendor.delete'
-  | 'vendor.commission_change'
-  
+
+  // creator Actions
+  | 'creator.approve'
+  | 'creator.reject'
+  | 'creator.suspend'
+  | 'creator.unsuspend'
+  | 'creator.edit'
+  | 'creator.delete'
+  | 'creator.commission_change'
+
   // Product Actions
   | 'product.approve'
   | 'product.reject'
@@ -31,41 +31,41 @@ export type AuditAction =
   | 'product.delete'
   | 'product.feature'
   | 'product.unfeature'
-  
+
   // Order Actions
   | 'order.edit'
   | 'order.cancel'
   | 'order.refund'
-  
+
   // Ad Actions
   | 'ad.approve'
   | 'ad.reject'
   | 'ad.pause'
   | 'ad.resume'
   | 'ad.delete'
-  
+
   // Review Actions
   | 'review.approve'
   | 'review.reject'
   | 'review.delete'
-  
+
   // Financial Actions
   | 'payout.process'
   | 'refund.process'
   | 'commission.change'
-  
+
   // Settings Actions
   | 'settings.edit'
   | 'category.create'
   | 'category.edit'
   | 'category.delete'
-  
+
   // Admin Actions
   | 'admin.create'
   | 'admin.edit'
   | 'admin.delete'
   | 'admin.role_change'
-  
+
   // System Actions
   | 'system.backup'
   | 'system.restore'
@@ -77,7 +77,7 @@ export interface AuditLog {
   adminId: string;
   adminEmail: string;
   adminRole: string;
-  targetType: 'user' | 'vendor' | 'product' | 'order' | 'ad' | 'review' | 'admin' | 'system' | 'settings';
+  targetType: 'user' | 'creator' | 'product' | 'order' | 'ad' | 'review' | 'admin' | 'system' | 'settings';
   targetId: string;
   targetName?: string;
   details: Record<string, any>;
@@ -195,50 +195,50 @@ export const ACTION_DESCRIPTIONS: Record<AuditAction, string> = {
   'user.ban': 'Banned user',
   'user.unban': 'Unbanned user',
   'user.verify': 'Verified user account',
-  
-  'vendor.approve': 'Approved vendor application',
-  'vendor.reject': 'Rejected vendor application',
-  'vendor.suspend': 'Suspended vendor account',
-  'vendor.unsuspend': 'Unsuspended vendor account',
-  'vendor.edit': 'Edited vendor information',
-  'vendor.delete': 'Deleted vendor account',
-  'vendor.commission_change': 'Changed vendor commission rate',
-  
+
+  'creator.approve': 'Approved creator application',
+  'creator.reject': 'Rejected creator application',
+  'creator.suspend': 'Suspended creator account',
+  'creator.unsuspend': 'Unsuspended creator account',
+  'creator.edit': 'Edited creator information',
+  'creator.delete': 'Deleted creator account',
+  'creator.commission_change': 'Changed creator commission rate',
+
   'product.approve': 'Approved product',
   'product.reject': 'Rejected product',
   'product.edit': 'Edited product',
   'product.delete': 'Deleted product',
   'product.feature': 'Featured product',
   'product.unfeature': 'Unfeatured product',
-  
+
   'order.edit': 'Edited order',
   'order.cancel': 'Cancelled order',
   'order.refund': 'Processed refund',
-  
+
   'ad.approve': 'Approved advertisement',
   'ad.reject': 'Rejected advertisement',
   'ad.pause': 'Paused advertisement',
   'ad.resume': 'Resumed advertisement',
   'ad.delete': 'Deleted advertisement',
-  
+
   'review.approve': 'Approved review',
   'review.reject': 'Rejected review',
   'review.delete': 'Deleted review',
-  
-  'payout.process': 'Processed vendor payout',
+
+  'payout.process': 'Processed creator payout',
   'refund.process': 'Processed customer refund',
   'commission.change': 'Changed commission rate',
-  
+
   'settings.edit': 'Updated platform settings',
   'category.create': 'Created category',
   'category.edit': 'Edited category',
   'category.delete': 'Deleted category',
-  
+
   'admin.create': 'Created admin account',
   'admin.edit': 'Edited admin account',
   'admin.delete': 'Deleted admin account',
   'admin.role_change': 'Changed admin role',
-  
+
   'system.backup': 'Created system backup',
   'system.restore': 'Restored from backup',
   'system.maintenance': 'Performed system maintenance',

@@ -24,7 +24,7 @@
 - [x] User Registration (Email/Password)
 - [x] User Login
 - [x] Password Reset
-- [x] Role-based Access (Customer, Vendor, Admin, Super Admin)
+- [x] Role-based Access (Customer, creator, Admin, Super Admin)
 - [x] User Profiles
 - [x] Session Management
 
@@ -35,7 +35,7 @@
 - [x] Product Filtering
 - [x] Product Detail Pages
 - [x] Product Reviews & Ratings
-- [x] Vendor Storefronts
+- [x] creator Storefronts
 - [x] Product Status (Active, Pending, Rejected)
 
 ### 4. Shopping Features ✓
@@ -45,7 +45,7 @@
 - [x] Checkout Flow (UI only)
 - [x] Order Summary
 
-### 5. Vendor Dashboard ✓
+### 5. creator Dashboard ✓
 - [x] Product Management
 - [x] Order Management (UI)
 - [x] Analytics Dashboard
@@ -54,7 +54,7 @@
 
 ### 6. Admin Dashboard ✓
 - [x] User Management
-- [x] Vendor Management
+- [x] creator Management
 - [x] Product Moderation
 - [x] Payout Management
 - [x] Advertising Management
@@ -122,7 +122,7 @@ Priority: URGENT
 - [ ] Order confirmation emails
 - [ ] Digital product delivery emails
 - [ ] Payment receipts
-- [ ] Vendor notifications
+- [ ] creator notifications
 - [ ] Password reset emails
 - [ ] Welcome emails
 
@@ -141,7 +141,7 @@ Priority: HIGH
 - [ ] Real Firestore queries for products
 - [ ] Real order creation
 - [ ] Real user data fetching
-- [ ] Real vendor data
+- [ ] Real creator data
 - [ ] Real analytics data
 
 **Current:** Most pages use mock/hardcoded data
@@ -286,7 +286,7 @@ Priority: LOW
 | **Coupons** | ✅ | ❌ | MISSING |
 | **Landing Pages** | ✅ | ⚠️ | BASIC |
 | **Analytics** | ✅ | ⚠️ | BASIC |
-| **Multi-vendor** | ❌ | ✅ | **ADVANTAGE** |
+| **Multi-creator** | ❌ | ✅ | **ADVANTAGE** |
 | **Advertising System** | ❌ | ✅ | **ADVANTAGE** |
 | **Advanced Admin** | ❌ | ✅ | **ADVANTAGE** |
 | **Audit Logging** | ❌ | ✅ | **ADVANTAGE** |
@@ -297,7 +297,7 @@ Priority: LOW
 
 ### 1. 🎯 Built-in Advertising System
 **What Selar Doesn't Have:**
-- Vendors can promote products with ads
+- creators can promote products with ads
 - Multiple ad placements (banner, sidebar, sponsored)
 - CPM/CPC pricing models
 - Ad analytics and tracking
@@ -307,12 +307,12 @@ Priority: LOW
 
 ---
 
-### 2. 🏢 True Multi-Vendor Marketplace
+### 2. 🏢 True Multi-creator Marketplace
 **What Selar Doesn't Have:**
-- Multiple vendors on one platform
-- Vendor competition
+- Multiple creators on one platform
+- creator competition
 - Marketplace dynamics
-- Cross-vendor shopping cart
+- Cross-creator shopping cart
 
 **Advantage:** More like Amazon/Etsy than Gumroad/Selar
 
@@ -363,7 +363,7 @@ Priority: LOW
 ### Your Potential Model:
 - Transaction fee: 3-5% per transaction
 - **PLUS** Advertising revenue (unique!)
-- Optional: Vendor subscription tiers
+- Optional: creator subscription tiers
 - Optional: Featured placement fees
 
 **Advantage:** Multiple revenue streams
@@ -427,7 +427,7 @@ Priority: LOW
 
 ### Existing Guides:
 - `ADVERTISING_SYSTEM_GUIDE.md` - Your unique feature
-- `PAYOUT_SYSTEM_GUIDE.md` - Vendor payments
+- `PAYOUT_SYSTEM_GUIDE.md` - creator payments
 - `IMPROVEMENTS.md` - Long-term roadmap
 - `README.md` - Setup instructions
 
@@ -453,7 +453,7 @@ Priority: LOW
 
 ### Your Advantage:
 🎯 Built-in advertising system
-🏢 True multi-vendor marketplace
+🏢 True multi-creator marketplace
 🛡️ Enterprise-grade admin tools
 
 **You're closer than you think! Focus on the 3 critical features first, and you'll have a working platform in 2 weeks.** 🚀

@@ -6,29 +6,29 @@
 export interface AdRevenueConfig {
   // Platform commission rates
   platformCommissionRate: number // Percentage of ad spend that goes to platform
-  vendorCommissionRate: number   // Percentage that goes to vendor hosting the ad
-  
+  creatorCommissionRate: number   // Percentage that goes to creator hosting the ad
+
   // Minimum rates
   minimumCPM: number // Minimum cost per 1000 impressions
   minimumCPC: number // Minimum cost per click
-  
+
   // Revenue sharing for different placements
   placementRates: {
     homepage: {
       platformShare: number // Platform's share (%)
-      vendorShare: number   // Vendor's share (%)
+      creatorshare: number   // creator's share (%)
     }
-    vendor_store: {
+    creator_store: {
       platformShare: number
-      vendorShare: number
+      creatorshare: number
     }
     category: {
       platformShare: number
-      vendorShare: number
+      creatorshare: number
     }
     sponsored_product: {
       platformShare: number
-      vendorShare: number
+      creatorshare: number
     }
   }
 }
@@ -36,27 +36,27 @@ export interface AdRevenueConfig {
 // Default revenue configuration
 export const DEFAULT_AD_REVENUE_CONFIG: AdRevenueConfig = {
   platformCommissionRate: 30, // Platform takes 30% of ad spend
-  vendorCommissionRate: 20,   // Vendor gets 20% for hosting ads
-  
+  creatorCommissionRate: 20,   // creator gets 20% for hosting ads
+
   minimumCPM: 50,  // ₦50 per 1000 impressions
   minimumCPC: 5,   // ₦5 per click
-  
+
   placementRates: {
     homepage: {
       platformShare: 100, // Platform gets 100%
-      vendorShare: 0      // No vendor for homepage
+      creatorshare: 0      // No creator for homepage
     },
-    vendor_store: {
+    creator_store: {
       platformShare: 60, // Platform gets 60%
-      vendorShare: 40    // Vendor gets 40% (they host the ad on their store)
+      creatorshare: 40    // creator gets 40% (they host the ad on their store)
     },
     category: {
       platformShare: 100, // Platform gets 100% (platform-owned category pages)
-      vendorShare: 0      // No vendor commission for category ads
+      creatorshare: 0      // No creator commission for category ads
     },
     sponsored_product: {
       platformShare: 100, // Platform gets 100% (platform-managed sponsored products)
-      vendorShare: 0      // No vendor commission for sponsored product ads
+      creatorshare: 0      // No creator commission for sponsored product ads
     }
   }
 }
@@ -64,7 +64,7 @@ export const DEFAULT_AD_REVENUE_CONFIG: AdRevenueConfig = {
 export interface AdRevenueCalculation {
   totalAdSpend: number
   platformRevenue: number
-  vendorRevenue: number
+  creatorRevenue: number
   advertiserCost: number
   breakdown: {
     impressionRevenue: number
@@ -88,21 +88,21 @@ export function calculateImpressionRevenue(
   placementType: keyof AdRevenueConfig['placementRates'],
   config: AdRevenueConfig = DEFAULT_AD_REVENUE_CONFIG
 ): AdRevenueCalculation {
-  
+
   // Calculate total cost to advertiser
   const totalCost = (impressions / 1000) * Math.max(cpmRate, config.minimumCPM)
-  
+
   // Get placement rates
   const placementConfig = config.placementRates[placementType]
-  
+
   // Calculate revenue split
   const platformRevenue = totalCost * (placementConfig.platformShare / 100)
-  const vendorRevenue = totalCost * (placementConfig.vendorShare / 100)
-  
+  const creatorRevenue = totalCost * (placementConfig.creatorshare / 100)
+
   return {
     totalAdSpend: totalCost,
     platformRevenue,
-    vendorRevenue,
+    creatorRevenue,
     advertiserCost: totalCost,
     breakdown: {
       impressionRevenue: totalCost,
@@ -127,21 +127,21 @@ export function calculateClickRevenue(
   placementType: keyof AdRevenueConfig['placementRates'],
   config: AdRevenueConfig = DEFAULT_AD_REVENUE_CONFIG
 ): AdRevenueCalculation {
-  
+
   // Calculate total cost to advertiser
   const totalCost = clicks * Math.max(cpcRate, config.minimumCPC)
-  
+
   // Get placement rates
   const placementConfig = config.placementRates[placementType]
-  
+
   // Calculate revenue split
   const platformRevenue = totalCost * (placementConfig.platformShare / 100)
-  const vendorRevenue = totalCost * (placementConfig.vendorShare / 100)
-  
+  const creatorRevenue = totalCost * (placementConfig.creatorshare / 100)
+
   return {
     totalAdSpend: totalCost,
     platformRevenue,
-    vendorRevenue,
+    creatorRevenue,
     advertiserCost: totalCost,
     breakdown: {
       impressionRevenue: 0,
@@ -170,26 +170,26 @@ export function calculateCampaignRevenue(
   },
   config: AdRevenueConfig = DEFAULT_AD_REVENUE_CONFIG
 ): AdRevenueCalculation {
-  
+
   const { impressions, clicks, conversions, totalSpend, placementType } = campaignStats
-  
+
   // Get placement configuration
   const placementConfig = config.placementRates[placementType]
-  
+
   // Calculate revenue split
   const platformRevenue = totalSpend * (placementConfig.platformShare / 100)
-  const vendorRevenue = totalSpend * (placementConfig.vendorShare / 100)
-  
+  const creatorRevenue = totalSpend * (placementConfig.creatorshare / 100)
+
   // Calculate metrics
   const effectiveCPM = impressions > 0 ? (totalSpend / impressions) * 1000 : 0
   const effectiveCPC = clicks > 0 ? totalSpend / clicks : 0
   const conversionRate = impressions > 0 ? (conversions / impressions) * 100 : 0
   const revenuePerConversion = conversions > 0 ? totalSpend / conversions : 0
-  
+
   return {
     totalAdSpend: totalSpend,
     platformRevenue,
-    vendorRevenue,
+    creatorRevenue,
     advertiserCost: totalSpend,
     breakdown: {
       impressionRevenue: totalSpend * 0.6, // Assume 60% from impressions
@@ -212,7 +212,7 @@ export interface PlatformAdRevenue {
   totalRevenue: number
   revenueByPlacement: {
     homepage: number
-    vendor_store: number
+    creator_store: number
     category: number
     sponsored_product: number
   }
@@ -259,11 +259,11 @@ export function calculatePlatformAdRevenue(
   }> = [],
   config: AdRevenueConfig = DEFAULT_AD_REVENUE_CONFIG
 ): PlatformAdRevenue {
-  
+
   let totalRevenue = 0
   const revenueByPlacement = {
     homepage: 0,
-    vendor_store: 0,
+    creator_store: 0,
     category: 0,
     sponsored_product: 0
   }
@@ -272,47 +272,47 @@ export function calculatePlatformAdRevenue(
     cpc: 0,
     cpa: 0
   }
-  
+
   let totalImpressions = 0
   let totalClicks = 0
   let totalConversions = 0
   let totalSpend = 0
-  
+
   // Calculate current period revenue
   campaigns.forEach(campaign => {
     const revenue = calculateCampaignRevenue(campaign, config)
-    
+
     totalRevenue += revenue.platformRevenue
     revenueByPlacement[campaign.placementType] += revenue.platformRevenue
-    
+
     // Distribute revenue by model (estimated)
     revenueByModel.cpm += revenue.breakdown.impressionRevenue * (config.placementRates[campaign.placementType].platformShare / 100)
     revenueByModel.cpc += revenue.breakdown.clickRevenue * (config.placementRates[campaign.placementType].platformShare / 100)
     revenueByModel.cpa += revenue.breakdown.conversionRevenue * (config.placementRates[campaign.placementType].platformShare / 100)
-    
+
     totalImpressions += campaign.impressions
     totalClicks += campaign.clicks
     totalConversions += campaign.conversions
     totalSpend += campaign.totalSpend
   })
-  
+
   // Calculate previous period totals for growth
   const previousTotalRevenue = previousPeriodCampaigns.reduce((sum, campaign) => sum + campaign.totalSpend, 0) * (config.platformCommissionRate / 100)
   const previousTotalImpressions = previousPeriodCampaigns.reduce((sum, campaign) => sum + campaign.impressions, 0)
   const previousTotalClicks = previousPeriodCampaigns.reduce((sum, campaign) => sum + campaign.clicks, 0)
-  
+
   // Calculate growth rates
   const revenueGrowth = previousTotalRevenue > 0 ? ((totalRevenue - previousTotalRevenue) / previousTotalRevenue) * 100 : 0
   const impressionGrowth = previousTotalImpressions > 0 ? ((totalImpressions - previousTotalImpressions) / previousTotalImpressions) * 100 : 0
   const clickGrowth = previousTotalClicks > 0 ? ((totalClicks - previousTotalClicks) / previousTotalClicks) * 100 : 0
-  
+
   // Calculate metrics
   const averageCPM = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0
   const averageCPC = totalClicks > 0 ? totalSpend / totalClicks : 0
   const averageCPA = totalConversions > 0 ? totalSpend / totalConversions : 0
   const overallCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
   const overallConversionRate = totalImpressions > 0 ? (totalConversions / totalImpressions) * 100 : 0
-  
+
   return {
     totalRevenue,
     revenueByPlacement,

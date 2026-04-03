@@ -12,16 +12,16 @@ Your marketplace now has a comprehensive advertising revenue system that generat
 ```typescript
 Default Configuration:
 - Platform Commission: 30% of total ad spend
-- Vendor Commission: 20% (for hosting ads on their stores)
+- creator Commission: 20% (for hosting ads on their stores)
 - Advertiser Pays: 100% (full ad spend)
 ```
 
 ### **2. Revenue by Placement Type**
 
-| Placement | Platform Share | Vendor Share | Example Revenue |
+| Placement | Platform Share | creator Share | Example Revenue |
 |-----------|----------------|--------------|-----------------|
 | **Homepage** | 100% | 0% | ₦1,000 from ₦1,000 spend |
-| **Vendor Store** | 60% | 40% | ₦600 platform, ₦400 vendor |
+| **creator Store** | 60% | 40% | ₦600 platform, ₦400 creator |
 | **Category Pages** | 100% | 0% | ₦1,000 from ₦1,000 spend |
 | **Sponsored Products** | 100% | 0% | ₦1,000 from ₦1,000 spend |
 
@@ -52,18 +52,18 @@ Campaign Type: CPM (₦100 per 1,000 impressions)
 Impressions Generated: 500,000
 Total Cost: ₦50,000
 Platform Revenue: ₦50,000 × 80% = ₦40,000
-Vendor Revenue: ₦0 (homepage placement)
+creator Revenue: ₦0 (homepage placement)
 ```
 
-### **Example 2: Vendor Store Campaign**
+### **Example 2: creator Store Campaign**
 ```
 Advertiser Budget: ₦30,000
 Campaign Type: CPC (₦15 per click)
 Clicks Generated: 2,000
 Total Cost: ₦30,000
 Platform Revenue: ₦30,000 × 60% = ₦18,000
-Vendor Revenue: ₦30,000 × 40% = ₦12,000
-(Vendor gets commission because ad is hosted on their store)
+creator Revenue: ₦30,000 × 40% = ₦12,000
+(creator gets commission because ad is hosted on their store)
 ```
 
 ### **Example 3: Category Page Campaign**
@@ -73,7 +73,7 @@ Campaign Type: CPM (₦100 per 1,000 impressions)
 Impressions Generated: 500,000
 Total Cost: ₦50,000
 Platform Revenue: ₦50,000 × 100% = ₦50,000
-Vendor Revenue: ₦0 (Platform-owned category pages)
+creator Revenue: ₦0 (Platform-owned category pages)
 ```
 
 ### **Example 4: Sponsored Products Campaign**
@@ -82,7 +82,7 @@ Advertiser Budget: ₦40,000
 Campaign Type: Mixed (CPM + CPC)
 Total Cost: ₦40,000
 Platform Revenue: ₦40,000 × 100% = ₦40,000
-Vendor Revenue: ₦0 (Platform-managed sponsored products)
+creator Revenue: ₦0 (Platform-managed sponsored products)
 ```
 
 ---
@@ -127,12 +127,12 @@ Ad Conversion → Calculate Revenue Split → Update Platform Balance
 
 ### **2. Revenue Distribution**
 - **Platform Revenue**: Automatically credited to platform account
-- **Vendor Revenue**: Credited to vendor's advertising earnings
+- **creator Revenue**: Credited to creator's advertising earnings
 - **Advertiser Charge**: Deducted from advertiser's campaign budget
 
 ### **3. Payout System**
-- **Vendor Payouts**: Minimum ₦5,000 threshold
-- **Payment Schedule**: Weekly/Monthly vendor payouts
+- **creator Payouts**: Minimum ₦5,000 threshold
+- **Payment Schedule**: Weekly/Monthly creator payouts
 - **Platform Revenue**: Retained for business operations
 
 ---
@@ -142,7 +142,7 @@ Ad Conversion → Calculate Revenue Split → Update Platform Balance
 ### **1. Premium Placements**
 - **Homepage ads** generate highest platform revenue (80% share)
 - **Category pages** provide good balance (70% share)
-- **Vendor stores** share revenue but increase engagement
+- **creator stores** share revenue but increase engagement
 
 ### **2. Dynamic Pricing**
 - **High-demand placements** can command premium rates

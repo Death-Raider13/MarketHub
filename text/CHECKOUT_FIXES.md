@@ -370,7 +370,7 @@ For testing in development, use these test cards:
 5. **Discount Codes**
    - Coupon code input
    - Automatic discount application
-   - Vendor-specific discounts
+   - creator-specific discounts
 
 6. **Guest Checkout**
    - Allow checkout without account

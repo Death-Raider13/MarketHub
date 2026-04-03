@@ -35,8 +35,8 @@ function SuperAdminDashboardContent() {
   const [stats, setStats] = useState({
     totalRevenue: 0,
     revenueGrowth: 18.2,
-    activeVendors: 0,
-    pendingVendors: 0,
+    activecreators: 0,
+    pendingcreators: 0,
     totalProducts: 0,
     pendingProducts: 0,
     totalUsers: 0,
@@ -56,11 +56,11 @@ function SuperAdminDashboardContent() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      // Load vendors
-      const vendorsSnapshot = await getDocs(collection(db, 'vendors'));
-      const vendors = vendorsSnapshot.docs.map(doc => doc.data());
-      const activeVendors = vendors.filter(v => v.verified).length;
-      const pendingVendors = vendors.filter(v => !v.verified).length;
+      // Load creators
+      const creatorsSnapshot = await getDocs(collection(db, 'creators'));
+      const creators = creatorsSnapshot.docs.map((doc: any) => doc.data());
+      const activecreators = creators.filter((v: any) => v.verified).length;
+      const pendingcreators = creators.filter((v: any) => !v.verified).length;
 
       // Load products
       const productsSnapshot = await getDocs(collection(db, 'products'));
@@ -88,8 +88,8 @@ function SuperAdminDashboardContent() {
       setStats(prev => ({
         ...prev,
         totalRevenue,
-        activeVendors,
-        pendingVendors,
+        activecreators,
+        pendingcreators,
         totalProducts,
         pendingProducts,
         totalUsers,
@@ -124,309 +124,309 @@ function SuperAdminDashboardContent() {
   return (
     <div className="flex h-screen flex-col">
       <AdminHeader />
-      
+
       <div className="flex flex-1 overflow-hidden">
         <SuperAdminSidebar />
-        
+
         <main className="flex-1 overflow-y-auto bg-muted/30 p-6">
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Shield className="h-8 w-8 text-primary" />
-                Super Admin Dashboard
-              </h1>
-              <p className="text-muted-foreground">Complete platform oversight and control</p>
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                  <Shield className="h-8 w-8 text-primary" />
+                  Super Admin Dashboard
+                </h1>
+                <p className="text-muted-foreground">Complete platform oversight and control</p>
+              </div>
+              <Badge variant="default" className="text-lg px-4 py-2">
+                Super Admin
+              </Badge>
             </div>
-            <Badge variant="default" className="text-lg px-4 py-2">
-              Super Admin
-            </Badge>
           </div>
-        </div>
 
-        {/* Enhanced Stats Grid - 8 cards for Super Admin */}
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold">₦{stats.totalRevenue.toLocaleString()}</p>
-                  <p className="mt-1 flex items-center text-xs text-green-600">
-                    <TrendingUp className="mr-1 h-3 w-3" />
-                    {stats.revenueGrowth}% from last month
-                  </p>
+          {/* Enhanced Stats Grid - 8 cards for Super Admin */}
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                    <p className="text-2xl font-bold">₦{stats.totalRevenue.toLocaleString()}</p>
+                    <p className="mt-1 flex items-center text-xs text-green-600">
+                      <TrendingUp className="mr-1 h-3 w-3" />
+                      {stats.revenueGrowth}% from last month
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-green-500/10 p-3">
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                  </div>
                 </div>
-                <div className="rounded-full bg-green-500/10 p-3">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Vendors</p>
-                  <p className="text-2xl font-bold">{stats.activeVendors}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {stats.pendingVendors} pending approval
-                  </p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Active Creators</p>
+                    <p className="text-2xl font-bold">{stats.activecreators}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {stats.pendingcreators} pending approval
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-blue-500/10 p-3">
+                    <Store className="h-5 w-5 text-blue-600" />
+                  </div>
                 </div>
-                <div className="rounded-full bg-blue-500/10 p-3">
-                  <Store className="h-5 w-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Products</p>
-                  <p className="text-2xl font-bold">{stats.totalProducts}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {stats.pendingProducts} pending review
-                  </p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Products</p>
+                    <p className="text-2xl font-bold">{stats.totalProducts}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {stats.pendingProducts} pending review
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-purple-500/10 p-3">
+                    <Package className="h-5 w-5 text-purple-600" />
+                  </div>
                 </div>
-                <div className="rounded-full bg-purple-500/10 p-3">
-                  <Package className="h-5 w-5 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Users</p>
-                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
-                  <p className="mt-1 flex items-center text-xs text-green-600">
-                    <TrendingUp className="mr-1 h-3 w-3" />
-                    {stats.userGrowth}% growth
-                  </p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Users</p>
+                    <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                    <p className="mt-1 flex items-center text-xs text-green-600">
+                      <TrendingUp className="mr-1 h-3 w-3" />
+                      {stats.userGrowth}% growth
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-orange-500/10 p-3">
+                    <Users className="h-5 w-5 text-orange-600" />
+                  </div>
                 </div>
-                <div className="rounded-full bg-orange-500/10 p-3">
-                  <Users className="h-5 w-5 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Super Admin Exclusive Stats */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Admins</p>
-                  <p className="text-2xl font-bold">{stats.totalAdmins}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Platform administrators</p>
+            {/* Super Admin Exclusive Stats */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Admins</p>
+                    <p className="text-2xl font-bold">{stats.totalAdmins}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Platform administrators</p>
+                  </div>
+                  <div className="rounded-full bg-indigo-500/10 p-3">
+                    <Shield className="h-5 w-5 text-indigo-600" />
+                  </div>
                 </div>
-                <div className="rounded-full bg-indigo-500/10 p-3">
-                  <Shield className="h-5 w-5 text-indigo-600" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Platform Commission</p>
+                    <p className="text-2xl font-bold">{stats.platformCommission}%</p>
+                    <Link href="/super-admin/settings">
+                      <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                        Update Rate
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="rounded-full bg-green-500/10 p-3">
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Platform Commission</p>
-                  <p className="text-2xl font-bold">{stats.platformCommission}%</p>
-                  <Link href="/super-admin/settings">
-                    <Button variant="link" size="sm" className="h-auto p-0 text-xs">
-                      Update Rate
-                    </Button>
-                  </Link>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Database Size</p>
+                    <p className="text-2xl font-bold">{stats.databaseSize}</p>
+                    <Link href="/super-admin/system">
+                      <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                        Backup Now
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="rounded-full bg-purple-500/10 p-3">
+                    <Database className="h-5 w-5 text-purple-600" />
+                  </div>
                 </div>
-                <div className="rounded-full bg-green-500/10 p-3">
-                  <DollarSign className="h-5 w-5 text-green-600" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">System Uptime</p>
+                    <p className="text-2xl font-bold">{stats.systemUptime}</p>
+                    <p className="mt-1 text-xs text-green-600">All systems operational</p>
+                  </div>
+                  <div className="rounded-full bg-green-500/10 p-3">
+                    <Activity className="h-5 w-5 text-green-600" />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Database Size</p>
-                  <p className="text-2xl font-bold">{stats.databaseSize}</p>
-                  <Link href="/super-admin/system">
-                    <Button variant="link" size="sm" className="h-auto p-0 text-xs">
-                      Backup Now
-                    </Button>
-                  </Link>
-                </div>
-                <div className="rounded-full bg-purple-500/10 p-3">
-                  <Database className="h-5 w-5 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Charts */}
+          <div className="mb-6 grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Trend</CardTitle>
+                <CardDescription>Monthly revenue over the last 6 months</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="month" className="text-xs" />
+                    <YAxis className="text-xs" />
+                    <Tooltip />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">System Uptime</p>
-                  <p className="text-2xl font-bold">{stats.systemUptime}</p>
-                  <p className="mt-1 text-xs text-green-600">All systems operational</p>
-                </div>
-                <div className="rounded-full bg-green-500/10 p-3">
-                  <Activity className="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Orders This Week</CardTitle>
+                <CardDescription>Daily order volume</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={ordersData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="day" className="text-xs" />
+                    <YAxis className="text-xs" />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="orders" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Charts */}
-        <div className="mb-6 grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Trend</CardTitle>
-              <CardDescription>Monthly revenue over the last 6 months</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip />
-                  <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          {/* Super Admin Quick Actions */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Admin Management
+                </CardTitle>
+                <CardDescription>Manage platform administrators</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Link href="/super-admin/admins">
+                  <Button variant="outline" className="w-full justify-start">
+                    View All Admins ({stats.totalAdmins})
+                  </Button>
+                </Link>
+                <Link href="/super-admin/admins/create">
+                  <Button className="w-full justify-start">
+                    Create New Admin
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Orders This Week</CardTitle>
-              <CardDescription>Daily order volume</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={ordersData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="day" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="orders" stroke="hsl(var(--primary))" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Financial Controls
+                </CardTitle>
+                <CardDescription>Manage platform finances</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Link href="/super-admin/finance">
+                  <Button variant="outline" className="w-full justify-start">
+                    View Financial Reports
+                  </Button>
+                </Link>
+                <Link href="/super-admin/settings">
+                  <Button variant="outline" className="w-full justify-start">
+                    Update Commission Rate
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-        {/* Super Admin Quick Actions */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Admin Management
-              </CardTitle>
-              <CardDescription>Manage platform administrators</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Link href="/super-admin/admins">
-                <Button variant="outline" className="w-full justify-start">
-                  View All Admins ({stats.totalAdmins})
-                </Button>
-              </Link>
-              <Link href="/super-admin/admins/create">
-                <Button className="w-full justify-start">
-                  Create New Admin
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  System Management
+                </CardTitle>
+                <CardDescription>System operations</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Link href="/super-admin/system">
+                  <Button variant="outline" className="w-full justify-start">
+                    System Settings
+                  </Button>
+                </Link>
+                <Link href="/super-admin/audit-logs">
+                  <Button variant="outline" className="w-full justify-start">
+                    View Audit Logs
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Financial Controls
-              </CardTitle>
-              <CardDescription>Manage platform finances</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Link href="/super-admin/finance">
-                <Button variant="outline" className="w-full justify-start">
-                  View Financial Reports
-                </Button>
-              </Link>
-              <Link href="/super-admin/settings">
-                <Button variant="outline" className="w-full justify-start">
-                  Update Commission Rate
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                System Management
-              </CardTitle>
-              <CardDescription>System operations</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Link href="/super-admin/system">
-                <Button variant="outline" className="w-full justify-start">
-                  System Settings
-                </Button>
-              </Link>
-              <Link href="/super-admin/audit-logs">
-                <Button variant="outline" className="w-full justify-start">
-                  View Audit Logs
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Footer */}
-        <footer className="mt-12 border-t border-border bg-muted/30 py-6">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
-              <p>&copy; {new Date().getFullYear()} FEROMARKETHUB. All rights reserved.</p>
-              <div className="flex items-center gap-2">
-                <span>Powered by</span>
-                <a 
-                  href="https://cloudsparkdigital.netlify.app" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
-                >
-                  CloudSparkDigital
-                  <svg 
-                    className="h-3 w-3" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
+          {/* Footer */}
+          <footer className="mt-12 border-t border-border bg-muted/30 py-6">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+                <p>&copy; {new Date().getFullYear()} FEROMARKETHUB. All rights reserved.</p>
+                <div className="flex items-center gap-2">
+                  <span>Powered by</span>
+                  <a
+                    href="https://cloudsparkdigital.netlify.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" 
-                    />
-                  </svg>
-                </a>
+                    CloudSparkDigital
+                    <svg
+                      className="h-3 w-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
-        </footer>
+          </footer>
         </main>
       </div>
     </div>

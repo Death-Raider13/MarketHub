@@ -6,9 +6,9 @@
 1. **Digital Product Support** - Basic file upload/download system
 2. **Product Categories** - "Online Courses & Training" and "Education & Tutoring"
 3. **My Purchases Page** - Students can access purchased digital content
-4. **Vendor Dashboard** - Lecturers can create and manage products
+4. **creator Dashboard** - Lecturers can create and manage products
 5. **Payment Integration** - Paystack for course purchases
-6. **User Roles** - Customer/Vendor system supports lecturer-student roles
+6. **User Roles** - Customer/creator system supports lecturer-student roles
 
 ### ❌ Critical Gaps for Education
 1. **No Course Structure** - Just file downloads, not organized learning
@@ -81,7 +81,7 @@ export interface Lesson {
 Create a dedicated course management interface:
 
 ```
-/vendor/courses/
+/creator/courses/
 ├── overview/          # Course analytics
 ├── [courseId]/
 │   ├── content/       # Manage modules & lessons
@@ -389,7 +389,7 @@ Unlike standalone LMS platforms, you combine:
 - Payment processing
 - Marketing tools (your advertising system!)
 
-### 2. **Multi-Vendor Education Platform**
+### 2. **Multi-creator Education Platform**
 - Multiple lecturers on one platform
 - Cross-course recommendations
 - Bulk course purchases

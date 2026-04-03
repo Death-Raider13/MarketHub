@@ -3,16 +3,16 @@
  * Firestore integration for ad system
  */
 
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  updateDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  query,
+  where,
+  orderBy,
   limit,
   increment,
   Timestamp,
@@ -20,13 +20,13 @@ import {
   runTransaction
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
-import { 
-  AdCampaign, 
-  AdSlot, 
-  AdImpression, 
+import {
+  AdCampaign,
+  AdSlot,
+  AdImpression,
   AdClick,
   AdRotationEntry,
-  VendorAdEarnings 
+  creatorAdEarnings
 } from '@/lib/types/advertising'
 
 // Collection names
@@ -35,7 +35,7 @@ const COLLECTIONS = {
   AD_SLOTS: 'adSlots',
   AD_IMPRESSIONS: 'adImpressions',
   AD_CLICKS: 'adClicks',
-  VENDOR_EARNINGS: 'vendorAdEarnings',
+  creator_EARNINGS: 'creatorAdEarnings',
 }
 
 // ==================== AD CAMPAIGNS ====================
@@ -101,7 +101,7 @@ export async function createAdCampaign(
 ): Promise<string> {
   try {
     const campaignRef = doc(collection(db, COLLECTIONS.AD_CAMPAIGNS))
-    
+
     const campaignData = {
       ...campaign,
       createdAt: Timestamp.now(),
@@ -109,7 +109,7 @@ export async function createAdCampaign(
     }
 
     await setDoc(campaignRef, campaignData)
-    
+
     return campaignRef.id
   } catch (error) {
     console.error('Error creating campaign:', error)
@@ -173,7 +173,7 @@ export async function getTodaySpent(campaignId: string): Promise<number> {
     )
 
     const snapshot = await getDocs(q)
-    
+
     let totalSpent = 0
     snapshot.forEach(doc => {
       totalSpent += doc.data().cost || 0
@@ -211,40 +211,40 @@ export async function getAdSlot(slotId: string): Promise<AdSlot | null> {
 }
 
 /**
- * Get ad slots for a vendor
+ * Get ad slots for a creator
  */
-export async function getVendorAdSlots(vendorId: string): Promise<AdSlot[]> {
+export async function getcreatorAdSlots(creatorId: string): Promise<AdSlot[]> {
   try {
     const slotsRef = collection(db, COLLECTIONS.AD_SLOTS)
     const q = query(
       slotsRef,
-      where('vendorId', '==', vendorId),
+      where('creatorId', '==', creatorId),
       where('isActive', '==', true)
     )
 
     const snapshot = await getDocs(q)
-    
+
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as AdSlot[]
   } catch (error) {
-    console.error('Error getting vendor ad slots:', error)
+    console.error('Error getting creator ad slots:', error)
     return []
   }
 }
 
 /**
- * Create or update ad slot for vendor
+ * Create or update ad slot for creator
  */
 export async function upsertAdSlot(
-  vendorId: string,
+  creatorId: string,
   slotData: Partial<AdSlot>
 ): Promise<string> {
   try {
     // Check if slot exists
-    const existingSlots = await getVendorAdSlots(vendorId)
-    
+    const existingSlots = await getcreatorAdSlots(creatorId)
+
     if (existingSlots.length > 0) {
       // Update existing slot
       const slotRef = doc(db, COLLECTIONS.AD_SLOTS, existingSlots[0].id)
@@ -257,21 +257,21 @@ export async function upsertAdSlot(
       // Create new slot
       const slotRef = doc(collection(db, COLLECTIONS.AD_SLOTS))
       const newSlot = {
-        vendorId,
+        creatorId,
         ...slotData,
         rotationQueue: [],
         stats: {
           totalImpressions: 0,
           totalClicks: 0,
           totalRevenue: 0,
-          vendorEarnings: 0,
+          creatorEarnings: 0,
           averageCTR: 0
         },
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
         isActive: true
       }
-      
+
       await setDoc(slotRef, newSlot)
       return slotRef.id
     }
@@ -290,7 +290,7 @@ export async function updateSlotStats(
     impressions?: number
     clicks?: number
     revenue?: number
-    vendorEarnings?: number
+    creatorEarnings?: number
   }
 ): Promise<void> {
   try {
@@ -309,8 +309,8 @@ export async function updateSlotStats(
     if (stats.revenue) {
       updates['stats.totalRevenue'] = increment(stats.revenue)
     }
-    if (stats.vendorEarnings) {
-      updates['stats.vendorEarnings'] = increment(stats.vendorEarnings)
+    if (stats.creatorEarnings) {
+      updates['stats.creatorEarnings'] = increment(stats.creatorEarnings)
     }
 
     await updateDoc(slotRef, updates)
@@ -342,7 +342,7 @@ export async function addToRotationQueue(
 
       // Check if campaign already in queue
       const existingIndex = queue.findIndex(entry => entry.campaignId === campaignId)
-      
+
       if (existingIndex >= 0) {
         // Update existing entry
         queue[existingIndex].priority = priority
@@ -409,7 +409,7 @@ export async function removeFromRotationQueue(
 export async function saveImpression(impression: Omit<AdImpression, 'id'>): Promise<string> {
   try {
     const impressionRef = doc(collection(db, COLLECTIONS.AD_IMPRESSIONS))
-    
+
     await setDoc(impressionRef, {
       ...impression,
       timestamp: Timestamp.now()
@@ -498,27 +498,27 @@ export async function recordConversion(
   }
 }
 
-// ==================== VENDOR EARNINGS ====================
+// ==================== creator EARNINGS ====================
 
 /**
- * Get vendor ad earnings for a period
+ * Get creator ad earnings for a period
  */
-export async function getVendorEarnings(
-  vendorId: string,
+export async function getcreatorEarnings(
+  creatorId: string,
   startDate: Date,
   endDate: Date
-): Promise<VendorAdEarnings> {
+): Promise<creatorAdEarnings> {
   try {
     const impressionsRef = collection(db, COLLECTIONS.AD_IMPRESSIONS)
     const q = query(
       impressionsRef,
-      where('vendorId', '==', vendorId),
+      where('creatorId', '==', creatorId),
       where('timestamp', '>=', Timestamp.fromDate(startDate)),
       where('timestamp', '<=', Timestamp.fromDate(endDate))
     )
 
     const snapshot = await getDocs(q)
-    
+
     let totalRevenue = 0
     let totalImpressions = 0
     let totalClicks = 0
@@ -526,7 +526,7 @@ export async function getVendorEarnings(
 
     snapshot.forEach(doc => {
       const data = doc.data()
-      totalRevenue += data.vendorEarning || 0
+      totalRevenue += data.creatorEarning || 0
       totalImpressions++
       if (data.clicked) totalClicks++
 
@@ -542,11 +542,11 @@ export async function getVendorEarnings(
       }
       byCampaign[data.campaignId].impressions++
       if (data.clicked) byCampaign[data.campaignId].clicks++
-      byCampaign[data.campaignId].earnings += data.vendorEarning || 0
+      byCampaign[data.campaignId].earnings += data.creatorEarning || 0
     })
 
     return {
-      vendorId,
+      creatorId,
       period: { start: startDate, end: endDate },
       earnings: {
         totalRevenue,
@@ -563,7 +563,7 @@ export async function getVendorEarnings(
       }
     }
   } catch (error) {
-    console.error('Error getting vendor earnings:', error)
+    console.error('Error getting creator earnings:', error)
     throw error
   }
 }
@@ -572,14 +572,14 @@ export async function getVendorEarnings(
  * Request payout
  */
 export async function requestPayout(
-  vendorId: string,
+  creatorId: string,
   amount: number
 ): Promise<void> {
   try {
-    const payoutRef = doc(collection(db, COLLECTIONS.VENDOR_EARNINGS))
-    
+    const payoutRef = doc(collection(db, COLLECTIONS.creator_EARNINGS))
+
     await setDoc(payoutRef, {
-      vendorId,
+      creatorId,
       amount,
       status: 'pending',
       requestedAt: Timestamp.now()
@@ -610,7 +610,7 @@ export async function getCampaignPerformance(
     )
 
     const snapshot = await getDocs(q)
-    
+
     let impressions = 0
     let clicks = 0
     let conversions = 0

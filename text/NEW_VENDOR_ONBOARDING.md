@@ -1,4 +1,4 @@
-# 🚀 New Vendor Onboarding - Better Than Selar!
+# 🚀 New creator Onboarding - Better Than Selar!
 
 ## ✨ What Makes It Unique
 
@@ -135,7 +135,7 @@ Health & Wellness   Food & Beverages       Other
    ↓
 5. Start selling immediately! 🎉
    ↓
-6. Access vendor dashboard
+6. Access creator dashboard
    ↓
 7. Add products
    ↓
@@ -151,9 +151,9 @@ Health & Wellness   Food & Beverages       Other
 ### **Firestore Document:**
 ```json
 {
-  "uid": "vendor123",
-  "email": "vendor@example.com",
-  "role": "vendor",
+  "uid": "creator123",
+  "email": "creator@example.com",
+  "role": "creator",
   "displayName": "John Doe",
   "phone": "+234 800 000 0000",
   "emailVerified": false,
@@ -279,7 +279,7 @@ Best for: Minimalist, Professional, Tech
 
 ## 🔄 Comparison: Old vs New
 
-### **Old Vendor Registration:**
+### **Old creator Registration:**
 ```
 ❌ 5 complex steps
 ❌ Business info required
@@ -292,7 +292,7 @@ Best for: Minimalist, Professional, Tech
 ❌ High barrier to entry
 ```
 
-### **New Vendor Registration:**
+### **New creator Registration:**
 ```
 ✅ 3 simple steps
 ✅ No business info
@@ -337,7 +337,7 @@ Best for: Minimalist, Professional, Tech
 ## 🚀 What Happens After Launch
 
 ### **Immediate Access:**
-- ✅ Vendor dashboard
+- ✅ creator dashboard
 - ✅ Add products
 - ✅ Customize store
 - ✅ View analytics
@@ -380,7 +380,7 @@ Custom domains:
 ## 🎉 Success Metrics
 
 ### **Expected Improvements:**
-- ⬆️ 3x more vendor signups
+- ⬆️ 3x more creator signups
 - ⬇️ 80% less signup time
 - ⬆️ 90% completion rate
 - ⬇️ 50% support tickets
@@ -398,7 +398,7 @@ Custom domains:
 ## 🔧 Technical Implementation
 
 ### **Files Created:**
-- `app/auth/vendor-register-new/page.tsx` - New registration
+- `app/auth/creator-register-new/page.tsx` - New registration
 - Updated `app/auth/signup/page.tsx` - Redirect to new flow
 
 ### **Key Features:**
@@ -473,5 +473,5 @@ Custom domains:
 
 ---
 
-*New Vendor Onboarding Completed: 2025-10-15*
+*New creator Onboarding Completed: 2025-10-15*
 *Status: Better Than Selar!* 🚀✨

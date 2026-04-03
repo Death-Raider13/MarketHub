@@ -38,16 +38,16 @@ const formatNGN = (amount: number) => {
 ```tsx
 <ProductReviews
   productId={product.id}
-  vendorId={product.vendorId}
+  creatorId={product.creatorId}
   canReview={hasPurchased}
 />
 ```
 
-#### **4. Integrated Contact Vendor**
+#### **4. Integrated Contact creator**
 ```tsx
-<ContactVendor
-  vendorId={product.vendorId}
-  vendorName={product.vendorName}
+<Contactcreator
+  creatorId={product.creatorId}
+  creatorName={product.creatorName}
   productId={product.id}
   productName={product.name}
 />
@@ -66,7 +66,7 @@ const formatNGN = (amount: number) => {
 #### **7. Purchase Verification**
 - Checks if user purchased product
 - Enables verified review badge
-- Shows "Contact Vendor" button
+- Shows "Contact creator" button
 
 ### **Files Modified:**
 - `app/products/[id]/page.tsx` - Complete rewrite with Firestore integration
@@ -75,7 +75,7 @@ const formatNGN = (amount: number) => {
 - ✅ Customers can now view real products
 - ✅ Prices displayed in Nigerian Naira (₦)
 - ✅ Reviews system fully functional
-- ✅ Contact vendor integrated
+- ✅ Contact creator integrated
 - ✅ Related products working
 - ✅ Digital product support
 
@@ -130,7 +130,7 @@ const formatNGN = (amount: number) => {
 **Completed:**
 - ✅ Product detail page with real data
 - ✅ Review system integrated
-- ✅ Contact vendor integrated
+- ✅ Contact creator integrated
 - ✅ Currency formatter (NGN)
 - ✅ Cart system
 - ✅ Checkout flow
@@ -157,7 +157,7 @@ const formatNGN = (amount: number) => {
 - [ ] Test loading state
 - [ ] Test error state
 - [ ] Test add to cart
-- [ ] Test contact vendor
+- [ ] Test contact creator
 - [ ] Test review submission
 - [ ] Test related products
 - [ ] Test currency display (₦)
@@ -166,7 +166,7 @@ const formatNGN = (amount: number) => {
 ### **Integration Tests:**
 - [ ] Verify Firestore connection
 - [ ] Verify review system works
-- [ ] Verify contact vendor works
+- [ ] Verify contact creator works
 - [ ] Verify purchase verification
 - [ ] Verify related products load
 
@@ -188,7 +188,7 @@ const formatNGN = (amount: number) => {
 1. ✅ Test product detail page with real products
 2. ✅ Verify Firestore security rules allow product reads
 3. ✅ Test review submission
-4. ✅ Test contact vendor functionality
+4. ✅ Test contact creator functionality
 5. ⏳ Complete order history page
 6. ⏳ Fix remaining currency displays
 

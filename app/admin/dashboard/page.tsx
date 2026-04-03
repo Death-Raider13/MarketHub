@@ -24,12 +24,12 @@ import {
   Megaphone,
   Clock
 } from "lucide-react"
-import { 
-  Bar, 
-  BarChart, 
-  ResponsiveContainer, 
-  XAxis, 
-  YAxis, 
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
   Tooltip
 } from "recharts"
 import { collection, query, orderBy, limit, getDocs, where } from "firebase/firestore"
@@ -49,7 +49,7 @@ interface DashboardActivity {
 // Unified interfaces for all admin data
 interface DashboardStats {
   totalUsers: number
-  totalVendors: number
+  totalcreators: number
   totalProducts: number
   totalOrders: number
   totalRevenue: number
@@ -89,7 +89,7 @@ function UnifiedAdminDashboard() {
   // State for all admin data
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
-    totalVendors: 0,
+    totalcreators: 0,
     totalProducts: 0,
     totalOrders: 0,
     totalRevenue: 0,
@@ -97,7 +97,7 @@ function UnifiedAdminDashboard() {
     recentActivities: [],
     monthlyRevenue: []
   })
-  
+
   const [moderatorStats, setModeratorStats] = useState<ModeratorStats>({
     pendingProducts: 0,
     pendingReviews: 0,
@@ -106,7 +106,7 @@ function UnifiedAdminDashboard() {
     approvedToday: 0,
     rejectedToday: 0
   })
-  
+
   const [supportStats, setSupportStats] = useState<SupportStats>({
     openTickets: 0,
     resolvedToday: 0,
@@ -115,7 +115,7 @@ function UnifiedAdminDashboard() {
     pendingRefunds: 0,
     escalatedIssues: 0
   })
-  
+
   const [financeData, setFinanceData] = useState<FinanceData>({
     totalRevenue: 0,
     totalPayouts: 0,
@@ -124,7 +124,7 @@ function UnifiedAdminDashboard() {
     revenueGrowth: 0,
     payoutGrowth: 0
   })
-  
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -151,7 +151,7 @@ function UnifiedAdminDashboard() {
     try {
       // Initialize variables
       let totalUsers = 0
-      let totalVendors = 0
+      let totalcreators = 0
       let totalProducts = 0
       let totalOrders = 0
       let totalRevenue = 0
@@ -165,9 +165,9 @@ function UnifiedAdminDashboard() {
         const usersQuery = query(collection(db, "users"))
         const usersSnapshot = await getDocs(usersQuery)
         users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-        
+
         totalUsers = users.length
-        totalVendors = users.filter((user: any) => user.role === 'vendor').length
+        totalcreators = users.filter((user: any) => user.role === 'creator').length
       } catch (error) {
         console.warn("Could not fetch users data:", error)
       }
@@ -177,7 +177,7 @@ function UnifiedAdminDashboard() {
         const productsQuery = query(collection(db, "products"))
         const productsSnapshot = await getDocs(productsQuery)
         products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-        
+
         totalProducts = products.length
         pendingProducts = products.filter((product: any) => product.status === 'pending').length
       } catch (error) {
@@ -193,7 +193,7 @@ function UnifiedAdminDashboard() {
           ...doc.data(),
           createdAt: doc.data().createdAt?.toDate() || new Date()
         }))
-        
+
         totalOrders = orders.length
         totalRevenue = orders
           .filter((order: any) => order.paymentStatus === 'completed' || order.paymentStatus === 'paid')
@@ -204,7 +204,7 @@ function UnifiedAdminDashboard() {
 
       // Generate monthly revenue data (last 6 months)
       const monthlyData: { [key: string]: { revenue: number; orders: number } } = {}
-      
+
       for (let i = 0; i < 6; i++) {
         const monthStart = startOfMonth(subMonths(new Date(), i))
         const monthKey = format(monthStart, 'MMM yyyy')
@@ -229,12 +229,12 @@ function UnifiedAdminDashboard() {
 
       // Generate recent activities from real data
       const recentActivities: DashboardActivity[] = []
-      
+
       // Add recent orders
       const recentOrders = orders
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         .slice(0, 3)
-      
+
       recentOrders.forEach(order => {
         recentActivities.push({
           id: `order-${order.id}`,
@@ -255,7 +255,7 @@ function UnifiedAdminDashboard() {
           return bDate.getTime() - aDate.getTime()
         })
         .slice(0, 2)
-      
+
       recentUsers.forEach((user: any) => {
         const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt)
         recentActivities.push({
@@ -276,7 +276,7 @@ function UnifiedAdminDashboard() {
           return bDate.getTime() - aDate.getTime()
         })
         .slice(0, 2)
-      
+
       recentProducts.forEach((product: any) => {
         const createdAt = product.createdAt?.toDate ? product.createdAt.toDate() : new Date(product.createdAt)
         recentActivities.push({
@@ -294,7 +294,7 @@ function UnifiedAdminDashboard() {
 
       setStats({
         totalUsers,
-        totalVendors,
+        totalcreators,
         totalProducts,
         totalOrders,
         totalRevenue,
@@ -308,7 +308,7 @@ function UnifiedAdminDashboard() {
       // Fallback to mock data
       setStats({
         totalUsers: 1247,
-        totalVendors: 89,
+        totalcreators: 89,
         totalProducts: 2156,
         totalOrders: 3421,
         totalRevenue: 15420000,
@@ -316,8 +316,8 @@ function UnifiedAdminDashboard() {
         recentActivities: [
           {
             id: "1",
-            type: "vendor",
-            description: "New vendor registration: TechStore Pro",
+            type: "creator",
+            description: "New creator registration: TechStore Pro",
             timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
             priority: "medium"
           }
@@ -385,7 +385,7 @@ function UnifiedAdminDashboard() {
   // Utility functions
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'vendor': return <Store className="h-4 w-4 text-blue-500" />
+      case 'creator': return <Store className="h-4 w-4 text-blue-500" />
       case 'product': return <Package className="h-4 w-4 text-green-500" />
       case 'order': return <ShoppingCart className="h-4 w-4 text-purple-500" />
       default: return <Activity className="h-4 w-4 text-gray-500" />
@@ -408,10 +408,10 @@ function UnifiedAdminDashboard() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
@@ -423,7 +423,7 @@ function UnifiedAdminDashboard() {
                 Unified platform management dashboard
               </p>
             </div>
-            
+
             <Button onClick={loadAllAdminData} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh All
@@ -445,7 +445,7 @@ function UnifiedAdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/reviews'}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -459,7 +459,7 @@ function UnifiedAdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/advertising'}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -473,7 +473,7 @@ function UnifiedAdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/reports-abuse'}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -491,139 +491,139 @@ function UnifiedAdminDashboard() {
 
           {/* Key Metrics */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total Users
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-                        <div className="flex items-center text-sm text-green-600">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +12.5%
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Users
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+                    <div className="flex items-center text-sm text-green-600">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +12.5%
+                    </div>
+                  </div>
+                  <Users className="h-5 w-5 text-blue-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Active creators
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{stats.totalcreators.toLocaleString()}</div>
+                    <div className="flex items-center text-sm text-green-600">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +8.2%
+                    </div>
+                  </div>
+                  <Store className="h-5 w-5 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Products
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{stats.totalProducts.toLocaleString()}</div>
+                    <div className="flex items-center text-sm text-green-600">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +15.3%
+                    </div>
+                  </div>
+                  <Package className="h-5 w-5 text-purple-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Revenue
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+                    <div className="flex items-center text-sm text-green-600">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +18.7%
+                    </div>
+                  </div>
+                  <DollarSign className="h-5 w-5 text-orange-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts and Activities */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Revenue Chart */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Revenue Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={stats.monthlyRevenue}>
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={(value) => `₦${(value / 1000000).toFixed(1)}M`} />
+                      <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Revenue']} />
+                      <Bar dataKey="revenue" fill="#3b82f6" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Recent Activities */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activities</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {stats.recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3">
+                      {getActivityIcon(activity.type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{activity.description}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                          </p>
+                          <Badge className={`text-xs ${getPriorityColor(activity.priority)}`}>
+                            {activity.priority}
+                          </Badge>
                         </div>
                       </div>
-                      <Users className="h-5 w-5 text-blue-500" />
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Active Vendors
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-2xl font-bold">{stats.totalVendors.toLocaleString()}</div>
-                        <div className="flex items-center text-sm text-green-600">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +8.2%
-                        </div>
-                      </div>
-                      <Store className="h-5 w-5 text-green-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total Products
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-2xl font-bold">{stats.totalProducts.toLocaleString()}</div>
-                        <div className="flex items-center text-sm text-green-600">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +15.3%
-                        </div>
-                      </div>
-                      <Package className="h-5 w-5 text-purple-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total Revenue
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
-                        <div className="flex items-center text-sm text-green-600">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +18.7%
-                        </div>
-                      </div>
-                      <DollarSign className="h-5 w-5 text-orange-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Charts and Activities */}
-              <div className="grid gap-6 lg:grid-cols-3">
-                {/* Revenue Chart */}
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle>Revenue Trend</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {loading ? (
-                      <div className="flex items-center justify-center h-[300px]">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                      </div>
-                    ) : (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={stats.monthlyRevenue}>
-                          <XAxis dataKey="month" />
-                          <YAxis tickFormatter={(value) => `₦${(value / 1000000).toFixed(1)}M`} />
-                          <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Revenue']} />
-                          <Bar dataKey="revenue" fill="#3b82f6" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Recent Activities */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Activities</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {stats.recentActivities.map((activity) => (
-                        <div key={activity.id} className="flex items-start gap-3">
-                          {getActivityIcon(activity.type)}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{activity.description}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <p className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
-                              </p>
-                              <Badge className={`text-xs ${getPriorityColor(activity.priority)}`}>
-                                {activity.priority}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </main>
       </div>
     </div>

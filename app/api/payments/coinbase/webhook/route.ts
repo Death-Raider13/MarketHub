@@ -114,13 +114,13 @@ async function handlePaymentCompleted(
 
   // Reduce inventory for physical products
   try {
-    const physicalItems = orderData?.items?.filter((item: any) => 
+    const physicalItems = orderData?.items?.filter((item: any) =>
       item.product?.productType === 'physical' || item.product?.type === 'physical'
     ).map((item: any) => ({
       productId: item.productId,
       quantity: item.quantity,
       productName: item.productName,
-      vendorId: item.vendorId
+      creatorId: item.creatorId
     })) || []
 
     if (physicalItems.length > 0) {
@@ -133,7 +133,7 @@ async function handlePaymentCompleted(
 
   // Create purchase records for digital products
   try {
-    const digitalItems = orderData?.items?.filter((item: any) => 
+    const digitalItems = orderData?.items?.filter((item: any) =>
       item.product?.productType === 'digital' || item.product?.type === 'digital'
     ) || []
 
@@ -145,7 +145,7 @@ async function handlePaymentCompleted(
         product: item.product,
         purchasedAt: new Date(),
         downloadCount: 0,
-        accessExpiresAt: item.product.accessDuration > 0 
+        accessExpiresAt: item.product.accessDuration > 0
           ? new Date(Date.now() + (item.product.accessDuration * 24 * 60 * 60 * 1000))
           : null
       })
@@ -154,46 +154,13 @@ async function handlePaymentCompleted(
     console.error('⚠️ Purchase records creation failed:', err)
   }
 
-  // Update vendor balances
+  // Update creator balances
   try {
-    const vendorUpdates = new Map<string, number>()
-
-    orderData?.items?.forEach((item: any) => {
-      const vendorId = item.product?.vendorId || item.vendorId
-      if (!vendorId) return
-
-      const price = item.product?.price ?? item.productPrice ?? 0
-      const quantity = item.quantity || 1
-      const itemTotal = price * quantity
-      const vendorEarning = itemTotal * 0.90 // 10% platform commission
-
-      vendorUpdates.set(vendorId, (vendorUpdates.get(vendorId) || 0) + vendorEarning)
-    })
-
-    for (const [vendorId, earning] of vendorUpdates.entries()) {
-      const balanceRef = adminDb.collection('vendorBalances').doc(vendorId)
-      const balanceDoc = await balanceRef.get()
-
-      if (balanceDoc.exists) {
-        const current = balanceDoc.data()
-        await balanceRef.update({
-          availableBalance: (current?.availableBalance || 0) + earning,
-          totalEarnings: (current?.totalEarnings || 0) + earning,
-          updatedAt: new Date()
-        })
-      } else {
-        await balanceRef.set({
-          vendorId,
-          availableBalance: earning,
-          pendingBalance: 0,
-          totalEarnings: earning,
-          totalWithdrawn: 0,
-          updatedAt: new Date()
-        })
-      }
-    }
+    const { updateCreatorBalances } = await import('@/lib/services/creator-balance')
+    await updateCreatorBalances(orderData, orderId)
+    console.log('✅ Creator balances updated successfully')
   } catch (err) {
-    console.error('⚠️ Vendor balance update failed:', err)
+    console.error('⚠️ creator balance update failed:', err)
   }
 
   // Generate download links for digital products and send confirmation email
@@ -202,15 +169,15 @@ async function handlePaymentCompleted(
     let downloadLinks: any[] | undefined = undefined
 
     // Generate download links for digital products
-    const digitalItems = orderData?.items?.filter((item: any) => 
+    const digitalItems = orderData?.items?.filter((item: any) =>
       item.product?.productType === 'digital' || item.product?.type === 'digital'
     ) || []
 
     if (digitalItems.length > 0) {
       const { generateDownloadLinks } = await import('@/lib/digital-products/download-links')
-      
+
       // Extract digital files from all digital products
-      const allDigitalFiles = digitalItems.flatMap((item: any) => 
+      const allDigitalFiles = digitalItems.flatMap((item: any) =>
         item.product?.digitalFiles || []
       ).filter((file: any) => file && file.id && file.fileName && file.fileUrl)
 
@@ -224,7 +191,7 @@ async function handlePaymentCompleted(
             .where('userId', '==', orderData.userId)
             .limit(1)
             .get()
-          
+
           if (!purchaseQuery.empty) {
             purchaseId = purchaseQuery.docs[0].id
           }
@@ -245,7 +212,7 @@ async function handlePaymentCompleted(
 
   // Create service bookings
   try {
-    const serviceItems = orderData?.items?.filter((item: any) => 
+    const serviceItems = orderData?.items?.filter((item: any) =>
       item.product?.productType === 'service' || item.product?.type === 'service'
     ) || []
 

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic"
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { vendorId: string } }
+  { params }: { params: { creatorId: string } }
 ) {
   try {
     const adminDb = getAdminFirestore()
@@ -14,13 +14,13 @@ export async function POST(
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    const { vendorId } = params
-    if (!vendorId) {
-      return NextResponse.json({ error: "Missing vendorId" }, { status: 400 })
+    const { creatorId } = params
+    if (!creatorId) {
+      return NextResponse.json({ error: "Missing creatorId" }, { status: 400 })
     }
 
-    const vendorRef = adminDb.collection("vendorStats").doc(vendorId)
-    await vendorRef.set(
+    const creatorRef = adminDb.collection("creatorstats").doc(creatorId)
+    await creatorRef.set(
       {
         storeViews: FieldValue.increment(1),
         updatedAt: new Date(),

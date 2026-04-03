@@ -173,7 +173,7 @@ Shows: Bluetooth Speaker, Wireless Earbuds, Portable Charger
 - **Increases average order value** by 15-25%
 - **Reduces bounce rate** by keeping users engaged
 - **Improves user experience** with relevant suggestions
-- **Boosts vendor sales** through cross-selling
+- **Boosts creator sales** through cross-selling
 
 ---
 
@@ -326,7 +326,7 @@ The FEROMARKETHUB Team
 
 ---
 
-## 💡 **Best Practices for Vendors**
+## 💡 **Best Practices for creators**
 
 ### **Image Guidelines:**
 1. **Use high-quality photos** (min 1000px)
@@ -430,7 +430,7 @@ Increase: +$118,750/month (+118.75%)
 
 ## ✅ **Implementation Checklist**
 
-### **For Vendors:**
+### **For creators:**
 - [ ] Upload 5-10 high-quality images per product
 - [ ] Add 5-10 relevant tags
 - [ ] Set up variants if applicable
@@ -453,7 +453,7 @@ Increase: +$118,750/month (+118.75%)
 
 ---
 
-## 🎓 **Vendor Training Guide**
+## 🎓 **creator Training Guide**
 
 ### **Module 1: Product Images**
 - How to take professional photos
@@ -483,11 +483,11 @@ Increase: +$118,750/month (+118.75%)
 
 ## 📞 **Support Resources**
 
-### **For Vendors:**
-- Product Creation Guide: `/help/vendor/products`
-- Image Guidelines: `/help/vendor/images`
-- Tag Best Practices: `/help/vendor/tags`
-- Review Management: `/help/vendor/reviews`
+### **For creators:**
+- Product Creation Guide: `/help/creator/products`
+- Image Guidelines: `/help/creator/images`
+- Tag Best Practices: `/help/creator/tags`
+- Review Management: `/help/creator/reviews`
 
 ### **For Customers:**
 - How to Leave Reviews: `/help/reviews`
@@ -518,4 +518,4 @@ Increase: +$118,750/month (+118.75%)
 
 **Your product creation system is now world-class!** 🚀
 
-Vendors can create rich, detailed product listings that drive sales through multiple images, smart recommendations, and automated review requests.
+creators can create rich, detailed product listings that drive sales through multiple images, smart recommendations, and automated review requests.

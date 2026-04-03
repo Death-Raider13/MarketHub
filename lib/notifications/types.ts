@@ -1,4 +1,4 @@
-export type NotificationType = 
+export type NotificationType =
   // Product-related
   | 'product_created'
   | 'product_approved'
@@ -7,7 +7,7 @@ export type NotificationType =
   | 'product_back_in_stock'
   | 'wishlist_item_sale'
   | 'cart_item_price_drop'
-  
+
   // Order-related
   | 'order_placed'
   | 'order_confirmed'
@@ -15,24 +15,24 @@ export type NotificationType =
   | 'order_delivered'
   | 'order_cancelled'
   | 'order_refunded'
-  
+
   // Support-related
   | 'support_ticket_created'
   | 'support_ticket_assigned'
   | 'support_ticket_response'
   | 'support_ticket_resolved'
-  
-  // Vendor-related
-  | 'vendor_approved'
-  | 'vendor_rejected'
-  | 'vendor_suspended'
+
+  // creator-related
+  | 'creator_approved'
+  | 'creator_rejected'
+  | 'creator_suspended'
   | 'new_order_received'
   | 'payout_processed'
   | 'payout_pending'
-  
+
   // Admin-related
   | 'new_user_registered'
-  | 'new_vendor_application'
+  | 'new_creator_application'
   | 'product_pending_approval'
   | 'review_pending_moderation'
   | 'ad_pending_approval'
@@ -43,19 +43,19 @@ export type NotificationType =
   | 'abuse_report_dismissed'
   | 'system_maintenance'
   | 'security_alert'
-  
+
   // Storefront-related
   | 'favorite_store_new_product'
   | 'favorite_store_sale'
   | 'store_followed'
   | 'store_unfollowed'
-  
+
   // Communication-related
   | 'new_message'
   | 'new_question'
   | 'question_answered'
   | 'new_review'
-  
+
   // General
   | 'welcome'
   | 'account_verified'
@@ -78,14 +78,14 @@ export interface NotificationData {
   createdAt: Date;
   readAt?: Date;
   expiresAt?: Date | null;
-  
+
   // Optional metadata for different notification types
   metadata?: {
     productId?: string;
     productName?: string;
     orderId?: string;
-    vendorId?: string;
-    vendorName?: string;
+    creatorId?: string;
+    creatorName?: string;
     storeId?: string;
     storeName?: string;
     userId?: string;
@@ -109,11 +109,11 @@ export interface NotificationPreferences {
   emailNotifications: boolean;
   pushNotifications: boolean;
   inAppNotifications: boolean;
-  
+
   // Notification type preferences
   productUpdates: boolean;
   orderUpdates: boolean;
-  vendorUpdates: boolean;
+  creatorUpdates: boolean;
   adminUpdates: boolean;
   marketingUpdates: boolean;
   securityUpdates: boolean;
@@ -169,7 +169,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     priority: 'medium',
     icon: '💰'
   },
-  
+
   // Order notifications
   order_placed: {
     title: 'Order Placed',
@@ -179,7 +179,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
   },
   order_confirmed: {
     title: 'Order Confirmed',
-    message: 'Your order #{orderId} has been confirmed by the vendor',
+    message: 'Your order #{orderId} has been confirmed by the creator',
     priority: 'medium',
     icon: '✅'
   },
@@ -207,7 +207,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     priority: 'medium',
     icon: '💳'
   },
-  
+
   // Support notifications
   support_ticket_created: {
     title: 'New Support Ticket',
@@ -233,23 +233,23 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     priority: 'low',
     icon: '✅'
   },
-  
-  // Vendor notifications
-  vendor_approved: {
-    title: 'Vendor Account Approved',
-    message: 'Congratulations! Your vendor account has been approved',
+
+  // creator notifications
+  creator_approved: {
+    title: 'creator Account Approved',
+    message: 'Congratulations! Your creator account has been approved',
     priority: 'high',
     icon: '🎉'
   },
-  vendor_rejected: {
-    title: 'Vendor Application Rejected',
-    message: 'Your vendor application was rejected. Please review requirements',
+  creator_rejected: {
+    title: 'creator Application Rejected',
+    message: 'Your creator application was rejected. Please review requirements',
     priority: 'high',
     icon: '❌'
   },
-  vendor_suspended: {
+  creator_suspended: {
     title: 'Account Suspended',
-    message: 'Your vendor account has been suspended. Contact support',
+    message: 'Your creator account has been suspended. Contact support',
     priority: 'urgent',
     icon: '⚠️'
   },
@@ -267,11 +267,11 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
   },
   payout_pending: {
     title: 'New Payout Request',
-    message: 'New payout request from {vendorName} for ₦{amount}',
+    message: 'New payout request from {creatorName} for ₦{amount}',
     priority: 'medium',
     icon: '💰'
   },
-  
+
   // Admin notifications
   new_user_registered: {
     title: 'New User Registration',
@@ -279,9 +279,9 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     priority: 'low',
     icon: '👤'
   },
-  new_vendor_application: {
-    title: 'New Vendor Application',
-    message: 'New vendor application from "{vendorName}" requires review',
+  new_creator_application: {
+    title: 'New creator Application',
+    message: 'New creator application from "{creatorName}" requires review',
     priority: 'medium',
     icon: '🏪'
   },
@@ -345,7 +345,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     priority: 'urgent',
     icon: '🔒'
   },
-  
+
   // Storefront notifications
   favorite_store_new_product: {
     title: 'New Product from Favorite Store',
@@ -371,7 +371,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     priority: 'low',
     icon: '👥'
   },
-  
+
   // Communication notifications
   new_message: {
     title: 'New Message',
@@ -397,7 +397,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, {
     priority: 'medium',
     icon: '⭐'
   },
-  
+
   // General notifications
   welcome: {
     title: 'Welcome to FEROMARKETHUB!',

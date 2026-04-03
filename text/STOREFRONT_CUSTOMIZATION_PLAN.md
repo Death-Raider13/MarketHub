@@ -1,6 +1,6 @@
 # 🎨 Complete Storefront Customization - Like Selar (But Better!)
 
-## 🎯 What Vendors Can Customize
+## 🎯 What creators Can Customize
 
 ### **1. Design & Theme** 🎨
 - **8 Pre-made Themes** (Ocean, Sunset, Forest, Purple, Rose, Midnight, Minimal, Bold Dark)
@@ -306,7 +306,7 @@
 
 ## 🎉 Summary
 
-### **What Vendors Get:**
+### **What creators Get:**
 - ✅ Complete design control
 - ✅ 8 pre-made themes
 - ✅ Custom colors & fonts

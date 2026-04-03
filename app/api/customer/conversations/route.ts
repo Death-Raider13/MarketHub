@@ -4,8 +4,8 @@ import { getAdminFirestore } from '@/lib/firebase/admin'
 export async function POST(request: NextRequest) {
   try {
     const {
-      vendorId,
-      vendorName,
+      creatorId,
+      creatorName,
       customerId,
       customerName,
       customerEmail,
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     console.log('Creating conversation with data:', {
-      vendorId,
-      vendorName,
+      creatorId,
+      creatorName,
       customerId,
       customerName,
       customerEmail,
@@ -27,10 +27,10 @@ export async function POST(request: NextRequest) {
       orderId
     })
 
-    if (!vendorId || !vendorName || !customerId || !customerName || !customerEmail || !subject) {
+    if (!creatorId || !creatorName || !customerId || !customerName || !customerEmail || !subject) {
       console.error('Missing required fields:', {
-        vendorId: !!vendorId,
-        vendorName: !!vendorName,
+        creatorId: !!creatorId,
+        creatorName: !!creatorName,
         customerId: !!customerId,
         customerName: !!customerName,
         customerEmail: !!customerEmail,
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if conversation already exists for this customer-vendor-product combination
+    // Check if conversation already exists for this customer-creator-product combination
     let existingConversationQuery = adminDb
       .collection('conversations')
-      .where('vendorId', '==', vendorId)
+      .where('creatorId', '==', creatorId)
       .where('customerId', '==', customerId)
       .where('status', 'in', ['open', 'pending'])
 
@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
 
     // Create new conversation
     const conversationData = {
-      vendorId,
-      vendorName,
+      creatorId,
+      creatorName,
       customerId,
       customerName,
       customerEmail,

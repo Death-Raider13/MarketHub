@@ -59,14 +59,14 @@ export default function AdvertiserDashboard() {
       try {
         const { doc, getDoc } = await import("firebase/firestore")
         const { db } = await import("@/lib/firebase/config")
-        
+
         const advertiserRef = doc(db, "advertisers", user.uid)
         const advertiserSnap = await getDoc(advertiserRef)
 
         if (advertiserSnap.exists()) {
           setHasAdvertiserProfile(true)
           setAdvertiserData({ id: advertiserSnap.id, ...advertiserSnap.data() })
-          
+
           // Fetch campaigns and transactions
           await fetchCampaigns(user.uid)
           await fetchTransactions(user.uid)
@@ -86,7 +86,7 @@ export default function AdvertiserDashboard() {
       try {
         const response = await fetch(`/api/advertiser/campaigns?advertiserId=${advertiserId}`)
         const data = await response.json()
-        
+
         if (data.campaigns) {
           setCampaigns(data.campaigns)
         }
@@ -99,20 +99,20 @@ export default function AdvertiserDashboard() {
       try {
         const { collection, query, where, orderBy, getDocs } = await import("firebase/firestore")
         const { db } = await import("@/lib/firebase/config")
-        
+
         const transactionsRef = collection(db, "transactions")
         const q = query(
           transactionsRef,
           where("userId", "==", userId),
           orderBy("createdAt", "desc")
         )
-        
+
         const snapshot = await getDocs(q)
         const txns = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }))
-        
+
         setTransactions(txns)
       } catch (error) {
         console.error("Error fetching transactions:", error)
@@ -299,8 +299,8 @@ export default function AdvertiserDashboard() {
                       />
                     ))}
                     {campaigns.length > 5 && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full"
                         onClick={() => setActiveTab("campaigns")}
                       >
@@ -316,8 +316,8 @@ export default function AdvertiserDashboard() {
           {/* Campaigns Tab */}
           <TabsContent value="campaigns" className="space-y-6">
             {showCreateCampaign ? (
-              <CreateCampaignForm 
-                onClose={() => setShowCreateCampaign(false)} 
+              <CreateCampaignForm
+                onClose={() => setShowCreateCampaign(false)}
                 advertiserData={advertiserData}
               />
             ) : (
@@ -432,12 +432,12 @@ export default function AdvertiserDashboard() {
                           <div>
                             <p className="font-medium">{txn.description || 'Transaction'}</p>
                             <p className="text-xs text-muted-foreground">
-                              {txn.createdAt?.toDate ? 
+                              {txn.createdAt?.toDate ?
                                 new Date(txn.createdAt.toDate()).toLocaleDateString('en-NG', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric'
-                                }) : 
+                                }) :
                                 'Recent'
                               }
                             </p>
@@ -494,9 +494,9 @@ function CampaignRow({
         <div className="flex items-center gap-3 mb-2">
           <h3 className="font-semibold">{name}</h3>
           <Badge variant={
-            status === 'active' ? 'default' : 
-            status === 'pending_review' ? 'secondary' :
-            status === 'rejected' ? 'destructive' : 'secondary'
+            status === 'active' ? 'default' :
+              status === 'pending_review' ? 'secondary' :
+                status === 'rejected' ? 'destructive' : 'secondary'
           }>
             {status === 'pending_review' ? 'Pending Review' : status}
           </Badge>
@@ -536,7 +536,7 @@ function CampaignRow({
           </div>
         </div>
       </div>
-      
+
       {showActions && (
         <div className="flex gap-2 ml-4">
           <Button variant="outline" size="sm">
@@ -567,8 +567,8 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
     description: "",
     ctaText: "Learn More",
     destinationUrl: "",
-    placementType: "vendor_store", // vendor_store, homepage, category, sponsored_product
-    targetVendors: [] as string[],
+    placementType: "creator_store", // creator_store, homepage, category, sponsored_product
+    targetcreators: [] as string[],
     targetCategories: [] as string[],
   })
   const [uploadingImage, setUploadingImage] = useState(false)
@@ -593,7 +593,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
     }
 
     setImageFile(file)
-    
+
     // Create preview
     const reader = new FileReader()
     reader.onloadend = () => {
@@ -608,7 +608,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
       formData.append('file', file)
       formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
       formData.append('folder', 'ad-campaigns')
-      
+
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
         {
@@ -616,9 +616,9 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
           body: formData,
         }
       )
-      
+
       const data = await response.json()
-      
+
       if (data.secure_url) {
         setCampaignData({ ...campaignData, imageUrl: data.secure_url })
         toast.success("Image uploaded successfully!")
@@ -635,7 +635,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!campaignData.imageUrl && !imagePreview) {
       toast.error("Please upload an image or provide an image URL")
       return
@@ -649,7 +649,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
     // Calculate minimum required budget based on placement type
     let minBudget = 0
     let budgetMessage = ""
-    
+
     switch (campaignData.placementType) {
       case 'homepage':
         minBudget = 50000 // ₦50,000/week
@@ -663,9 +663,9 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
         minBudget = 5000 // ₦5,000/day
         budgetMessage = "Sponsored Product requires minimum ₦5,000 budget (1 day)"
         break
-      case 'vendor_store':
+      case 'creator_store':
         minBudget = 1000 // Minimum for bidding
-        budgetMessage = "Vendor Store Ads require minimum ₦1,000 budget"
+        budgetMessage = "creator Store Ads require minimum ₦1,000 budget"
         break
     }
 
@@ -701,7 +701,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
           ctaText: campaignData.ctaText,
           destinationUrl: campaignData.destinationUrl,
           placementType: campaignData.placementType,
-          targetVendors: campaignData.targetVendors,
+          targetcreators: campaignData.targetcreators,
           targetCategories: campaignData.targetCategories,
         }),
       })
@@ -737,7 +737,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
           {/* Campaign Details */}
           <div className="space-y-4">
             <h3 className="font-semibold">Campaign Details</h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="name">Campaign Name</Label>
               <Input
@@ -779,21 +779,21 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
           {/* Ad Placement */}
           <div className="space-y-4 border-t pt-4">
             <h3 className="font-semibold">Ad Placement</h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="placementType">Where do you want your ads to appear?</Label>
-              <Select 
-                value={campaignData.placementType} 
+              <Select
+                value={campaignData.placementType}
                 onValueChange={(value) => setCampaignData({ ...campaignData, placementType: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="vendor_store">
+                  <SelectItem value="creator_store">
                     <div className="flex flex-col items-start">
-                      <span className="font-medium">Vendor Store Ads</span>
-                      <span className="text-xs text-muted-foreground">Bid for slots on specific vendor stores (Bidding System)</span>
+                      <span className="font-medium">creator Store Ads</span>
+                      <span className="text-xs text-muted-foreground">Bid for slots on specific creator stores (Bidding System)</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="homepage">
@@ -821,13 +821,13 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
             {/* Pricing Info based on placement */}
             <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
               <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                {campaignData.placementType === 'vendor_store' && '💰 Bidding System - Min: ₦1,000'}
+                {campaignData.placementType === 'creator_store' && '💰 Bidding System - Min: ₦1,000'}
                 {campaignData.placementType === 'homepage' && '💵 Fixed Price: ₦50,000/week'}
                 {campaignData.placementType === 'category' && '🔄 Rotation: ₦20,000/week'}
                 {campaignData.placementType === 'sponsored_product' && '⭐ Featured: ₦5,000/day'}
               </p>
               <p className="text-xs text-blue-800 dark:text-blue-200">
-                {campaignData.placementType === 'vendor_store' && 'Bid for ad slots on vendor stores. Highest bidder gets the placement. Minimum budget: ₦1,000'}
+                {campaignData.placementType === 'creator_store' && 'Bid for ad slots on creator stores. Highest bidder gets the placement. Minimum budget: ₦1,000'}
                 {campaignData.placementType === 'homepage' && 'Your ad rotates with others on the homepage banner. Funds deducted upon approval.'}
                 {campaignData.placementType === 'category' && 'Your ad appears in rotation on selected category pages. Funds deducted upon approval.'}
                 {campaignData.placementType === 'sponsored_product' && 'Your product appears at the top of search results. Funds deducted upon approval.'}
@@ -839,8 +839,8 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
               )}
             </div>
 
-            {/* Show bidding fields only for vendor_store */}
-            {campaignData.placementType === 'vendor_store' && (
+            {/* Show bidding fields only for creator_store */}
+            {campaignData.placementType === 'creator_store' && (
               <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-lg">
                 <div className="space-y-2">
                   <Label htmlFor="bidType">Bid Type</Label>
@@ -863,7 +863,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
                     placeholder="500"
                     value={campaignData.bidAmount}
                     onChange={(e) => setCampaignData({ ...campaignData, bidAmount: e.target.value })}
-                    required={campaignData.placementType === 'vendor_store'}
+                    required={campaignData.placementType === 'creator_store'}
                   />
                 </div>
               </div>
@@ -873,7 +873,7 @@ function CreateCampaignForm({ onClose, advertiserData }: { onClose: () => void; 
           {/* Creative */}
           <div className="space-y-4">
             <h3 className="font-semibold">Ad Creative</h3>
-            
+
             {/* Image Upload */}
             <div className="space-y-2">
               <Label>Ad Image</Label>
@@ -1011,7 +1011,7 @@ function AddFundsModal({ onClose }: { onClose: () => void }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const fundAmount = parseFloat(amount)
     if (!fundAmount || fundAmount < 1000) {
       toast.error("Minimum amount is ₦1,000")
@@ -1028,11 +1028,11 @@ function AddFundsModal({ onClose }: { onClose: () => void }) {
     try {
       // Generate reference
       const reference = `ADV-${Date.now()}-${user.uid.substring(0, 8)}`
-      
+
       // Import Paystack dynamically
       const PaystackPop = (await import("@paystack/inline-js")).default
       const paystack = new PaystackPop()
-      
+
       // Initiate Paystack payment
       paystack.newTransaction({
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,

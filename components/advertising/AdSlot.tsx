@@ -8,25 +8,25 @@ import { selectAdToDisplay } from '@/lib/advertising/ad-rotation'
 import { AdSelectionResult, AdDisplayContext } from '@/lib/types/advertising'
 
 interface AdSlotProps {
-  vendorId: string
+  creatorId: string
   placement: 'sidebar' | 'banner' | 'inline' | 'footer'
-  storeCategory: string
-  storeRating: number
-  storeType: 'all' | 'premium' | 'verified'
+  hubCategory: string
+  hubRating: number
+  hubType: 'all' | 'premium' | 'verified'
   className?: string
   fallback?: React.ReactNode
 }
 
 /**
  * AdSlot Component
- * Displays ads on vendor storefronts with smart rotation
+ * Displays ads on creator storefronts with smart rotation
  */
 export function AdSlot({
-  vendorId,
+  creatorId,
   placement,
-  storeCategory,
-  storeRating,
-  storeType,
+  hubCategory,
+  hubRating,
+  hubType,
   className = '',
   fallback
 }: AdSlotProps) {
@@ -57,7 +57,7 @@ export function AdSlot({
   // Load ad on mount
   useEffect(() => {
     loadAd()
-  }, [vendorId, placement])
+  }, [creatorId, placement])
 
   // Track impression when ad becomes visible
   useEffect(() => {
@@ -94,18 +94,18 @@ export function AdSlot({
 
       // Build display context
       const context: AdDisplayContext = {
-        vendorId,
-        storeCategory,
-        storeRating,
-        storeType,
+        creatorId,
+        hubCategory,
+        hubRating,
+        hubType,
         sessionId: sessionId.current,
         device: getDeviceType(),
         pageType: 'home', // TODO: Detect page type
         placement
       }
 
-      // Get ad slot ID (format: vendorId_placement)
-      const slotId = `${vendorId}_${placement}`
+      // Get ad slot ID (format: creatorId_placement)
+      const slotId = `${creatorId}_${placement}`
 
       // Select ad to display
       const selectedAd = await selectAdToDisplay(slotId, context)

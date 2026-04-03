@@ -21,7 +21,7 @@ import {
   Wallet,
   Bell,
   Star,
-  
+  LifeBuoy,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -56,10 +56,10 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Vendors',
-    href: '/admin/vendors',
+    title: 'creators',
+    href: '/admin/creators',
     icon: Store,
-    permission: 'vendors.view',
+    permission: 'creators.view',
   },
   {
     title: 'Products',
@@ -71,12 +71,6 @@ const navItems: NavItem[] = [
     title: 'Orders',
     href: '/admin/orders',
     icon: ShoppingCart,
-    permission: 'orders.view',
-  },
-  {
-    title: 'Refunds',
-    href: '/admin/refunds',
-    icon: AlertCircle,
     permission: 'orders.view',
   },
   {
@@ -96,6 +90,12 @@ const navItems: NavItem[] = [
     href: '/admin/advertising',
     icon: Megaphone,
     permission: 'ads.view',
+  },
+  {
+    title: 'Support', // Added Support link
+    href: '/admin/support',
+    icon: LifeBuoy,
+    permission: 'support.view', // Assuming a permission for support access
   },
   {
     title: 'Reviews',
@@ -119,12 +119,6 @@ const navItems: NavItem[] = [
     title: 'Analytics',
     href: '/admin/analytics',
     icon: BarChart3,
-    permission: 'analytics.view',
-  },
-  {
-    title: 'Reports',
-    href: '/admin/reports',
-    icon: FileText,
     permission: 'analytics.view',
   },
   {
@@ -160,7 +154,7 @@ export function AdminSidebar() {
   const canAccessItem = (item: NavItem) => {
     if (!item.permission) return true;
     if (!userProfile?.role) return false;
-    
+
     // Use proper permission checking
     return hasPermission(userProfile.role as AdminRole, item.permission as any);
   };
@@ -169,7 +163,7 @@ export function AdminSidebar() {
   const dashboardHref = userProfile?.role ? getRoleDashboard(userProfile.role as UserRole) : '/admin/dashboard';
 
   // Update dashboard item to use role-specific route
-  const updatedNavItems = navItems.map(item => 
+  const updatedNavItems = navItems.map(item =>
     item.title === 'Dashboard' ? { ...item, href: dashboardHref } : item
   );
 
@@ -214,16 +208,16 @@ export function AdminSidebar() {
             <Shield className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-semibold text-blue-800">
               {userProfile?.role === 'super_admin' ? 'Super Admin' :
-               userProfile?.role === 'admin' ? 'Admin' :
-               userProfile?.role === 'moderator' ? 'Moderator' :
-               userProfile?.role === 'support' ? 'Support' : 'Admin'}
+                userProfile?.role === 'admin' ? 'Admin' :
+                  userProfile?.role === 'moderator' ? 'Moderator' :
+                    userProfile?.role === 'support' ? 'Support' : 'Admin'}
             </span>
           </div>
           <p className="text-xs text-blue-600">
             {userProfile?.role === 'super_admin' ? 'Full platform control' :
-             userProfile?.role === 'admin' ? 'Operations management' :
-             userProfile?.role === 'moderator' ? 'Content moderation' :
-             userProfile?.role === 'support' ? 'Customer support' : 'Platform management'}
+              userProfile?.role === 'admin' ? 'Operations management' :
+                userProfile?.role === 'moderator' ? 'Content moderation' :
+                  userProfile?.role === 'support' ? 'Customer support' : 'Platform management'}
           </p>
         </div>
 

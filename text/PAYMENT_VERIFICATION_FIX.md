@@ -211,7 +211,7 @@ Once Admin SDK is working, update the rules to be more restrictive:
 // Only allow updates from authenticated users or for specific status transitions
 allow update: if isOwner(resource.data.customerId) || 
                  isAdmin() || 
-                 (isVerifiedVendor() && request.auth.uid in resource.data.vendorIds);
+                 (isVerifiedcreator() && request.auth.uid in resource.data.creatorIds);
 ```
 
 ---

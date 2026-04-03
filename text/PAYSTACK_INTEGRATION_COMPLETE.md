@@ -318,7 +318,7 @@ Example: ADV-1705353600000-abc12345
 1. Campaign approval workflow
 2. Ad serving system
 3. Impression/click tracking
-4. Vendor ad slot management
+4. creator ad slot management
 5. Revenue sharing
 6. Detailed analytics
 7. Transaction history display

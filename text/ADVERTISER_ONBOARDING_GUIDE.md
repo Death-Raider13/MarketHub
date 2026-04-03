@@ -58,10 +58,10 @@
 
 ---
 
-### **4. Vendor Dashboard**
-**Location:** Vendor dashboard sidebar
+### **4. creator Dashboard**
+**Location:** creator dashboard sidebar
 
-**Purpose:** Vendors can also become advertisers to promote their products on other stores
+**Purpose:** creators can also become advertisers to promote their products on other stores
 
 ---
 
@@ -150,15 +150,15 @@ First-time users see:
 10. Tracks performance
 ```
 
-### **Journey 2: Existing Vendor**
+### **Journey 2: Existing creator**
 ```
-1. Already has vendor account
+1. Already has creator account
 2. Sees "Advertise" in navigation
 3. Clicks to advertise page
 4. Already logged in
 5. Directly goes to advertiser dashboard
 6. Creates campaign to promote products
-7. Ads appear on other vendor stores
+7. Ads appear on other creator stores
 ```
 
 ### **Journey 3: Marketing Agency**
@@ -321,21 +321,21 @@ CTAs:
 ### **Organic Discovery:**
 1. **Header Navigation** - Always visible
 2. **Footer Links** - Every page
-3. **Vendor Dashboard** - Cross-sell to vendors
+3. **creator Dashboard** - Cross-sell to creators
 4. **Blog Posts** - "How to advertise on FEROMARKETHUB"
 5. **Help Center** - Advertising guides
 
 ### **Paid Acquisition:**
 1. **Google Ads** - "E-commerce advertising Nigeria"
 2. **Social Media** - Facebook, Instagram, LinkedIn
-3. **Email Marketing** - To existing vendors
+3. **Email Marketing** - To existing creators
 4. **Partnerships** - Marketing agencies
 
 ### **Direct Outreach:**
 1. **Sales Team** - Contact businesses directly
 2. **Webinars** - "How to advertise effectively"
 3. **Case Studies** - Success stories
-4. **Referral Program** - Vendor referrals
+4. **Referral Program** - creator referrals
 
 ---
 
@@ -571,7 +571,7 @@ Authenticated:
 - ✅ Header navigation (desktop + mobile)
 - ✅ Public landing page (/advertise)
 - ✅ Footer links (future)
-- ✅ Vendor dashboard (cross-sell)
+- ✅ creator dashboard (cross-sell)
 - ✅ Direct URL sharing
 - ✅ Google search
 - ✅ Social media

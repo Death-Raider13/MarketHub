@@ -39,8 +39,8 @@ This document explains the complete advertising system, pricing strategy, approv
 
 ## 🔄 **Admin Approval Workflow**
 
-### **Step 1: Vendor Creates Campaign**
-1. Vendor fills out campaign form
+### **Step 1: creator Creates Campaign**
+1. creator fills out campaign form
 2. Uploads ad creative (image)
 3. Sets budget and schedule
 4. Submits for review
@@ -61,26 +61,26 @@ Admin checks:
 
 #### **Option A: Approve**
 - Status changes to **"Approved"**
-- Email sent to vendor
+- Email sent to creator
 - Campaign scheduled to go live on start date
 - Payment method charged setup fee + initial budget
 
 #### **Option B: Request Changes**
 - Status changes to **"Changes Requested"**
 - Email sent with specific feedback
-- Vendor can edit and resubmit
+- creator can edit and resubmit
 - Goes back to review queue
 
 #### **Option C: Reject**
 - Status changes to **"Rejected"**
 - Email sent with rejection reason
 - No charges applied
-- Vendor can create new campaign
+- creator can create new campaign
 
 ### **Step 4: Campaign Goes Live**
 - Ads start showing on selected placements
 - Real-time tracking begins
-- Vendor can monitor performance
+- creator can monitor performance
 - Charges based on actual impressions/clicks
 
 ---
@@ -178,7 +178,7 @@ Remaining Budget: $250 (returned or used)
 - **Budget Remaining**: Unused budget
 
 ### **Real-Time Dashboard:**
-Vendors can see:
+creators can see:
 - Live impression count
 - Click count
 - Current CTR
@@ -221,7 +221,7 @@ Vendors can see:
 ```
 /admin/advertising
 - List all campaigns (pending, active, completed)
-- Filter by status, vendor, date
+- Filter by status, creator, date
 - Quick approve/reject buttons
 - View campaign details
 - Edit campaign settings
@@ -234,7 +234,7 @@ Vendors can see:
 /admin/advertising/review/[id]
 - Campaign preview
 - Ad creative display
-- Vendor information
+- creator information
 - Budget details
 - Approve button
 - Request changes button (with feedback form)
@@ -251,7 +251,7 @@ Vendors can see:
 - Average CPM/CPC
 - Top performing ads
 - Revenue by ad type
-- Vendor spending leaderboard
+- creator spending leaderboard
 ```
 
 ---
@@ -261,30 +261,30 @@ Vendors can see:
 ### **Conservative Estimate:**
 
 **Assumptions:**
-- 50 active vendors
+- 50 active creators
 - Average campaign: $500/month
 - 60% approval rate
-- 3 campaigns per vendor per year
+- 3 campaigns per creator per year
 
 **Annual Revenue:**
 ```
-Setup Fees: 50 vendors × 3 campaigns × $50 = $7,500
-Campaign Spend: 50 vendors × 3 campaigns × $500 = $75,000
+Setup Fees: 50 creators × 3 campaigns × $50 = $7,500
+Campaign Spend: 50 creators × 3 campaigns × $500 = $75,000
 Total Annual Revenue: $82,500
 ```
 
 ### **Optimistic Estimate:**
 
 **Assumptions:**
-- 200 active vendors
+- 200 active creators
 - Average campaign: $1,000/month
 - 75% approval rate
-- 6 campaigns per vendor per year
+- 6 campaigns per creator per year
 
 **Annual Revenue:**
 ```
-Setup Fees: 200 vendors × 6 campaigns × $50 = $60,000
-Campaign Spend: 200 vendors × 6 campaigns × $1,000 = $1,200,000
+Setup Fees: 200 creators × 6 campaigns × $50 = $60,000
+Campaign Spend: 200 creators × 6 campaigns × $1,000 = $1,200,000
 Total Annual Revenue: $1,260,000
 ```
 
@@ -293,7 +293,7 @@ Total Annual Revenue: $1,260,000
 ## 🚀 **Additional Improvements Suggested**
 
 ### **1. A/B Testing**
-- Allow vendors to test multiple ad variations
+- Allow creators to test multiple ad variations
 - Automatically show best-performing version
 - Charge: +$25 per variant
 
@@ -303,7 +303,7 @@ Total Annual Revenue: $1,260,000
 - Search results top: $5 CPC
 
 ### **3. Retargeting**
-- Show ads to users who viewed vendor's products
+- Show ads to users who viewed creator's products
 - Higher conversion rate
 - Charge: $35 CPM
 
@@ -318,7 +318,7 @@ Total Annual Revenue: $1,260,000
 - Charge: $100 per 10,000 emails
 
 ### **6. Influencer Partnerships**
-- Connect vendors with platform influencers
+- Connect creators with platform influencers
 - Sponsored reviews
 - Commission: 20% of deal value
 
@@ -371,7 +371,7 @@ Total Annual Revenue: $1,260,000
 
 ---
 
-## 🎓 **Best Practices for Vendors**
+## 🎓 **Best Practices for creators**
 
 ### **Creating Effective Ads:**
 
@@ -409,7 +409,7 @@ Total Annual Revenue: $1,260,000
 
 ## 📞 **Support & Resources**
 
-### **For Vendors:**
+### **For creators:**
 - Advertising Help Center: `/help/advertising`
 - Campaign Best Practices Guide
 - Creative Specifications
@@ -445,7 +445,7 @@ Total Annual Revenue: $1,260,000
    - Image authenticity check
    - Copyright verification
    - Product existence validation
-   - Vendor reputation scoring
+   - creator reputation scoring
 
 ---
 
@@ -456,9 +456,9 @@ Total Annual Revenue: $1,260,000
 - Number of active campaigns
 - Average campaign budget
 - Approval rate
-- Vendor satisfaction score
+- creator satisfaction score
 
-### **Vendor Metrics:**
+### **creator Metrics:**
 - ROI (Return on Investment)
 - Conversion rate
 - Cost per acquisition

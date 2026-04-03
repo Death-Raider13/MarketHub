@@ -62,7 +62,7 @@ Successfully transformed FEROMARKETHUB's admin system from separate pages to a u
 ## 📊 Tab Breakdown
 
 ### Overview Tab
-- **Key Metrics**: Users, vendors, products, revenue with growth indicators
+- **Key Metrics**: Users, creators, products, revenue with growth indicators
 - **Revenue Chart**: Interactive bar chart showing monthly trends
 - **Recent Activities**: Live activity feed with priority indicators
 - **Quick Stats**: Visual cards with trend arrows and icons

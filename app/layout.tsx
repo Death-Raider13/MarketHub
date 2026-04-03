@@ -11,6 +11,7 @@ import { ProductionErrorBoundary } from "@/components/production-error-boundary"
 import { validateEnvironmentVariables } from "@/lib/env-validation"
 import { initializeProductionErrorHandling } from "@/lib/production-error-handler"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "sonner"
 
 // Validate environment variables on app startup
 validateEnvironmentVariables()
@@ -24,19 +25,19 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
   title: {
-    default: "FEROMARKETHUB - Multi-Vendor Marketplace",
-    template: "%s | FEROMARKETHUB"
+    default: "FeroLibrary - The Trust-First Academic Marketplace",
+    template: "%s | FeroLibrary"
   },
-  description: "FEROMARKETHUB is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
+  description: "FeroLibrary is Nigeria's most trusted platform for high-quality, verified academic resources, study guides, and past questions.",
   generator: 'v0.app',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://ferolibrary.com'),
   keywords: [
-    "FEROMARKETHUB",
-    "multivendor marketplace",
-    "multi-vendor marketplace Nigeria",
-    "buy products online Nigeria",
-    "sell goods and services online",
-    "Nigeria ecommerce market"
+    "FeroLibrary",
+    "Academic Marketplace",
+    "Verified Study Guides",
+    "University Past Questions",
+    "WAEC and JAMB resources",
+    "Nigeria student materials"
   ],
   icons: {
     icon: [
@@ -48,17 +49,17 @@ export const metadata: Metadata = {
   },
   manifest: "/favicon/site.webmanifest",
   openGraph: {
-    title: "FEROMARKETHUB - Multi-Vendor Marketplace",
-    description: "FEROMARKETHUB is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers.",
+    title: "FeroLibrary - The Trust-First Academic Marketplace",
+    description: "FeroLibrary is Nigeria's most trusted platform for high-quality, verified academic resources, study guides, and past questions.",
     url: "/",
-    siteName: "FEROMARKETHUB",
+    siteName: "FeroLibrary",
     locale: "en_NG",
     type: "website"
   },
   twitter: {
     card: "summary_large_image",
-    title: "FEROMARKETHUB - Multi-Vendor Marketplace",
-    description: "FEROMARKETHUB is Nigeria's multi-vendor marketplace for goods, services, and products from trusted sellers."
+    title: "FeroLibrary - The Trust-First Academic Marketplace",
+    description: "FeroLibrary is Nigeria's most trusted platform for high-quality, verified academic resources, study guides, and past questions."
   }
 }
 
@@ -89,6 +90,7 @@ export default function RootLayout({
             </AuthProvider>
           </ProductionErrorBoundary>
         </ThemeProvider>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   )

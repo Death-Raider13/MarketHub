@@ -37,11 +37,11 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 - Security audits
 - Update platform settings
 
-### 5. **Vendor Management**
-- Final approval for vendor applications
-- Suspend/ban vendors
-- Set vendor commission rates
-- Resolve vendor disputes
+### 5. **creator Management**
+- Final approval for creator applications
+- Suspend/ban creators
+- Set creator commission rates
+- Resolve creator disputes
 
 ### 6. **Content Moderation**
 - Review flagged content
@@ -65,7 +65,7 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 | **System Backup** | ✅ | ❌ | ❌ | ❌ |
 | **Financial Settings** | ✅ | ❌ | ❌ | ❌ |
 | **Commission Rates** | ✅ | ❌ | ❌ | ❌ |
-| **Approve Vendors** | ✅ | ✅ | ❌ | ❌ |
+| **Approve creators** | ✅ | ✅ | ❌ | ❌ |
 | **Approve Products** | ✅ | ✅ | ✅ | ❌ |
 | **Process Payouts** | ✅ | ✅ | ❌ | ❌ |
 | **Ban Users** | ✅ | ✅ | ✅ | ❌ |
@@ -112,7 +112,7 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 
 ### Overview Section
 - Total platform revenue
-- Active vendors count
+- Active creators count
 - Total products count
 - Total users count
 - Pending approvals across all categories
@@ -173,11 +173,11 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 **How to change:**
 1. Go to "Financial Settings"
 2. Click "Commission Rates"
-3. Set platform-wide rate OR vendor-specific rates
+3. Set platform-wide rate OR creator-specific rates
 4. Save changes
 
 **Considerations:**
-- Lower rates attract more vendors
+- Lower rates attract more creators
 - Higher rates increase platform revenue
 - Consider tiered rates (volume-based)
 - Nigerian market standard: 10-20%
@@ -188,7 +188,7 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 
 **Process:**
 1. Review payout request
-2. Verify vendor sales data
+2. Verify creator sales data
 3. Check for fraud indicators
 4. Approve or reject
 5. Payout processed automatically
@@ -249,7 +249,7 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 - [ ] Review financial summary
 
 ### Midday (1:00 PM)
-- [ ] Process vendor payouts
+- [ ] Process creator payouts
 - [ ] Review flagged content
 - [ ] Check admin activity
 - [ ] Respond to escalated issues
@@ -265,7 +265,7 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 - [ ] Review all admin activity
 - [ ] Audit financial transactions
 - [ ] Backup database
-- [ ] Review vendor performance
+- [ ] Review creator performance
 
 ### Monthly
 - [ ] Generate monthly financial report
@@ -295,7 +295,7 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 
 ### Payment Gateway Issues
 1. Switch to backup gateway
-2. Notify vendors
+2. Notify creators
 3. Contact gateway support
 4. Monitor transaction status
 5. Communicate with customers
@@ -340,10 +340,10 @@ A **Super Admin** is the highest level of administrative access in your Nigerian
 - Payout processing time: <24 hours
 - Refund rate: <2%
 
-### Vendor Satisfaction
-- Active vendors: Growing
-- Vendor retention: >80%
-- Average vendor rating: >4.0
+### creator Satisfaction
+- Active creators: Growing
+- creator retention: >80%
+- Average creator rating: >4.0
 - Payout disputes: <1%
 
 ### User Experience

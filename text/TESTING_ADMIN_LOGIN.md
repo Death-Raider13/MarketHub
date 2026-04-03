@@ -99,7 +99,7 @@ service cloud.firestore {
 2. Should redirect to /admin/dashboard
 3. Should see admin sidebar with:
    - Dashboard
-   - Vendors
+   - creators
    - Products
    - Orders
    - Users
@@ -107,12 +107,12 @@ service cloud.firestore {
    - Settings
 ```
 
-### Test 2: Vendor Login (Verified)
+### Test 2: creator Login (Verified)
 ```
-1. Create vendor user with verified: true
-2. Login as vendor
-3. Should redirect to /vendor/dashboard
-4. Should see vendor sidebar with:
+1. Create creator user with verified: true
+2. Login as creator
+3. Should redirect to /creator/dashboard
+4. Should see creator sidebar with:
    - Dashboard
    - Products
    - Orders
@@ -121,11 +121,11 @@ service cloud.firestore {
    - Store Settings
 ```
 
-### Test 3: Vendor Login (Unverified)
+### Test 3: creator Login (Unverified)
 ```
-1. Create vendor user with verified: false
-2. Login as vendor
-3. Should redirect to /vendor/pending-approval
+1. Create creator user with verified: false
+2. Login as creator
+3. Should redirect to /creator/pending-approval
 4. Should see pending approval message
 ```
 
@@ -180,25 +180,25 @@ async function createTestUsers() {
 
   console.log('Admin user created:', adminUser.uid);
 
-  // Create Vendor User (Verified)
-  const vendorUser = await auth.createUser({
-    email: 'vendor@test.com',
-    password: 'vendor123',
-    displayName: 'Test Vendor'
+  // Create creator User (Verified)
+  const creatorUser = await auth.createUser({
+    email: 'creator@test.com',
+    password: 'creator123',
+    displayName: 'Test creator'
   });
 
-  await db.collection('users').doc(vendorUser.uid).set({
-    uid: vendorUser.uid,
-    email: 'vendor@test.com',
-    role: 'vendor',
-    displayName: 'Test Vendor',
+  await db.collection('users').doc(creatorUser.uid).set({
+    uid: creatorUser.uid,
+    email: 'creator@test.com',
+    role: 'creator',
+    displayName: 'Test creator',
     verified: true,
     storeName: 'Test Store',
     commission: 15,
     createdAt: new Date()
   });
 
-  console.log('Vendor user created:', vendorUser.uid);
+  console.log('creator user created:', creatorUser.uid);
 
   // Create Customer User
   const customerUser = await auth.createUser({
@@ -233,13 +233,13 @@ After logging in as admin, verify:
 - [ ] URL is `/admin/dashboard`
 - [ ] Page shows "Admin Dashboard" title
 - [ ] Sidebar shows admin menu items
-- [ ] Stats cards display (Total Revenue, Active Vendors, etc.)
+- [ ] Stats cards display (Total Revenue, Active creators, etc.)
 - [ ] Revenue chart is visible
 - [ ] Pending Approvals section shows
 - [ ] Recent Activity section shows
 - [ ] Header shows admin dropdown menu
 - [ ] Can navigate to other admin pages
-- [ ] Cannot access vendor-only pages
+- [ ] Cannot access creator-only pages
 
 ---
 
@@ -260,11 +260,11 @@ useEffect(() => {
       case "admin":
         router.push("/admin/dashboard")
         break
-      case "vendor":
+      case "creator":
         if (userProfile.verified) {
-          router.push("/vendor/dashboard")
+          router.push("/creator/dashboard")
         } else {
-          router.push("/vendor/pending-approval")
+          router.push("/creator/pending-approval")
         }
         break
       case "customer":

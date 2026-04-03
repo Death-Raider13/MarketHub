@@ -134,9 +134,12 @@ export const userRegistrationSchema = z.object({
     .max(15, 'Phone number must not exceed 15 digits')
     .transform(sanitizePhone),
   
-  role: z.enum(['customer', 'vendor', 'admin', 'super_admin'], {
-    errorMap: () => ({ message: 'Role must be customer, vendor, admin, or super_admin' }),
+  role: z.enum(['customer', 'creator', 'admin', 'super_admin', 'moderator', 'support'], {
+    errorMap: () => ({ message: 'Role must be customer, creator, admin, or super_admin' }),
   }),
+  
+  academicTier: z.enum(['contributor', 'student', 'alumni', 'expert']).optional(),
+  institutionAffiliation: z.string().max(100).optional().transform((val) => val ? sanitizeText(val) : undefined),
 });
 
 /**
@@ -161,45 +164,47 @@ export const productSchema = z.object({
     .max(10000000, 'Price must not exceed ₦10,000,000')
     .refine((val) => Number.isFinite(val), 'Price must be a valid number'),
   
-  comparePrice: z
-    .number()
-    .positive('Compare price must be greater than 0')
-    .optional()
-    .nullable(),
-  
-  stock: z
-    .number()
-    .int('Stock must be a whole number')
-    .nonnegative('Stock cannot be negative')
-    .max(1000000, 'Stock must not exceed 1,000,000'),
-  
   category: z
     .string()
     .min(2, 'Category is required')
     .max(50, 'Category must not exceed 50 characters')
     .transform(sanitizeText),
+
+  // Academic specific fields for FeroLibrary pivot
+  institutionType: z.enum(['university', 'secondary', 'professional']).optional(),
+  institutionId: z.string().max(100).optional().nullable().transform((val) => val ? sanitizeText(val) : null),
+  institution: z.string().max(100).optional().nullable().transform((val) => val ? sanitizeText(val) : null), // legacy name
+  faculty: z.string().max(100).optional().nullable().transform((val) => val ? sanitizeText(val) : null),
+  department: z.string().max(100).optional().nullable().transform((val) => val ? sanitizeText(val) : null),
+  level: z.string().max(20).optional().nullable().transform((val) => val ? sanitizeText(val) : null),
+  courseCode: z.string().max(20).optional().nullable().transform((val) => val ? sanitizeText(val).toUpperCase().replace(/\s+/g, '') : null),
+  academicYear: z.string().max(20).optional().nullable().transform((val) => val ? sanitizeText(val) : null),
+  isAcademic: z.boolean().default(true),
+  isVerified: z.boolean().default(false),
+  verificationStatus: z.enum(['none', 'pending', 'verified', 'rejected']).default('none'),
+  pageCount: z.number().int().positive().optional().nullable(),
   
-  subcategory: z
-    .string()
-    .max(50, 'Subcategory must not exceed 50 characters')
-    .optional()
-    .transform((val) => val ? sanitizeText(val) : undefined),
+  type: z.enum(['digital', 'service'], {
+    errorMap: () => ({ message: 'Product type must be digital or service' }),
+  }),
   
-  sku: z
-    .string()
-    .min(3, 'SKU must be at least 3 characters')
-    .max(50, 'SKU must not exceed 50 characters')
-    .regex(/^[A-Z0-9-]+$/, 'SKU can only contain uppercase letters, numbers, and hyphens')
-    .transform(sanitizeText),
+  // Digital specific fields
+  fileUrl: z.string().url('Invalid file URL').optional().nullable(),
+  fileSize: z.number().nonnegative().optional().nullable(), // in bytes
+  fileType: z.string().optional().nullable(), // e.g., 'PDF', 'ZIP'
   
+  // Service specific fields
+  estimatedDeliveryTime: z.string().max(100).optional().nullable(),
+  serviceRequirements: z.string().max(2000).optional().nullable().transform((val) => val ? sanitizeHtml(val) : null),
+
   images: z
     .array(z.string().url('Invalid image URL'))
     .min(1, 'At least one image is required')
     .max(10, 'Maximum 10 images allowed'),
   
-  vendorId: z
+  creatorId: z
     .string()
-    .min(1, 'Vendor ID is required')
+    .min(1, 'Creator ID is required')
     .transform(sanitizeText),
 });
 
@@ -225,55 +230,7 @@ export const orderSchema = z.object({
     .positive('Total must be greater than 0')
     .max(50000000, 'Total must not exceed ₦50,000,000'),
   
-  shippingAddress: z.object({
-    fullName: z
-      .string()
-      .min(2, 'Full name is required')
-      .max(100, 'Full name must not exceed 100 characters')
-      .transform(sanitizeText),
-    
-    phone: z
-      .string()
-      .min(10, 'Phone number is required')
-      .transform(sanitizePhone),
-    
-    addressLine1: z
-      .string()
-      .min(5, 'Address is required')
-      .max(200, 'Address must not exceed 200 characters')
-      .transform(sanitizeText),
-    
-    addressLine2: z
-      .string()
-      .max(200, 'Address must not exceed 200 characters')
-      .optional()
-      .transform((val) => val ? sanitizeText(val) : undefined),
-    
-    city: z
-      .string()
-      .min(2, 'City is required')
-      .max(50, 'City must not exceed 50 characters')
-      .transform(sanitizeText),
-    
-    state: z
-      .string()
-      .min(2, 'State is required')
-      .max(50, 'State must not exceed 50 characters')
-      .transform(sanitizeText),
-    
-    zipCode: z
-      .string()
-      .min(5, 'ZIP code is required')
-      .max(10, 'ZIP code must not exceed 10 characters')
-      .transform(sanitizeText),
-    
-    country: z
-      .string()
-      .default('Nigeria')
-      .transform(sanitizeText),
-  }),
-  
-  paymentMethod: z.enum(['paystack', 'flutterwave', 'bank_transfer', 'cash_on_delivery']),
+  paymentMethod: z.enum(['paystack', 'flutterwave', 'bank_transfer']),
 });
 
 /**
@@ -309,9 +266,9 @@ export const reviewSchema = z.object({
 });
 
 /**
- * Vendor Application Schema
+ * Creator Application Schema
  */
-export const vendorApplicationSchema = z.object({
+export const creatorApplicationSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
   
   businessName: z
@@ -320,17 +277,17 @@ export const vendorApplicationSchema = z.object({
     .max(100, 'Business name must not exceed 100 characters')
     .transform(sanitizeText),
   
-  storeName: z
+  hubName: z
     .string()
-    .min(3, 'Store name must be at least 3 characters')
-    .max(50, 'Store name must not exceed 50 characters')
-    .regex(/^[a-zA-Z0-9\s-]+$/, 'Store name can only contain letters, numbers, spaces, and hyphens')
+    .min(3, 'Hub name must be at least 3 characters')
+    .max(50, 'Hub name must not exceed 50 characters')
+    .regex(/^[a-zA-Z0-9\s-]+$/, 'Hub name can only contain letters, numbers, spaces, and hyphens')
     .transform(sanitizeText),
   
-  storeDescription: z
+  hubDescription: z
     .string()
-    .min(20, 'Store description must be at least 20 characters')
-    .max(500, 'Store description must not exceed 500 characters')
+    .min(20, 'Hub description must be at least 20 characters')
+    .max(500, 'Hub description must not exceed 500 characters')
     .transform((val) => sanitizeHtml(val)),
   
   businessType: z.enum([
@@ -358,7 +315,7 @@ export const vendorApplicationSchema = z.object({
     .min(10, 'Phone number is required')
     .transform(sanitizePhone),
   
-  storeCategory: z
+  hubCategory: z
     .array(z.string())
     .min(1, 'At least one category is required')
     .max(5, 'Maximum 5 categories allowed'),

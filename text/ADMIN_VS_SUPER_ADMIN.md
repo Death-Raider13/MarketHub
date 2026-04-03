@@ -35,7 +35,7 @@ Your platform now has **two distinct admin interfaces** with no duplication:
 - View login attempt limits
 
 **4. Feature Toggles**
-- View vendor registration status
+- View creator registration status
 - View customer reviews status
 - View guest checkout status
 - View social login status
@@ -106,7 +106,7 @@ Your platform now has **two distinct admin interfaces** with no duplication:
 | **Set Commission** | ❌ | ✅ |
 | **Maintenance Mode** | ❌ | ✅ |
 | **Database Backup** | ❌ | ✅ |
-| **Approve Vendors** | ✅ | ✅ |
+| **Approve creators** | ✅ | ✅ |
 | **Approve Products** | ✅ | ✅ |
 | **Process Orders** | ✅ | ✅ |
 | **View Analytics** | ✅ | ✅ |

@@ -10,9 +10,9 @@ export async function GET(
   try {
     const { productId } = params
     console.log('GET questions for productId:', productId)
-    
+
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       console.error('AdminDb not initialized')
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function GET(
       .collection('questions')
       .where('productId', '==', productId)
       .get()
-    
+
     console.log('Found', questionsSnapshot.docs.length, 'questions')
 
     const questions = questionsSnapshot.docs
@@ -70,7 +70,7 @@ export async function GET(
     console.error('Error details:', error instanceof Error ? error.message : 'Unknown error')
     console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch questions',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -86,9 +86,9 @@ export async function POST(
 ) {
   try {
     const { productId } = params
-    const { userId, userName, userEmail, question, vendorId, productName } = await request.json()
+    const { userId, userName, userEmail, question, creatorId, productName } = await request.json()
 
-    if (!userId || !userName || !question || !vendorId) {
+    if (!userId || !userName || !question || !creatorId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -96,7 +96,7 @@ export async function POST(
     }
 
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -121,7 +121,7 @@ export async function POST(
     const questionData = {
       productId,
       productName: finalProductName,
-      vendorId,
+      creatorId,
       userId,
       userName,
       userEmail: userEmail || '',
@@ -137,14 +137,14 @@ export async function POST(
 
     const questionRef = await adminDb.collection('questions').add(questionData)
 
-    // Notify vendor about new question
+    // Notify creator about new question
     try {
-      await notificationService.createNotification(vendorId, 'new_question', {
+      await notificationService.createNotification(creatorId, 'new_question', {
         metadata: {
           productId: productId,
           productName: finalProductName,
           userName: userName,
-          actionUrl: '/vendor/questions'
+          actionUrl: '/creator/questions'
         }
       })
     } catch (notificationError) {

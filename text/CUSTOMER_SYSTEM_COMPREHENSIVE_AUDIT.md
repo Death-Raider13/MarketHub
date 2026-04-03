@@ -17,7 +17,7 @@
 | **Customer Orders** | ✅ Exists | 75% | Medium |
 | **Reviews** | ⚠️ Not Integrated | 40% | High |
 | **Messaging** | ⚠️ Not Integrated | 40% | High |
-| **Vendor Stores** | ❓ Unknown | 50% | High |
+| **creator Stores** | ❓ Unknown | 50% | High |
 | **Authentication** | ✅ Working | 90% | Low |
 
 **Overall Customer System Score: 62%** ⚠️ **NEEDS SIGNIFICANT IMPROVEMENT**
@@ -34,7 +34,7 @@
 // Line 17 - MOCK DATA!
 const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
   id: `prod-${i + 1}`,
-  vendorId: `vendor-${(i % 3) + 1}`,
+  creatorId: `creator-${(i % 3) + 1}`,
   name: `Product ${i + 1}`,
   // ... mock data
 }))
@@ -120,17 +120,17 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 
 ---
 
-### **5. Contact Vendor - Not Integrated** ⚠️
+### **5. Contact creator - Not Integrated** ⚠️
 **Status:** Component exists but not accessible
 
 **Problem:**
-- `ContactVendor` component exists
+- `Contactcreator` component exists
 - Not visible on product pages
-- No way for customers to message vendors
+- No way for customers to message creators
 - Messaging system not connected
 
 **Fix Required:**
-- Add "Contact Vendor" button on product pages
+- Add "Contact creator" button on product pages
 - Add messaging icon in header
 - Create customer inbox page
 - Show unread message count
@@ -138,22 +138,22 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 
 ---
 
-### **6. Vendor Store Pages - Needs Verification** ⚠️
-**Location:** `/app/store/[vendorId]`
+### **6. creator Store Pages - Needs Verification** ⚠️
+**Location:** `/app/store/[creatorId]`
 
 **Issues to Check:**
 - Does it exist?
 - Is it connected to Firestore?
-- Does it show vendor's products?
+- Does it show creator's products?
 - Is store customization applied?
 - Is it beautiful and functional?
 
 **Fix Required:** (After verification)
 - Ensure real data connection
-- Apply vendor's theme/branding
-- Show vendor info and stats
+- Apply creator's theme/branding
+- Show creator info and stats
 - Add "Follow" button
-- Show vendor reviews
+- Show creator reviews
 
 ---
 
@@ -177,7 +177,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 ### **Issues:**
 - ⚠️ Categories have hardcoded counts ("500+ items")
 - ⚠️ Category links go to `/categories?category=X` (does this page exist?)
-- ⚠️ Stats are hardcoded (500K visitors, 10K products, 1K vendors)
+- ⚠️ Stats are hardcoded (500K visitors, 10K products, 1K creators)
 - ⚠️ "Start Shopping" button doesn't link anywhere
 - ⚠️ Product ratings are hardcoded (4.5 stars)
 
@@ -228,7 +228,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
    - Price range filter
    - Category filter
    - Rating filter
-   - Vendor filter
+   - creator filter
    - Sort by (price, rating, newest, popular)
 
 3. **Pagination:**
@@ -262,11 +262,11 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 - ✅ Loading states
 - ✅ Error handling
 - ✅ Breadcrumbs
-- ✅ Vendor information
+- ✅ creator information
 
 ### **Issues:**
 - ⚠️ Reviews section exists but may not be visible
-- ⚠️ Contact vendor button may not work
+- ⚠️ Contact creator button may not work
 - ⚠️ Related products might use mock data
 - ⚠️ No "You might also like" section
 - ⚠️ No product Q&A section
@@ -275,7 +275,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 
 ### **Improvements Needed:**
 1. Ensure reviews are visible and functional
-2. Add "Contact Vendor" button that opens messaging
+2. Add "Contact creator" button that opens messaging
 3. Add social share buttons
 4. Add wishlist/favorite button
 5. Add "Recently Viewed" products
@@ -310,7 +310,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 4. **Features:**
    - Search by product name
    - Search by category
-   - Search by vendor
+   - Search by creator
    - Autocomplete suggestions
    - Recent searches
    - Popular searches
@@ -387,7 +387,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 - Can customers track orders?
 - Can customers download invoices?
 - Can customers leave reviews?
-- Can customers contact vendor?
+- Can customers contact creator?
 
 ### **Expected Features:**
 - Order list with status
@@ -444,7 +444,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 7. Add verified purchase badge
 8. Add helpful/not helpful votes
 9. Add review filters (rating, verified, etc.)
-10. Show reviews on vendor store page
+10. Show reviews on creator store page
 
 **Priority:** High  
 **Estimated Time:** 4-5 hours
@@ -454,15 +454,15 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 ## 🔟 **Messaging System** ⚠️ (40% - Needs Integration)
 
 ### **Current State:**
-- ✅ Component exists: `ContactVendor`
+- ✅ Component exists: `Contactcreator`
 - ✅ API routes exist
-- ✅ Vendor inbox exists
+- ✅ creator inbox exists
 - ❌ Customer can't access it
 - ❌ No customer inbox
 - ❌ No unread count
 
 ### **What Needs to Be Done:**
-1. Add "Contact Vendor" button on product pages
+1. Add "Contact creator" button on product pages
 2. Create customer inbox page: `/app/messages/page.tsx`
 3. Add message icon in header
 4. Show unread message count
@@ -478,14 +478,14 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 
 ---
 
-## 1️⃣1️⃣ **Vendor Store Pages** ❓ (50% - Needs Verification)
+## 1️⃣1️⃣ **creator Store Pages** ❓ (50% - Needs Verification)
 
-### **Expected Location:** `/app/store/[vendorId]/page.tsx`
+### **Expected Location:** `/app/store/[creatorId]/page.tsx`
 
 ### **What Should Exist:**
-- Vendor profile information
-- Vendor's products grid
-- Vendor ratings and reviews
+- creator profile information
+- creator's products grid
+- creator ratings and reviews
 - Store customization (theme, colors, branding)
 - "Follow" button
 - "Contact" button
@@ -495,7 +495,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 ### **What Needs to Be Verified:**
 1. Does the page exist?
 2. Is it connected to Firestore?
-3. Does it apply vendor's customization?
+3. Does it apply creator's customization?
 4. Is it beautiful and functional?
 5. Does it show real products?
 
@@ -588,7 +588,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
    - Create global formatter
    - Update all pages
 
-4. **Verify Vendor Store Pages** (4 hours)
+4. **Verify creator Store Pages** (4 hours)
    - Check if exists
    - Connect to Firestore if needed
    - Apply customization
@@ -692,7 +692,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 3. ✅ Fix all currency to ₦
 4. ✅ Integrate reviews
 5. ✅ Integrate messaging
-6. ✅ Verify vendor stores work
+6. ✅ Verify creator stores work
 
 ### **Nice to Have:**
 - Guest checkout
@@ -724,7 +724,7 @@ const mockProducts: Product[] = Array.from({ length: 12 }, (_, i) => ({
 2. `/app/page.tsx` - Fix links, real stats, real counts
 3. `/app/products/[id]/page.tsx` - Integrate reviews and messaging
 4. `/components/layout/header.tsx` - Connect search, add message icon
-5. `/app/store/[vendorId]/page.tsx` - Verify and fix if needed
+5. `/app/store/[creatorId]/page.tsx` - Verify and fix if needed
 6. `/app/orders/page.tsx` - Verify and improve if needed
 7. `/app/checkout/page.tsx` - Add improvements
 
@@ -778,7 +778,7 @@ After implementing all improvements:
 - ✅ Easy product discovery
 - ✅ Smooth checkout
 - ✅ Order tracking
-- ✅ Vendor communication
+- ✅ creator communication
 - ✅ Product reviews
 - ✅ Personalized experience
 

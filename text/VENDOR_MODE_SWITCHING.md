@@ -1,17 +1,17 @@
-# 🔄 Vendor Mode Switching - Complete Guide
+# 🔄 creator Mode Switching - Complete Guide
 
 ## Overview
-Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and "Buying Mode" (Customer Shopping Experience) without creating multiple accounts.
+creators can now seamlessly switch between "Selling Mode" (creator Dashboard) and "Buying Mode" (Customer Shopping Experience) without creating multiple accounts.
 
 ---
 
 ## ✅ **What's Implemented**
 
-### **1. Switch to Buying Mode (From Vendor Dashboard)**
+### **1. Switch to Buying Mode (From creator Dashboard)**
 
-**Location:** Vendor Dashboard top-right
+**Location:** creator Dashboard top-right
 **Button:** "Switch to Buying Mode" 🛍️
-**Action:** Takes vendor to homepage (customer view)
+**Action:** Takes creator to homepage (customer view)
 **Design:** Blue-purple gradient button
 
 **Features:**
@@ -24,16 +24,16 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ### **2. Switch to Selling Mode (From Homepage)**
 
-**Location:** Homepage header (for logged-in vendors)
+**Location:** Homepage header (for logged-in creators)
 **Button:** "Switch to Selling" 📊
-**Action:** Takes vendor back to dashboard
+**Action:** Takes creator back to dashboard
 **Design:** Purple-blue gradient button
 
 **Features:**
-- ✅ Only visible to vendors
+- ✅ Only visible to creators
 - ✅ Appears in main header
 - ✅ Dashboard icon
-- ✅ Quick return to vendor mode
+- ✅ Quick return to creator mode
 
 ---
 
@@ -41,7 +41,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ### **Scenario 1: Check Your Products**
 ```
-1. Vendor is in dashboard
+1. creator is in dashboard
 2. Clicks "Switch to Buying Mode"
 3. Lands on homepage
 4. Browses products as a customer
@@ -52,7 +52,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ### **Scenario 2: Competitor Research**
 ```
-1. Vendor wants to check competitor prices
+1. creator wants to check competitor prices
 2. Clicks "Switch to Buying Mode"
 3. Searches for similar products
 4. Views competitor listings
@@ -62,7 +62,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ### **Scenario 3: Test Customer Experience**
 ```
-1. Vendor adds new product
+1. creator adds new product
 2. Switches to buying mode
 3. Searches for the product
 4. Tests search functionality
@@ -74,7 +74,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ### **Scenario 4: Shop as Customer**
 ```
-1. Vendor needs supplies
+1. creator needs supplies
 2. Switches to buying mode
 3. Shops like any customer
 4. Adds items to cart
@@ -86,7 +86,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ## 🎨 **Visual Design**
 
-### **Buying Mode Button (Vendor Dashboard)**
+### **Buying Mode Button (creator Dashboard)**
 ```
 ┌─────────────────────────────────┐
 │  🛍️  Switch to Buying Mode      │
@@ -135,15 +135,15 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 ### **Who Sees What:**
 
 **Customers:**
-- ❌ No selling mode button (not a vendor)
+- ❌ No selling mode button (not a creator)
 - ✅ Normal shopping experience
 
-**Vendors (on Homepage):**
+**creators (on Homepage):**
 - ✅ "Switch to Selling" button visible
 - ✅ Can shop as customer
 - ✅ Can return to dashboard anytime
 
-**Vendors (on Dashboard):**
+**creators (on Dashboard):**
 - ✅ "Switch to Buying Mode" button visible
 - ✅ Can view customer experience
 - ✅ Can return to dashboard anytime
@@ -156,7 +156,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ## 💡 **Benefits**
 
-### **For Vendors:**
+### **For creators:**
 
 1. **No Multiple Accounts Needed**
    - One account for everything
@@ -186,13 +186,13 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
    - Professional feel
 
 2. **Increased Engagement**
-   - Vendors browse more
+   - creators browse more
    - More cross-selling
    - Higher retention
 
 3. **Data Insights**
-   - Track vendor shopping behavior
-   - Understand vendor needs
+   - Track creator shopping behavior
+   - Understand creator needs
    - Improve platform
 
 ---
@@ -216,17 +216,17 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ### **Phase 4: Analytics**
 - Track mode switching frequency
-- Understand vendor behavior
+- Understand creator behavior
 - Optimize experience
 
 ---
 
 ## 📊 **Button Placement**
 
-### **Vendor Dashboard:**
+### **creator Dashboard:**
 ```
 ┌─────────────────────────────────────────────────┐
-│  Vendor Dashboard                               │
+│  creator Dashboard                               │
 │                                                 │
 │  [🛍️ Switch to Buying] [Orders] [Add Product] │
 └─────────────────────────────────────────────────┘
@@ -246,7 +246,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 ### **Files Modified:**
 
-1. **`/app/vendor/dashboard/page.tsx`**
+1. **`/app/creator/dashboard/page.tsx`**
    - Added "Switch to Buying Mode" button
    - Gradient styling
    - Shopping bag icon
@@ -254,10 +254,10 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 
 2. **`/components/layout/header.tsx`**
    - Added "Switch to Selling" button
-   - Conditional rendering (vendors only)
+   - Conditional rendering (creators only)
    - Gradient styling
    - Dashboard icon
-   - Links to vendor dashboard
+   - Links to creator dashboard
 
 ---
 
@@ -266,7 +266,7 @@ Vendors can now seamlessly switch between "Selling Mode" (Vendor Dashboard) and 
 ### **Complete Journey:**
 
 ```
-Vendor Dashboard
+creator Dashboard
        ↓
 [Switch to Buying Mode]
        ↓
@@ -280,15 +280,15 @@ Check Competitors
        ↓
 [Switch to Selling]
        ↓
-Back to Vendor Dashboard
+Back to creator Dashboard
 ```
 
 ---
 
 ## 🔍 **Testing Checklist**
 
-### **As Vendor:**
-- [ ] Log in as vendor
+### **As creator:**
+- [ ] Log in as creator
 - [ ] See "Switch to Buying Mode" in dashboard
 - [ ] Click button → lands on homepage
 - [ ] See "Switch to Selling" in header
@@ -300,13 +300,13 @@ Back to Vendor Dashboard
 - [ ] Log in as customer
 - [ ] Should NOT see "Switch to Selling"
 - [ ] Normal shopping experience
-- [ ] No vendor features visible
+- [ ] No creator features visible
 
 ---
 
 ## 💬 **User Feedback**
 
-### **What Vendors Love:**
+### **What creators Love:**
 - ✅ "No need for multiple accounts!"
 - ✅ "Easy to check my products"
 - ✅ "Great for competitor research"
@@ -319,8 +319,8 @@ Back to Vendor Dashboard
 - Q: "Can I buy my own products?"
 - A: Yes, but typically not allowed (business logic)
 
-- Q: "Does it affect my vendor status?"
-- A: No, you're always a vendor
+- Q: "Does it affect my creator status?"
+- A: No, you're always a creator
 
 ---
 
@@ -334,12 +334,12 @@ Back to Vendor Dashboard
 
 ### **Why These Colors?**
 - **Blue**: Shopping, trust, customer
-- **Purple**: Premium, vendor, business
+- **Purple**: Premium, creator, business
 - **Gradient**: Transition between modes
 
 ### **Why These Icons?**
 - **Shopping Bag**: Universal shopping symbol
-- **Dashboard**: Clear vendor/business symbol
+- **Dashboard**: Clear creator/business symbol
 
 ---
 
@@ -348,12 +348,12 @@ Back to Vendor Dashboard
 ### **Metrics to Track:**
 
 1. **Mode Switching Frequency**
-   - How often vendors switch
+   - How often creators switch
    - Peak switching times
    - Average session duration
 
-2. **Vendor Shopping Behavior**
-   - What vendors buy
+2. **creator Shopping Behavior**
+   - What creators buy
    - Competitor products viewed
    - Own products checked
 
@@ -376,7 +376,7 @@ Back to Vendor Dashboard
 - ✅ Professional design
 
 **Benefits:**
-- 🎯 Better vendor experience
+- 🎯 Better creator experience
 - 🛍️ Easier product checking
 - 🔍 Competitor research
 - 💼 Dual role support
@@ -384,6 +384,6 @@ Back to Vendor Dashboard
 
 ---
 
-**Your vendors can now effortlessly switch between selling and buying modes!** 🚀
+**Your creators can now effortlessly switch between selling and buying modes!** 🚀
 
 This creates a seamless, professional experience that saves time and eliminates the need for multiple accounts.

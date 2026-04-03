@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const refundData = {
       userId,
       orderId,
-      vendorId: orderData.vendorId || null,
+      creatorId: orderData.creatorId || null,
       reason,
       status: 'pending',
       amount: orderData.total || 0,
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const userId = searchParams.get('userId')
-    const vendorId = searchParams.get('vendorId')
+    const creatorId = searchParams.get('creatorId')
     const orderId = searchParams.get('orderId')
     const limit = parseInt(searchParams.get('limit') || '50')
     const page = parseInt(searchParams.get('page') || '1')
@@ -127,8 +127,8 @@ export async function GET(request: NextRequest) {
     if (userId) {
       query = query.where('userId', '==', userId)
     }
-    if (vendorId) {
-      query = query.where('vendorId', '==', vendorId)
+    if (creatorId) {
+      query = query.where('creatorId', '==', creatorId)
     }
     if (orderId) {
       query = query.where('orderId', '==', orderId)
@@ -150,11 +150,11 @@ export async function GET(request: NextRequest) {
     query = query.limit(limit)
 
     const snapshot = await query.get()
-    
+
     const refunds = await Promise.all(
       snapshot.docs.map(async (doc: any) => {
         const refundData = doc.data()
-        
+
         // Get associated order data
         let orderData = null
         if (refundData.orderId) {
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
     let countQuery: any = totalQuery
     if (status) countQuery = countQuery.where('status', '==', status)
     if (userId) countQuery = countQuery.where('userId', '==', userId)
-    if (vendorId) countQuery = countQuery.where('vendorId', '==', vendorId)
+    if (creatorId) countQuery = countQuery.where('creatorId', '==', creatorId)
     if (orderId) countQuery = countQuery.where('orderId', '==', orderId)
 
     const totalSnapshot = await countQuery.get()

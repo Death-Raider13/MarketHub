@@ -37,7 +37,7 @@ import { toast } from "sonner"
 
 interface AbuseReport {
   id: string
-  type: 'product' | 'vendor' | 'review' | 'message'
+  type: 'product' | 'creator' | 'review' | 'message'
   reportedBy: {
     id: string
     name: string
@@ -78,7 +78,7 @@ const mockReports: AbuseReport[] = [
     },
     category: "Counterfeit",
     reason: "Selling fake products",
-    description: "This vendor is selling counterfeit iPhones and claiming they are genuine Apple products. The images show clear signs of being fake.",
+    description: "This creator is selling counterfeit iPhones and claiming they are genuine Apple products. The images show clear signs of being fake.",
     status: "pending",
     priority: "high",
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
@@ -87,21 +87,21 @@ const mockReports: AbuseReport[] = [
   },
   {
     id: "report2",
-    type: "vendor",
+    type: "creator",
     reportedBy: {
       id: "user2",
       name: "Jane Smith",
       email: "jane@example.com"
     },
     reportedItem: {
-      id: "vendor1",
+      id: "creator1",
       title: "TechStore Pro",
-      description: "Vendor not delivering products",
-      url: "/vendors/vendor1"
+      description: "creator not delivering products",
+      url: "/creators/creator1"
     },
     category: "Fraud",
     reason: "Not delivering products after payment",
-    description: "I paid for a laptop 3 weeks ago but haven't received it. The vendor is not responding to messages.",
+    description: "I paid for a laptop 3 weeks ago but haven't received it. The creator is not responding to messages.",
     status: "investigating",
     priority: "medium",
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
@@ -130,7 +130,7 @@ const mockReports: AbuseReport[] = [
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     assignedTo: "admin2",
-    resolution: "Removed fake reviews and warned vendor"
+    resolution: "Removed fake reviews and warned creator"
   }
 ]
 
@@ -151,16 +151,16 @@ function AdminReportsAbuseContent() {
   const loadReports = async () => {
     try {
       setLoading(true)
-      
+
       // Build query parameters
       const params = new URLSearchParams()
       if (statusFilter !== 'all') params.append('status', statusFilter)
       if (priorityFilter !== 'all') params.append('priority', priorityFilter)
       if (typeFilter !== 'all') params.append('type', typeFilter)
-      
+
       const response = await fetch(`/api/reports?${params.toString()}`)
       const data = await response.json()
-      
+
       if (data.success) {
         const reportsData = data.reports.map((report: any) => ({
           ...report,
@@ -174,7 +174,7 @@ function AdminReportsAbuseContent() {
         // Fallback to mock data for demo
         setReports(mockReports)
       }
-      
+
     } catch (error) {
       console.error("Error loading reports:", error)
       toast.error("Failed to load reports")
@@ -196,8 +196,8 @@ function AdminReportsAbuseContent() {
       const data = await response.json()
 
       if (data.success) {
-        setReports(prev => prev.map(report => 
-          report.id === reportId 
+        setReports(prev => prev.map(report =>
+          report.id === reportId
             ? { ...report, status, resolution, updatedAt: new Date() }
             : report
         ))
@@ -208,7 +208,7 @@ function AdminReportsAbuseContent() {
       } else {
         toast.error(data.error || 'Failed to update report')
       }
-      
+
     } catch (error) {
       console.error("Error updating report:", error)
       toast.error("Failed to update report")
@@ -219,7 +219,7 @@ function AdminReportsAbuseContent() {
     const matchesStatus = statusFilter === "all" || report.status === statusFilter
     const matchesPriority = priorityFilter === "all" || report.priority === priorityFilter
     const matchesType = typeFilter === "all" || report.type === typeFilter
-    const matchesSearch = searchTerm === "" || 
+    const matchesSearch = searchTerm === "" ||
       report.reportedItem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.reportedBy.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -250,7 +250,7 @@ function AdminReportsAbuseContent() {
   const getTypeIcon = (type: AbuseReport['type']) => {
     switch (type) {
       case 'product': return <Package className="h-4 w-4" />
-      case 'vendor': return <User className="h-4 w-4" />
+      case 'creator': return <User className="h-4 w-4" />
       case 'review': return <MessageSquare className="h-4 w-4" />
       case 'message': return <MessageSquare className="h-4 w-4" />
       default: return <Flag className="h-4 w-4" />
@@ -260,10 +260,10 @@ function AdminReportsAbuseContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
@@ -275,7 +275,7 @@ function AdminReportsAbuseContent() {
                 Manage and investigate reported content and behavior
               </p>
             </div>
-            
+
             <Button onClick={loadReports} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -297,7 +297,7 @@ function AdminReportsAbuseContent() {
                     />
                   </div>
                 </div>
-                
+
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Status" />
@@ -331,7 +331,7 @@ function AdminReportsAbuseContent() {
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="vendor">Vendor</SelectItem>
+                    <SelectItem value="creator">creator</SelectItem>
                     <SelectItem value="review">Review</SelectItem>
                     <SelectItem value="message">Message</SelectItem>
                   </SelectContent>
@@ -363,7 +363,7 @@ function AdminReportsAbuseContent() {
                           <div className="mt-1">
                             {getTypeIcon(report.type)}
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-medium truncate">{report.reportedItem.title}</h3>
@@ -371,11 +371,11 @@ function AdminReportsAbuseContent() {
                                 {report.type}
                               </Badge>
                             </div>
-                            
+
                             <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                               {report.reason}
                             </p>
-                            
+
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                               <span>Reported by {report.reportedBy.name}</span>
                               <span>{formatDistanceToNow(report.createdAt, { addSuffix: true })}</span>
@@ -383,7 +383,7 @@ function AdminReportsAbuseContent() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 ml-4">
                           <Badge className={getPriorityColor(report.priority)}>
                             {report.priority}
@@ -391,11 +391,11 @@ function AdminReportsAbuseContent() {
                           <Badge className={getStatusColor(report.status)}>
                             {report.status}
                           </Badge>
-                          
+
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 size="sm"
                                 onClick={() => setSelectedReport(report)}
                               >
@@ -406,7 +406,7 @@ function AdminReportsAbuseContent() {
                               <DialogHeader>
                                 <DialogTitle>Report Details</DialogTitle>
                               </DialogHeader>
-                              
+
                               {selectedReport && (
                                 <div className="space-y-4">
                                   <div className="grid gap-4 md:grid-cols-2">
@@ -431,12 +431,12 @@ function AdminReportsAbuseContent() {
                                       </Badge>
                                     </div>
                                   </div>
-                                  
+
                                   <div>
                                     <label className="text-sm font-medium">Description</label>
                                     <p className="text-sm text-muted-foreground mt-1">{selectedReport.description}</p>
                                   </div>
-                                  
+
                                   {selectedReport.evidence && selectedReport.evidence.length > 0 && (
                                     <div>
                                       <label className="text-sm font-medium">Evidence</label>
@@ -447,7 +447,7 @@ function AdminReportsAbuseContent() {
                                       </div>
                                     </div>
                                   )}
-                                  
+
                                   {selectedReport.status !== 'resolved' && selectedReport.status !== 'dismissed' && (
                                     <div className="space-y-3 pt-4 border-t">
                                       <Textarea
@@ -455,7 +455,7 @@ function AdminReportsAbuseContent() {
                                         value={resolution}
                                         onChange={(e) => setResolution(e.target.value)}
                                       />
-                                      
+
                                       <div className="flex gap-2">
                                         <Button
                                           onClick={() => updateReportStatus(selectedReport.id, 'resolved', resolution)}
@@ -475,7 +475,7 @@ function AdminReportsAbuseContent() {
                                       </div>
                                     </div>
                                   )}
-                                  
+
                                   {selectedReport.resolution && (
                                     <div className="pt-4 border-t">
                                       <label className="text-sm font-medium">Resolution</label>
@@ -486,7 +486,7 @@ function AdminReportsAbuseContent() {
                               )}
                             </DialogContent>
                           </Dialog>
-                          
+
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">

@@ -25,14 +25,14 @@ Your platform now has **completely separate interfaces** for Regular Admins and 
 ### Regular Admin (`/admin/*`)
 
 **Dashboard:** `/admin/dashboard`
-- Basic stats (revenue, vendors, products, users)
+- Basic stats (revenue, creators, products, users)
 - Pending approvals
 - Recent activity
 - Limited to operational data
 
 **Features:**
-- ✅ View vendors
-- ✅ Approve/reject vendors
+- ✅ View creators
+- ✅ Approve/reject creators
 - ✅ View products
 - ✅ Approve/reject products
 - ✅ View orders
@@ -55,7 +55,7 @@ Your platform now has **completely separate interfaces** for Regular Admins and 
 **Dashboard:** `/super-admin/dashboard`
 - **8 stat cards** (vs 4 for regular admin)
 - Total Revenue
-- Active Vendors
+- Active creators
 - Total Products
 - Total Users
 - **Total Admins** (exclusive)
@@ -81,7 +81,7 @@ Your platform now has **completely separate interfaces** for Regular Admins and 
 
 #### 3. Commission Settings (`/super-admin/commission`)
 - ✅ Set platform-wide commission
-- ✅ Set vendor-specific rates
+- ✅ Set creator-specific rates
 - ✅ Configure payout schedules
 - ✅ Set minimum payout amounts
 
@@ -116,7 +116,7 @@ Your platform now has **completely separate interfaces** for Regular Admins and 
 ### Regular Admin Sidebar
 ```
 Dashboard
-Vendors (12 pending)
+creators (12 pending)
 Products (28 pending)
 Orders
 Users
@@ -132,7 +132,7 @@ Settings
 ```
 Dashboard
 Admin Management ⭐
-Vendors (12 pending)
+creators (12 pending)
 Products (28 pending)
 Orders
 Users
@@ -153,7 +153,7 @@ Platform Settings ⭐
 ### Regular Admin Routes
 ```typescript
 /admin/dashboard          ✅ Admin, Super Admin
-/admin/vendors            ✅ Admin, Super Admin
+/admin/creators            ✅ Admin, Super Admin
 /admin/products           ✅ Admin, Super Admin
 /admin/orders             ✅ Admin, Super Admin
 /admin/users              ✅ Admin, Super Admin
@@ -164,7 +164,7 @@ Platform Settings ⭐
 ```typescript
 /super-admin/dashboard    ✅ Super Admin ONLY
 /super-admin/admins       ✅ Super Admin ONLY
-/super-admin/vendors      ✅ Super Admin ONLY (enhanced)
+/super-admin/creators      ✅ Super Admin ONLY (enhanced)
 /super-admin/products     ✅ Super Admin ONLY (enhanced)
 /super-admin/orders       ✅ Super Admin ONLY (enhanced)
 /super-admin/users        ✅ Super Admin ONLY (enhanced)
@@ -184,7 +184,7 @@ Platform Settings ⭐
 app/
 ├── admin/                    # Regular Admin Interface
 │   ├── dashboard/
-│   ├── vendors/
+│   ├── creators/
 │   ├── products/
 │   ├── orders/
 │   ├── users/
@@ -198,7 +198,7 @@ app/
 └── super-admin/              # Super Admin Interface (NEW!)
     ├── dashboard/            ✅ Created
     ├── admins/               🔜 To create
-    ├── vendors/              🔜 Enhanced view
+    ├── creators/              🔜 Enhanced view
     ├── products/             🔜 Enhanced view
     ├── orders/               🔜 Enhanced view
     ├── users/                🔜 Enhanced view
@@ -260,7 +260,7 @@ components/
 6. 🔜 Audit Logs
 
 ### Phase 2: Enhanced Views
-1. 🔜 Super Admin Vendors (with more controls)
+1. 🔜 Super Admin creators (with more controls)
 2. 🔜 Super Admin Products (bulk operations)
 3. 🔜 Super Admin Orders (advanced filters)
 4. 🔜 Super Admin Users (detailed analytics)
@@ -278,7 +278,7 @@ components/
 | Feature | Regular Admin | Super Admin |
 |---------|---------------|-------------|
 | **Dashboard Stats** | 4 cards | 8 cards |
-| **Vendor Management** | Basic | Enhanced + Commission |
+| **creator Management** | Basic | Enhanced + Commission |
 | **Product Management** | Basic | Enhanced + Bulk Ops |
 | **Order Management** | Basic | Enhanced + Advanced Filters |
 | **User Management** | Basic | Enhanced + Analytics |

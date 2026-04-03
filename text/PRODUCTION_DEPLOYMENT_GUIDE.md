@@ -198,18 +198,18 @@ service cloud.firestore {
     
     // Orders collection
     match /orders/{orderId} {
-      allow read: if isOwner(resource.data.userId) || hasRole('admin') || hasRole('vendor');
+      allow read: if isOwner(resource.data.userId) || hasRole('admin') || hasRole('creator');
       allow create: if isSignedIn() && isEmailVerified(); // Must be verified to create orders
-      allow update: if hasRole('admin') || hasRole('vendor');
+      allow update: if hasRole('admin') || hasRole('creator');
       allow delete: if hasRole('admin');
     }
     
     // Products collection
     match /products/{productId} {
       allow read: if true; // Anyone can read
-      allow create: if hasRole('vendor') && isEmailVerified();
-      allow update: if hasRole('vendor') && resource.data.vendorId == request.auth.uid;
-      allow delete: if hasRole('vendor') && resource.data.vendorId == request.auth.uid;
+      allow create: if hasRole('creator') && isEmailVerified();
+      allow update: if hasRole('creator') && resource.data.creatorId == request.auth.uid;
+      allow delete: if hasRole('creator') && resource.data.creatorId == request.auth.uid;
     }
     
     // Sessions collection

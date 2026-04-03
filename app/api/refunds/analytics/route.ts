@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const timeRange = searchParams.get('timeRange') || '6months'
-    const vendorId = searchParams.get('vendorId')
+    const creatorId = searchParams.get('creatorId')
 
     // Calculate date ranges
     const now = new Date()
@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
       .where('createdAt', '>=', startDate)
       .orderBy('createdAt', 'desc')
 
-    if (vendorId) {
-      refundsQuery = refundsQuery.where('vendorId', '==', vendorId)
+    if (creatorId) {
+      refundsQuery = refundsQuery.where('creatorId', '==', creatorId)
     }
 
     const refundsSnapshot = await refundsQuery.get()
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate overall stats
     const totalRefunds = refunds.length
-    const totalRefundAmount = refunds.reduce((sum: number, refund: any) => 
+    const totalRefundAmount = refunds.reduce((sum: number, refund: any) =>
       sum + (refund.amount || 0), 0
     )
     const completedRefunds = refunds.filter((r: any) => r.status === 'refunded').length
@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
         .where('createdAt', '>=', startDate)
         .where('paymentStatus', 'in', ['paid', 'completed'])
 
-      if (vendorId) {
-        ordersQuery = ordersQuery.where('vendorId', '==', vendorId)
+      if (creatorId) {
+        ordersQuery = ordersQuery.where('creatorId', '==', creatorId)
       }
 
       const ordersSnapshot = await ordersQuery.get()
@@ -73,14 +73,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Monthly breakdown
-    const monthlyData: { [key: string]: {
-      refunds: number
-      amount: number
-      completed: number
-      completedAmount: number
-      pending: number
-      rejected: number
-    } } = {}
+    const monthlyData: {
+      [key: string]: {
+        refunds: number
+        amount: number
+        completed: number
+        completedAmount: number
+        pending: number
+        rejected: number
+      }
+    } = {}
 
     for (let i = 0; i < monthsBack; i++) {
       const monthStart = startOfMonth(subMonths(now, i))
@@ -171,7 +173,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const avgProcessingTime = processingTimes.length > 0 
+    const avgProcessingTime = processingTimes.length > 0
       ? processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length
       : 0
 

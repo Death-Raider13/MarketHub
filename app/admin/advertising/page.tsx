@@ -44,7 +44,7 @@ interface Advertisement {
   }
   placement: {
     type: string
-    targetVendors: string[]
+    targetcreators: string[]
     targetCategories: string[]
   }
   stats: {
@@ -80,10 +80,10 @@ function AdminAdvertisingContent() {
   const loadAdvertisements = async () => {
     try {
       setLoading(true)
-      
+
       // TEMPORARY: Skip auth headers for testing
       // TODO: Re-enable after Firebase login is fixed
-      
+
       const token = await getCurrentToken()
       if (!token) {
         throw new Error('Admin authentication required')
@@ -96,11 +96,11 @@ function AdminAdvertisingContent() {
           'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch campaigns')
       }
-      
+
       const data = await response.json()
       setAds(data.campaigns || [])
     } catch (error) {
@@ -121,17 +121,17 @@ function AdminAdvertisingContent() {
 
   const submitReview = async () => {
     if (!selectedCampaign || !reviewAction) return
-    
+
     try {
       setSubmittingReview(true)
-      
+
       // TEMPORARY: Skip auth headers for testing
       // TODO: Re-enable after Firebase login is fixed
       const token = await getCurrentToken()
       if (!token) {
         throw new Error('Admin authentication required')
       }
-      
+
       const response = await fetch('/api/admin/advertising', {
         method: 'PATCH',
         headers: {
@@ -144,12 +144,12 @@ function AdminAdvertisingContent() {
           reason: reviewReason
         })
       })
-      
+
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to update campaign')
       }
-      
+
       toast.success(`Campaign ${reviewAction}d successfully`)
       setShowReviewModal(false)
       loadAdvertisements() // Reload data
@@ -169,7 +169,7 @@ function AdminAdvertisingContent() {
       if (!token) {
         throw new Error('Admin authentication required')
       }
-      
+
       const response = await fetch('/api/admin/advertising', {
         method: 'PATCH',
         headers: {
@@ -181,12 +181,12 @@ function AdminAdvertisingContent() {
           action: action
         })
       })
-      
+
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to update campaign')
       }
-      
+
       toast.success(`Campaign ${action}d successfully`)
       loadAdvertisements() // Reload data
     } catch (error) {
@@ -197,9 +197,9 @@ function AdminAdvertisingContent() {
 
   const filteredAds = ads.filter(ad =>
     (ad.creative?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     ad.advertiserInfo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     ad.placement?.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     ad.campaignName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      ad.advertiserInfo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ad.placement?.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ad.campaignName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (statusFilter === 'all' || ad.status === statusFilter)
   )
 
@@ -233,10 +233,10 @@ function AdminAdvertisingContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
@@ -258,15 +258,15 @@ function AdminAdvertisingContent() {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input 
-                      placeholder="Search campaigns..." 
+                    <Input
+                      placeholder="Search campaigns..."
                       className="pl-10"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <select 
-                    value={statusFilter} 
+                  <select
+                    value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="px-3 py-2 border border-input bg-background rounded-md text-sm"
                   >
@@ -365,8 +365,8 @@ function AdminAdvertisingContent() {
                             <tr key={ad.id} className="border-b border-border">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <img 
-                                    src={ad.creative?.imageUrl || '/placeholder.svg'} 
+                                  <img
+                                    src={ad.creative?.imageUrl || '/placeholder.svg'}
                                     alt={ad.creative?.title || 'Campaign'}
                                     className="w-12 h-12 object-cover rounded"
                                   />
@@ -427,8 +427,8 @@ function AdminAdvertisingContent() {
                                 <div className="flex gap-2 flex-wrap">
                                   {ad.status === 'pending_review' && (
                                     <PermissionGuard permission="ads.approve">
-                                      <Button 
-                                        size="sm" 
+                                      <Button
+                                        size="sm"
                                         variant="outline"
                                         className="text-green-600 hover:text-green-700"
                                         onClick={() => handleReviewCampaign(ad, 'approve')}
@@ -439,8 +439,8 @@ function AdminAdvertisingContent() {
                                   )}
                                   {ad.status === 'pending_review' && (
                                     <PermissionGuard permission="ads.reject">
-                                      <Button 
-                                        size="sm" 
+                                      <Button
+                                        size="sm"
                                         variant="outline"
                                         className="text-red-600 hover:text-red-700"
                                         onClick={() => handleReviewCampaign(ad, 'reject')}
@@ -454,16 +454,16 @@ function AdminAdvertisingContent() {
                                   </Button>
                                   <PermissionGuard permission="ads.pause">
                                     {ad.status === 'active' ? (
-                                      <Button 
-                                        size="sm" 
+                                      <Button
+                                        size="sm"
                                         variant="outline"
                                         onClick={() => updateAdStatus(ad.id, 'pause')}
                                       >
                                         <Pause className="h-4 w-4" />
                                       </Button>
                                     ) : ad.status === 'paused' ? (
-                                      <Button 
-                                        size="sm" 
+                                      <Button
+                                        size="sm"
                                         variant="outline"
                                         onClick={() => updateAdStatus(ad.id, 'resume')}
                                       >
@@ -493,7 +493,7 @@ function AdminAdvertisingContent() {
             <h3 className="text-lg font-semibold mb-4">
               {reviewAction === 'approve' ? 'Approve' : 'Reject'} Campaign
             </h3>
-            
+
             <div className="mb-4">
               <p className="text-sm text-muted-foreground mb-2">
                 Campaign: <span className="font-medium">{selectedCampaign.campaignName}</span>
@@ -529,14 +529,14 @@ function AdminAdvertisingContent() {
             </div>
 
             <div className="flex gap-3 justify-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowReviewModal(false)}
                 disabled={submittingReview}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={submitReview}
                 disabled={submittingReview || (reviewAction === 'reject' && !reviewReason.trim())}
                 className={reviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}

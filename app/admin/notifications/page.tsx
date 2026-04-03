@@ -32,7 +32,7 @@ function NotificationManagementContent() {
 
   const roles = [
     { value: 'customer', label: 'Customers', icon: '👤' },
-    { value: 'vendor', label: 'Vendors', icon: '🏪' },
+    { value: 'creator', label: 'creators', icon: '🏪' },
     { value: 'admin', label: 'Admins', icon: '👑' },
     { value: 'moderator', label: 'Moderators', icon: '🛡️' },
     { value: 'support', label: 'Support', icon: '🎧' },
@@ -46,7 +46,7 @@ function NotificationManagementContent() {
   ];
 
   const handleRoleToggle = (roleValue: string) => {
-    setTargetRoles(prev => 
+    setTargetRoles(prev =>
       prev.includes(roleValue)
         ? prev.filter(r => r !== roleValue)
         : [...prev, roleValue]
@@ -75,7 +75,7 @@ function NotificationManagementContent() {
       );
 
       toast.success(`Notification sent to ${targetRoles.join(', ')} successfully!`);
-      
+
       // Reset form
       setTitle('');
       setMessage('');
@@ -181,8 +181,8 @@ function NotificationManagementContent() {
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={handleSendNotification} 
+                  <Button
+                    onClick={handleSendNotification}
                     disabled={sending}
                     className="w-full"
                   >
@@ -210,12 +210,12 @@ function NotificationManagementContent() {
                     <Settings className="h-4 w-4 mr-2" />
                     Send System Maintenance Alert
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={() => {
                       setTitle('Welcome to FEROMARKETHUB!');
-                      setMessage('Thank you for joining Nigeria\'s premier e-commerce platform. Start exploring amazing products from verified vendors.');
+                      setMessage('Thank you for joining Nigeria\'s premier e-commerce platform. Start exploring amazing products from verified creators.');
                       setPriority('medium');
                       setTargetRoles(['customer']);
                     }}
@@ -224,14 +224,14 @@ function NotificationManagementContent() {
                     <Users className="h-4 w-4 mr-2" />
                     Welcome Message Template
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={() => {
                       setTitle('Security Alert');
                       setMessage('We\'ve detected unusual activity. Please review your account security settings.');
                       setPriority('urgent');
-                      setTargetRoles(['customer', 'vendor']);
+                      setTargetRoles(['customer', 'creator']);
                     }}
                     className="justify-start"
                   >

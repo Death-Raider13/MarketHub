@@ -9,14 +9,14 @@
 2. Verify product loads from Firestore
 3. Check price displays in ₦ (Naira)
 4. Click "Add to Cart" - should show toast
-5. Click "Contact Vendor" - should open modal
+5. Click "Contact creator" - should open modal
 6. Scroll to Reviews section - should show review form
 7. Check related products load
 
 **Expected:**
 - ✅ Real product data displayed
 - ✅ Currency in ₦
-- ✅ Contact vendor modal works
+- ✅ Contact creator modal works
 - ✅ Reviews section integrated
 - ✅ Related products shown
 
@@ -81,13 +81,13 @@
 
 ---
 
-### **5. Test Vendor Messaging** ✅
+### **5. Test creator Messaging** ✅
 
 **Steps:**
 1. As customer, go to product page
-2. Click "Contact Vendor"
+2. Click "Contact creator"
 3. Send a message
-4. As vendor, go to `/vendor/messages`
+4. As creator, go to `/creator/messages`
 5. See unread message
 6. Reply to customer
 7. Check conversation updates
@@ -95,17 +95,17 @@
 **Expected:**
 - ✅ Contact modal opens
 - ✅ Message sends successfully
-- ✅ Vendor sees message
+- ✅ creator sees message
 - ✅ Conversation thread works
 - ✅ Status tracking works
 
 ---
 
-### **6. Test Vendor Analytics** ✅
+### **6. Test creator Analytics** ✅
 
 **Steps:**
-1. Login as vendor
-2. Go to `/vendor/analytics`
+1. Login as creator
+2. Go to `/creator/analytics`
 3. View conversion funnel
 4. Check top products
 5. View time series data
@@ -147,9 +147,9 @@
 - [ ] View order history
 - [ ] Download digital products
 - [ ] Write review
-- [ ] Contact vendor
+- [ ] Contact creator
 
-### **Vendor Flow:**
+### **creator Flow:**
 - [ ] Create product
 - [ ] Upload digital files
 - [ ] View dashboard
@@ -159,7 +159,7 @@
 - [ ] Request payout
 
 ### **Admin Flow:**
-- [ ] Approve vendors
+- [ ] Approve creators
 - [ ] Moderate products
 - [ ] Process payouts
 - [ ] View analytics
@@ -191,7 +191,7 @@
 Check these docs:
 - `IMPLEMENTATION_SUMMARY.md` - Complete overview
 - `CUSTOMER_SYSTEM_ANALYSIS.md` - Customer issues
-- `VENDOR_SYSTEM_IMPROVEMENTS_COMPLETE.md` - Vendor features
+- `creator_SYSTEM_IMPROVEMENTS_COMPLETE.md` - creator features
 - `CRITICAL_FIXES_IMPLEMENTED.md` - Recent fixes
 
 ---

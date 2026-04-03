@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     await recordClick(impressionId, {
       campaignId,
       slotId: '', // TODO: Get from impression
-      vendorId: '', // TODO: Get from impression
+      creatorId: '', // TODO: Get from impression
       timestamp: new Date(timestamp),
       clickPosition: clickPosition || { x: 0, y: 0 },
       sessionId: '', // TODO: Get from session
@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
       destinationUrl: '', // TODO: Get from campaign
       openedInNewTab: true,
       cost: 0, // TODO: Calculate based on campaign
-      vendorEarning: 0,
+      creatorEarning: 0,
       platformEarning: 0
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       impressionId,
       campaignId
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
  */
 function getDeviceFromUserAgent(userAgent: string): 'desktop' | 'mobile' | 'tablet' {
   const ua = userAgent.toLowerCase()
-  
+
   if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
     return 'tablet'
   }

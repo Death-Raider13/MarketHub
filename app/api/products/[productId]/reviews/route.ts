@@ -39,8 +39,8 @@ export async function GET(
 
     // Calculate review statistics
     const totalReviews = reviews.length
-    const averageRating = totalReviews > 0 
-      ? reviews.reduce((sum: number, review: any) => sum + (review.rating || 0), 0) / totalReviews 
+    const averageRating = totalReviews > 0
+      ? reviews.reduce((sum: number, review: any) => sum + (review.rating || 0), 0) / totalReviews
       : 0
 
     const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
@@ -83,10 +83,10 @@ export async function POST(
       rating,
       title,
       comment,
-      vendorId
+      creatorId
     } = await request.json()
 
-    if (!productId || !userId || !userName || !rating || !title || !comment || !vendorId) {
+    if (!productId || !userId || !userName || !rating || !title || !comment || !creatorId) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -114,14 +114,27 @@ export async function POST(
       )
     }
 
-    // Check if user has purchased this product (for verified purchase badge)
+    // ENFORCE Verified Purchase: Block reviews from non-purchasers
     const purchaseSnapshot = await adminDb
       .collection('purchasedProducts')
       .where('userId', '==', userId)
       .where('productId', '==', productId)
+      .limit(1)
       .get()
 
-    const verified = !purchaseSnapshot.empty
+    if (purchaseSnapshot.empty) {
+      return NextResponse.json(
+        { error: 'Only verified purchasers can review this product' },
+        { status: 403 }
+      )
+    }
+
+    const purchaseDoc = purchaseSnapshot.docs[0]
+    const purchaseData = purchaseDoc.data()
+    const verified = true // Already checked above
+
+    // New Digital-Specific Signals
+    const { accuracyRating, deliveryRating } = await request.json().catch(() => ({ accuracyRating: 5, deliveryRating: 5 }))
 
     // Create the review
     const reviewData = {
@@ -129,10 +142,13 @@ export async function POST(
       userId,
       userName,
       rating,
+      accuracyRating: accuracyRating || 5, // Default to 5 if not provided
+      deliveryRating: deliveryRating || 5,
       title: title.trim(),
       comment: comment.trim(),
       helpful: 0,
       verified,
+      orderId: purchaseData.orderId, // Link to order
       status: 'pending', // Reviews need approval
       createdAt: new Date(),
       updatedAt: new Date()
@@ -147,16 +163,16 @@ export async function POST(
     try {
       const productDoc = await adminDb.collection('products').doc(productId).get()
       const productData = productDoc.data()
-      
-      if (productData?.vendorId) {
-        // Notify vendor about new review
-        await notificationService.createNotification(productData.vendorId, 'new_review', {
+
+      if (productData?.creatorId) {
+        // Notify creator about new review
+        await notificationService.createNotification(productData.creatorId, 'new_review', {
           metadata: {
             productId: productId,
             productName: productData.name || 'Unknown Product',
             userName: userName,
             rating: rating,
-            actionUrl: `/vendor/products`
+            actionUrl: `/creator/products`
           }
         })
       }
@@ -192,10 +208,10 @@ async function updateProductRating(productId: string) {
     // Filter for approved reviews in memory
     const allReviews = reviewsSnapshot.docs.map(doc => doc.data())
     const approvedReviews = allReviews.filter(review => review.status === 'approved')
-    
+
     const totalReviews = approvedReviews.length
-    const averageRating = totalReviews > 0 
-      ? approvedReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+    const averageRating = totalReviews > 0
+      ? approvedReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
       : 0
 
     // Update product document

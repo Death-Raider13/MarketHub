@@ -11,33 +11,33 @@ export interface ServiceBooking {
   orderId: string
   serviceId: string
   customerId: string
-  vendorId: string
+  creatorId: string
   serviceName: string
   serviceDescription: string
-  
+
   // Scheduling
   scheduledDate?: Date
   scheduledTime?: string
   duration?: number // in minutes
-  location?: 'customer_location' | 'vendor_location' | 'online'
+  location?: 'customer_location' | 'creator_location' | 'online'
   address?: string
-  
+
   // Requirements
   requirements?: string
   customerNotes?: string
-  vendorNotes?: string
-  
+  creatorNotes?: string
+
   // Status
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
-  
+
   // Communication
   messages?: ServiceMessage[]
-  
+
   // Completion
   completedAt?: Date
   rating?: number
   review?: string
-  
+
   createdAt: Date
   updatedAt: Date
 }
@@ -45,14 +45,14 @@ export interface ServiceBooking {
 export interface ServiceMessage {
   id: string
   senderId: string
-  senderType: 'customer' | 'vendor'
+  senderType: 'customer' | 'creator'
   message: string
   timestamp: Date
   attachments?: string[]
 }
 
 export interface ServiceAvailability {
-  vendorId: string
+  creatorId: string
   dayOfWeek: number // 0-6 (Sunday-Saturday)
   startTime: string // "09:00"
   endTime: string // "17:00"
@@ -77,7 +77,7 @@ export async function createServiceBooking(
       orderId,
       serviceId: serviceItem.productId,
       customerId,
-      vendorId: serviceItem.vendorId,
+      creatorId: serviceItem.creatorId || serviceItem.creatorId,
       serviceName: serviceItem.productName,
       serviceDescription: serviceItem.product?.description || '',
       status: 'pending_schedule',
@@ -87,11 +87,11 @@ export async function createServiceBooking(
 
     const bookingRef = await adminDb.collection('serviceBookings').add(booking)
 
-    // Notify vendor about new service booking
+    // Notify creator about new service booking
     try {
-      await notifyVendorNewBooking(serviceItem.vendorId, bookingRef.id, serviceItem.productName)
+      await notifyCreatorNewBooking(booking.creatorId, bookingRef.id, serviceItem.productName)
     } catch (notificationError) {
-      logger.error('Failed to notify vendor of new booking', { error: notificationError })
+      logger.error('Failed to notify creator of new booking', { error: notificationError })
     }
 
     // Send customer confirmation email for service booking
@@ -112,7 +112,7 @@ export async function createServiceBooking(
             orderId,
             serviceName: serviceItem.productName,
             serviceDescription: serviceItem.product?.description || '',
-            vendorId: serviceItem.vendorId
+            creatorId: booking.creatorId
           },
           serviceItem.productPrice * serviceItem.quantity
         )
@@ -120,15 +120,7 @@ export async function createServiceBooking(
       }
     } catch (emailError) {
       logger.error('Failed to send service booking confirmation email', { error: emailError })
-      // Don't fail the booking creation if email fails
     }
-
-    logger.info('Service booking created', {
-      bookingId: bookingRef.id,
-      orderId,
-      serviceId: serviceItem.productId,
-      vendorId: serviceItem.vendorId
-    })
 
     return { success: true, bookingId: bookingRef.id }
 
@@ -149,9 +141,9 @@ export async function scheduleServiceBooking(
     duration?: number
     location?: string
     address?: string
-    vendorNotes?: string
+    creatorNotes?: string
   },
-  vendorId: string
+  creatorId: string
 ): Promise<{ success: boolean; error?: string }> {
   const adminDb = getAdminFirestore()
   if (!adminDb) {
@@ -167,22 +159,22 @@ export async function scheduleServiceBooking(
     }
 
     const bookingData = bookingDoc.data() as ServiceBooking
-    
-    // Verify vendor ownership
-    if (bookingData.vendorId !== vendorId) {
+
+    // Verify creator ownership
+    if (bookingData.creatorId !== creatorId) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    // Check if vendor is available at the requested time
-    const isAvailable = await checkVendorAvailability(
-      vendorId, 
-      scheduleData.scheduledDate, 
+    // Check if creator is available at the requested time
+    const isAvailable = await checkCreatorAvailability(
+      creatorId,
+      scheduleData.scheduledDate,
       scheduleData.scheduledTime,
       scheduleData.duration || 60
     )
 
     if (!isAvailable) {
-      return { success: false, error: 'Vendor not available at the requested time' }
+      return { success: false, error: 'Creator not available at the requested time' }
     }
 
     // Update booking with schedule
@@ -195,8 +187,8 @@ export async function scheduleServiceBooking(
     // Notify customer about scheduled service
     try {
       await notifyCustomerServiceScheduled(
-        bookingData.customerId, 
-        bookingId, 
+        bookingData.customerId,
+        bookingId,
         scheduleData.scheduledDate,
         scheduleData.scheduledTime
       )
@@ -204,17 +196,10 @@ export async function scheduleServiceBooking(
       logger.error('Failed to notify customer of scheduled service', { error: notificationError })
     }
 
-    logger.info('Service booking scheduled', {
-      bookingId,
-      vendorId,
-      scheduledDate: scheduleData.scheduledDate,
-      scheduledTime: scheduleData.scheduledTime
-    })
-
     return { success: true }
 
   } catch (error) {
-    logger.error('Error scheduling service booking', { error, bookingId, vendorId })
+    logger.error('Error scheduling service booking', { error, bookingId, creatorId })
     return { success: false, error: 'Failed to schedule service' }
   }
 }
@@ -226,7 +211,7 @@ export async function updateServiceStatus(
   bookingId: string,
   status: ServiceBooking['status'],
   userId: string,
-  userType: 'customer' | 'vendor',
+  userType: 'customer' | 'creator',
   notes?: string
 ): Promise<{ success: boolean; error?: string }> {
   const adminDb = getAdminFirestore()
@@ -246,7 +231,7 @@ export async function updateServiceStatus(
 
     // Verify authorization
     const canUpdate = (userType === 'customer' && bookingData.customerId === userId) ||
-                     (userType === 'vendor' && bookingData.vendorId === userId)
+      (userType === 'creator' && bookingData.creatorId === userId)
 
     if (!canUpdate) {
       return { success: false, error: 'Unauthorized' }
@@ -277,8 +262,8 @@ export async function updateServiceStatus(
     }
 
     if (notes) {
-      if (userType === 'vendor') {
-        updateData.vendorNotes = notes
+      if (userType === 'creator') {
+        updateData.creatorNotes = notes
       } else {
         updateData.customerNotes = notes
       }
@@ -288,21 +273,14 @@ export async function updateServiceStatus(
 
     // Send notifications
     try {
-      if (userType === 'vendor') {
+      if (userType === 'creator') {
         await notifyCustomerServiceUpdate(bookingData.customerId, bookingId, status)
       } else {
-        await notifyVendorServiceUpdate(bookingData.vendorId, bookingId, status)
+        await notifyCreatorServiceUpdate(bookingData.creatorId, bookingId, status)
       }
     } catch (notificationError) {
       logger.error('Failed to send service update notification', { error: notificationError })
     }
-
-    logger.info('Service booking status updated', {
-      bookingId,
-      oldStatus: currentStatus,
-      newStatus: status,
-      updatedBy: `${userType}:${userId}`
-    })
 
     return { success: true }
 
@@ -318,7 +296,7 @@ export async function updateServiceStatus(
 export async function addServiceMessage(
   bookingId: string,
   senderId: string,
-  senderType: 'customer' | 'vendor',
+  senderType: 'customer' | 'creator',
   message: string,
   attachments?: string[]
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
@@ -339,7 +317,7 @@ export async function addServiceMessage(
 
     // Verify authorization
     const canMessage = (senderType === 'customer' && bookingData.customerId === senderId) ||
-                      (senderType === 'vendor' && bookingData.vendorId === senderId)
+      (senderType === 'creator' && bookingData.creatorId === senderId)
 
     if (!canMessage) {
       return { success: false, error: 'Unauthorized' }
@@ -351,18 +329,11 @@ export async function addServiceMessage(
       senderType,
       message,
       timestamp: new Date(),
-      ...(attachments && { attachments }) // Only include attachments if it exists
+      ...(attachments && { attachments })
     }
 
-    // Convert Date objects to Firestore Timestamps for storage
-    const messageForStorage = {
-      ...serviceMessage,
-      timestamp: new Date() // Firestore will convert this properly
-    }
-    
-    // Get existing messages and ensure they're in the right format
     const existingMessages = bookingData.messages || []
-    const messagesForStorage = [...existingMessages, messageForStorage]
+    const messagesForStorage = [...existingMessages, serviceMessage]
 
     await bookingRef.update({
       messages: messagesForStorage,
@@ -372,7 +343,7 @@ export async function addServiceMessage(
     // Notify the other party
     try {
       if (senderType === 'customer') {
-        await notifyVendorNewMessage(bookingData.vendorId, bookingId, message)
+        await notifyCreatorNewMessage(bookingData.creatorId, bookingId, message)
       } else {
         await notifyCustomerNewMessage(bookingData.customerId, bookingId, message)
       }
@@ -389,9 +360,9 @@ export async function addServiceMessage(
 }
 
 /**
- * Get service bookings for vendor
+ * Get service bookings for creator
  */
-export async function getVendorServiceBookings(vendorId: string) {
+export async function getCreatorServiceBookings(creatorId: string) {
   const adminDb = getAdminFirestore()
   if (!adminDb) {
     throw new Error('Firebase Admin not configured')
@@ -400,7 +371,7 @@ export async function getVendorServiceBookings(vendorId: string) {
   try {
     const bookingsSnapshot = await adminDb
       .collection('serviceBookings')
-      .where('vendorId', '==', vendorId)
+      .where('creatorId', '==', creatorId)
       .orderBy('createdAt', 'desc')
       .get()
 
@@ -412,7 +383,7 @@ export async function getVendorServiceBookings(vendorId: string) {
     return bookings
 
   } catch (error) {
-    logger.error('Error getting vendor service bookings', { error, vendorId })
+    logger.error('Error getting creator service bookings', { error, creatorId })
     throw error
   }
 }
@@ -447,10 +418,10 @@ export async function getCustomerServiceBookings(customerId: string) {
 }
 
 /**
- * Check vendor availability for a specific time slot
+ * Check creator availability for a specific time slot
  */
-async function checkVendorAvailability(
-  vendorId: string,
+async function checkCreatorAvailability(
+  creatorId: string,
   date: Date,
   time: string,
   duration: number
@@ -461,7 +432,6 @@ async function checkVendorAvailability(
   }
 
   try {
-    // Check for conflicting bookings on the same date and time
     const startOfDay = new Date(date)
     startOfDay.setHours(0, 0, 0, 0)
     const endOfDay = new Date(date)
@@ -469,59 +439,49 @@ async function checkVendorAvailability(
 
     const conflictingBookings = await adminDb
       .collection('serviceBookings')
-      .where('vendorId', '==', vendorId)
+      .where('creatorId', '==', creatorId)
       .where('scheduledDate', '>=', startOfDay)
       .where('scheduledDate', '<=', endOfDay)
       .where('status', 'in', ['scheduled', 'in_progress'])
       .get()
 
-    // Check if there's a time conflict
     for (const bookingDoc of conflictingBookings.docs) {
       const booking = bookingDoc.data()
       if (booking.scheduledTime === time) {
-        // Same time slot is already booked
         return false
       }
     }
 
-    // If no conflicts, vendor is available
-    // Note: In the future, you can add vendor availability schedule checking here
     return true
 
   } catch (error) {
-    logger.error('Error checking vendor availability', { error, vendorId, date, time })
-    // On error, allow scheduling (fail-safe approach)
+    logger.error('Error checking creator availability', { error, creatorId, date, time })
     return true
   }
 }
 
-// Notification helper functions (to be implemented)
-async function notifyVendorNewBooking(vendorId: string, bookingId: string, serviceName: string) {
-  // TODO: Implement notification
-  logger.info('Vendor notification: New booking', { vendorId, bookingId, serviceName })
+// Notification helper functions
+async function notifyCreatorNewBooking(creatorId: string, bookingId: string, serviceName: string) {
+  logger.info('Creator notification: New booking', { creatorId, bookingId, serviceName })
 }
 
 async function notifyCustomerServiceScheduled(customerId: string, bookingId: string, date: Date, time: string) {
-  // TODO: Implement notification
   logger.info('Customer notification: Service scheduled', { customerId, bookingId, date, time })
 }
 
 async function notifyCustomerServiceUpdate(customerId: string, bookingId: string, status: string) {
-  // TODO: Implement notification
   logger.info('Customer notification: Service update', { customerId, bookingId, status })
 }
 
-async function notifyVendorServiceUpdate(vendorId: string, bookingId: string, status: string) {
-  // TODO: Implement notification
-  logger.info('Vendor notification: Service update', { vendorId, bookingId, status })
+async function notifyCreatorServiceUpdate(creatorId: string, bookingId: string, status: string) {
+  logger.info('Creator notification: Service update', { creatorId, bookingId, status })
 }
 
-async function notifyVendorNewMessage(vendorId: string, bookingId: string, message: string) {
-  // TODO: Implement notification
-  logger.info('Vendor notification: New message', { vendorId, bookingId })
+async function notifyCreatorNewMessage(creatorId: string, bookingId: string, message: string) {
+  logger.info('Creator notification: New message', { creatorId, bookingId })
 }
 
 async function notifyCustomerNewMessage(customerId: string, bookingId: string, message: string) {
-  // TODO: Implement notification
   logger.info('Customer notification: New message', { customerId, bookingId })
 }
+

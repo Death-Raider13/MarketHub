@@ -4,7 +4,7 @@
 
 ### **Separate Advertiser Account**
 - Users must create a **separate advertiser profile** to access the advertising system
-- This is **independent** of their customer or vendor account
+- This is **independent** of their customer or creator account
 - They can use the **same email** for convenience
 - **No access to dashboard** without completing advertiser signup
 
@@ -47,17 +47,17 @@
 9. Can switch between shopping and advertising
 ```
 
-### **Scenario 3: Existing Vendor (Has Account)**
+### **Scenario 3: Existing creator (Has Account)**
 ```
-1. Already logged in as vendor
+1. Already logged in as creator
 2. Wants to advertise products on other stores
 3. Clicks "Advertise" in header
 4. Redirected to /advertiser/signup
-5. Sees "Logged in as: vendor@email.com"
+5. Sees "Logged in as: creator@email.com"
 6. Fills advertiser profile form
 7. Can use same email
 8. Creates advertiser profile
-9. Now has BOTH vendor AND advertiser profiles
+9. Now has BOTH creator AND advertiser profiles
 10. Can sell products AND advertise them
 ```
 
@@ -74,7 +74,7 @@
 
 ### **Scenario 5: User Without Advertiser Profile Tries Direct Access**
 ```
-1. User logged in (customer or vendor)
+1. User logged in (customer or creator)
 2. Tries to access /advertiser/dashboard directly
 3. System checks: User logged in? ✅
 4. System checks: Has advertiser profile? ❌
@@ -93,7 +93,7 @@
 users/
 ├── {userId}
     ├── email: "user@email.com"
-    ├── role: "customer" | "vendor"
+    ├── role: "customer" | "creator"
     └── ... (regular user data)
 
 advertisers/  ← NEW COLLECTION
@@ -117,7 +117,7 @@ advertisers/  ← NEW COLLECTION
 - ✅ Separate `advertisers` collection
 - ✅ Uses same `userId` as key
 - ✅ Can have same or different email
-- ✅ Independent of user role (customer/vendor)
+- ✅ Independent of user role (customer/creator)
 
 ---
 
@@ -222,7 +222,7 @@ Data: User's real campaigns
 
 ### **1. Separate Profiles**
 - ✅ Customer can become advertiser
-- ✅ Vendor can become advertiser
+- ✅ creator can become advertiser
 - ✅ Each profile is independent
 - ✅ Different permissions and features
 
@@ -284,10 +284,10 @@ Existing Customer:
   → Fill Form → Create Advertiser Profile → Dashboard
   → Now has: Customer Profile + Advertiser Profile
 
-Existing Vendor:
+Existing creator:
 /advertise → /advertiser/signup → Already Logged In
   → Fill Form → Create Advertiser Profile → Dashboard
-  → Now has: Vendor Profile + Advertiser Profile
+  → Now has: creator Profile + Advertiser Profile
 
 Returning Advertiser:
 /advertise → Dashboard Check → Has Profile? Yes
@@ -328,14 +328,14 @@ User Tries Direct Access:
 ### **What This Achieves:**
 
 1. **Separate Advertiser Identity**
-   - Independent from customer/vendor accounts
+   - Independent from customer/creator accounts
    - Dedicated business information
    - Professional advertising profile
 
 2. **Flexible Email Usage**
    - Can use same email as main account
    - Or use different business email
-   - Easy for vendors and customers
+   - Easy for creators and customers
 
 3. **Proper Access Control**
    - Must complete advertiser signup
@@ -344,8 +344,8 @@ User Tries Direct Access:
 
 4. **Multiple Roles Support**
    - User can be: Customer + Advertiser
-   - User can be: Vendor + Advertiser
-   - User can be: Customer + Vendor + Advertiser
+   - User can be: creator + Advertiser
+   - User can be: Customer + creator + Advertiser
    - All with same login!
 
 5. **Professional System**
@@ -362,7 +362,7 @@ User Tries Direct Access:
 ✅ Separate advertiser account required
 ✅ Can use same email for convenience
 ✅ Must complete signup before dashboard access
-✅ Works for customers, vendors, and new users
+✅ Works for customers, creators, and new users
 ✅ No mock data without proper signup
 ✅ Professional onboarding experience
 ```

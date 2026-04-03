@@ -12,20 +12,20 @@ This document explains all routes, role-based access, and navigation flow in the
 
 **After Successful Login:**
 - **Admin** → `/admin/dashboard`
-- **Vendor (Verified)** → `/vendor/dashboard`
-- **Vendor (Unverified)** → `/vendor/pending-approval`
+- **creator (Verified)** → `/creator/dashboard`
+- **creator (Unverified)** → `/creator/pending-approval`
 - **Customer** → `/` (Homepage)
 
 ### Signup Process
 **Route:** `/auth/signup`
 
 **Flow:**
-1. User selects role (Customer or Vendor)
+1. User selects role (Customer or creator)
 2. **If Customer:** Complete simple signup → Redirect to `/`
-3. **If Vendor:** Redirect to `/auth/vendor-register` (comprehensive form)
+3. **If creator:** Redirect to `/auth/creator-register` (comprehensive form)
 
-### Vendor Registration
-**Route:** `/auth/vendor-register`
+### creator Registration
+**Route:** `/auth/creator-register`
 
 **5-Step Process:**
 1. Personal Information
@@ -34,7 +34,7 @@ This document explains all routes, role-based access, and navigation flow in the
 4. Business Address & Banking
 5. Review & Submit
 
-**After Submission:** → `/vendor/pending-approval`
+**After Submission:** → `/creator/pending-approval`
 
 ---
 
@@ -46,13 +46,13 @@ This document explains all routes, role-based access, and navigation flow in the
 | `/products` | All Products | Product Grid, Filters, Sorting |
 | `/products/[id]` | Product Detail | Images, Reviews, Q&A, Related Products |
 | `/search` | Search Results | Advanced Filters, Sort Options |
-| `/vendors/[id]` | Vendor Store | Vendor Profile, Products, Reviews |
+| `/creators/[id]` | creator Store | creator Profile, Products, Reviews |
 | `/categories` | All Categories | Category Grid |
 | `/help` | Help Center | FAQs, Support Categories |
 | `/contact` | Contact Us | Contact Form, Support Info |
 | `/auth/login` | Login Page | Email/Password Login |
 | `/auth/signup` | Signup Page | Role Selection, Basic Info |
-| `/auth/vendor-register` | Vendor Registration | 5-Step Form |
+| `/auth/creator-register` | creator Registration | 5-Step Form |
 | `/auth/reset-password` | Password Reset | Email Input |
 
 ---
@@ -77,22 +77,22 @@ This document explains all routes, role-based access, and navigation flow in the
 
 ---
 
-## 🏪 Vendor Routes (Requires Vendor Role)
+## 🏪 creator Routes (Requires creator Role)
 
-### Main Vendor Routes
+### Main creator Routes
 
 | Route | Description | Access |
 |-------|-------------|--------|
-| `/vendor/dashboard` | Vendor Dashboard | Verified Vendors |
-| `/vendor/products` | Product Management | Verified Vendors |
-| `/vendor/products/new` | Add New Product | Verified Vendors |
-| `/vendor/orders` | Order Management | Verified Vendors |
-| `/vendor/analytics` | Sales Analytics | Verified Vendors |
-| `/vendor/advertising` | Ad Campaigns | Verified Vendors |
-| `/vendor/advertising/new` | Create Ad Campaign | Verified Vendors |
-| `/vendor/pending-approval` | Pending Status | Unverified Vendors |
+| `/creator/dashboard` | creator Dashboard | Verified creators |
+| `/creator/products` | Product Management | Verified creators |
+| `/creator/products/new` | Add New Product | Verified creators |
+| `/creator/orders` | Order Management | Verified creators |
+| `/creator/analytics` | Sales Analytics | Verified creators |
+| `/creator/advertising` | Ad Campaigns | Verified creators |
+| `/creator/advertising/new` | Create Ad Campaign | Verified creators |
+| `/creator/pending-approval` | Pending Status | Unverified creators |
 
-### Vendor Dashboard Features:
+### creator Dashboard Features:
 - Sales overview
 - Revenue charts
 - Top products
@@ -125,7 +125,7 @@ This document explains all routes, role-based access, and navigation flow in the
 | Route | Description | Access |
 |-------|-------------|--------|
 | `/admin/dashboard` | Admin Dashboard | Admins Only |
-| `/admin/vendors` | Vendor Management | Admins Only |
+| `/admin/creators` | creator Management | Admins Only |
 | `/admin/products` | Product Moderation | Admins Only |
 | `/admin/users` | User Management | Admins Only |
 | `/admin/advertising` | Ad Moderation | Admins Only |
@@ -135,19 +135,19 @@ This document explains all routes, role-based access, and navigation flow in the
 ### Admin Dashboard Features:
 - Platform statistics
 - Revenue overview
-- Active vendors
+- Active creators
 - Total products
 - User growth
 - Pending approvals
 - Recent activity
 
-### Vendor Management:
-- Approve/reject vendor applications
-- View vendor details
-- Verify vendors
+### creator Management:
+- Approve/reject creator applications
+- View creator details
+- Verify creators
 - Set commission rates
-- Suspend/ban vendors
-- View vendor performance
+- Suspend/ban creators
+- View creator performance
 
 ### Product Moderation:
 - Approve/reject products
@@ -174,10 +174,10 @@ All protected routes use the `ProtectedRoute` component:
 ```tsx
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
 
-export default function VendorDashboardPage() {
+export default function creatorDashboardPage() {
   return (
-    <ProtectedRoute allowedRoles={["vendor"]}>
-      <VendorDashboardContent />
+    <ProtectedRoute allowedRoles={["creator"]}>
+      <creatorDashboardContent />
     </ProtectedRoute>
   )
 }
@@ -189,14 +189,14 @@ export default function VendorDashboardPage() {
 // Customer-only routes
 <ProtectedRoute allowedRoles={["customer"]}>
 
-// Vendor-only routes
-<ProtectedRoute allowedRoles={["vendor"]}>
+// creator-only routes
+<ProtectedRoute allowedRoles={["creator"]}>
 
 // Admin-only routes
 <ProtectedRoute allowedRoles={["admin"]}>
 
 // Multiple roles
-<ProtectedRoute allowedRoles={["vendor", "admin"]}>
+<ProtectedRoute allowedRoles={["creator", "admin"]}>
 
 // Any authenticated user
 <ProtectedRoute>
@@ -212,15 +212,15 @@ Homepage → Browse Products → Product Detail → Add to Cart →
 Checkout → Order Confirmation → Track Order
 ```
 
-### Vendor Journey
+### creator Journey
 ```
-Vendor Registration → Pending Approval → Email Notification → 
-Vendor Dashboard → Add Products → Manage Orders → View Analytics
+creator Registration → Pending Approval → Email Notification → 
+creator Dashboard → Add Products → Manage Orders → View Analytics
 ```
 
 ### Admin Journey
 ```
-Admin Login → Admin Dashboard → Review Vendors → Approve Products → 
+Admin Login → Admin Dashboard → Review creators → Approve Products → 
 Monitor Platform → Manage Users
 ```
 
@@ -232,11 +232,11 @@ Monitor Platform → Manage Users
 ```typescript
 if (role === "admin") {
   redirect("/admin/dashboard")
-} else if (role === "vendor") {
+} else if (role === "creator") {
   if (verified) {
-    redirect("/vendor/dashboard")
+    redirect("/creator/dashboard")
   } else {
-    redirect("/vendor/pending-approval")
+    redirect("/creator/pending-approval")
   }
 } else {
   redirect("/")
@@ -249,7 +249,7 @@ if (role === "admin") {
 
 ### After Signup:
 - Customer → Redirect to `/`
-- Vendor → Redirect to `/auth/vendor-register`
+- creator → Redirect to `/auth/creator-register`
 
 ---
 
@@ -295,9 +295,9 @@ if (role === "admin") {
 ### Product APIs
 - `GET /api/products` - Get all products
 - `GET /api/products/[id]` - Get product details
-- `POST /api/products` - Create product (vendor)
-- `PUT /api/products/[id]` - Update product (vendor)
-- `DELETE /api/products/[id]` - Delete product (vendor/admin)
+- `POST /api/products` - Create product (creator)
+- `PUT /api/products/[id]` - Update product (creator)
+- `DELETE /api/products/[id]` - Delete product (creator/admin)
 
 ### Order APIs
 - `GET /api/orders` - Get user orders
@@ -321,8 +321,8 @@ if (role === "admin") {
 ### Issue 1: Admin not redirected to dashboard after login
 **Solution:** ✅ Fixed! Login page now checks user role and redirects accordingly.
 
-### Issue 2: Vendor sees customer dashboard
-**Solution:** Use `ProtectedRoute` with `allowedRoles={["vendor"]}`
+### Issue 2: creator sees customer dashboard
+**Solution:** Use `ProtectedRoute` with `allowedRoles={["creator"]}`
 
 ### Issue 3: 404 on dynamic routes
 **Solution:** Ensure folder structure uses `[id]` format, not `{id}`
@@ -375,8 +375,8 @@ Track these metrics:
 - `/flash-sales` - Flash sales
 
 ### Phase 2:
-- `/messages` - Customer-vendor messaging
-- `/vendor/payouts` - Payout management
+- `/messages` - Customer-creator messaging
+- `/creator/payouts` - Payout management
 - `/admin/reports` - Advanced reports
 - `/admin/analytics` - Platform analytics
 

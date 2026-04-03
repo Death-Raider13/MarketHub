@@ -4,16 +4,16 @@ import { verifyAdminAuth } from '@/lib/firebase/admin-auth'
 import { hasPermission } from '@/lib/admin/permissions'
 import { createApiLogger, logBusinessEvent } from '@/lib/logger'
 
-// Update order status (for vendors and admins)
+// Update order status (for creators and admins)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   const logger = createApiLogger(request, `/api/orders/${params.orderId}/status`)
-  
+
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -22,7 +22,7 @@ export async function PATCH(
     }
 
     const { orderId } = params
-    const { status, trackingNumber, notes, vendorId } = await request.json()
+    const { status, trackingNumber, notes, creatorId } = await request.json()
 
     // Validate required fields
     if (!status) {
@@ -72,15 +72,15 @@ export async function PATCH(
         userContext = `admin:${authResult.user.uid}`
       }
     } catch (adminError) {
-      // Not an admin, check if it's a vendor
+      // Not an admin, check if it's a creator
     }
 
-    // If not admin, check if vendor owns products in this order
-    if (!canUpdate && vendorId) {
-      const hasVendorProducts = orderData.items?.some((item: any) => item.vendorId === vendorId)
-      if (hasVendorProducts) {
+    // If not admin, check if creator owns products in this order
+    if (!canUpdate && creatorId) {
+      const hascreatorProducts = orderData.items?.some((item: any) => item.creatorId === creatorId)
+      if (hascreatorProducts) {
         canUpdate = true
-        userContext = `vendor:${vendorId}`
+        userContext = `creator:${creatorId}`
       }
     }
 
@@ -130,7 +130,7 @@ export async function PATCH(
     // Add cancellation info
     if (status === 'cancelled') {
       updateData.cancelledAt = new Date()
-      updateData.cancellationReason = notes || 'Cancelled by vendor'
+      updateData.cancellationReason = notes || 'Cancelled by creator'
     }
 
     // Add notes if provided
@@ -153,15 +153,15 @@ export async function PATCH(
     // Send notifications
     try {
       const { NotificationTriggers } = await import('@/lib/notifications/triggers')
-      
+
       // Notify customer
       await NotificationTriggers.onOrderStatusChange(orderId, orderData.userId, status)
-      
-      // If shipped, notify all vendors in the order
+
+      // If shipped, notify all creators in the order
       if (status === 'shipped') {
-        const vendorIds = [...new Set<string>(orderData.items?.map((item: any) => item.vendorId) || [])]
-        for (const vId of vendorIds) {
-          if (vId !== vendorId) { // Don't notify the vendor who updated it
+        const creatorIds = [...new Set<string>(orderData.items?.map((item: any) => item.creatorId) || [])]
+        for (const vId of creatorIds) {
+          if (vId !== creatorId) { // Don't notify the creator who updated it
             await NotificationTriggers.onOrderStatusChange(orderId, vId, status)
           }
         }
@@ -245,7 +245,7 @@ async function restoreInventory(items: any[]) {
   for (const item of items) {
     if (item.productId && item.quantity) {
       const productRef = adminDb.collection('products').doc(item.productId)
-      
+
       // Get current stock
       const productDoc = await productRef.get()
       if (productDoc.exists) {

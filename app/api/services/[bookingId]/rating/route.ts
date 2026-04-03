@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminFirestore } from '@/lib/firebase/admin'
+import { getAdminFirestore } from '@/lib/firebase/admin-simple'
+import { verifyAuthToken } from '@/lib/api-auth'
+import { logger } from '@/lib/logger'
 
 export async function POST(
   request: NextRequest,
@@ -7,11 +9,22 @@ export async function POST(
 ) {
   try {
     const { bookingId } = params
-    const { rating, review, customerId } = await request.json()
 
-    if (!rating || !customerId) {
+    // 1. Authenticate
+    const authResult = await verifyAuthToken(request)
+    if ('error' in authResult) {
+      return authResult.error
+    }
+
+    const { user } = authResult
+    const customerId = user.uid
+
+    // 2. Validate input
+    const { rating, review } = await request.json()
+
+    if (!rating) {
       return NextResponse.json(
-        { error: 'Rating and customer ID are required' },
+        { error: 'Rating is required' },
         { status: 400 }
       )
     }
@@ -31,7 +44,7 @@ export async function POST(
       )
     }
 
-    // Get the booking
+    // 3. Get the booking and verify ownership
     const bookingRef = adminDb.collection('serviceBookings').doc(bookingId)
     const bookingDoc = await bookingRef.get()
 
@@ -44,10 +57,11 @@ export async function POST(
 
     const bookingData = bookingDoc.data()
 
-    // Verify authorization
+    // SECURITY: Verify the authenticated user is the one who bought the service
     if (bookingData?.customerId !== customerId) {
+      logger.warn(`Unauthorized rating attempt: booking=${bookingId}, user=${customerId}`)
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized: You did not book this service' },
         { status: 403 }
       )
     }
@@ -68,7 +82,7 @@ export async function POST(
       )
     }
 
-    // Update the booking with rating
+    // 4. Update the booking and create review record
     await bookingRef.update({
       rating,
       review: review || '',
@@ -76,11 +90,10 @@ export async function POST(
       updatedAt: new Date()
     })
 
-    // Also create a separate review record for the service/vendor
     const reviewData = {
       bookingId,
       serviceId: bookingData.serviceId,
-      vendorId: bookingData.vendorId,
+      creatorId: bookingData.creatorId,
       customerId,
       serviceName: bookingData.serviceName,
       rating,
@@ -88,10 +101,9 @@ export async function POST(
       createdAt: new Date()
     }
 
-
     await adminDb.collection('serviceReviews').add(reviewData)
 
-    // Recalculate and update service product rating & review count on the main products document
+    // 5. Async recalculate product rating stats
     try {
       const serviceId = bookingData.serviceId
       const reviewsSnapshot = await adminDb
@@ -99,7 +111,7 @@ export async function POST(
         .where('serviceId', '==', serviceId)
         .get()
 
-      const reviews = reviewsSnapshot.docs.map(doc => doc.data()) as any[]
+      const reviews = reviewsSnapshot.docs.map((doc: any) => doc.data()) as any[]
       const totalReviews = reviews.length
       const averageRating = totalReviews > 0
         ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews
@@ -110,9 +122,8 @@ export async function POST(
         reviewCount: totalReviews,
         updatedAt: new Date()
       })
-    } catch (updateError) {
-      console.error('Error updating service product rating stats:', updateError)
-      // Do not fail the request if stats update fails
+    } catch (statsError: any) {
+      logger.error('Error updating service product rating stats', { serviceId: bookingData.serviceId }, statsError)
     }
 
     return NextResponse.json({
@@ -120,11 +131,12 @@ export async function POST(
       message: 'Rating submitted successfully'
     })
 
-  } catch (error) {
-    console.error('Error submitting rating:', error)
+  } catch (error: any) {
+    logger.error('Error submitting service rating', { bookingId: params.bookingId }, error)
     return NextResponse.json(
       { error: 'Failed to submit rating' },
       { status: 500 }
     )
   }
 }
+

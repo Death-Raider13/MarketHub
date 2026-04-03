@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Store, ShoppingBag } from "lucide-react"
+import { Sparkles, ShoppingBag } from "lucide-react"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -33,9 +33,9 @@ export default function SignupPage() {
     e.preventDefault()
     setError("")
 
-    // Redirect vendors to new streamlined registration
-    if (role === "vendor") {
-      router.push("/auth/vendor-register-new")
+    // Redirect creators to new streamlined registration
+    if (role === "creator") {
+      router.push("/auth/creator-register-new")
       return
     }
 
@@ -86,8 +86,8 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <Store className="h-12 w-12" />
+          <div className="flex justify-center mb-4 text-primary">
+            <Sparkles className="h-12 w-12" />
           </div>
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>Choose your account type and get started</CardDescription>
@@ -110,12 +110,12 @@ export default function SignupPage() {
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 rounded-lg border border-border p-4 hover:bg-muted/50">
-                  <RadioGroupItem value="vendor" id="vendor" />
-                  <Label htmlFor="vendor" className="flex flex-1 cursor-pointer items-center gap-3">
-                    <Store className="h-5 w-5" />
+                  <RadioGroupItem value="creator" id="creator" />
+                  <Label htmlFor="creator" className="flex flex-1 cursor-pointer items-center gap-3">
+                    <Sparkles className="h-5 w-5 text-primary" />
                     <div>
-                      <div className="font-medium">Sell as Vendor</div>
-                      <div className="text-xs text-muted-foreground">Complete business registration to start selling</div>
+                      <div className="font-medium">Build as Creator</div>
+                      <div className="text-xs text-muted-foreground">Launch your digital portfolio and start selling</div>
                     </div>
                   </Label>
                 </div>
@@ -243,7 +243,7 @@ export default function SignupPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : role === "vendor" ? "Continue to Vendor Registration" : "Create Account"}
+              {loading ? "Creating account..." : role === "creator" ? "Continue to Creator Onboarding" : "Create Account"}
             </Button>
 
             <div className="relative">

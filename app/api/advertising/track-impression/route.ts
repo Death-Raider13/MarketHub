@@ -6,7 +6,7 @@ import { FieldValue } from "firebase-admin/firestore"
 export async function POST(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { campaignId, placement, vendorId, category, deviceType, userAgent, timestamp } = await request.json()
+    const { campaignId, placement, creatorId, category, deviceType, userAgent, timestamp } = await request.json()
 
     if (!campaignId || !placement) {
       return NextResponse.json(
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       campaignId,
       advertiserId: campaignData.advertiserId,
       placement,
-      vendorId: vendorId || null,
+      creatorId: creatorId || null,
       category: category || null,
       deviceType,
       userAgent,
@@ -72,20 +72,20 @@ export async function POST(request: NextRequest) {
 
     // Calculate cost per impression (CPM model)
     const cpmCost = (campaignData.bidding?.bidAmount || 1) / 1000 // Cost per 1000 impressions
-    
+
     // Calculate revenue split
     const placementType = campaignData.placement?.type || 'homepage'
     const revenueCalculation = calculateImpressionRevenue(1, cpmCost * 1000, placementType, DEFAULT_AD_REVENUE_CONFIG)
-    
+
     // Update impression record with revenue data
     await impressionRef.update({
       cost: cpmCost,
       platformEarning: revenueCalculation.platformRevenue,
-      vendorEarning: revenueCalculation.vendorRevenue,
+      creatorEarning: revenueCalculation.creatorRevenue,
       clicked: false,
       converted: false
     })
-    
+
     // Update budget
     await campaignRef.update({
       "budget.spent": FieldValue.increment(cpmCost),

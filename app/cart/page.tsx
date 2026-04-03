@@ -15,21 +15,21 @@ import { Separator } from "@/components/ui/separator"
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart()
 
-  // Group items by vendor
-  const itemsByVendor = items.reduce((acc, item) => {
-    const vendorId = item.product.vendorId
-    if (!acc[vendorId]) {
-      acc[vendorId] = {
-        vendorId,
-        vendorName: item.product.vendorName || 'Vendor Store',
+  // Group items by creator
+  const itemsBycreator = items.reduce((acc, item) => {
+    const creatorId = item.product.creatorId
+    if (!acc[creatorId]) {
+      acc[creatorId] = {
+        creatorId,
+        creatorName: item.product.creatorName || 'creator Store',
         items: []
       }
     }
-    acc[vendorId].items.push(item)
+    acc[creatorId].items.push(item)
     return acc
-  }, {} as Record<string, { vendorId: string; vendorName: string; items: typeof items }>)
+  }, {} as Record<string, { creatorId: string; creatorName: string; items: typeof items }>)
 
-  const vendorGroups = Object.values(itemsByVendor)
+  const creatorGroups = Object.values(itemsBycreator)
 
   const tax = totalPrice * 0.1
   const total = totalPrice + tax
@@ -64,47 +64,47 @@ export default function CartPage() {
           <h1 className="mb-8 text-3xl font-bold">Shopping Cart ({totalItems} items)</h1>
 
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Cart Items Grouped by Vendor */}
+            {/* Cart Items Grouped by creator */}
             <div className="lg:col-span-2 space-y-6">
-              {vendorGroups.map((vendorGroup) => {
-                const vendorTotal = vendorGroup.items.reduce(
+              {creatorGroups.map((creatorGroup) => {
+                const creatorTotal = creatorGroup.items.reduce(
                   (sum, item) => sum + item.product.price * item.quantity,
                   0
                 )
-                
+
                 return (
-                  <Card key={vendorGroup.vendorId} className="overflow-hidden">
-                    {/* Vendor Header */}
+                  <Card key={creatorGroup.creatorId} className="overflow-hidden">
+                    {/* creator Header */}
                     <div className="bg-muted/50 p-4 border-b">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                            {vendorGroup.vendorName?.charAt(0) || 'V'}
+                            {creatorGroup.creatorName?.charAt(0) || 'V'}
                           </div>
                           <div>
-                            <Link 
-                              href={`/store/${vendorGroup.vendorId}`}
+                            <Link
+                              href={`/hub/${creatorGroup.creatorId}`}
                               className="font-semibold hover:underline flex items-center gap-2"
                             >
-                              {vendorGroup.vendorName}
+                              {creatorGroup.creatorName}
                               <Store className="h-4 w-4" />
                             </Link>
                             <p className="text-xs text-muted-foreground">
-                              {vendorGroup.items.length} item(s) • ₦{vendorTotal.toLocaleString()}
+                              {creatorGroup.items.length} item(s) • ₦{creatorTotal.toLocaleString()}
                             </p>
                           </div>
                         </div>
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/store/${vendorGroup.vendorId}`}>
+                          <Link href={`/hub/${creatorGroup.creatorId}`}>
                             Visit Store
                           </Link>
                         </Button>
                       </div>
                     </div>
 
-                    {/* Vendor Items */}
+                    {/* creator Items */}
                     <CardContent className="p-0">
-                      {vendorGroup.items.map((item, index) => (
+                      {creatorGroup.items.map((item, index) => (
                         <div key={item.product.id}>
                           <div className="p-6">
                             <div className="flex gap-4">
@@ -156,14 +156,14 @@ export default function CartPage() {
                                       ₦{(item.product.price * item.quantity).toLocaleString()}
                                     </span>
                                     <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.product.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                                      <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          {index < vendorGroup.items.length - 1 && <Separator />}
+                          {index < creatorGroup.items.length - 1 && <Separator />}
                         </div>
                       ))}
                     </CardContent>
@@ -187,14 +187,10 @@ export default function CartPage() {
                     <span className="text-muted-foreground">Tax (10%)</span>
                     <span className="font-medium">₦{tax.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium text-muted-foreground">Calculated at checkout (based on vendor settings)</span>
-                  </div>
 
                   <div className="border-t border-border pt-4">
                     <div className="flex justify-between text-lg font-bold">
-                      <span>Estimated Total (excl. shipping)</span>
+                      <span>Total</span>
                       <span>₦{total.toLocaleString()}</span>
                     </div>
                   </div>

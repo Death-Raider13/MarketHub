@@ -13,13 +13,13 @@ interface Product {
   id: string
   name: string
   price: number
-  vendorName: string
+  creatorName: string
   status: string
   featured?: boolean
   imageUrl?: string
 }
 
-interface Vendor {
+interface creator {
   id: string
   displayName: string
   storeName?: string
@@ -31,7 +31,7 @@ interface Vendor {
 
 export default function FeaturedContentPage() {
   const [products, setProducts] = useState<Product[]>([])
-  const [vendors, setVendors] = useState<Vendor[]>([])
+  const [creators, setcreators] = useState<creator[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -54,18 +54,18 @@ export default function FeaturedContentPage() {
       })) as Product[]
       setProducts(productsData)
 
-      // Fetch vendors
-      const vendorsQuery = query(
+      // Fetch creators
+      const creatorsQuery = query(
         collection(db, 'users'),
-        where('role', '==', 'vendor'),
+        where('role', '==', 'creator'),
         limit(20)
       )
-      const vendorsSnapshot = await getDocs(vendorsQuery)
-      const vendorsData = vendorsSnapshot.docs.map(doc => ({
+      const creatorsSnapshot = await getDocs(creatorsQuery)
+      const creatorsData = creatorsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      })) as Vendor[]
-      setVendors(vendorsData)
+      })) as creator[]
+      setcreators(creatorsData)
 
     } catch (error) {
       console.error('Error fetching content:', error)
@@ -82,8 +82,8 @@ export default function FeaturedContentPage() {
         updatedAt: new Date()
       })
 
-      setProducts(prev => prev.map(product => 
-        product.id === productId 
+      setProducts(prev => prev.map(product =>
+        product.id === productId
           ? { ...product, featured: !currentStatus }
           : product
       ))
@@ -95,24 +95,24 @@ export default function FeaturedContentPage() {
     }
   }
 
-  const toggleVendorFeatured = async (vendorId: string, currentStatus: boolean) => {
+  const togglecreatorFeatured = async (creatorId: string, currentStatus: boolean) => {
     try {
-      await updateDoc(doc(db, 'users', vendorId), {
+      await updateDoc(doc(db, 'users', creatorId), {
         featured: !currentStatus,
         verified: true, // Also mark as verified when featuring
         updatedAt: new Date()
       })
 
-      setVendors(prev => prev.map(vendor => 
-        vendor.id === vendorId 
-          ? { ...vendor, featured: !currentStatus, verified: true }
-          : vendor
+      setcreators(prev => prev.map(creator =>
+        creator.id === creatorId
+          ? { ...creator, featured: !currentStatus, verified: true }
+          : creator
       ))
 
-      toast.success(`Vendor ${!currentStatus ? 'featured' : 'unfeatured'} successfully`)
+      toast.success(`creator ${!currentStatus ? 'featured' : 'unfeatured'} successfully`)
     } catch (error) {
-      console.error('Error updating vendor:', error)
-      toast.error('Failed to update vendor')
+      console.error('Error updating creator:', error)
+      toast.error('Failed to update creator')
     }
   }
 
@@ -120,7 +120,7 @@ export default function FeaturedContentPage() {
     try {
       // Feature first 8 active products
       const activeProducts = products.filter(p => p.status === 'active' || p.status === 'approved').slice(0, 8)
-      
+
       for (const product of activeProducts) {
         await updateDoc(doc(db, 'products', product.id), {
           featured: true,
@@ -128,11 +128,11 @@ export default function FeaturedContentPage() {
         })
       }
 
-      // Feature first 6 vendors
-      const activeVendors = vendors.slice(0, 6)
-      
-      for (const vendor of activeVendors) {
-        await updateDoc(doc(db, 'users', vendor.id), {
+      // Feature first 6 creators
+      const activecreators = creators.slice(0, 6)
+
+      for (const creator of activecreators) {
+        await updateDoc(doc(db, 'users', creator.id), {
           featured: true,
           verified: true,
           updatedAt: new Date()
@@ -156,7 +156,7 @@ export default function FeaturedContentPage() {
   }
 
   const featuredProducts = products.filter(p => p.featured)
-  const featuredVendors = vendors.filter(v => v.featured)
+  const featuredcreators = creators.filter(v => v.featured)
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -183,11 +183,11 @@ export default function FeaturedContentPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Featured Vendors</CardTitle>
+            <CardTitle>Featured creators</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {featuredVendors.length}
+              {featuredcreators.length}
             </div>
             <p className="text-gray-600">Currently featured</p>
           </CardContent>
@@ -206,14 +206,14 @@ export default function FeaturedContentPage() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="font-semibold text-sm">{product.name}</h3>
-                    <p className="text-gray-600 text-xs">{product.vendorName}</p>
+                    <p className="text-gray-600 text-xs">{product.creatorName}</p>
                     <p className="text-purple-600 font-bold">₦{product.price?.toLocaleString()}</p>
                   </div>
                   {product.featured && (
                     <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>
                   )}
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
                     {product.status}
@@ -244,40 +244,40 @@ export default function FeaturedContentPage() {
         </CardContent>
       </Card>
 
-      {/* Vendors Section */}
+      {/* creators Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Vendors</CardTitle>
+          <CardTitle>creators</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vendors.map((vendor) => (
-              <div key={vendor.id} className="border rounded-lg p-4 space-y-3">
+            {creators.map((creator) => (
+              <div key={creator.id} className="border rounded-lg p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="font-semibold text-sm">
-                      {vendor.storeName || vendor.displayName}
+                      {creator.storeName || creator.displayName}
                     </h3>
-                    <p className="text-gray-600 text-xs">{vendor.email}</p>
+                    <p className="text-gray-600 text-xs">{creator.email}</p>
                   </div>
-                  {vendor.featured && (
+                  {creator.featured && (
                     <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>
                   )}
                 </div>
-                
+
                 <div className="flex gap-2">
-                  {vendor.verified && (
+                  {creator.verified && (
                     <Badge className="bg-green-100 text-green-800">Verified</Badge>
                   )}
                 </div>
 
                 <Button
                   size="sm"
-                  variant={vendor.featured ? "destructive" : "default"}
-                  onClick={() => toggleVendorFeatured(vendor.id, !!vendor.featured)}
+                  variant={creator.featured ? "destructive" : "default"}
+                  onClick={() => togglecreatorFeatured(creator.id, !!creator.featured)}
                   className="w-full"
                 >
-                  {vendor.featured ? (
+                  {creator.featured ? (
                     <>
                       <StarOff className="w-4 h-4 mr-1" />
                       Unfeature

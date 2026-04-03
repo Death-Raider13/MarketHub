@@ -10,7 +10,7 @@ export interface InventoryItem {
   productId: string
   quantity: number
   productName?: string
-  vendorId?: string
+  creatorId?: string
 }
 
 export interface StockUpdateResult {
@@ -83,12 +83,12 @@ export async function reduceInventory(items: InventoryItem[]): Promise<StockUpda
       // Check for low stock alert
       const lowStockThreshold = productData?.lowStockThreshold || 5
       if (newStock <= lowStockThreshold && newStock > 0) {
-        await sendLowStockAlert(item.productId, newStock, item.vendorId || productData?.vendorId)
+        await sendLowStockAlert(item.productId, newStock, item.creatorId || productData?.creatorId)
       }
 
       // Check for out of stock
       if (newStock === 0) {
-        await sendOutOfStockAlert(item.productId, item.vendorId || productData?.vendorId)
+        await sendOutOfStockAlert(item.productId, item.creatorId || productData?.creatorId)
       }
     }
 
@@ -189,7 +189,7 @@ export async function checkStockAvailability(items: InventoryItem[]): Promise<{
   try {
     for (const item of items) {
       const productDoc = await adminDb.collection('products').doc(item.productId).get()
-      
+
       if (!productDoc.exists) {
         issues.push({
           productId: item.productId,
@@ -223,9 +223,9 @@ export async function checkStockAvailability(items: InventoryItem[]): Promise<{
 }
 
 /**
- * Get low stock products for a vendor
+ * Get low stock products for a creator
  */
-export async function getLowStockProducts(vendorId: string, threshold: number = 5) {
+export async function getLowStockProducts(creatorId: string, threshold: number = 5) {
   const adminDb = getAdminFirestore()
   if (!adminDb) {
     throw new Error('Firebase Admin not configured')
@@ -234,7 +234,7 @@ export async function getLowStockProducts(vendorId: string, threshold: number = 
   try {
     const productsSnapshot = await adminDb
       .collection('products')
-      .where('vendorId', '==', vendorId)
+      .where('creatorId', '==', creatorId)
       .where('stock', '<=', threshold)
       .where('stock', '>', 0)
       .get()
@@ -248,15 +248,15 @@ export async function getLowStockProducts(vendorId: string, threshold: number = 
     return lowStockProducts
 
   } catch (error) {
-    logger.error('Error getting low stock products', { error, vendorId })
+    logger.error('Error getting low stock products', { error, creatorId })
     throw error
   }
 }
 
 /**
- * Get out of stock products for a vendor
+ * Get out of stock products for a creator
  */
-export async function getOutOfStockProducts(vendorId: string) {
+export async function getOutOfStockProducts(creatorId: string) {
   const adminDb = getAdminFirestore()
   if (!adminDb) {
     throw new Error('Firebase Admin not configured')
@@ -265,7 +265,7 @@ export async function getOutOfStockProducts(vendorId: string) {
   try {
     const productsSnapshot = await adminDb
       .collection('products')
-      .where('vendorId', '==', vendorId)
+      .where('creatorId', '==', creatorId)
       .where('stock', '==', 0)
       .get()
 
@@ -278,52 +278,52 @@ export async function getOutOfStockProducts(vendorId: string) {
     return outOfStockProducts
 
   } catch (error) {
-    logger.error('Error getting out of stock products', { error, vendorId })
+    logger.error('Error getting out of stock products', { error, creatorId })
     throw error
   }
 }
 
 /**
- * Send low stock alert to vendor
+ * Send low stock alert to creator
  */
-async function sendLowStockAlert(productId: string, currentStock: number, vendorId: string) {
+async function sendLowStockAlert(productId: string, currentStock: number, creatorId: string) {
   try {
     const { NotificationTriggers } = await import('@/lib/notifications/triggers')
-    
-    // Create notification for vendor
-    // await NotificationTriggers.onLowStock(productId, vendorId, currentStock)
+
+    // Create notification for creator
+    // await NotificationTriggers.onLowStock(productId, creatorId, currentStock)
     // TODO: Implement low stock notification trigger
-    
-    logger.info('Low stock alert sent', { productId, currentStock, vendorId })
+
+    logger.info('Low stock alert sent', { productId, currentStock, creatorId })
   } catch (error) {
-    logger.error('Failed to send low stock alert', { error, productId, vendorId })
+    logger.error('Failed to send low stock alert', { error, productId, creatorId })
   }
 }
 
 /**
- * Send out of stock alert to vendor
+ * Send out of stock alert to creator
  */
-async function sendOutOfStockAlert(productId: string, vendorId: string) {
+async function sendOutOfStockAlert(productId: string, creatorId: string) {
   try {
     const { NotificationTriggers } = await import('@/lib/notifications/triggers')
-    
-    // Create notification for vendor
-    // await NotificationTriggers.onOutOfStock(productId, vendorId)
+
+    // Create notification for creator
+    // await NotificationTriggers.onOutOfStock(productId, creatorId)
     // TODO: Implement out of stock notification trigger
-    
-    logger.info('Out of stock alert sent', { productId, vendorId })
+
+    logger.info('Out of stock alert sent', { productId, creatorId })
   } catch (error) {
-    logger.error('Failed to send out of stock alert', { error, productId, vendorId })
+    logger.error('Failed to send out of stock alert', { error, productId, creatorId })
   }
 }
 
 /**
- * Update product stock manually (for vendor dashboard)
+ * Update product stock manually (for creator dashboard)
  */
 export async function updateProductStock(
-  productId: string, 
-  newStock: number, 
-  vendorId: string
+  productId: string,
+  newStock: number,
+  creatorId: string
 ): Promise<{ success: boolean; oldStock?: number; newStock?: number; error?: string }> {
   const adminDb = getAdminFirestore()
   if (!adminDb) {
@@ -339,9 +339,9 @@ export async function updateProductStock(
     }
 
     const productData = productDoc.data()
-    
-    // Verify vendor ownership
-    if (productData?.vendorId !== vendorId) {
+
+    // Verify creator ownership
+    if (productData?.creatorId !== creatorId) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -357,13 +357,13 @@ export async function updateProductStock(
       productId,
       oldStock,
       newStock,
-      vendorId
+      creatorId
     })
 
     return { success: true, oldStock, newStock }
 
   } catch (error) {
-    logger.error('Error updating product stock', { error, productId, vendorId })
+    logger.error('Error updating product stock', { error, productId, creatorId })
     return { success: false, error: 'Failed to update stock' }
   }
 }

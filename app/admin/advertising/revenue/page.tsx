@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  Eye, 
-  MousePointer, 
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  MousePointer,
   Target,
   Calendar,
   BarChart3,
@@ -26,7 +26,7 @@ interface AdRevenueData {
     totalRevenue: number
     revenueByPlacement: {
       homepage: number
-      vendor_store: number
+      creator_store: number
       category: number
       sponsored_product: number
     }
@@ -93,13 +93,13 @@ export default function AdvertisingRevenuePage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch(`/api/admin/advertising/revenue?period=${period}`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch revenue data')
       }
-      
+
       const result = await response.json()
       setData(result)
     } catch (error: unknown) {
@@ -173,7 +173,7 @@ export default function AdvertisingRevenuePage() {
           <h1 className="text-3xl font-bold">Advertising Revenue</h1>
           <p className="text-muted-foreground">Platform revenue from advertising campaigns</p>
         </div>
-        
+
         <div className="flex gap-4">
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-32">
@@ -185,12 +185,12 @@ export default function AdvertisingRevenuePage() {
               <SelectItem value="year">This Year</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Button onClick={loadRevenueData} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          
+
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -350,8 +350,8 @@ export default function AdvertisingRevenuePage() {
                 {placementData.map((item, index) => (
                   <div key={item.name} className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
+                      <div
+                        className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                       />
                       <span className="font-medium">{item.name}</span>
@@ -440,7 +440,7 @@ export default function AdvertisingRevenuePage() {
                       <span className="font-medium capitalize">{placement.replace('_', ' ')}</span>
                       <div className="text-right">
                         <div className="text-sm">Platform: {rates.platformShare}%</div>
-                        <div className="text-sm text-muted-foreground">Vendor: {rates.vendorShare}%</div>
+                        <div className="text-sm text-muted-foreground">creator: {rates.creatorshare}%</div>
                       </div>
                     </div>
                   ))}

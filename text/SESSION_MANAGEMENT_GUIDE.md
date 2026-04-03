@@ -251,7 +251,7 @@ interface Session {
   sessionId: string; // Unique identifier
   userId: string; // User ID
   email: string; // User email
-  role: 'customer' | 'vendor' | 'admin'; // User role
+  role: 'customer' | 'creator' | 'admin'; // User role
   createdAt: Date; // Session creation time
   lastActivity: Date; // Last activity time
   expiresAt: Date; // Expiration time

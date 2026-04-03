@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
+import { devOnlyGuard } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const blocked = devOnlyGuard()
+  if (blocked) return blocked
+
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')

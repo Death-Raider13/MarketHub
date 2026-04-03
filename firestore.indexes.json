@@ -47,7 +47,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorId",
+          "fieldPath": "creatorId",
           "order": "ASCENDING"
         },
         {
@@ -89,7 +89,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorId",
+          "fieldPath": "creatorId",
           "order": "ASCENDING"
         },
         {
@@ -131,7 +131,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorId",
+          "fieldPath": "creatorId",
           "order": "ASCENDING"
         },
         {
@@ -191,7 +191,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorId",
+          "fieldPath": "creatorId",
           "order": "ASCENDING"
         },
         {
@@ -289,7 +289,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorId",
+          "fieldPath": "creatorId",
           "order": "ASCENDING"
         },
         {
@@ -345,7 +345,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorId",
+          "fieldPath": "creatorId",
           "order": "ASCENDING"
         },
         {
@@ -487,7 +487,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorIds",
+          "fieldPath": "creatorIds",
           "arrayConfig": "CONTAINS"
         },
         {
@@ -501,7 +501,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "vendorId",
+          "fieldPath": "creatorId",
           "order": "ASCENDING"
         },
         {

@@ -23,11 +23,11 @@ Selar is a **digital product marketplace** that allows creators to:
 ## ✅ What You Have (Good Foundation)
 
 ### 1. **Core Marketplace Features** ✓
-- Multi-vendor platform
+- Multi-creator platform
 - Product listings and browsing
 - Shopping cart functionality
 - User authentication (Firebase)
-- Vendor dashboards
+- creator dashboards
 - Admin dashboards
 - Product categories
 - Search functionality
@@ -35,7 +35,7 @@ Selar is a **digital product marketplace** that allows creators to:
 
 ### 2. **Admin Features** ✓
 - User management
-- Vendor management
+- creator management
 - Product moderation
 - Payout system
 - Role-based access control
@@ -194,8 +194,8 @@ npm install @sendgrid/mail
    - ✉️ Order confirmation (with download links for digital products)
    - ✉️ Payment receipt
    - ✉️ Digital product delivery
-   - ✉️ Vendor new sale notification
-   - ✉️ Vendor payout confirmation
+   - ✉️ creator new sale notification
+   - ✉️ creator payout confirmation
    - ✉️ Password reset
    - ✉️ Welcome email
    - ✉️ Abandoned cart reminder
@@ -227,7 +227,7 @@ export const orderConfirmationEmail = (order: Order) => ({
 
 **Current Status:** ⚠️ **Basic Product Pages Only**
 
-Selar allows vendors to create beautiful, customizable landing pages for each product.
+Selar allows creators to create beautiful, customizable landing pages for each product.
 
 #### What You Need:
 
@@ -249,7 +249,7 @@ Selar allows vendors to create beautiful, customizable landing pages for each pr
    - Countdown timers for sales
 
 3. **Custom Domain Support** (Advanced)
-   - Allow vendors to use custom domains
+   - Allow creators to use custom domains
    - SSL certificate management
    - DNS configuration
 
@@ -356,7 +356,7 @@ Selar provides detailed sales analytics and insights.
 
 #### What You Need:
 
-1. **Enhanced Vendor Analytics**
+1. **Enhanced creator Analytics**
    - Revenue trends (daily, weekly, monthly)
    - Top-selling products
    - Customer demographics
@@ -379,7 +379,7 @@ Selar provides detailed sales analytics and insights.
    - Tax reports
    - Inventory reports
 
-**Implementation Priority:** 🟢 **MEDIUM - Helps vendors make decisions**
+**Implementation Priority:** 🟢 **MEDIUM - Helps creators make decisions**
 
 ---
 
@@ -387,7 +387,7 @@ Selar provides detailed sales analytics and insights.
 
 **Current Status:** ❌ **Not Implemented**
 
-Selar allows vendors to create discount codes and run promotions.
+Selar allows creators to create discount codes and run promotions.
 
 #### What You Need:
 
@@ -405,7 +405,7 @@ export interface Coupon {
   validFrom: Date
   validUntil: Date
   applicableProducts?: string[] // empty = all products
-  applicableVendors?: string[]
+  applicablecreators?: string[]
   status: "active" | "expired" | "disabled"
 }
 ```
@@ -453,7 +453,7 @@ Selar customers have a comprehensive dashboard to manage purchases.
 
 3. **Notifications Center**
    - Order updates
-   - New messages from vendors
+   - New messages from creators
    - Product updates
    - Promotional offers
    - Course announcements
@@ -462,11 +462,11 @@ Selar customers have a comprehensive dashboard to manage purchases.
 
 ---
 
-### 🟢 **PRIORITY 10: VENDOR STOREFRONT CUSTOMIZATION**
+### 🟢 **PRIORITY 10: creator STOREFRONT CUSTOMIZATION**
 
-**Current Status:** ⚠️ **Basic Vendor Pages**
+**Current Status:** ⚠️ **Basic creator Pages**
 
-Selar vendors can customize their storefronts extensively.
+Selar creators can customize their storefronts extensively.
 
 #### What You Need:
 
@@ -504,7 +504,7 @@ Selar has an affiliate program where people can earn commissions.
 export interface Affiliate {
   id: string
   userId: string
-  vendorId: string
+  creatorId: string
   commissionRate: number // percentage
   totalEarnings: number
   pendingEarnings: number
@@ -538,7 +538,7 @@ export interface Affiliate {
    - Verified purchase badge
    - Image/video reviews
    - Helpful/not helpful voting
-   - Vendor responses
+   - creator responses
    - Review moderation
    - Review incentives
    - Star rating breakdown
@@ -546,7 +546,7 @@ export interface Affiliate {
 
 2. **Q&A Section**
    - Customers ask questions
-   - Vendors answer
+   - creators answer
    - Community answers
    - Upvote/downvote
 
@@ -596,7 +596,7 @@ Better tracking and accountability than Selar.
 3. ✅ Implement email notifications (Week 3)
 4. ✅ Set up automatic digital delivery (Week 4)
 
-**Outcome:** Vendors can sell and customers can buy digital products
+**Outcome:** creators can sell and customers can buy digital products
 
 ---
 
@@ -606,7 +606,7 @@ Better tracking and accountability than Selar.
 5. ✅ Discount/coupon system (Week 5)
 6. ✅ Enhanced product landing pages (Week 6)
 7. ✅ Customer purchase dashboard (Week 7)
-8. ✅ Vendor storefront customization (Week 8)
+8. ✅ creator storefront customization (Week 8)
 
 **Outcome:** Feature parity with Selar's basic features
 
@@ -707,7 +707,7 @@ Better tracking and accountability than Selar.
 ### Next 3 Months:
 9. 🟢 Add all core features (coupons, subscriptions, courses)
 10. 🟢 Optimize performance and UX
-11. 🟢 Launch beta with select vendors
+11. 🟢 Launch beta with select creators
 12. 🟢 Gather feedback and iterate
 
 ---

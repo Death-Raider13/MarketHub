@@ -19,7 +19,7 @@ export async function sendServiceBookingConfirmationEmail(
     orderId: string
     serviceName: string
     serviceDescription: string
-    vendorId: string
+    creatorId: string
   },
   orderTotal?: number
 ) {
@@ -83,7 +83,7 @@ export async function sendServiceBookingConfirmationEmail(
           
           <div class="content">
             <p style="font-size: 16px;">Hi <strong>${customerName}</strong>,</p>
-            <p>Great news! Your service booking has been confirmed and the vendor has been notified.</p>
+            <p>Great news! Your service booking has been confirmed and the creator has been notified.</p>
             
             <div class="booking-details">
               <h3 style="margin-top: 0; color: #0891b2;">📋 Booking Details</h3>
@@ -98,10 +98,10 @@ export async function sendServiceBookingConfirmationEmail(
             <div class="next-steps">
               <h3 style="margin-top: 0; color: #92400e;">📅 What Happens Next?</h3>
               <ul style="margin: 10px 0; padding-left: 20px;">
-                <li><strong>Vendor Contact:</strong> The service provider will contact you within 24-48 hours to schedule your appointment</li>
+                <li><strong>Creator Contact:</strong> The service provider will contact you within 24-48 hours to schedule your appointment</li>
                 <li><strong>Scheduling:</strong> You'll work together to find a convenient time and location</li>
                 <li><strong>Confirmation:</strong> Once scheduled, you'll receive another email with the appointment details</li>
-                <li><strong>Service Delivery:</strong> Meet with the vendor at the agreed time and location</li>
+                <li><strong>Service Delivery:</strong> Meet with the creator at the agreed time and location</li>
               </ul>
             </div>
             
@@ -161,7 +161,7 @@ export async function sendOrderConfirmationEmail(
     (item: any) => item.product?.productType === 'physical' || item.product?.type === 'physical'
   )
 
-   const hasServiceProducts = order.items.some(
+  const hasServiceProducts = order.items.some(
     (item: any) => item.product?.productType === 'service' || item.product?.type === 'service'
   )
 
@@ -329,20 +329,18 @@ export async function sendOrderConfirmationEmail(
                   <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
                       <strong style="font-size: 16px;">${item.productName || item.product?.name}</strong>
-                      <span class="badge ${
-                        item.product?.productType === 'digital' || item.product?.type === 'digital'
-                          ? 'badge-digital'
-                          : item.product?.productType === 'service' || item.product?.type === 'service'
-                            ? 'badge-service'
-                            : 'badge-physical'
-                      }">
-                        ${
-                          item.product?.productType === 'digital' || item.product?.type === 'digital'
-                            ? '📥 Digital'
-                            : item.product?.productType === 'service' || item.product?.type === 'service'
-                              ? '🗓 Service'
-                              : '📦 Physical'
-                        }
+                      <span class="badge ${item.product?.productType === 'digital' || item.product?.type === 'digital'
+      ? 'badge-digital'
+      : item.product?.productType === 'service' || item.product?.type === 'service'
+        ? 'badge-service'
+        : 'badge-physical'
+    }">
+                        ${item.product?.productType === 'digital' || item.product?.type === 'digital'
+      ? '📥 Digital'
+      : item.product?.productType === 'service' || item.product?.type === 'service'
+        ? '🗓 Service'
+        : '📦 Physical'
+    }
                       </span>
                       <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
                         Quantity: ${item.quantity} × ₦${item.productPrice?.toLocaleString() || '0'}
@@ -404,7 +402,7 @@ export async function sendOrderConfirmationEmail(
                   📞 ${order.shippingAddress?.phone}
                 </p>
                 <p style="margin-top: 15px; margin-bottom: 0;">
-                  <strong>Delivery:</strong> Delivery timelines and costs are defined by each vendor for their products. Check your order details in your account for the latest status.
+                  <strong>Delivery:</strong> Delivery timelines and costs are defined by each creator for their products. Check your order details in your account for the latest status.
                 </p>
               </div>
             ` : ''}
@@ -541,8 +539,8 @@ export async function sendOrderCancelledEmail(order: any) {
   return sendOrderStatusEmail(order, 'cancelled')
 }
 
-export async function sendVendorSaleNotification(
-  vendorEmail: string,
+export async function sendCreatorSaleNotification(
+  creatorEmail: string,
   orderItem: any,
   orderId: string
 ) {
@@ -572,8 +570,8 @@ export async function sendVendorSaleNotification(
               <p><strong>Amount:</strong> ₦${(orderItem.productPrice * orderItem.quantity).toLocaleString()}</p>
               <p><strong>Order ID:</strong> ${orderId}</p>
             </div>
-            <p>View your sales dashboard to manage this order.</p>
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}/vendor/orders" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 10px;">
+            <p>View your creator dashboard to manage this order.</p>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/creator/orders" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 10px;">
               View Orders
             </a>
           </div>
@@ -585,15 +583,15 @@ export async function sendVendorSaleNotification(
   try {
     const result = await sendEmail({
       from: FROM_EMAIL,
-      to: vendorEmail,
+      to: creatorEmail,
       subject: `New Sale - ${orderItem.productName}`,
       html: html,
     })
 
-    console.log('Vendor notification sent:', result)
+    console.log('creator notification sent:', result)
     return result
   } catch (error) {
-    console.error('Failed to send vendor notification:', error)
+    console.error('Failed to send creator notification:', error)
     throw error
   }
 }
@@ -670,12 +668,12 @@ async function sendPayoutStatusEmail(
   payout: PayoutRequest | (Partial<PayoutRequest> & { id?: string }),
   status: 'completed' | 'rejected'
 ) {
-  const vendorEmail = payout.vendorEmail
-  if (!vendorEmail) {
-    throw new Error('Missing vendorEmail for payout status email')
+  const creatorEmail = payout.creatorEmail || (payout as any).creatorEmail
+  if (!creatorEmail) {
+    throw new Error('Missing creatorEmail for payout status email')
   }
 
-  const vendorName = (payout as any).vendorName || vendorEmail.split('@')[0] || 'Vendor'
+  const creatorName = payout.creatorName || (payout as any).creatorName || creatorEmail.split('@')[0] || 'Creator'
   const amount = payout.amount || 0
 
   let subject: string
@@ -709,7 +707,7 @@ async function sendPayoutStatusEmail(
             <h1 style="margin: 0; font-size: 20px;">Payout Update</h1>
           </div>
           <div style="padding: 24px;">
-            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${vendorName}</strong>,</p>
+            <p style="margin: 0 0 12px 0; font-size: 15px;">Hi <strong>${creatorName}</strong>,</p>
             <p style="margin: 0 0 16px 0; font-size: 15px;">${bodyIntro}</p>
             <div style="margin: 16px 0; padding: 12px 16px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
               <p style="margin: 4px 0;"><strong>Amount:</strong> ₦${amount.toLocaleString()}</p>
@@ -719,7 +717,7 @@ async function sendPayoutStatusEmail(
             </div>
             <p style="margin: 16px 0 0 0; font-size: 14px; color: #4b5563;">
               You can view all your payout requests any time from your
-              <a href="${APP_URL}/vendor/payouts" style="color: #2563eb; text-decoration: underline;">payouts page</a>.
+              <a href="${APP_URL}/creator/payouts" style="color: #2563eb; text-decoration: underline;">payouts page</a>.
             </p>
           </div>
           <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; background: #f9fafb;">
@@ -734,7 +732,7 @@ async function sendPayoutStatusEmail(
   try {
     return await sendEmail({
       from: FROM_EMAIL,
-      to: vendorEmail,
+      to: creatorEmail,
       subject,
       html,
     })
@@ -807,8 +805,8 @@ async function sendRefundEmail(
 
   const statusLabel =
     phase === 'requested' ? 'Pending review' :
-    phase === 'rejected' ? 'Rejected' :
-    'Refunded'
+      phase === 'rejected' ? 'Rejected' :
+        'Refunded'
 
   const html = `
     <!DOCTYPE html>
@@ -986,7 +984,7 @@ export async function sendSupportTicketNotificationEmail(ticket: {
 
   // Send to all admin emails
   const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [SUPPORT_EMAIL]
-  
+
   for (const adminEmail of adminEmails) {
     try {
       await sendEmail({
@@ -1102,17 +1100,17 @@ export async function sendSupportTicketResolvedEmail(data: {
     html,
   })
 }
-export async function sendVendorApplicationSubmittedEmail(
-  vendorEmail: string,
-  payload: { vendorName?: string; storeName: string; category?: string; storeUrl?: string }
+export async function sendcreatorApplicationSubmittedEmail(
+  creatorEmail: string,
+  payload: { creatorName?: string; storeName: string; category?: string; storeUrl?: string }
 ) {
-  const name = payload.vendorName || (vendorEmail.split('@')[0] || 'Vendor')
+  const name = payload.creatorName || (creatorEmail.split('@')[0] || 'creator')
   const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
     <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
       <div style="padding:20px;background:#111827;color:#f9fafb"><h1 style="margin:0;font-size:20px;">Application Received</h1></div>
       <div style="padding:24px">
         <p>Hi <strong>${name}</strong>,</p>
-        <p>Thanks for applying to become a vendor on FEROMARKETHUB. Your application is under review.</p>
+        <p>Thanks for applying to become a creator on FEROMARKETHUB. Your application is under review.</p>
         <div style="margin:16px 0;padding:12px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px">
           <p style="margin:4px 0"><strong>Store:</strong> ${payload.storeName}</p>
           ${payload.category ? `<p style="margin:4px 0"><strong>Category:</strong> ${payload.category}</p>` : ''}
@@ -1122,20 +1120,20 @@ export async function sendVendorApplicationSubmittedEmail(
       </div>
       <div style="padding:16px 20px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;background:#f9fafb">&copy; 2025 FEROMARKETHUB</div>
     </div></body></html>`
-  return sendEmail({ from: FROM_EMAIL, to: vendorEmail, subject: 'Your vendor application was received', html })
+  return sendEmail({ from: FROM_EMAIL, to: creatorEmail, subject: 'Your creator application was received', html })
 }
 
-export async function sendAdminNewVendorApplicationEmail(
+export async function sendAdminNewcreatorApplicationEmail(
   adminTo: string | string[],
-  payload: { vendorEmail: string; vendorName?: string; storeName: string; category?: string; storeUrl?: string }
+  payload: { creatorEmail: string; creatorName?: string; storeName: string; category?: string; storeUrl?: string }
 ) {
   const to = Array.isArray(adminTo) ? adminTo : [adminTo]
-  const name = payload.vendorName || (payload.vendorEmail.split('@')[0] || 'Vendor')
+  const name = payload.creatorName || (payload.creatorEmail.split('@')[0] || 'creator')
   const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
     <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
-      <div style="padding:20px;background:#0EA5E9;color:#fff"><h1 style="margin:0;font-size:20px;">New Vendor Application</h1></div>
+      <div style="padding:20px;background:#0EA5E9;color:#fff"><h1 style="margin:0;font-size:20px;">New creator Application</h1></div>
       <div style="padding:24px">
-        <p><strong>${name}</strong> (<a href="mailto:${payload.vendorEmail}">${payload.vendorEmail}</a>) just applied to become a vendor.</p>
+        <p><strong>${name}</strong> (<a href="mailto:${payload.creatorEmail}">${payload.creatorEmail}</a>) just applied to become a creator.</p>
         <div style="margin:16px 0;padding:12px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px">
           <p style="margin:4px 0"><strong>Store:</strong> ${payload.storeName}</p>
           ${payload.category ? `<p style=\"margin:4px 0\"><strong>Category:</strong> ${payload.category}</p>` : ''}
@@ -1147,28 +1145,28 @@ export async function sendAdminNewVendorApplicationEmail(
   for (const addr of to) {
     if (addr && addr.includes('@')) {
       try {
-        await sendEmail({ from: FROM_EMAIL, to: addr, subject: 'New vendor application received', html })
-      } catch {}
+        await sendEmail({ from: FROM_EMAIL, to: addr, subject: 'New creator application received', html })
+      } catch { }
     }
   }
   return { success: true }
 }
 
-export async function sendVendorApplicationDecisionEmail(
-  vendorEmail: string,
+export async function sendcreatorApplicationDecisionEmail(
+  creatorEmail: string,
   decision: 'approved' | 'rejected',
   storeName?: string,
   reason?: string
 ) {
-  const subject = decision === 'approved' ? 'Your vendor application was approved' : 'Your vendor application was rejected'
+  const subject = decision === 'approved' ? 'Your creator application was approved' : 'Your creator application was rejected'
   const body = decision === 'approved'
-    ? `<p>Great news! Your vendor application${storeName ? ` for <strong>${storeName}</strong>` : ''} has been approved. You can now access your vendor dashboard and start adding products.</p>
-       <p><a href="${APP_URL}/vendor/dashboard" style="display:inline-block;background:#10b981;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none">Open Vendor Dashboard</a></p>`
-    : `<p>We’re sorry—your vendor application${storeName ? ` for <strong>${storeName}</strong>` : ''} was not approved at this time.</p>
+    ? `<p>Great news! Your creator application${storeName ? ` for <strong>${storeName}</strong>` : ''} has been approved. You can now access your creator dashboard and start adding products.</p>
+       <p><a href="${APP_URL}/creator/dashboard" style="display:inline-block;background:#10b981;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none">Open creator Dashboard</a></p>`
+    : `<p>We’re sorry—your creator application${storeName ? ` for <strong>${storeName}</strong>` : ''} was not approved at this time.</p>
        ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
        <p>You can reply to this email if you have questions.</p>`
-  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb"><div style="padding:20px;background:#111827;color:#f9fafb"><h1 style="margin:0;font-size:20px;">Vendor Application Update</h1></div><div style="padding:24px">${body}</div></div></body></html>`
-  return sendEmail({ from: FROM_EMAIL, to: vendorEmail, subject, html })
+  const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb"><div style="padding:20px;background:#111827;color:#f9fafb"><h1 style="margin:0;font-size:20px;">creator Application Update</h1></div><div style="padding:24px">${body}</div></div></body></html>`
+  return sendEmail({ from: FROM_EMAIL, to: creatorEmail, subject, html })
 }
 
 // ============================================
@@ -1305,9 +1303,9 @@ export async function sendAbuseReportAdminEmail(
     description?: string;
   }
 ) {
-  const priorityColor = payload.priority === 'critical' ? '#dc2626' : 
-                       payload.priority === 'high' ? '#ea580c' :
-                       payload.priority === 'medium' ? '#d97706' : '#16a34a'
+  const priorityColor = payload.priority === 'critical' ? '#dc2626' :
+    payload.priority === 'high' ? '#ea580c' :
+      payload.priority === 'medium' ? '#d97706' : '#16a34a'
 
   const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
     <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
@@ -1357,7 +1355,7 @@ export async function sendAbuseReportAdminEmail(
   </body></html>`
 
   // Send individual emails to each admin
-  const emailPromises = adminEmails.map(email => 
+  const emailPromises = adminEmails.map(email =>
     sendEmail({
       to: email,
       subject: `[${payload.priority.toUpperCase()}] New Abuse Report #${payload.reportId} - ${payload.reportType}`,
@@ -1379,11 +1377,11 @@ export async function sendAbuseReportStatusUpdateEmail(
     resolution?: string;
   }
 ) {
-  const statusColor = payload.status === 'resolved' ? '#16a34a' : 
-                     payload.status === 'dismissed' ? '#6b7280' : '#2563eb'
-  
-  const statusIcon = payload.status === 'resolved' ? '✅' : 
-                    payload.status === 'dismissed' ? '❌' : '🔍'
+  const statusColor = payload.status === 'resolved' ? '#16a34a' :
+    payload.status === 'dismissed' ? '#6b7280' : '#2563eb'
+
+  const statusIcon = payload.status === 'resolved' ? '✅' :
+    payload.status === 'dismissed' ? '❌' : '🔍'
 
   const html = `<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height:1.6; color:#111827;">
     <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
@@ -1440,9 +1438,9 @@ export async function sendAbuseReportStatusUpdateEmail(
 // ============================================
 
 export async function sendPayoutRequestSubmittedEmail(
-  vendorEmail: string,
+  creatorEmail: string,
   payload: {
-    vendorName: string;
+    creatorName: string;
     amount: number;
     paymentMethod: string;
     payoutId: string;
@@ -1463,7 +1461,7 @@ export async function sendPayoutRequestSubmittedEmail(
     </div>
     
     <div style="background:white;padding:20px;border-radius:8px;border:1px solid #e5e7eb">
-      <p>Hi <strong>${payload.vendorName}</strong>,</p>
+      <p>Hi <strong>${payload.creatorName}</strong>,</p>
       
       <p>We've received your payout request and it's now being reviewed by our team.</p>
       
@@ -1486,7 +1484,7 @@ export async function sendPayoutRequestSubmittedEmail(
       </div>
       
       <div style="text-align:center;margin:30px 0">
-        <a href="${APP_URL}/vendor/payouts" 
+        <a href="${APP_URL}/creator/payouts" 
            style="background:#10b981;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">
           View Payout Status
         </a>
@@ -1500,7 +1498,7 @@ export async function sendPayoutRequestSubmittedEmail(
   </body></html>`
 
   return sendEmail({
-    to: vendorEmail,
+    to: creatorEmail,
     subject: `Payout Request Submitted - ₦${payload.amount.toLocaleString()} #${payload.payoutId}`,
     html
   })
@@ -1509,8 +1507,8 @@ export async function sendPayoutRequestSubmittedEmail(
 export async function sendPayoutRequestAdminEmail(
   adminEmails: string[],
   payload: {
-    vendorName: string;
-    vendorEmail: string;
+    creatorName: string;
+    creatorEmail: string;
     amount: number;
     paymentMethod: string;
     payoutId: string;
@@ -1534,7 +1532,7 @@ export async function sendPayoutRequestAdminEmail(
       <h2 style="color:#374151;margin-top:0">Payout Request Details</h2>
       
       <div style="background:#f9fafb;padding:15px;border-radius:6px;margin:15px 0">
-        <div style="margin-bottom:10px"><strong>Vendor:</strong> ${payload.vendorName} (${payload.vendorEmail})</div>
+        <div style="margin-bottom:10px"><strong>creator:</strong> ${payload.creatorName} (${payload.creatorEmail})</div>
         <div style="margin-bottom:10px"><strong>Amount:</strong> ₦${payload.amount.toLocaleString()}</div>
         <div style="margin-bottom:10px"><strong>Payment Method:</strong> ${payload.paymentMethod.replace('_', ' ').toUpperCase()}</div>
         <div style="margin-bottom:10px"><strong>Request ID:</strong> #${payload.payoutId}</div>
@@ -1564,13 +1562,82 @@ export async function sendPayoutRequestAdminEmail(
   </body></html>`
 
   // Send individual emails to each admin
-  const emailPromises = adminEmails.map(email => 
+  const emailPromises = adminEmails.map(email =>
     sendEmail({
       to: email,
-      subject: `New Payout Request - ₦${payload.amount.toLocaleString()} from ${payload.vendorName}`,
+      subject: `New Payout Request - ₦${payload.amount.toLocaleString()} from ${payload.creatorName}`,
       html
     })
   )
 
   return Promise.all(emailPromises)
+}
+
+export async function sendBetaApplicationEmail(data: {
+  name: string
+  email: string
+  phone: string
+  role: string
+  message?: string
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; }
+          .header { background: #4f46e5; color: white; padding: 15px; border-radius: 6px 6px 0 0; }
+          .item { margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; }
+          .label { font-weight: bold; color: #6b7280; font-size: 0.875rem; }
+          .value { font-size: 1.125rem; color: #111827; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2 style="margin:0">🚀 New Beta Application</h2>
+          </div>
+          <div class="item">
+            <div class="label">Name</div>
+            <div class="value">${data.name}</div>
+          </div>
+          <div class="item">
+            <div class="label">Email</div>
+            <div class="value">${data.email}</div>
+          </div>
+          <div class="item">
+            <div class="label">Phone</div>
+            <div class="value">${data.phone}</div>
+          </div>
+          <div class="item">
+            <div class="label">Role</div>
+            <div class="value" style="text-transform: capitalize;">${data.role}</div>
+          </div>
+          ${data.message ? `
+          <div class="item">
+            <div class="label">Message</div>
+            <div class="value">${data.message}</div>
+          </div>
+          ` : ''}
+          <div style="margin-top: 20px; font-size: 0.75rem; color: #9ca3af;">
+            Sent from MarketHub Recruitment System
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'feromarkethub@gmail.com'
+    return await sendEmail({
+      from: 'MarketHub <system@FEROMARKETHUB.com>',
+      to: adminEmail,
+      subject: `New Beta Signup: ${data.name} (${data.role})`,
+      html,
+    })
+  } catch (error) {
+    console.error('Failed to send beta application email:', error)
+    throw error
+  }
 }

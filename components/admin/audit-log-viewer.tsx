@@ -39,11 +39,11 @@ export function AuditLogViewer() {
     setLoading(true);
     try {
       const filters: any = { limit: 100 };
-      
+
       if (filterAction !== 'all') {
         filters.action = filterAction as AuditAction;
       }
-      
+
       if (filterTarget !== 'all') {
         filters.targetType = filterTarget;
       }
@@ -59,7 +59,7 @@ export function AuditLogViewer() {
 
   const filteredLogs = logs.filter(log => {
     if (!searchTerm) return true;
-    
+
     const searchLower = searchTerm.toLowerCase();
     return (
       log.adminEmail.toLowerCase().includes(searchLower) ||
@@ -109,7 +109,7 @@ export function AuditLogViewer() {
               className="pl-9"
             />
           </div>
-          
+
           <Select value={filterAction} onValueChange={setFilterAction}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Filter by action" />
@@ -118,8 +118,8 @@ export function AuditLogViewer() {
               <SelectItem value="all">All Actions</SelectItem>
               <SelectItem value="user.create">User Created</SelectItem>
               <SelectItem value="user.ban">User Banned</SelectItem>
-              <SelectItem value="vendor.approve">Vendor Approved</SelectItem>
-              <SelectItem value="vendor.reject">Vendor Rejected</SelectItem>
+              <SelectItem value="creator.approve">creator Approved</SelectItem>
+              <SelectItem value="creator.reject">creator Rejected</SelectItem>
               <SelectItem value="product.approve">Product Approved</SelectItem>
               <SelectItem value="product.reject">Product Rejected</SelectItem>
               <SelectItem value="order.refund">Order Refunded</SelectItem>
@@ -133,7 +133,7 @@ export function AuditLogViewer() {
             <SelectContent>
               <SelectItem value="all">All Targets</SelectItem>
               <SelectItem value="user">Users</SelectItem>
-              <SelectItem value="vendor">Vendors</SelectItem>
+              <SelectItem value="creator">creators</SelectItem>
               <SelectItem value="product">Products</SelectItem>
               <SelectItem value="order">Orders</SelectItem>
               <SelectItem value="ad">Advertisements</SelectItem>

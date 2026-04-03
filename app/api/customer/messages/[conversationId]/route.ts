@@ -62,11 +62,11 @@ export async function GET(
       timestamp: doc.data().timestamp?.toDate()
     }))
 
-    // Mark vendor messages as read by customer
+    // Mark creator messages as read by customer
     const batch = adminDb.batch()
     messagesSnapshot.docs.forEach(doc => {
       const messageData = doc.data()
-      if (messageData.senderRole === 'vendor' && !messageData.read) {
+      if (messageData.senderRole === 'creator' && !messageData.read) {
         batch.update(doc.ref, { read: true })
       }
     })

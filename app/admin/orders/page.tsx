@@ -57,8 +57,8 @@ interface Order {
   customerId: string
   customerName: string
   customerEmail: string
-  vendorId: string
-  vendorName: string
+  creatorId: string
+  creatorName: string
   items: Array<{
     productId: string
     productName: string
@@ -89,37 +89,37 @@ function OrdersManagementContent() {
   const loadOrders = async () => {
     try {
       setLoading(true)
-      
+
       // Get orders from Firestore
       const ordersQuery = query(
         collection(db, "orders"),
         orderBy("createdAt", "desc")
       )
-      
+
       const ordersSnapshot = await getDocs(ordersQuery)
       console.log("Orders found:", ordersSnapshot.docs.length)
-      
-      // Collect unique user IDs and vendor IDs to fetch their names
+
+      // Collect unique user IDs and creator IDs to fetch their names
       const userIds = new Set<string>()
-      const vendorIds = new Set<string>()
-      
+      const creatorIds = new Set<string>()
+
       ordersSnapshot.docs.forEach(docSnap => {
         const data = docSnap.data()
         const userId = data.customerId || data.userId
         if (userId) userIds.add(userId)
-        
-        // Collect vendor IDs from items
+
+        // Collect creator IDs from items
         if (data.items && Array.isArray(data.items)) {
           data.items.forEach((item: any) => {
-            if (item.vendorId) vendorIds.add(item.vendorId)
+            if (item.creatorId) creatorIds.add(item.creatorId)
           })
         }
-        // Also check vendorIds array
-        if (data.vendorIds && Array.isArray(data.vendorIds)) {
-          data.vendorIds.forEach((vid: string) => vendorIds.add(vid))
+        // Also check creatorIds array
+        if (data.creatorIds && Array.isArray(data.creatorIds)) {
+          data.creatorIds.forEach((vid: string) => creatorIds.add(vid))
         }
       })
-      
+
       // Fetch user display names
       const userNames: Record<string, string> = {}
       await Promise.all(
@@ -135,46 +135,46 @@ function OrdersManagementContent() {
           }
         })
       )
-      
-      // Fetch vendor/store names
-      const vendorNames: Record<string, string> = {}
+
+      // Fetch creator/hub names
+      const creatorNames: Record<string, string> = {}
       await Promise.all(
-        Array.from(vendorIds).map(async (vendorId) => {
+        Array.from(creatorIds).map(async (creatorId) => {
           try {
-            const vendorDoc = await getDoc(doc(db, "vendors", vendorId))
-            if (vendorDoc.exists()) {
-              const vendorData = vendorDoc.data()
-              vendorNames[vendorId] = vendorData.storeName || vendorData.businessName || vendorData.displayName || ""
+            const creatorDoc = await getDoc(doc(db, "creators", creatorId))
+            if (creatorDoc.exists()) {
+              const creatorData = creatorDoc.data()
+              creatorNames[creatorId] = creatorData.storeName || creatorData.businessName || creatorData.displayName || ""
             }
           } catch (err) {
-            console.error(`Failed to fetch vendor ${vendorId}:`, err)
+            console.error(`Failed to fetch creator ${creatorId}:`, err)
           }
         })
       )
-      
+
       const ordersData = ordersSnapshot.docs.map(docSnap => {
         const data = docSnap.data()
         console.log("Order data:", data)
-        
+
         const userId = data.customerId || data.userId || ""
         const userDisplayName = userNames[userId] || ""
-        
-        // Get vendor names from items
-        const itemVendorNames = (data.items || [])
-          .map((item: any) => item.vendorName || vendorNames[item.vendorId] || "")
+
+        // Get creator names from items
+        const itemcreatorNames = (data.items || [])
+          .map((item: any) => item.creatorName || creatorNames[item.creatorId] || "")
           .filter((name: string) => name)
-        const vendorName = itemVendorNames.length > 0 
-          ? [...new Set(itemVendorNames)].join(", ")
-          : data.vendorName || "Unknown Vendor"
-        
+        const creatorName = itemcreatorNames.length > 0
+          ? [...new Set(itemcreatorNames)].join(", ")
+          : data.creatorName || "Unknown creator"
+
         return {
           id: docSnap.id,
           orderNumber: data.orderNumber || `ORD-${docSnap.id.slice(-8)}`,
           customerId: userId,
           customerName: data.customerName || data.customerInfo?.name || data.shippingAddress?.fullName || userDisplayName || "Unknown Customer",
           customerEmail: data.customerEmail || data.customerInfo?.email || data.userEmail || "",
-          vendorId: data.vendorId || "",
-          vendorName: vendorName,
+          creatorId: data.creatorId || "",
+          creatorName: creatorName,
           items: data.items || [],
           totalAmount: data.totalAmount || data.total || 0,
           status: data.status || 'pending',
@@ -191,7 +191,7 @@ function OrdersManagementContent() {
     } catch (error) {
       console.error("Error loading orders:", error)
       toast.error("Failed to load orders")
-      
+
       // Fallback to empty array
       setOrders([])
     } finally {
@@ -206,14 +206,14 @@ function OrdersManagementContent() {
         status: newStatus,
         updatedAt: new Date()
       })
-      
+
       // Update local state
-      setOrders(orders.map(order => 
-        order.id === orderId 
+      setOrders(orders.map(order =>
+        order.id === orderId
           ? { ...order, status: newStatus as any, updatedAt: new Date() }
           : order
       ))
-      
+
       toast.success(`Order status updated to ${newStatus}`)
     } catch (error) {
       console.error("Error updating order status:", error)
@@ -248,14 +248,14 @@ function OrdersManagementContent() {
   }
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
+    const matchesSearch =
       order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.vendorName?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+      order.creatorName?.toLowerCase().includes(searchTerm.toLowerCase())
+
     const matchesStatus = statusFilter === "all" || order.status === statusFilter
-    
+
     return matchesSearch && matchesStatus
   })
 
@@ -273,10 +273,10 @@ function OrdersManagementContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6">
@@ -362,14 +362,14 @@ function OrdersManagementContent() {
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="search"
-                      placeholder="Search by order number, customer, or vendor..."
+                      placeholder="Search by order number, customer, or creator..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="status">Status Filter</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -390,12 +390,12 @@ function OrdersManagementContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <Button onClick={loadOrders} variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
                 </Button>
-                
+
                 <Button variant="outline">
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -420,7 +420,7 @@ function OrdersManagementContent() {
                     <TableRow>
                       <TableHead>Order #</TableHead>
                       <TableHead>Customer</TableHead>
-                      <TableHead>Vendor</TableHead>
+                      <TableHead>creator</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Payment</TableHead>
@@ -437,68 +437,68 @@ function OrdersManagementContent() {
                       </TableRow>
                     ) : (
                       filteredOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">
-                          {order.orderNumber || order.id.slice(-8)}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{order.customerName || 'N/A'}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {order.customerEmail || 'N/A'}
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">
+                            {order.orderNumber || order.id.slice(-8)}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{order.customerName || 'N/A'}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {order.customerEmail || 'N/A'}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{order.vendorName || 'N/A'}</TableCell>
-                        <TableCell>₦{order.totalAmount?.toLocaleString() || '0'}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(order.status)}>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getPaymentStatusColor(order.paymentStatus)}>
-                            {order.paymentStatus}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {order.createdAt ? formatDistanceToNow(order.createdAt, { addSuffix: true }) : 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedOrder(order)
-                                setShowOrderDetails(true)
-                              }}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                            
-                            {order.status === 'pending' && (
+                          </TableCell>
+                          <TableCell>{order.creatorName || 'N/A'}</TableCell>
+                          <TableCell>₦{order.totalAmount?.toLocaleString() || '0'}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(order.status)}>
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getPaymentStatusColor(order.paymentStatus)}>
+                              {order.paymentStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {order.createdAt ? formatDistanceToNow(order.createdAt, { addSuffix: true }) : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                onClick={() => updateOrderStatus(order.id, 'confirmed')}
-                                className="bg-green-600 hover:bg-green-700"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedOrder(order)
+                                  setShowOrderDetails(true)
+                                }}
                               >
-                                <CheckCircle className="h-3 w-3" />
+                                <Eye className="h-3 w-3" />
                               </Button>
-                            )}
-                            
-                            {['pending', 'confirmed'].includes(order.status) && (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                              >
-                                <XCircle className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
+
+                              {order.status === 'pending' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle className="h-3 w-3" />
+                                </Button>
+                              )}
+
+                              {['pending', 'confirmed'].includes(order.status) && (
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                                >
+                                  <XCircle className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))
                     )}
                   </TableBody>
@@ -516,7 +516,7 @@ function OrdersManagementContent() {
                   Order #{selectedOrder?.orderNumber || selectedOrder?.id}
                 </DialogDescription>
               </DialogHeader>
-              
+
               {selectedOrder && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -526,11 +526,11 @@ function OrdersManagementContent() {
                       <p className="text-sm text-muted-foreground">{selectedOrder.customerEmail}</p>
                     </div>
                     <div>
-                      <Label>Vendor</Label>
-                      <p className="font-medium">{selectedOrder.vendorName}</p>
+                      <Label>creator</Label>
+                      <p className="font-medium">{selectedOrder.creatorName}</p>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label>Order Items</Label>
                     <div className="mt-2 space-y-2">
@@ -545,14 +545,14 @@ function OrdersManagementContent() {
                       )) || <p className="text-muted-foreground">No items found</p>}
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-4 border-t">
                     <span className="font-semibold">Total Amount:</span>
                     <span className="text-xl font-bold">₦{selectedOrder.totalAmount?.toLocaleString()}</span>
                   </div>
                 </div>
               )}
-              
+
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowOrderDetails(false)}>
                   Close

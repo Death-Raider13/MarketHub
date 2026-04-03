@@ -46,11 +46,11 @@ const superAdminNavItems: NavItem[] = [
     description: 'Manage administrators',
   },
   {
-    title: 'Vendors',
+    title: 'creators',
     href: '/super-admin',
     icon: Store,
     badge: 12,
-    description: 'Vendor oversight',
+    description: 'creator oversight',
   },
   {
     title: 'Products',

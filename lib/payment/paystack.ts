@@ -4,6 +4,7 @@ export interface PaymentData {
   orderId: string
   customerName: string
   metadata?: Record<string, any>
+  subaccount?: string // Paystack subaccount code
 }
 
 export function initiatePaystackPayment(
@@ -27,6 +28,7 @@ export function initiatePaystackPayment(
     amount: data.amount * 100, // Convert to kobo (Naira cents)
     currency: 'NGN',
     ref: data.orderId,
+    subaccount: data.subaccount, // Automated split
     metadata: {
       custom_fields: [
         {

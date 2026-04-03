@@ -1,4 +1,4 @@
-# 🛠️ Vendor Products System - Implementation Plan
+# 🛠️ creator Products System - Implementation Plan
 
 ## 📊 **Current Status:**
 - ❌ Products use mock data
@@ -12,11 +12,11 @@
 
 ### **1. Create API Routes:**
 ```
-/api/vendor/products/route.ts
+/api/creator/products/route.ts
   - POST: Create product
-  - GET: List products for vendor
+  - GET: List products for creator
 
-/api/vendor/products/[id]/route.ts
+/api/creator/products/[id]/route.ts
   - GET: Get single product
   - PUT: Update product
   - DELETE: Delete product
@@ -38,7 +38,7 @@
 ### **4. Firestore Structure:**
 ```javascript
 products/{productId}
-  ├── vendorId
+  ├── creatorId
   ├── name
   ├── description
   ├── price
@@ -60,13 +60,13 @@ products/{productId}
 ### **5. Firestore Rules:**
 ```javascript
 match /products/{productId} {
-  // Vendors can create their own products
-  allow create: if isVerifiedVendor() &&
-                  request.resource.data.vendorId == request.auth.uid;
+  // creators can create their own products
+  allow create: if isVerifiedcreator() &&
+                  request.resource.data.creatorId == request.auth.uid;
   
-  // Vendors can read/update/delete their own products
-  allow read, update, delete: if isVerifiedVendor() &&
-                                  resource.data.vendorId == request.auth.uid;
+  // creators can read/update/delete their own products
+  allow read, update, delete: if isVerifiedcreator() &&
+                                  resource.data.creatorId == request.auth.uid;
   
   // Anyone can read active products
   allow read: if resource.data.status == 'active';
@@ -81,13 +81,13 @@ match /products/{productId} {
 ## 🚀 **Implementation Priority:**
 
 1. ✅ **DONE:** Store Customization persistence
-2. 🔄 **NEXT:** Vendor Products CRUD
+2. 🔄 **NEXT:** creator Products CRUD
 3. ⏳ **LATER:** Dashboard real data
 4. ⏳ **LATER:** Orders integration
 
 ---
 
-**Would you like me to implement the vendor products system now?**
+**Would you like me to implement the creator products system now?**
 
 This will involve:
 - Creating API routes for products

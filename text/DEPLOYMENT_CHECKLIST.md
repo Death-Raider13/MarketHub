@@ -15,9 +15,9 @@
 - [ ] Firebase Admin SDK initialized
 
 ### **3. API Routes**
-- [x] `/api/vendor/products` - Create & List products
-- [x] `/api/vendor/products/[id]` - Update & Delete products
-- [x] `/api/vendor/stats` - Dashboard statistics
+- [x] `/api/creator/products` - Create & List products
+- [x] `/api/creator/products/[id]` - Update & Delete products
+- [x] `/api/creator/stats` - Dashboard statistics
 - [x] `/api/advertiser/campaigns` - Ad campaigns
 - [x] `/api/advertiser/add-funds` - Payment processing
 
@@ -48,7 +48,7 @@ npm run build
 npm run dev
 ```
 **Test:**
-- [ ] Vendor can create products
+- [ ] creator can create products
 - [ ] Products persist after reload
 - [ ] Store customization saves
 - [ ] Dashboard shows real data
@@ -59,8 +59,8 @@ npm run dev
 
 ## 🧪 **Testing Checklist**
 
-### **Vendor Flow:**
-- [ ] Sign up as vendor
+### **creator Flow:**
+- [ ] Sign up as creator
 - [ ] Email verification works
 - [ ] Admin approval process
 - [ ] Create product with images
@@ -124,7 +124,7 @@ npm run dev
 
 ### **Indexes Required:**
 ```
-✅ products: vendorId + createdAt
+✅ products: creatorId + createdAt
 ✅ products: status + createdAt
 ✅ products: category + createdAt
 ✅ adCampaigns: advertiserId + createdAt
@@ -167,7 +167,7 @@ FIREBASE_ADMIN_PRIVATE_KEY=
 
 ### **Test in Production:**
 - [ ] Visit production URL
-- [ ] Sign up new vendor account
+- [ ] Sign up new creator account
 - [ ] Create test product
 - [ ] Verify data in Firestore
 - [ ] Test image uploads

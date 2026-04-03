@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const conversations = await Promise.all(
       conversationsSnapshot.docs.map(async (doc) => {
         const data = doc.data()
-        
+
         // Get the last message for each conversation
         const lastMessageSnapshot = await adminDb
           .collection('messages')
@@ -45,11 +45,11 @@ export async function GET(request: NextRequest) {
 
         const lastMessage = lastMessageSnapshot.docs[0]?.data()
 
-        // Count unread messages from vendor that customer hasn't read
+        // Count unread messages from creator that customer hasn't read
         const unreadSnapshot = await adminDb
           .collection('messages')
           .where('conversationId', '==', doc.id)
-          .where('senderRole', '==', 'vendor')
+          .where('senderRole', '==', 'creator')
           .where('read', '==', false)
           .get()
 

@@ -4,7 +4,7 @@ import { NotificationData, NotificationType, NotificationPriority, NOTIFICATION_
 
 export class NotificationService {
   private static instance: NotificationService;
-  
+
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
       NotificationService.instance = new NotificationService();
@@ -22,24 +22,24 @@ export class NotificationService {
   ): Promise<string> {
     try {
       const template = NOTIFICATION_TEMPLATES[type];
-      
+
       // Replace placeholders in title and message
       let title = template.title;
       let message = template.message;
-      
+
       if (customData?.metadata) {
         const metadata = customData.metadata;
-        
+
         // Replace common placeholders
         title = title.replace('{productName}', metadata.productName || '');
-        title = title.replace('{vendorName}', metadata.vendorName || '');
+        title = title.replace('{creatorName}', metadata.creatorName || '');
         title = title.replace('{storeName}', metadata.storeName || '');
         title = title.replace('{userName}', metadata.userName || '');
         title = title.replace('{orderId}', metadata.orderId || '');
         title = title.replace('{amount}', metadata.amount?.toLocaleString() || '');
-        
+
         message = message.replace('{productName}', metadata.productName || '');
-        message = message.replace('{vendorName}', metadata.vendorName || '');
+        message = message.replace('{creatorName}', metadata.creatorName || '');
         message = message.replace('{storeName}', metadata.storeName || '');
         message = message.replace('{userName}', metadata.userName || '');
         message = message.replace('{orderId}', metadata.orderId || '');
@@ -100,7 +100,7 @@ export class NotificationService {
       }
 
       const snapshot = await getDocs(q);
-      
+
       return snapshot.docs.map(doc => {
         const data = doc.data();
         return {

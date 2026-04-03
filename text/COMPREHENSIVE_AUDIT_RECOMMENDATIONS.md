@@ -1,5 +1,5 @@
 # 🔍 COMPREHENSIVE WEBSITE AUDIT & RECOMMENDATIONS
-## Nigerian Multi-Vendor E-Commerce Platform
+## Nigerian Multi-creator E-Commerce Platform
 
 **Audit Date:** September 30, 2025  
 **Auditor:** Senior Web Developer (Amazon, eBay, Jumia Experience)  
@@ -18,7 +18,7 @@ After conducting a thorough audit of your Nigerian e-commerce marketplace, I've 
 - ❌ **EMPTY FIRESTORE RULES** - Database completely unsecured
 - ❌ **MOCK DATA ONLY** - No real database integration
 - ❌ **NO EMAIL SYSTEM** - No order confirmations or notifications
-- ❌ **NO IMAGE UPLOAD** - Vendors cannot add product images
+- ❌ **NO IMAGE UPLOAD** - creators cannot add product images
 - ❌ **NO NAIRA (₦) SUPPORT** - Using USD instead of Nigerian currency
 - ⚠️ **WEAK AUTHENTICATION** - No 2FA, rate limiting, or session management
 
@@ -47,18 +47,18 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    function isVendor() {
+    function iscreator() {
       return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor';
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'creator';
     }
     
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    function isVendorOwner(vendorId) {
+    function iscreatorOwner(creatorId) {
       return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.uid == vendorId;
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.uid == creatorId;
     }
 
     // Users Collection
@@ -72,20 +72,20 @@ service cloud.firestore {
     // Products Collection
     match /products/{productId} {
       allow read: if true; // Public read
-      allow create: if isVendor() || isAdmin();
+      allow create: if iscreator() || isAdmin();
       allow update: if isAdmin() || 
-        (isVendor() && resource.data.vendorId == request.auth.uid);
+        (iscreator() && resource.data.creatorId == request.auth.uid);
       allow delete: if isAdmin() || 
-        (isVendor() && resource.data.vendorId == request.auth.uid);
+        (iscreator() && resource.data.creatorId == request.auth.uid);
     }
     
     // Orders Collection
     match /orders/{orderId} {
       allow read: if isOwner(resource.data.userId) || 
-        isVendorOwner(resource.data.vendorId) || 
+        iscreatorOwner(resource.data.creatorId) || 
         isAdmin();
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
-      allow update: if isAdmin() || isVendorOwner(resource.data.vendorId);
+      allow update: if isAdmin() || iscreatorOwner(resource.data.creatorId);
       allow delete: if isAdmin();
     }
     
@@ -97,11 +97,11 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
     
-    // Vendors Collection
-    match /vendors/{vendorId} {
+    // creators Collection
+    match /creators/{creatorId} {
       allow read: if true; // Public read
       allow create: if isAdmin();
-      allow update: if isVendorOwner(vendorId) || isAdmin();
+      allow update: if iscreatorOwner(creatorId) || isAdmin();
       allow delete: if isAdmin();
     }
     
@@ -114,9 +114,9 @@ service cloud.firestore {
     // Advertisements Collection
     match /advertisements/{adId} {
       allow read: if true;
-      allow create: if isVendor() || isAdmin();
-      allow update: if isVendorOwner(resource.data.vendorId) || isAdmin();
-      allow delete: if isVendorOwner(resource.data.vendorId) || isAdmin();
+      allow create: if iscreator() || isAdmin();
+      allow update: if iscreatorOwner(resource.data.creatorId) || isAdmin();
+      allow delete: if iscreatorOwner(resource.data.creatorId) || isAdmin();
     }
     
     // Cart Collection (User-specific)
@@ -509,14 +509,14 @@ export async function sendOrderConfirmation(
   });
 }
 
-export async function sendVendorApproval(to: string, vendorName: string) {
+export async function sendcreatorApproval(to: string, creatorName: string) {
   await resend.emails.send({
     from: 'admin@yourdomain.com',
     to,
-    subject: 'Vendor Application Approved!',
+    subject: 'creator Application Approved!',
     html: `
-      <h1>Congratulations ${vendorName}!</h1>
-      <p>Your vendor application has been approved.</p>
+      <h1>Congratulations ${creatorName}!</h1>
+      <p>Your creator application has been approved.</p>
       <p>You can now start adding products to your store.</p>
     `,
   });
@@ -543,13 +543,13 @@ export async function sendPasswordReset(to: string, resetLink: string) {
 2. ✅ Order Shipped
 3. ✅ Order Delivered
 4. ✅ Order Cancelled
-5. ✅ Vendor Application Received
-6. ✅ Vendor Approved/Rejected
+5. ✅ creator Application Received
+6. ✅ creator Approved/Rejected
 7. ✅ Product Approved/Rejected
 8. ✅ Password Reset
 9. ✅ Welcome Email
-10. ✅ Low Stock Alert (Vendor)
-11. ✅ New Order Alert (Vendor)
+10. ✅ Low Stock Alert (creator)
+11. ✅ New Order Alert (creator)
 12. ✅ Review Reminder
 13. ✅ Abandoned Cart
 
@@ -591,7 +591,7 @@ export async function uploadProductImage(
   await uploadBytes(storageRef, file, {
     contentType: file.type,
     customMetadata: {
-      uploadedBy: 'vendor',
+      uploadedBy: 'creator',
       productId,
     },
   });
@@ -873,7 +873,7 @@ export function validatePasswordStrength(password: string): {
 - ❌ No advanced filtering
 - ❌ No export functionality
 - ❌ No audit logs
-- ❌ Limited vendor management
+- ❌ Limited creator management
 
 ### Solutions:
 
@@ -976,30 +976,30 @@ await logAdminAction(
 );
 ```
 
-### 4. **Add Vendor Verification System**
+### 4. **Add creator Verification System**
 
 ```typescript
-// app/admin/vendors/[id]/verify/page.tsx
-export default function VendorVerificationPage() {
-  const [vendor, setVendor] = useState<any>(null);
+// app/admin/creators/[id]/verify/page.tsx
+export default function creatorVerificationPage() {
+  const [creator, setcreator] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
 
   const handleApprove = async () => {
-    await updateDoc(doc(db, 'vendors', vendorId), {
+    await updateDoc(doc(db, 'creators', creatorId), {
       verified: true,
       verifiedAt: new Date(),
       verifiedBy: adminUser.uid,
     });
 
     // Send approval email
-    await sendVendorApproval(vendor.email, vendor.storeName);
+    await sendcreatorApproval(creator.email, creator.storeName);
 
     // Log action
-    await logAdminAction(adminUser.uid, 'APPROVE_VENDOR', 'vendor', vendorId);
+    await logAdminAction(adminUser.uid, 'APPROVE_creator', 'creator', creatorId);
   };
 
   const handleReject = async (reason: string) => {
-    await updateDoc(doc(db, 'vendors', vendorId), {
+    await updateDoc(doc(db, 'creators', creatorId), {
       verified: false,
       rejectionReason: reason,
       rejectedAt: new Date(),
@@ -1007,7 +1007,7 @@ export default function VendorVerificationPage() {
     });
 
     // Send rejection email
-    await sendVendorRejection(vendor.email, reason);
+    await sendcreatorRejection(creator.email, reason);
   };
 
   return (
@@ -1023,13 +1023,13 @@ export default function VendorVerificationPage() {
 export default function CommissionSettingsPage() {
   const [defaultCommission, setDefaultCommission] = useState(15);
   const [categoryCommissions, setCategoryCommissions] = useState<Record<string, number>>({});
-  const [vendorCommissions, setVendorCommissions] = useState<Record<string, number>>({});
+  const [creatorCommissions, setcreatorCommissions] = useState<Record<string, number>>({});
 
   const handleSave = async () => {
     await setDoc(doc(db, 'settings', 'commission'), {
       default: defaultCommission,
       categories: categoryCommissions,
-      vendors: vendorCommissions,
+      creators: creatorCommissions,
       updatedAt: new Date(),
       updatedBy: adminUser.uid,
     });
@@ -1056,8 +1056,8 @@ export default function CommissionSettingsPage() {
       </div>
 
       <div>
-        <h2>Vendor-specific Commissions</h2>
-        {/* Vendor commission inputs */}
+        <h2>creator-specific Commissions</h2>
+        {/* creator commission inputs */}
       </div>
 
       <Button onClick={handleSave}>Save Settings</Button>
@@ -1068,12 +1068,12 @@ export default function CommissionSettingsPage() {
 
 ---
 
-## 🛍️ VENDOR DASHBOARD IMPROVEMENTS
+## 🛍️ creator DASHBOARD IMPROVEMENTS
 
 ### 1. **Add Real-time Analytics**
 
 ```typescript
-// app/vendor/analytics/page.tsx
+// app/creator/analytics/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -1081,7 +1081,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 
-export default function VendorAnalyticsPage() {
+export default function creatorAnalyticsPage() {
   const [analytics, setAnalytics] = useState({
     totalSales: 0,
     totalOrders: 0,
@@ -1095,7 +1095,7 @@ export default function VendorAnalyticsPage() {
     // Real-time listener for orders
     const ordersQuery = query(
       collection(db, 'orders'),
-      where('vendorId', '==', vendorId)
+      where('creatorId', '==', creatorId)
     );
 
     const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
@@ -1116,7 +1116,7 @@ export default function VendorAnalyticsPage() {
     });
 
     return unsubscribe;
-  }, [vendorId]);
+  }, [creatorId]);
 
   return (
     <div>
@@ -1167,7 +1167,7 @@ export default function VendorAnalyticsPage() {
 ### 2. **Add Inventory Management**
 
 ```typescript
-// app/vendor/inventory/page.tsx
+// app/creator/inventory/page.tsx
 export default function InventoryManagementPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [lowStockAlert, setLowStockAlert] = useState(10);
@@ -1235,8 +1235,8 @@ export default function InventoryManagementPage() {
 ### 3. **Add Order Management**
 
 ```typescript
-// app/vendor/orders/page.tsx
-export default function VendorOrdersPage() {
+// app/creator/orders/page.tsx
+export default function creatorOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'processing' | 'shipped'>('all');
 
@@ -1402,7 +1402,7 @@ export function EmptyState({
   description="Start adding products to your store to begin selling"
   action={
     <Button asChild>
-      <Link href="/vendor/products/new">Add Your First Product</Link>
+      <Link href="/creator/products/new">Add Your First Product</Link>
     </Button>
   }
 />
@@ -1467,9 +1467,9 @@ export function useKeyboardShortcuts(shortcuts: Record<string, () => void>) {
   }, [shortcuts]);
 }
 
-// Usage in vendor dashboard
+// Usage in creator dashboard
 useKeyboardShortcuts({
-  'ctrl+n': () => router.push('/vendor/products/new'),
+  'ctrl+n': () => router.push('/creator/products/new'),
   'ctrl+s': () => handleSave(),
   'ctrl+k': () => openCommandPalette(),
   '/': () => focusSearch(),
@@ -1508,25 +1508,25 @@ export function CommandPalette() {
         <Command.Empty>No results found.</Command.Empty>
 
         <Command.Group heading="Products">
-          <Command.Item onSelect={() => router.push('/vendor/products/new')}>
+          <Command.Item onSelect={() => router.push('/creator/products/new')}>
             <Plus className="mr-2 h-4 w-4" />
             Add New Product
           </Command.Item>
-          <Command.Item onSelect={() => router.push('/vendor/products')}>
+          <Command.Item onSelect={() => router.push('/creator/products')}>
             <Package className="mr-2 h-4 w-4" />
             View All Products
           </Command.Item>
         </Command.Group>
 
         <Command.Group heading="Orders">
-          <Command.Item onSelect={() => router.push('/vendor/orders')}>
+          <Command.Item onSelect={() => router.push('/creator/orders')}>
             <ShoppingCart className="mr-2 h-4 w-4" />
             View Orders
           </Command.Item>
         </Command.Group>
 
         <Command.Group heading="Settings">
-          <Command.Item onSelect={() => router.push('/vendor/settings')}>
+          <Command.Item onSelect={() => router.push('/creator/settings')}>
             <Settings className="mr-2 h-4 w-4" />
             Store Settings
           </Command.Item>
@@ -2135,14 +2135,14 @@ export async function GET(request: NextRequest) {
 // Composite indexes needed:
 
 // products collection
-- vendorId + status + createdAt
+- creatorId + status + createdAt
 - category + status + price
 - status + featured + createdAt
-- vendorId + category + status
+- creatorId + category + status
 
 // orders collection
 - userId + createdAt
-- vendorId + status + createdAt
+- creatorId + status + createdAt
 - status + createdAt
 
 // reviews collection
@@ -2330,7 +2330,7 @@ export function calculateShipping(
 8. ✅ Implement Real Database Integration
 9. ✅ Add 2FA Authentication
 10. ✅ Create Admin Bulk Actions
-11. ✅ Add Vendor Analytics Dashboard
+11. ✅ Add creator Analytics Dashboard
 12. ✅ Implement Order Management System
 
 ### Phase 3: MEDIUM PRIORITY (Week 5-6) 🟡
@@ -2364,7 +2364,7 @@ export function calculateShipping(
 - [ ] Test complete checkout flow
 - [ ] Verify email notifications
 - [ ] Test image upload and compression
-- [ ] Verify vendor registration process
+- [ ] Verify creator registration process
 - [ ] Test admin approval workflows
 - [ ] Verify order tracking
 
@@ -2416,7 +2416,7 @@ export function calculateShipping(
 1. **Daily:**
    - Monitor error logs
    - Check payment transactions
-   - Review new vendor applications
+   - Review new creator applications
    - Respond to support tickets
 
 2. **Weekly:**
@@ -2467,7 +2467,7 @@ export function calculateShipping(
 2. ✅ Implement Social Login
 3. ✅ Add Search Autocomplete
 4. ✅ Create Admin Bulk Actions
-5. ✅ Add Vendor Analytics
+5. ✅ Add creator Analytics
 6. ✅ Implement Order Tracking
 7. ✅ Add Mobile Optimizations
 8. ✅ Implement Accessibility Features
@@ -2493,7 +2493,7 @@ export function calculateShipping(
 - **Page Load Time:** Target <3 seconds
 - **Mobile Traffic:** Target 60%+
 - **Customer Retention:** Target 30%+
-- **Vendor Satisfaction:** Target 4.5/5 stars
+- **creator Satisfaction:** Target 4.5/5 stars
 - **Customer Support Response:** Target <2 hours
 
 ---
@@ -2505,7 +2505,7 @@ Your Nigerian e-commerce platform has a **solid foundation** but requires **crit
 1. **Fix Firestore Security Rules** (CRITICAL - Do this TODAY)
 2. **Implement Paystack Payment** (CRITICAL - Cannot launch without this)
 3. **Add Email Notifications** (HIGH - Essential for user experience)
-4. **Set up Image Upload** (HIGH - Vendors need this)
+4. **Set up Image Upload** (HIGH - creators need this)
 5. **Add Nigerian Currency Support** (HIGH - Local market requirement)
 
 With these improvements, your platform will be **production-ready** and competitive with Jumia, Konga, and other Nigerian marketplaces.

@@ -20,11 +20,23 @@ export function generateCloudinaryDownloadUrl(
   fileName?: string
 ): string {
   try {
-    const url = new URL(originalUrl)
+    let fileUrl = originalUrl
+    
+    // Cleanup double slashes in ImageKit URLs
+    if (fileUrl.includes('imagekit.io')) {
+      const urlParts = fileUrl.split('://')
+      if (urlParts.length === 2) {
+        urlParts[1] = urlParts[1].replace(/\/\/+/g, '/')
+        fileUrl = urlParts.join('://')
+      }
+      return fileUrl
+    }
+
+    const url = new URL(fileUrl)
 
     // Ensure it's a Cloudinary URL
     if (!url.hostname.includes('cloudinary.com')) {
-      throw new Error('Not a valid Cloudinary URL')
+      return fileUrl
     }
 
     // Preserve the exact asset path (folders, version, extension, etc.) and only inject

@@ -101,7 +101,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <ul>
         <li>Orders over ₦50,000 qualify for free standard shipping</li>
         <li>FEROMARKETHUB Premium members get free shipping on all orders</li>
-        <li>Some vendors offer free shipping promotions</li>
+        <li>Some creators offer free shipping promotions</li>
       </ul>
 
       <h3>Shipping Cost Factors</h3>
@@ -110,7 +110,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Weight and Size:</strong> Heavier and larger items cost more to ship</li>
         <li><strong>Distance:</strong> Delivery location affects shipping cost</li>
         <li><strong>Speed:</strong> Faster delivery options cost more</li>
-        <li><strong>Vendor Location:</strong> Items from different vendors may have separate shipping costs</li>
+        <li><strong>Creator Location:</strong> Items from different creators may have separate shipping costs</li>
       </ul>
 
       <h3>Shipping Restrictions</h3>
@@ -123,7 +123,7 @@ export const helpArticles: Record<string, HelpArticle> = {
 
       <div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
         <p class="text-green-800 font-medium">💰 Money-Saving Tip</p>
-        <p class="text-green-700 text-sm mt-1">Combine items from the same vendor in one order to save on shipping costs!</p>
+        <p class="text-green-700 text-sm mt-1">Combine items from the same creator in one order to save on shipping costs!</p>
       </div>
     `
   },
@@ -222,7 +222,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Shipping Address:</strong> Before the item ships</li>
         <li><strong>Payment Method:</strong> Within 1 hour of placing order</li>
         <li><strong>Order Cancellation:</strong> Before the item ships</li>
-        <li><strong>Item Quantity:</strong> Before vendor confirms the order</li>
+        <li><strong>Item Quantity:</strong> Before creator confirms the order</li>
       </ul>
 
       <h3>How to Modify Your Order</h3>
@@ -238,7 +238,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <ul class="space-y-2">
           <li><strong>Within 1 hour:</strong> Full modifications allowed</li>
           <li><strong>1-24 hours:</strong> Address changes and cancellations only</li>
-          <li><strong>After 24 hours:</strong> Contact vendor directly</li>
+          <li><strong>After 24 hours:</strong> Contact creator directly</li>
           <li><strong>After shipping:</strong> No modifications possible</li>
         </ul>
       </div>
@@ -246,7 +246,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <h3>When Modifications Aren't Possible</h3>
       <p>You cannot modify orders when:</p>
       <ul>
-        <li>The vendor has already shipped the item</li>
+        <li>The Creator has already shipped the item</li>
         <li>It's a custom or personalized item</li>
         <li>The item is on flash sale or clearance</li>
         <li>The order is being processed for same-day delivery</li>
@@ -266,7 +266,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <h3>Need Help?</h3>
       <p>If you can't modify your order online:</p>
       <ul>
-        <li>Contact the vendor directly through their store page</li>
+        <li>Contact the creator directly through their hub page</li>
         <li>Use our <a href="/contact" class="text-primary hover:underline">Contact Support</a> form</li>
         <li>Call our customer service at 1-800-MARKET</li>
       </ul>
@@ -477,7 +477,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <ul>
         <li><strong>Size Exchanges:</strong> Clothing, shoes, and accessories</li>
         <li><strong>Color Exchanges:</strong> Same product in different color</li>
-        <li><strong>Style Exchanges:</strong> Similar items from the same vendor</li>
+        <li><strong>Style Exchanges:</strong> Similar items from the same creator</li>
         <li><strong>Defective Items:</strong> Replacement for damaged products</li>
       </ul>
 
@@ -568,7 +568,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <ul>
         <li><strong>Defective Items:</strong> Product arrived damaged or not as described</li>
         <li><strong>Wrong Item:</strong> We sent you the incorrect product</li>
-        <li><strong>Vendor Error:</strong> Vendor made a mistake with your order</li>
+        <li><strong>Creator Error:</strong> Creator made a mistake with your order</li>
         <li><strong>Premium Members:</strong> FEROMARKETHUB Premium members get free returns</li>
         <li><strong>High-Value Orders:</strong> Orders over ₦100,000 include free returns</li>
       </ul>
@@ -623,7 +623,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <ol>
         <li><strong>Read Product Descriptions:</strong> Carefully check size charts and specifications</li>
         <li><strong>Check Reviews:</strong> See what other customers say about sizing and quality</li>
-        <li><strong>Contact Vendors:</strong> Ask questions before purchasing</li>
+        <li><strong>Contact creators:</strong> Ask questions before purchasing</li>
         <li><strong>Consider Premium:</strong> FEROMARKETHUB Premium includes free returns</li>
       </ol>
 
@@ -673,7 +673,7 @@ export const helpArticles: Record<string, HelpArticle> = {
 
       <h4>🏧 Bank Transfers</h4>
       <ul>
-        <li><strong>Direct Bank Transfer:</strong> Transfer directly to vendor accounts</li>
+        <li><strong>Direct Bank Transfer:</strong> Transfer directly to creator accounts</li>
         <li><strong>USSD Payments:</strong> Pay using your phone's USSD codes</li>
         <li><strong>Internet Banking:</strong> Online bank transfers</li>
       </ul>
@@ -934,7 +934,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Item Details:</strong> Product names, quantities, and prices</li>
         <li><strong>Tax Information:</strong> VAT and other applicable taxes</li>
         <li><strong>Payment Method:</strong> How you paid for the order</li>
-        <li><strong>Vendor Information:</strong> Details about the seller</li>
+        <li><strong>Creator Information:</strong> Details about the creator</li>
       </ul>
 
       <h3>How to Download Your Invoice</h3>
@@ -976,9 +976,9 @@ export const helpArticles: Record<string, HelpArticle> = {
             </ul>
           </div>
           <div>
-            <h5 class="font-semibold mb-2">Seller Information</h5>
+            <h5 class="font-semibold mb-2">Creator Information</h5>
             <ul class="text-sm space-y-1">
-              <li>• Vendor name and address</li>
+              <li>• Creator name and address</li>
               <li>• Business registration details</li>
               <li>• Tax identification number</li>
             </ul>
@@ -992,13 +992,13 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Use Business Account:</strong> Register with your company details</li>
         <li><strong>Provide Tax ID:</strong> Add your business tax identification</li>
         <li><strong>Complete Address:</strong> Include full business address</li>
-        <li><strong>Specify Requirements:</strong> Contact vendor for specific invoice formats</li>
+        <li><strong>Specify Requirements:</strong> Contact creator for specific invoice formats</li>
       </ul>
 
       <h3>Custom Invoice Requests</h3>
       <p>Need a custom invoice format? Here's what you can do:</p>
       <ol>
-        <li><strong>Contact the Vendor:</strong> Reach out directly for custom invoicing</li>
+        <li><strong>Contact the creator:</strong> Reach out directly for custom invoicing</li>
         <li><strong>Specify Requirements:</strong> Explain what format you need</li>
         <li><strong>Provide Details:</strong> Give all necessary business information</li>
         <li><strong>Allow Processing Time:</strong> Custom invoices may take 1-2 business days</li>
@@ -1094,7 +1094,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Email Newsletter:</strong> Subscribe for exclusive codes</li>
         <li><strong>Social Media:</strong> Follow us for flash promo codes</li>
         <li><strong>Mobile App:</strong> App-exclusive discounts</li>
-        <li><strong>Vendor Stores:</strong> Individual vendor promotions</li>
+        <li><strong>Creator Hubs:</strong> Individual creator promotions</li>
         <li><strong>Special Events:</strong> Birthday, anniversary, and holiday codes</li>
         <li><strong>Referral Program:</strong> Earn codes by referring friends</li>
       </ul>
@@ -1176,7 +1176,7 @@ export const helpArticles: Record<string, HelpArticle> = {
     relatedArticles: ["reset-password", "update-profile-information"],
     content: `
       <h2>Creating Your FEROMARKETHUB Account</h2>
-      <p>Join millions of shoppers and vendors on FEROMARKETHUB. Creating an account is quick, free, and gives you access to exclusive features.</p>
+      <p>Join millions of shoppers and creators on FEROMARKETHUB. Creating an account is quick, free, and gives you access to exclusive features.</p>
       
       <h3>Benefits of Having an Account</h3>
       <ul>
@@ -1185,7 +1185,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Wishlist:</strong> Save items for later purchase</li>
         <li><strong>Exclusive Deals:</strong> Access member-only discounts</li>
         <li><strong>Personalized Recommendations:</strong> Get product suggestions based on your interests</li>
-        <li><strong>Vendor Communication:</strong> Message sellers directly</li>
+        <li><strong>Creator Communication:</strong> Message creators directly</li>
         <li><strong>Review System:</strong> Leave and read product reviews</li>
       </ul>
 
@@ -1267,13 +1267,13 @@ export const helpArticles: Record<string, HelpArticle> = {
       
       <h4>🛍️ Customer Account</h4>
       <ul>
-        <li>Shop from thousands of vendors</li>
+        <li>Shop from thousands of creators</li>
         <li>Track orders and manage returns</li>
-        <li>Save favorite items and vendors</li>
+        <li>Save favorite items and creators</li>
         <li>Leave product reviews</li>
       </ul>
 
-      <h4>🏪 Vendor Account</h4>
+      <h4>🏪 Creator Account</h4>
       <ul>
         <li>Sell your products to millions of customers</li>
         <li>Manage inventory and orders</li>
@@ -1800,29 +1800,29 @@ export const helpArticles: Record<string, HelpArticle> = {
       </div>
     `
   },
-  // Vendor Information Articles
-  "how-to-become-a-vendor": {
-    title: "How to Become a Vendor",
-    category: "Vendor Information",
+  // creator Information Articles
+  "how-to-become-a-creator": {
+    title: "How to Become a Creator",
+    category: "Creator Information",
     readTime: 5,
     lastUpdated: "January 15, 2025",
-    relatedArticles: ["vendor-dashboard-guide", "commission-structure"],
+    relatedArticles: ["creator-dashboard-guide", "commission-structure"],
     content: `
       <h2>Start Selling on FEROMARKETHUB</h2>
-      <p>Join thousands of successful vendors on Nigeria's leading marketplace. Whether you're a small business owner, artisan, or established retailer, FEROMARKETHUB provides the platform to reach millions of customers.</p>
+      <p>Join thousands of successful creators on Nigeria's leading marketplace. Whether you're a small business owner, artisan, or established retailer, FEROMARKETHUB provides the platform to reach millions of customers.</p>
       
       <h3>Why Sell on FEROMARKETHUB?</h3>
       <ul>
         <li><strong>Massive Reach:</strong> Access to millions of active shoppers across Nigeria and beyond</li>
-        <li><strong>Easy Setup:</strong> Get your store online in minutes, not days</li>
+        <li><strong>Easy Setup:</strong> Get your hub online in minutes, not days</li>
         <li><strong>Marketing Support:</strong> Benefit from our advertising and promotional campaigns</li>
         <li><strong>Secure Payments:</strong> Reliable payment processing with fraud protection</li>
         <li><strong>Analytics:</strong> Detailed insights into your sales and customer behavior</li>
-        <li><strong>Mobile Optimized:</strong> Your store works perfectly on all devices</li>
-        <li><strong>Customer Support:</strong> Dedicated support team for vendors</li>
+        <li><strong>Mobile Optimized:</strong> Your hub works perfectly on all devices</li>
+        <li><strong>Customer Support:</strong> Dedicated support team for creators</li>
       </ul>
 
-      <h3>Vendor Requirements</h3>
+      <h3>creator Requirements</h3>
       
       <h4>📋 Basic Requirements</h4>
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1837,14 +1837,14 @@ export const helpArticles: Record<string, HelpArticle> = {
 
       <h4>📄 Required Documents</h4>
       <ul>
-        <li><strong>Individual Sellers:</strong>
+        <li><strong>Individual Creators:</strong>
           <ul>
             <li>Valid government ID (National ID, Driver's License, or Passport)</li>
             <li>Bank account details</li>
             <li>Proof of address (utility bill or bank statement)</li>
           </ul>
         </li>
-        <li><strong>Business Sellers:</strong>
+        <li><strong>Business Creators:</strong>
           <ul>
             <li>Business registration certificate (CAC)</li>
             <li>Tax identification number (TIN)</li>
@@ -1861,7 +1861,7 @@ export const helpArticles: Record<string, HelpArticle> = {
           <span class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">1</span>
           <div>
             <h5 class="font-semibold">Create Your Application</h5>
-            <p class="text-sm text-gray-600">Visit our <a href="/auth/vendor-register" class="text-primary hover:underline">Vendor Registration page</a> and fill out the application form with your business details.</p>
+            <p class="text-sm text-gray-600">Visit our <a href="/auth/creator-register" class="text-primary hover:underline">creator Registration page</a> and fill out the application form with your business details.</p>
           </div>
         </div>
         <div class="flex items-start gap-3">
@@ -1882,20 +1882,20 @@ export const helpArticles: Record<string, HelpArticle> = {
           <span class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">4</span>
           <div>
             <h5 class="font-semibold">Account Approval</h5>
-            <p class="text-sm text-gray-600">Once approved, you'll receive an email with your vendor dashboard access and setup instructions.</p>
+            <p class="text-sm text-gray-600">Once approved, you'll receive an email with your Creator Dashboard access and setup instructions.</p>
           </div>
         </div>
         <div class="flex items-start gap-3">
           <span class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">5</span>
           <div>
-            <h5 class="font-semibold">Set Up Your Store</h5>
-            <p class="text-sm text-gray-600">Complete your store profile, add products, and start selling!</p>
+            <h5 class="font-semibold">Set Up Your Hub</h5>
+            <p class="text-sm text-gray-600">Complete your hub profile, add products, and start selling!</p>
           </div>
         </div>
       </div>
 
       <h3>Product Categories</h3>
-      <p>We accept vendors in most product categories:</p>
+      <p>We accept creators in most product categories:</p>
       
       <div class="grid md:grid-cols-2 gap-4">
         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -1925,17 +1925,17 @@ export const helpArticles: Record<string, HelpArticle> = {
         </div>
       </div>
 
-      <h3>Vendor Account Types</h3>
+      <h3>creator Account Types</h3>
       
-      <h4>🏪 Individual Seller</h4>
+      <h4>🏪 Individual Creator</h4>
       <ul>
-        <li><strong>Best for:</strong> Personal sellers, small-scale businesses</li>
+        <li><strong>Best for:</strong> Personal creators, small-scale businesses</li>
         <li><strong>Commission:</strong> Standard marketplace fees apply</li>
-        <li><strong>Features:</strong> Basic store features, standard support</li>
+        <li><strong>Features:</strong> Basic hub features, standard support</li>
         <li><strong>Limits:</strong> Up to 100 products initially</li>
       </ul>
 
-      <h4>🏢 Business Seller</h4>
+      <h4>🏢 Business Creator</h4>
       <ul>
         <li><strong>Best for:</strong> Registered businesses, established retailers</li>
         <li><strong>Commission:</strong> Negotiable rates for high-volume sellers</li>
@@ -1943,7 +1943,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Limits:</strong> Unlimited products, advanced customization</li>
       </ul>
 
-      <h4>⭐ Premium Vendor</h4>
+      <h4>⭐ Premium Creator</h4>
       <ul>
         <li><strong>Best for:</strong> Large businesses, brand manufacturers</li>
         <li><strong>Commission:</strong> Custom pricing and terms</li>
@@ -1982,17 +1982,17 @@ export const helpArticles: Record<string, HelpArticle> = {
       <h3>Support and Training</h3>
       <p>We provide comprehensive support to help you succeed:</p>
       <ul>
-        <li><strong>Vendor Onboarding:</strong> Step-by-step setup guidance</li>
+        <li><strong>creator Onboarding:</strong> Step-by-step setup guidance</li>
         <li><strong>Training Materials:</strong> Video tutorials and guides</li>
         <li><strong>Webinars:</strong> Regular training sessions on best practices</li>
-        <li><strong>Dedicated Support:</strong> Vendor-specific customer service</li>
-        <li><strong>Community Forum:</strong> Connect with other vendors</li>
-        <li><strong>Account Manager:</strong> Personal support for premium vendors</li>
+        <li><strong>Dedicated Support:</strong> creator-specific customer service</li>
+        <li><strong>Community Forum:</strong> Connect with other creators</li>
+        <li><strong>Account Manager:</strong> Personal support for premium creators</li>
       </ul>
 
       <h3>Success Tips</h3>
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h5 class="font-semibold text-yellow-800 mb-2">💡 Pro Tips for New Vendors</h5>
+        <h5 class="font-semibold text-yellow-800 mb-2">💡 Pro Tips for New Creators</h5>
         <ul class="text-yellow-700 text-sm space-y-1">
           <li>• Start with a focused product range</li>
           <li>• Invest in professional product photography</li>
@@ -2010,29 +2010,29 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Document Verification:</strong> All documents are verified for authenticity</li>
         <li><strong>Business Validation:</strong> We confirm business registration and legitimacy</li>
         <li><strong>Quality Assessment:</strong> Product samples may be requested</li>
-        <li><strong>Policy Compliance:</strong> Ensure adherence to our vendor policies</li>
+        <li><strong>Policy Compliance:</strong> Ensure adherence to our Creator policies</li>
         <li><strong>Final Approval:</strong> Account activation and welcome package</li>
       </ul>
 
       <div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
         <p class="text-green-800 font-medium">🚀 Ready to Start?</p>
-        <p class="text-green-700 text-sm mt-1">Join thousands of successful vendors on FEROMARKETHUB. <a href="/auth/vendor-register" class="text-primary hover:underline font-semibold">Apply now</a> and start your journey to online success!</p>
+        <p class="text-green-700 text-sm mt-1">Join thousands of successful creators on FEROMARKETHUB. <a href="/auth/creator-register" class="text-primary hover:underline font-semibold">Apply now</a> and start your journey to online success!</p>
       </div>
     `
   },
 
-  "vendor-dashboard-guide": {
-    title: "Vendor Dashboard Guide",
-    category: "Vendor Information",
+  "creator-dashboard-guide": {
+    title: "Creator Dashboard Guide",
+    category: "Creator Information",
     readTime: 6,
     lastUpdated: "January 15, 2025",
-    relatedArticles: ["how-to-become-a-vendor", "commission-structure"],
+    relatedArticles: ["how-to-become-a-creator", "commission-structure"],
     content: `
-      <h2>Mastering Your Vendor Dashboard</h2>
-      <p>Your vendor dashboard is your command center for managing your FEROMARKETHUB store. This comprehensive guide will help you navigate and utilize all available features effectively.</p>
+      <h2>Mastering Your Creator Dashboard</h2>
+      <p>Your creator dashboard is your command center for managing your FEROMARKETHUB hub. This comprehensive guide will help you navigate and utilize all available features effectively.</p>
       
       <h3>Dashboard Overview</h3>
-      <p>When you log into your vendor dashboard, you'll see:</p>
+      <p>When you log into your creator dashboard, you'll see:</p>
       <ul>
         <li><strong>Sales Summary:</strong> Today's sales, weekly trends, and monthly performance</li>
         <li><strong>Order Notifications:</strong> New orders requiring attention</li>
@@ -2170,7 +2170,7 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Revenue Tracking:</strong> Daily, weekly, monthly, and yearly sales</li>
         <li><strong>Product Performance:</strong> Best-selling and underperforming products</li>
         <li><strong>Customer Insights:</strong> Demographics and buying patterns</li>
-        <li><strong>Traffic Analysis:</strong> Store visits and conversion rates</li>
+        <li><strong>Traffic Analysis:</strong> Hub visits and conversion rates</li>
       </ul>
 
       <h4>📊 Available Reports</h4>
@@ -2249,17 +2249,17 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Expense Tracking:</strong> Monitor business expenses</li>
       </ul>
 
-      <h3>Store Customization</h3>
+      <h3>Hub Customization</h3>
       
-      <h4>🎨 Store Appearance</h4>
+      <h4>🎨 Hub Appearance</h4>
       <ul>
-        <li><strong>Store Logo:</strong> Upload your brand logo</li>
-        <li><strong>Banner Images:</strong> Customize your store header</li>
+        <li><strong>Hub Logo:</strong> Upload your brand logo</li>
+        <li><strong>Banner Images:</strong> Customize your hub header</li>
         <li><strong>Color Scheme:</strong> Match your brand colors</li>
-        <li><strong>Store Description:</strong> Tell your brand story</li>
+        <li><strong>Hub Description:</strong> Tell your brand story</li>
       </ul>
 
-      <h4>⚙️ Store Settings</h4>
+      <h4>⚙️ Hub Settings</h4>
       <ul>
         <li><strong>Business Information:</strong> Contact details and policies</li>
         <li><strong>Shipping Settings:</strong> Delivery options and costs</li>
@@ -2267,8 +2267,8 @@ export const helpArticles: Record<string, HelpArticle> = {
         <li><strong>Payment Methods:</strong> Choose accepted payment options</li>
       </ul>
 
-      <h3>Mobile Dashboard</h3>
-      <p>Manage your store on the go with our mobile-optimized dashboard:</p>
+      <h4>⚙️ Mobile Dashboard</h4>
+      <p>Manage your hub on the go with our mobile-optimized dashboard:</p>
       <ul>
         <li><strong>Order Notifications:</strong> Instant alerts for new orders</li>
         <li><strong>Quick Actions:</strong> Confirm orders and update status</li>
@@ -2278,17 +2278,17 @@ export const helpArticles: Record<string, HelpArticle> = {
 
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
         <p class="text-blue-800 font-medium">📱 Pro Tip</p>
-        <p class="text-blue-700 text-sm mt-1">Download the FEROMARKETHUB Vendor app for iOS and Android to manage your store efficiently while on the move!</p>
+        <p class="text-blue-700 text-sm mt-1">Download the FEROMARKETHUB creator app for iOS and Android to manage your store efficiently while on the move!</p>
       </div>
     `
   },
 
   "commission-structure": {
     title: "Commission Structure",
-    category: "Vendor Information",
+    category: "creator Information",
     readTime: 4,
     lastUpdated: "January 15, 2025",
-    relatedArticles: ["vendor-dashboard-guide", "vendor-policies"],
+    relatedArticles: ["creator-dashboard-guide", "creator-policies"],
     content: `
       <h2>Understanding FEROMARKETHUB Commission Structure</h2>
       <p>Our transparent commission structure is designed to be fair and competitive while providing excellent value for the services and platform we provide to help grow your business.</p>
@@ -2361,7 +2361,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       </div>
 
       <h3>Volume-Based Discounts</h3>
-      <p>High-performing vendors can qualify for reduced commission rates:</p>
+      <p>High-performing creators can qualify for reduced commission rates:</p>
       
       <div class="space-y-4">
         <div class="border border-green-200 bg-green-50 rounded-lg p-4">
@@ -2473,7 +2473,7 @@ export const helpArticles: Record<string, HelpArticle> = {
           <li>• Increase sales volume to qualify for tier discounts</li>
           <li>• Focus on categories with lower commission rates</li>
           <li>• Encourage bank transfers over card payments</li>
-          <li>• Maintain high seller ratings for potential rate negotiations</li>
+          <li>• Maintain high creator ratings for potential rate negotiations</li>
           <li>• Bundle products to increase average order value</li>
           <li>• Use our fulfillment services to reduce operational costs</li>
         </ul>
@@ -2481,7 +2481,7 @@ export const helpArticles: Record<string, HelpArticle> = {
 
       <h3>Special Programs</h3>
       
-      <h4>🌟 New Vendor Promotion</h4>
+      <h4>🌟 New creator Promotion</h4>
       <ul>
         <li><strong>First Month:</strong> 50% reduction in commission rates</li>
         <li><strong>Second Month:</strong> 25% reduction in commission rates</li>
@@ -2501,7 +2501,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <ul>
         <li><strong>30-Day Notice:</strong> All rate changes announced in advance</li>
         <li><strong>Grandfathering:</strong> Existing contracts honored for agreed periods</li>
-        <li><strong>Negotiation:</strong> High-volume vendors can discuss custom rates</li>
+        <li><strong>Negotiation:</strong> High-volume creators can discuss custom rates</li>
         <li><strong>Market Adjustments:</strong> Rates adjusted to remain competitive</li>
       </ul>
 
@@ -2512,15 +2512,15 @@ export const helpArticles: Record<string, HelpArticle> = {
     `
   },
 
-  "vendor-policies": {
-    title: "Vendor Policies",
-    category: "Vendor Information",
+  "creator-policies": {
+    title: "Creator Policies",
+    category: "Creator Information",
     readTime: 7,
     lastUpdated: "January 15, 2025",
-    relatedArticles: ["commission-structure", "how-to-become-a-vendor"],
+    relatedArticles: ["commission-structure", "how-to-become-a-creator"],
     content: `
-      <h2>FEROMARKETHUB Vendor Policies</h2>
-      <p>These policies ensure a fair, safe, and trustworthy marketplace for all users. As a vendor, you agree to comply with these policies to maintain your selling privileges on FEROMARKETHUB.</p>
+      <h2>FEROMARKETHUB Creator Policies</h2>
+      <p>These policies ensure a fair, safe, and trustworthy marketplace for all users. As a Creator, you agree to comply with these policies to maintain your selling privileges on FEROMARKETHUB.</p>
       
       <h3>Product Listing Policies</h3>
       
@@ -2722,7 +2722,7 @@ export const helpArticles: Record<string, HelpArticle> = {
           <li>• Creating multiple accounts to circumvent policies</li>
           <li>• Misleading product information or bait-and-switch tactics</li>
           <li>• Artificially inflating search rankings</li>
-          <li>• Coordinating with other sellers to manipulate prices</li>
+          <li>• Coordinating with other creators to manipulate prices</li>
           <li>• Using automated tools to create listings or reviews</li>
         </ul>
       </div>
@@ -2758,7 +2758,7 @@ export const helpArticles: Record<string, HelpArticle> = {
       <h4>📢 Notification Process</h4>
       <ul>
         <li><strong>Advance Notice:</strong> 30 days notice for major policy changes</li>
-        <li><strong>Communication Channels:</strong> Email, dashboard notifications, and vendor portal</li>
+        <li><strong>Communication Channels:</strong> Email, dashboard notifications, and creator portal</li>
         <li><strong>Effective Date:</strong> Clear indication of when changes take effect</li>
         <li><strong>Grandfathering:</strong> Existing agreements honored where applicable</li>
       </ul>
@@ -2767,15 +2767,15 @@ export const helpArticles: Record<string, HelpArticle> = {
       
       <h4>🆘 Getting Help</h4>
       <ul>
-        <li><strong>Vendor Support:</strong> Dedicated support team for policy questions</li>
+        <li><strong>Creator Support:</strong> Dedicated support team for policy questions</li>
         <li><strong>Knowledge Base:</strong> Comprehensive guides and FAQs</li>
         <li><strong>Training Materials:</strong> Webinars and tutorials on best practices</li>
-        <li><strong>Community Forum:</strong> Connect with other vendors for advice</li>
+        <li><strong>Community Forum:</strong> Connect with other creators for advice</li>
       </ul>
 
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
         <p class="text-blue-800 font-medium">📚 Stay Informed</p>
-        <p class="text-blue-700 text-sm mt-1">Regularly review these policies and stay updated on changes. Successful vendors are those who understand and follow our guidelines while providing excellent customer service!</p>
+        <p class="text-blue-700 text-sm mt-1">Regularly review these policies and stay updated on changes. Successful creators are those who understand and follow our guidelines while providing excellent customer service!</p>
       </div>
     `
   },
@@ -2785,8 +2785,8 @@ export const helpArticles: Record<string, HelpArticle> = {
     category: "General Questions",
     readTime: 3,
     lastUpdated: "January 15, 2025",
-    relatedArticles: ["how-to-contact-support", "how-to-become-a-vendor"],
-    content: `<h2>Welcome to FEROMARKETHUB</h2><p>FEROMARKETHUB is Nigeria's premier online marketplace connecting millions of buyers with thousands of trusted vendors.</p><h3>Our Mission</h3><p>To empower businesses and individuals by providing a secure, accessible platform for commerce.</p><h3>What We Offer</h3><ul><li><strong>Wide Selection:</strong> Millions of products across all categories</li><li><strong>Secure Shopping:</strong> Protected payments and buyer guarantee</li><li><strong>Fast Delivery:</strong> Multiple shipping options</li><li><strong>Quality Assurance:</strong> Verified vendors and authentic products</li></ul><div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6"><p class="text-blue-800 font-medium"> Join Us</p><p class="text-blue-700 text-sm mt-1">Whether you're shopping or selling, FEROMARKETHUB is your trusted partner for online commerce in Nigeria!</p></div>`
+    relatedArticles: ["how-to-contact-support", "how-to-become-a-creator"],
+    content: `<h2>Welcome to FEROMARKETHUB</h2><p>FEROMARKETHUB is Nigeria's premier online marketplace connecting millions of buyers with thousands of trusted creators.</p><h3>Our Mission</h3><p>To empower businesses and individuals by providing a secure, accessible platform for commerce.</p><h3>What We Offer</h3><ul><li><strong>Wide Selection:</strong> Millions of products across all categories</li><li><strong>Secure Shopping:</strong> Protected payments and buyer guarantee</li><li><strong>Fast Delivery:</strong> Multiple shipping options</li><li><strong>Quality Assurance:</strong> Verified creators and authentic products</li></ul><div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6"><p class="text-blue-800 font-medium"> Join Us</p><p class="text-blue-700 text-sm mt-1">Whether you're shopping or selling, FEROMARKETHUB is your trusted partner for online commerce in Nigeria!</p></div>`
   },
 
   "how-to-contact-support": {

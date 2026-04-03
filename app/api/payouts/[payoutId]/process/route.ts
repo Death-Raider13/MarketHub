@@ -9,9 +9,9 @@ export async function POST(
   { params }: { params: { payoutId: string } }
 ) {
   console.log('=== PAYOUT PROCESSING STARTED ===')
-  
+
   const adminDb = getAdminFirestore()
-  
+
   if (!adminDb) {
     console.error('Firebase Admin SDK not initialized')
     return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(
       { status: 500 }
     )
   }
-  
+
   try {
     const { payoutId } = params
     const { adminUserId } = await request.json()
@@ -82,7 +82,7 @@ export async function POST(
       status: payoutData.status,
       amount: payoutData.amount,
       paymentMethod: payoutData.paymentMethod,
-      vendorName: payoutData.vendorName
+      creatorName: payoutData.creatorName
     })
 
     // Only process approved payouts
@@ -110,7 +110,7 @@ export async function POST(
       // Process based on payment method
       if (payoutData.paymentMethod === 'bank_transfer') {
         console.log('Processing bank transfer...')
-        
+
         if (!payoutData.bankDetails) {
           throw new Error('Bank details are required for bank transfer')
         }
@@ -144,11 +144,11 @@ export async function POST(
             account_number: accountNumber,
             bank_code: bankCode,
             currency: 'NGN',
-            description: `Payout for ${payoutData.vendorName}`,
+            description: `Payout for ${payoutData.creatorName}`,
             metadata: {
               payoutId: payoutId,
-              vendorId: payoutData.vendorId,
-              vendorName: payoutData.vendorName
+              creatorId: payoutData.creatorId,
+              creatorName: payoutData.creatorName
             }
           })
 
@@ -163,19 +163,19 @@ export async function POST(
         console.log('Initiating transfer...')
         const transferAmount = PaystackTransferService.nairaToKobo(payoutData.amount)
         console.log('Transfer amount in kobo:', transferAmount)
-        
+
         try {
           transferResult = await paystackTransferService.initiateTransfer({
             source: 'balance',
             amount: transferAmount,
             recipient: recipientCode,
-            reason: `Payout to ${payoutData.vendorName} - ${payoutId}`,
+            reason: `Payout to ${payoutData.creatorName} - ${payoutId}`,
             currency: 'NGN',
             reference: `payout_${payoutId}_${Date.now()}`,
             metadata: {
               payoutId: payoutId,
-              vendorId: payoutData.vendorId,
-              vendorName: payoutData.vendorName,
+              creatorId: payoutData.creatorId,
+              creatorName: payoutData.creatorName,
               originalAmount: payoutData.amount
             }
           })
@@ -208,9 +208,9 @@ export async function POST(
 
       await payoutRef.update(updateData)
 
-      // Update vendor balance
-      console.log('Updating vendor balance...')
-      const balanceRef = adminDb.collection('vendorBalances').doc(payoutData.vendorId)
+      // Update creator balance
+      console.log('Updating creator balance...')
+      const balanceRef = adminDb.collection('creatorBalances').doc(payoutData.creatorId)
       const balanceDoc = await balanceRef.get()
 
       if (balanceDoc.exists) {
@@ -221,7 +221,7 @@ export async function POST(
           lastPayoutDate: new Date(),
           updatedAt: new Date(),
         })
-        console.log('Vendor balance updated successfully')
+        console.log('creator balance updated successfully')
       }
 
       // Send success notifications
@@ -237,10 +237,10 @@ export async function POST(
         await sendPayoutCompletedEmail(latestPayout)
 
         // Send in-app notification
-        await createAdminNotification(payoutData.vendorId, 'payout_processed', {
+        await createAdminNotification(payoutData.creatorId, 'payout_processed', {
           metadata: {
             amount: payoutData.amount,
-            actionUrl: `/vendor/payouts`
+            actionUrl: `/creator/payouts`
           } as any
         })
         console.log('Notifications sent successfully')
@@ -276,8 +276,8 @@ export async function POST(
 
       await payoutRef.update(failureUpdate)
 
-      // Restore vendor balance (move from pending back to available)
-      const balanceRef = adminDb.collection('vendorBalances').doc(payoutData.vendorId)
+      // Restore creator balance (move from pending back to available)
+      const balanceRef = adminDb.collection('creatorBalances').doc(payoutData.creatorId)
       const balanceDoc = await balanceRef.get()
 
       if (balanceDoc.exists) {
@@ -317,9 +317,9 @@ export async function POST(
     console.error('=== PAYOUT PROCESSING ERROR ===')
     console.error('Error processing payout:', error)
     console.error('Error stack:', error.stack)
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to process payout',
         details: error.message,
         stack: error.stack

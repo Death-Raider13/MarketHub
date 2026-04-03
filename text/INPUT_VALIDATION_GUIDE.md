@@ -53,7 +53,7 @@ const result = userRegistrationSchema.parse({
 - Password strength (8+ chars, uppercase, lowercase, number, special char)
 - Display name (2-50 chars, letters only)
 - Nigerian phone number format
-- Role (customer or vendor)
+- Role (customer or creator)
 
 ### 2. **Product Creation**
 
@@ -68,7 +68,7 @@ const result = productSchema.parse({
   category: 'Electronics',
   sku: 'WH-1000',
   images: ['https://example.com/image.jpg'],
-  vendorId: 'vendor123',
+  creatorId: 'creator123',
 });
 ```
 
@@ -132,19 +132,19 @@ const result = reviewSchema.parse({
 - Comment (10-2000 chars, HTML sanitized)
 - Optional title and images
 
-### 5. **Vendor Application**
+### 5. **creator Application**
 
 ```typescript
-import { vendorApplicationSchema } from '@/lib/validation';
+import { creatorApplicationSchema } from '@/lib/validation';
 
-const result = vendorApplicationSchema.parse({
+const result = creatorApplicationSchema.parse({
   userId: 'user123',
   businessName: 'ABC Trading Ltd',
   storeName: 'ABC Store',
   storeDescription: 'Quality products at affordable prices',
   businessType: 'LLC',
   taxId: 'TIN-12345678',
-  email: 'vendor@example.com',
+  email: 'creator@example.com',
   phone: '+2348012345678',
   storeCategory: ['Electronics', 'Fashion'],
 });

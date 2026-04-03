@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       console.error('Firebase Admin SDK not initialized')
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const vendorId = searchParams.get('vendorId')
+    const creatorId = searchParams.get('creatorId')
     const period = searchParams.get('period') || '30' // days
 
     // Calculate date range
@@ -26,9 +26,9 @@ export async function GET(request: NextRequest) {
 
     // Build query based on filters
     let payoutsQuery
-    if (vendorId) {
+    if (creatorId) {
       payoutsQuery = adminDb.collection('payoutRequests')
-        .where('vendorId', '==', vendorId)
+        .where('creatorId', '==', creatorId)
         .orderBy('requestedAt', 'desc')
     } else {
       payoutsQuery = adminDb.collection('payoutRequests')
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       // Overall stats
       totalRequests: filteredPayouts.length,
       totalAmount: filteredPayouts.reduce((sum, p) => sum + (p.amount || 0), 0),
-      
+
       // Status breakdown
       pending: {
         count: filteredPayouts.filter(p => p.status === 'pending').length,
@@ -80,22 +80,22 @@ export async function GET(request: NextRequest) {
         count: filteredPayouts.filter(p => p.status === 'rejected').length,
         amount: filteredPayouts.filter(p => p.status === 'rejected').reduce((sum, p) => sum + (p.amount || 0), 0)
       },
-      
+
       // Payment method breakdown
       paymentMethods: {
         bank_transfer: filteredPayouts.filter(p => p.paymentMethod === 'bank_transfer').length,
         mobile_money: filteredPayouts.filter(p => p.paymentMethod === 'mobile_money').length,
         paypal: filteredPayouts.filter(p => p.paymentMethod === 'paypal').length
       },
-      
+
       // Time-based stats
       averageProcessingTime: calculateAverageProcessingTime(filteredPayouts),
-      
+
       // Recent activity (last 7 days)
       recentActivity: getRecentActivity(payouts),
-      
-      // Top vendors (if not filtering by vendor)
-      ...(vendorId ? {} : { topVendors: getTopVendors(filteredPayouts) })
+
+      // Top creators (if not filtering by creator)
+      ...(creatorId ? {} : { topcreators: getTopcreators(filteredPayouts) })
     }
 
     return NextResponse.json({
@@ -118,18 +118,18 @@ export async function GET(request: NextRequest) {
 }
 
 function calculateAverageProcessingTime(payouts: any[]): number {
-  const processedPayouts = payouts.filter(p => 
+  const processedPayouts = payouts.filter(p =>
     p.status === 'completed' && p.requestedAt && p.processedAt
   )
-  
+
   if (processedPayouts.length === 0) return 0
-  
+
   const totalTime = processedPayouts.reduce((sum, p) => {
     const requestTime = new Date(p.requestedAt).getTime()
     const processTime = new Date(p.processedAt).getTime()
     return sum + (processTime - requestTime)
   }, 0)
-  
+
   // Return average time in hours
   return Math.round(totalTime / processedPayouts.length / (1000 * 60 * 60))
 }
@@ -137,7 +137,7 @@ function calculateAverageProcessingTime(payouts: any[]): number {
 function getRecentActivity(payouts: any[]): any[] {
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-  
+
   return payouts
     .filter(p => {
       const date = p.processedAt || p.requestedAt
@@ -151,38 +151,38 @@ function getRecentActivity(payouts: any[]): any[] {
     .slice(0, 10)
     .map(p => ({
       id: p.id,
-      vendorName: p.vendorName,
+      creatorName: p.creatorName,
       amount: p.amount,
       status: p.status,
       date: p.processedAt || p.requestedAt
     }))
 }
 
-function getTopVendors(payouts: any[]): any[] {
-  const vendorStats = new Map()
-  
+function getTopcreators(payouts: any[]): any[] {
+  const creatorstats = new Map()
+
   payouts.forEach(p => {
-    if (!vendorStats.has(p.vendorId)) {
-      vendorStats.set(p.vendorId, {
-        vendorId: p.vendorId,
-        vendorName: p.vendorName,
-        vendorEmail: p.vendorEmail,
+    if (!creatorstats.has(p.creatorId)) {
+      creatorstats.set(p.creatorId, {
+        creatorId: p.creatorId,
+        creatorName: p.creatorName,
+        creatorEmail: p.creatorEmail,
         totalRequests: 0,
         totalAmount: 0,
         completedAmount: 0
       })
     }
-    
-    const stats = vendorStats.get(p.vendorId)
+
+    const stats = creatorstats.get(p.creatorId)
     stats.totalRequests++
     stats.totalAmount += p.amount || 0
-    
+
     if (p.status === 'completed') {
       stats.completedAmount += p.amount || 0
     }
   })
-  
-  return Array.from(vendorStats.values())
+
+  return Array.from(creatorstats.values())
     .sort((a, b) => b.totalAmount - a.totalAmount)
     .slice(0, 10)
 }

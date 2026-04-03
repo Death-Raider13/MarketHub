@@ -1,54 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimitMiddleware, getRateLimitIdentifier, getClientIP } from '@/lib/rate-limit';
-import { collection, addDoc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { getAdminFirestore } from '@/lib/firebase/admin-simple';
+import { verifyAuthToken } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET - Fetch products
 export async function GET(request: NextRequest) {
   try {
+    const adminDb = getAdminFirestore();
+    if (!adminDb) return NextResponse.json({ error: 'Database error' }, { status: 500 });
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
-    const limitParam = searchParams.get('limit') || '20';
-    
-    // Build query
-    let q = query(
-      collection(db, 'products'),
-      where('status', '==', 'active'),
-      orderBy('createdAt', 'desc'),
-      limit(parseInt(limitParam))
-    );
-    
+    const institutionType = searchParams.get('institutionType');
+    const institution = searchParams.get('institution');
+    const level = searchParams.get('level');
+    const department = searchParams.get('department');
+    const courseCode = searchParams.get('courseCode');
+    const limitParam = parseInt(searchParams.get('limit') || '20');
+
+    // Build query with Admin SDK
+    let query: FirebaseFirestore.Query = adminDb.collection('products')
+      .where('status', '==', 'active')
+      .orderBy('createdAt', 'desc')
+      .limit(limitParam);
+
     if (category) {
-      q = query(
-        collection(db, 'products'),
-        where('status', '==', 'active'),
-        where('category', '==', category),
-        orderBy('createdAt', 'desc'),
-        limit(parseInt(limitParam))
-      );
+      query = query.where('category', '==', category);
     }
-    
-    const snapshot = await getDocs(q);
-    const products = snapshot.docs.map(doc => ({
+    if (institutionType) {
+      query = query.where('institutionType', '==', institutionType);
+    }
+    if (institution) {
+      query = query.where('institution', '==', institution);
+    }
+    if (level) {
+      query = query.where('level', '==', level);
+    }
+    if (department) {
+      query = query.where('department', '==', department);
+    }
+    if (courseCode) {
+      query = query.where('courseCode', '==', courseCode.toUpperCase().replace(/\s+/g, ''));
+    }
+
+    const snapshot = await query.get();
+    let products = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
     }));
-    
+
     // Filter by search term if provided (client-side filtering)
-    let filteredProducts = products;
     if (search) {
       const searchLower = search.toLowerCase();
-      filteredProducts = products.filter((product: any) =>
+      products = products.filter((product: any) =>
         product.name?.toLowerCase().includes(searchLower) ||
         product.description?.toLowerCase().includes(searchLower)
       );
     }
-    
-    return NextResponse.json({ products: filteredProducts });
-    
+
+    return NextResponse.json({ products });
+
   } catch (error: any) {
-    console.error('Error fetching products:', error);
+    logger.error('Error fetching products:', error);
     return NextResponse.json(
       { error: 'Failed to fetch products' },
       { status: 500 }
@@ -56,55 +71,60 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create product (vendors only)
+// POST - Create product (creators only)
 export async function POST(request: NextRequest) {
   try {
-    // Get client IP
+    // 1. Authenticate user
+    const authResult = await verifyAuthToken(request);
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+
+    const { user } = authResult;
+    const adminDb = getAdminFirestore();
+    if (!adminDb) return NextResponse.json({ error: 'Database error' }, { status: 500 });
+
     const ip = getClientIP(request);
-    
-    // Parse request body
-    const body = await request.json();
-    const { userId, vendorId } = body;
-    
-    // Create rate limit identifier
+    const userId = user.uid;
+
+    // 2. Rate limiting
     const identifier = getRateLimitIdentifier(ip, userId);
-    
-    // Check rate limit
     const rateLimitResult = await rateLimitMiddleware(identifier, 'PRODUCT_CREATE');
-    
+
     if (!rateLimitResult.success) {
       return NextResponse.json(
-        { 
-          error: rateLimitResult.error,
-          retryAfter: rateLimitResult.retryAfter,
-        },
-        { 
-          status: 429,
-          headers: {
-            'Retry-After': String(rateLimitResult.retryAfter),
-          },
-        }
+        { error: rateLimitResult.error },
+        { status: 429 }
       );
     }
-    
-    // Validate and sanitize input using Zod schema
+
+    // 3. Validate input
+    const body = await request.json();
     const { productSchema } = await import('@/lib/validation');
-    
+
     try {
       const validatedData = productSchema.parse(body);
-      
-      // Create product in Firestore with sanitized data
+
+      // SECURITY: Enforce that creatorId matches the authenticated user
+      // or the user is an admin bypassing the check (if we had admin roles checked here)
+      if (validatedData.creatorId !== userId) {
+        logger.warn(`Security Alert: Mismatched creatorId during product creation. token_uid=${userId}, body_creatorId=${validatedData.creatorId}`);
+        return NextResponse.json({ error: 'Mismatched creator affiliation' }, { status: 403 });
+      }
+
+      // 4. Create product with sanitized data
       const productData = {
         ...validatedData,
         status: 'pending', // Requires admin approval
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
-      const docRef = await addDoc(collection(db, 'products'), productData);
-      
+
+      const docRef = await adminDb.collection('products').add(productData);
+      logger.info(`Product created: ${docRef.id} by creator: ${userId}`);
+
       return NextResponse.json(
-        { 
+        {
           success: true,
           productId: docRef.id,
           message: 'Product created successfully. Awaiting admin approval.',
@@ -112,10 +132,9 @@ export async function POST(request: NextRequest) {
         { status: 201 }
       );
     } catch (validationError: any) {
-      // Return validation errors
       if (validationError.errors) {
         return NextResponse.json(
-          { 
+          {
             error: 'Validation failed',
             details: validationError.errors.map((err: any) => ({
               field: err.path.join('.'),
@@ -127,12 +146,12 @@ export async function POST(request: NextRequest) {
       }
       throw validationError;
     }
-    
   } catch (error: any) {
-    console.error('Error creating product:', error);
+    logger.error('Error creating product:', error);
     return NextResponse.json(
       { error: 'Failed to create product' },
       { status: 500 }
     );
   }
 }
+

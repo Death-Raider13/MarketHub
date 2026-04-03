@@ -122,7 +122,7 @@ export default function AdvertisePage() {
               <CardContent>
                 <p className="text-muted-foreground">
                   Reach shoppers with high purchase intent actively browsing products
-                  on vendor stores.
+                  on creator stores.
                 </p>
               </CardContent>
             </Card>

@@ -11,11 +11,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { 
-  Package, 
-  Truck, 
-  CheckCircle, 
-  Clock, 
+import {
+  Package,
+  Truck,
+  CheckCircle,
+  Clock,
   XCircle,
   Eye,
   Loader2,
@@ -115,7 +115,7 @@ function MyOrdersContent() {
     try {
       setLoading(true)
       const response = await fetch(`/api/customer/orders?userId=${user?.uid}`)
-      
+
       if (response.ok) {
         const data = await response.json()
         const ordersData: Order[] = data.orders || []
@@ -157,13 +157,13 @@ function MyOrdersContent() {
 
   const getOrdersByType = (type: string) => {
     if (type === "all") return orders
-    if (type === "physical") return orders.filter(order => 
+    if (type === "physical") return orders.filter(order =>
       order.items?.some(item => item.product?.type === 'physical')
     )
-    if (type === "digital") return orders.filter(order => 
+    if (type === "digital") return orders.filter(order =>
       order.items?.some(item => item.product?.type === 'digital')
     )
-    if (type === "service") return orders.filter(order => 
+    if (type === "service") return orders.filter(order =>
       order.items?.some(item => item.product?.type === 'service')
     )
     return orders
@@ -171,7 +171,7 @@ function MyOrdersContent() {
 
   const filteredOrders = getOrdersByType(activeTab)
 
-  const submitProductRating = async (productId: string, vendorId?: string) => {
+  const submitProductRating = async (productId: string, creatorId?: string) => {
     if (!user) {
       toast.error('Please login to submit a review')
       return
@@ -204,7 +204,7 @@ function MyOrdersContent() {
           rating,
           title: titleFromReview,
           comment: trimmedReview,
-          vendorId
+          creatorId
         })
       })
 
@@ -239,7 +239,7 @@ function MyOrdersContent() {
     const createdAt = new Date(order.createdAt)
     const now = new Date()
     const daysDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
-    
+
     return daysDiff <= 7
   }
 
@@ -325,7 +325,7 @@ function MyOrdersContent() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">My Orders</h1>
@@ -347,8 +347,8 @@ function MyOrdersContent() {
                   <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2">No orders found</h3>
                   <p className="text-gray-600 mb-4">
-                    {activeTab === "all" 
-                      ? "You haven't placed any orders yet." 
+                    {activeTab === "all"
+                      ? "You haven't placed any orders yet."
                       : `No ${activeTab} orders found.`
                     }
                   </p>
@@ -451,11 +451,10 @@ function MyOrdersContent() {
                                               className="focus:outline-none"
                                             >
                                               <Star
-                                                className={`w-6 h-6 ${
-                                                  star <= rating
+                                                className={`w-6 h-6 ${star <= rating
                                                     ? 'text-yellow-400 fill-yellow-400'
                                                     : 'text-gray-300'
-                                                }`}
+                                                  }`}
                                               />
                                             </button>
                                           ))}
@@ -476,7 +475,7 @@ function MyOrdersContent() {
                                       {/* Submit Button */}
                                       <div className="flex gap-2">
                                         <Button
-                                          onClick={() => submitProductRating(item.productId, item.vendorId)}
+                                          onClick={() => submitProductRating(item.productId, item.creatorId)}
                                           disabled={rating === 0 || submittingRating}
                                           className="flex-1"
                                         >
@@ -564,8 +563,8 @@ function MyOrdersContent() {
 
                       {/* Cancel Order - Only for pending orders */}
                       {order.status === 'pending' && (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="destructive"
                           onClick={() => handleCancelOrder(order.id)}
                         >

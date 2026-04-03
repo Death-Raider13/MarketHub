@@ -52,14 +52,14 @@ interface AnalyticsData {
   totalRevenue: number
   totalOrders: number
   totalUsers: number
-  totalVendors: number
+  totalcreators: number
   totalProducts: number
   revenueGrowth: number
   ordersGrowth: number
   usersGrowth: number
   monthlyRevenue: Array<{ month: string; revenue: number; orders: number }>
   topProducts: Array<{ name: string; sales: number; revenue: number }>
-  topVendors: Array<{ name: string; sales: number; revenue: number }>
+  topcreators: Array<{ name: string; sales: number; revenue: number }>
   ordersByStatus: Array<{ status: string; count: number; color: string }>
   usersByType: Array<{ type: string; count: number; color: string }>
 }
@@ -76,7 +76,7 @@ function AnalyticsDashboardContent() {
   const loadAnalytics = async () => {
     try {
       setLoading(true)
-      
+
       // Calculate date ranges
       const now = new Date()
       const monthsBack = timeRange === "3months" ? 3 : timeRange === "6months" ? 6 : 12
@@ -117,15 +117,15 @@ function AnalyticsDashboardContent() {
       const totalRevenue = orders
         .filter((order: any) => order.paymentStatus === 'completed' || order.paymentStatus === 'paid')
         .reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0)
-      
+
       const totalOrders = orders.length
       const totalUsers = users.length
-      const totalVendors = users.filter((user: any) => user.role === 'vendor').length
+      const totalcreators = users.filter((user: any) => user.role === 'creator').length
       const totalProducts = products.length
 
       // Calculate monthly revenue
       const monthlyData: { [key: string]: { revenue: number; orders: number } } = {}
-      
+
       for (let i = 0; i < monthsBack; i++) {
         const monthStart = startOfMonth(subMonths(now, i))
         const monthKey = format(monthStart, 'MMM yyyy')
@@ -148,23 +148,40 @@ function AnalyticsDashboardContent() {
         }))
         .reverse()
 
-      // Calculate top products (mock data for now)
-      const topProducts = [
-        { name: "Wireless Headphones", sales: 156, revenue: 2340000 },
-        { name: "Smart Watch", sales: 134, revenue: 2010000 },
-        { name: "Laptop Stand", sales: 98, revenue: 980000 },
-        { name: "Phone Case", sales: 87, revenue: 435000 },
-        { name: "Bluetooth Speaker", sales: 76, revenue: 1140000 }
-      ]
+      // Calculate top products from real order data
+      const productSalesMap: { [productId: string]: { name: string; sales: number; revenue: number } } = {}
+      orders.forEach((order: any) => {
+        const items = order.items || []
+        items.forEach((item: any) => {
+          const pid = item.productId || item.id
+          if (!pid) return
+          if (!productSalesMap[pid]) {
+            productSalesMap[pid] = { name: item.name || item.productName || 'Unknown Product', sales: 0, revenue: 0 }
+          }
+          productSalesMap[pid].sales += item.quantity || 1
+          productSalesMap[pid].revenue += (item.price || 0) * (item.quantity || 1)
+        })
+      })
+      const topProducts = Object.values(productSalesMap)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5)
 
-      // Calculate top vendors (mock data for now)
-      const topVendors = [
-        { name: "TechStore Pro", sales: 234, revenue: 3510000 },
-        { name: "Fashion Hub", sales: 198, revenue: 2970000 },
-        { name: "Electronics Plus", sales: 167, revenue: 2505000 },
-        { name: "Home & Garden", sales: 145, revenue: 2175000 },
-        { name: "Sports World", sales: 123, revenue: 1845000 }
-      ]
+      // Calculate top creators from real order data
+      const creatorSalesMap: { [creatorId: string]: { name: string; sales: number; revenue: number } } = {}
+      orders.forEach((order: any) => {
+        const cid = order.creatorId || order.vendorId
+        if (!cid) return
+        const creator = users.find((u: any) => u.id === cid)
+        const name = creator?.hubName || creator?.storeName || creator?.displayName || 'Unknown'
+        if (!creatorSalesMap[cid]) {
+          creatorSalesMap[cid] = { name, sales: 0, revenue: 0 }
+        }
+        creatorSalesMap[cid].sales += 1
+        creatorSalesMap[cid].revenue += order.totalAmount || 0
+      })
+      const topcreators = Object.values(creatorSalesMap)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5)
 
       // Orders by status
       const statusCounts: { [key: string]: number } = {}
@@ -190,23 +207,29 @@ function AnalyticsDashboardContent() {
         color: getUserTypeColor(type)
       }))
 
-      // Calculate growth rates (mock for now)
-      const revenueGrowth = 12.5
-      const ordersGrowth = 8.3
-      const usersGrowth = 15.7
+      // Calculate real month-over-month growth rates
+      const currentMonthKey = format(startOfMonth(now), 'MMM yyyy')
+      const prevMonthKey = format(startOfMonth(subMonths(now, 1)), 'MMM yyyy')
+      const currRevenue = monthlyData[currentMonthKey]?.revenue || 0
+      const prevRevenue = monthlyData[prevMonthKey]?.revenue || 1
+      const currOrders = monthlyData[currentMonthKey]?.orders || 0
+      const prevOrders = monthlyData[prevMonthKey]?.orders || 1
+      const revenueGrowth = prevRevenue > 0 ? parseFloat(((currRevenue - prevRevenue) / prevRevenue * 100).toFixed(1)) : 0
+      const ordersGrowth = prevOrders > 0 ? parseFloat(((currOrders - prevOrders) / prevOrders * 100).toFixed(1)) : 0
+      const usersGrowth = 0 // Would need createdAt per-month aggregation
 
       setAnalytics({
         totalRevenue,
         totalOrders,
         totalUsers,
-        totalVendors,
+        totalcreators,
         totalProducts,
         revenueGrowth,
         ordersGrowth,
         usersGrowth,
         monthlyRevenue,
         topProducts,
-        topVendors,
+        topcreators,
         ordersByStatus,
         usersByType
       })
@@ -234,7 +257,7 @@ function AnalyticsDashboardContent() {
   const getUserTypeColor = (type: string) => {
     const colors: { [key: string]: string } = {
       customer: '#3b82f6',
-      vendor: '#10b981',
+      creator: '#10b981',
       admin: '#f59e0b',
       super_admin: '#ef4444',
       moderator: '#8b5cf6',
@@ -264,10 +287,10 @@ function AnalyticsDashboardContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
@@ -279,7 +302,7 @@ function AnalyticsDashboardContent() {
                 Platform performance insights and key metrics
               </p>
             </div>
-            
+
             <div className="flex gap-2">
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="w-[150px]">
@@ -291,12 +314,12 @@ function AnalyticsDashboardContent() {
                   <SelectItem value="12months">Last 12 Months</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Button onClick={loadAnalytics} variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
-              
+
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export
@@ -371,12 +394,12 @@ function AnalyticsDashboardContent() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Active Vendors
+                  Active creators
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold">{analytics?.totalVendors || 0}</div>
+                  <div className="text-2xl font-bold">{analytics?.totalcreators || 0}</div>
                   <Store className="h-5 w-5 text-orange-500" />
                 </div>
               </CardContent>
@@ -411,11 +434,11 @@ function AnalyticsDashboardContent() {
                     <XAxis dataKey="month" />
                     <YAxis tickFormatter={(value) => `₦${(value / 1000000).toFixed(1)}M`} />
                     <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Revenue']} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="#3b82f6" 
-                      fill="#3b82f6" 
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#3b82f6"
+                      fill="#3b82f6"
                       fillOpacity={0.1}
                     />
                   </AreaChart>
@@ -435,10 +458,10 @@ function AnalyticsDashboardContent() {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="orders" 
-                      stroke="#10b981" 
+                    <Line
+                      type="monotone"
+                      dataKey="orders"
+                      stroke="#10b981"
                       strokeWidth={2}
                     />
                   </LineChart>
@@ -522,14 +545,14 @@ function AnalyticsDashboardContent() {
             </Card>
           </div>
 
-          {/* Top Vendors */}
+          {/* Top creators */}
           <Card>
             <CardHeader>
-              <CardTitle>Top Performing Vendors</CardTitle>
+              <CardTitle>Top Performing creators</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analytics?.topVendors || []}>
+                <BarChart data={analytics?.topcreators || []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis tickFormatter={(value) => `₦${(value / 1000000).toFixed(1)}M`} />

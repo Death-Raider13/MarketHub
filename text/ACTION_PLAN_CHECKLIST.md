@@ -53,7 +53,7 @@
 - [ ] Update all TypeScript errors
 
 #### Afternoon (4 hours)
-- [ ] Create `components/vendor/digital-file-upload.tsx`
+- [ ] Create `components/creator/digital-file-upload.tsx`
 - [ ] Implement file upload to Firebase Storage
 - [ ] Add file size validation (max 500MB)
 - [ ] Test file upload
@@ -65,7 +65,7 @@
 ### Thursday - Product Creation Update
 
 #### Morning (4 hours)
-- [ ] Update `app/vendor/products/new/page.tsx`
+- [ ] Update `app/creator/products/new/page.tsx`
 - [ ] Add product type selector (physical/digital)
 - [ ] Show file upload for digital products
 - [ ] Add access duration field
@@ -166,7 +166,7 @@
 - [ ] Remove mock data imports
 
 #### Afternoon (4 hours)
-- [ ] Update vendor dashboard with real data
+- [ ] Update creator dashboard with real data
 - [ ] Update admin dashboard with real data
 - [ ] Test all pages load correctly
 - [ ] Fix loading states
@@ -187,8 +187,8 @@
   - [ ] Download digital product
 
 #### Afternoon (4 hours)
-- [ ] Test vendor journey:
-  - [ ] Register as vendor
+- [ ] Test creator journey:
+  - [ ] Register as creator
   - [ ] Create digital product
   - [ ] Upload files
   - [ ] Receive sale notification
@@ -203,7 +203,7 @@
 
 ### Coupon System (4 hours)
 - [ ] Add coupon schema to `lib/types.ts`
-- [ ] Create `app/vendor/coupons/page.tsx`
+- [ ] Create `app/creator/coupons/page.tsx`
 - [ ] Add coupon validation to checkout
 - [ ] Test coupon application
 
@@ -269,7 +269,7 @@ Tomorrow's Priority:
 - [ ] Can purchase with real payment
 - [ ] Email sent automatically
 - [ ] Download links work
-- [ ] Vendor receives payout request
+- [ ] creator receives payout request
 - [ ] Admin can approve payouts
 
 ---

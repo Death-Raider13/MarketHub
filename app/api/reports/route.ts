@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
 import { createAdminRoleNotification } from '@/lib/notifications/admin-service'
-import { 
-  sendAbuseReportSubmittedEmail, 
-  sendAbuseReportNotificationEmail, 
-  sendAbuseReportAdminEmail 
+import {
+  sendAbuseReportSubmittedEmail,
+  sendAbuseReportNotificationEmail,
+  sendAbuseReportAdminEmail
 } from '@/lib/email/service'
 
 export async function GET(request: NextRequest) {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     const snapshot = await query.limit(100).get()
-    
+
     const reports = snapshot.docs.map(doc => {
       const data = doc.data()
       return {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     let priority = 'medium'
     const highPriorityCategories = ['counterfeit', 'fraud', 'harassment', 'illegal_content']
     const criticalCategories = ['child_safety', 'terrorism', 'violence']
-    
+
     if (criticalCategories.includes(category.toLowerCase())) {
       priority = 'critical'
     } else if (highPriorityCategories.includes(category.toLowerCase())) {
@@ -156,8 +156,8 @@ export async function POST(request: NextRequest) {
       let reportedUserEmail = null
       let reportedUserName = 'User'
 
-      if (type === 'vendor' || type === 'user') {
-        // For vendor/user reports, the reportedItemId is the user ID
+      if (type === 'creator' || type === 'user') {
+        // For creator/user reports, the reportedItemId is the user ID
         const userDoc = await adminDb.collection('users').doc(reportedItemId).get()
         if (userDoc.exists) {
           const userData = userDoc.data()
@@ -165,16 +165,16 @@ export async function POST(request: NextRequest) {
           reportedUserName = userData?.displayName || userData?.name || 'User'
         }
       } else if (type === 'product') {
-        // For product reports, get the vendor from the product
+        // For product reports, get the creator from the product
         const productDoc = await adminDb.collection('products').doc(reportedItemId).get()
         if (productDoc.exists) {
           const productData = productDoc.data()
-          if (productData?.vendorId) {
-            const vendorDoc = await adminDb.collection('users').doc(productData.vendorId).get()
-            if (vendorDoc.exists) {
-              const vendorData = vendorDoc.data()
-              reportedUserEmail = vendorData?.email
-              reportedUserName = vendorData?.displayName || vendorData?.storeName || 'Vendor'
+          if (productData?.creatorId) {
+            const creatorDoc = await adminDb.collection('users').doc(productData.creatorId).get()
+            if (creatorDoc.exists) {
+              const creatorData = creatorDoc.data()
+              reportedUserEmail = creatorData?.email
+              reportedUserName = creatorData?.displayName || creatorData?.storeName || 'creator'
             }
           }
         }

@@ -27,7 +27,7 @@
 ## 📦 Files Created in Phase 2
 
 ### 1. Digital File Upload Component ✅
-**File:** `components/vendor/digital-file-upload.tsx`
+**File:** `components/creator/digital-file-upload.tsx`
 
 **Features:**
 - Drag & drop file upload
@@ -94,7 +94,7 @@ trackDownload(purchaseId, fileId)
 ## 🔧 Next Steps to Complete Phase 2
 
 ### Step 1: Update Product Creation Page
-**File to modify:** `app/vendor/products/new/page.tsx`
+**File to modify:** `app/creator/products/new/page.tsx`
 
 **Add:**
 - Product type selector (Physical/Digital/Service)
@@ -177,7 +177,7 @@ Phase 2 Progress: ████████░░░░░░░░░░░░ 4
 - Access digital product downloads
 - Download files unlimited times
 
-### ✅ Vendors Can:
+### ✅ creators Can:
 - Upload digital files (component ready)
 - Set file access permissions
 - Track file sizes
@@ -194,7 +194,7 @@ Phase 2 Progress: ████████░░░░░░░░░░░░ 4
 
 ### For You to Do Next:
 
-1. **Update Vendor Product Creation Page**
+1. **Update creator Product Creation Page**
    - Add product type selector
    - Show digital file upload component
    - Add access settings

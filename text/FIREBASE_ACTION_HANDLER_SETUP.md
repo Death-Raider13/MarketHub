@@ -107,7 +107,7 @@
 {
   uid: string                    // Firebase Auth UID
   email: string                  // User email
-  role: "customer" | "vendor"    // User role
+  role: "customer" | "creator"    // User role
   displayName: string            // Full name
   createdAt: Date                // Account creation date
   
@@ -117,7 +117,7 @@
   updatedAt: Date                // Last profile update
   phoneNumber?: string           // Phone number (optional)
   
-  // Vendor-specific (if role = vendor)
+  // creator-specific (if role = creator)
   verified: boolean              // Admin approval status
   commission: number             // Commission percentage
   storeName?: string             // Store name

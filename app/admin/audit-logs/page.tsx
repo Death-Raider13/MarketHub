@@ -83,7 +83,7 @@ function AuditLogsContent() {
   const loadAuditLogs = async () => {
     try {
       setLoading(true)
-      
+
       // Calculate date range
       const now = new Date()
       const daysBack = dateRange === "1day" ? 1 : dateRange === "7days" ? 7 : dateRange === "30days" ? 30 : 90
@@ -96,7 +96,7 @@ function AuditLogsContent() {
         orderBy("timestamp", "desc"),
         limit(100)
       )
-      
+
       const logsSnapshot = await getDocs(logsQuery)
       const logsData = logsSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -107,7 +107,7 @@ function AuditLogsContent() {
       setLogs(logsData)
     } catch (error) {
       console.error("Error loading audit logs:", error)
-      
+
       // Fallback to mock data
       const mockLogs: AuditLog[] = [
         {
@@ -133,7 +133,7 @@ function AuditLogsContent() {
           action: "product.approve",
           resource: "product",
           resourceId: "prod456",
-          details: { productName: "Wireless Headphones", vendorId: "vendor789" },
+          details: { productName: "Wireless Headphones", creatorId: "creator789" },
           ipAddress: "192.168.1.101",
           userAgent: "Mozilla/5.0...",
           timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
@@ -186,7 +186,7 @@ function AuditLogsContent() {
           status: "success"
         }
       ]
-      
+
       setLogs(mockLogs)
     } finally {
       setLoading(false)
@@ -220,15 +220,15 @@ function AuditLogsContent() {
   }
 
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = 
+    const matchesSearch =
       log.adminName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.resource?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.resourceId?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     const matchesAction = actionFilter === "all" || log.action.includes(actionFilter)
     const matchesSeverity = severityFilter === "all" || log.severity === severityFilter
-    
+
     return matchesSearch && matchesAction && matchesSeverity
   })
 
@@ -242,10 +242,10 @@ function AuditLogsContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6">
@@ -336,7 +336,7 @@ function AuditLogsContent() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="action">Action Type</Label>
                   <Select value={actionFilter} onValueChange={setActionFilter}>
@@ -353,7 +353,7 @@ function AuditLogsContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="severity">Severity</Label>
                   <Select value={severityFilter} onValueChange={setSeverityFilter}>
@@ -369,7 +369,7 @@ function AuditLogsContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="dateRange">Time Range</Label>
                   <Select value={dateRange} onValueChange={setDateRange}>
@@ -384,12 +384,12 @@ function AuditLogsContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <Button onClick={loadAuditLogs} variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
                 </Button>
-                
+
                 <Button variant="outline">
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -499,7 +499,7 @@ function AuditLogsContent() {
                   Action performed by {selectedLog?.adminName} on {selectedLog?.timestamp ? format(selectedLog.timestamp, 'PPpp') : 'N/A'}
                 </DialogDescription>
               </DialogHeader>
-              
+
               {selectedLog && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -518,7 +518,7 @@ function AuditLogsContent() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Resource</Label>
@@ -537,14 +537,14 @@ function AuditLogsContent() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label>Action Details</Label>
                     <pre className="mt-1 p-3 bg-muted rounded-lg text-sm overflow-auto">
                       {JSON.stringify(selectedLog.details, null, 2)}
                     </pre>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>IP Address</Label>
@@ -559,7 +559,7 @@ function AuditLogsContent() {
                   </div>
                 </div>
               )}
-              
+
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowLogDetails(false)}>
                   Close

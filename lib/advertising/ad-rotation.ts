@@ -188,9 +188,9 @@ async function getEligibleCampaigns(
       return false
     }
     
-    // Check category targeting
+    // Check hub category targeting
     if (campaign.targeting.categories && campaign.targeting.categories.length > 0) {
-      if (!campaign.targeting.categories.includes(context.storeCategory)) {
+      if (!campaign.targeting.categories.includes(context.hubCategory)) {
         return false
       }
     }
@@ -202,16 +202,16 @@ async function getEligibleCampaigns(
       }
     }
     
-    // Check store type targeting
+    // Check hub type targeting
     if (campaign.targeting.storeTypes && campaign.targeting.storeTypes.length > 0) {
-      if (!campaign.targeting.storeTypes.includes(context.storeType)) {
+      if (!campaign.targeting.storeTypes.includes(context.hubType)) {
         return false
       }
     }
     
-    // Check minimum store rating
+    // Check minimum hub rating
     if (campaign.targeting.minStoreRating) {
-      if (context.storeRating < campaign.targeting.minStoreRating) {
+      if (context.hubRating < campaign.targeting.minStoreRating) {
         return false
       }
     }
@@ -231,15 +231,15 @@ async function recordImpression(
 ): Promise<void> {
   // Calculate costs
   const cost = calculateImpressionCost(campaign, slot)
-  const vendorEarning = cost * slot.pricing.vendorShare
-  const platformEarning = cost * (1 - slot.pricing.vendorShare)
+  const creatorEarning = cost * slot.pricing.creatorShare
+  const platformEarning = cost * (1 - slot.pricing.creatorShare)
   
   // Create impression record
   const impression = {
     id: impressionId,
     campaignId: campaign.id,
     slotId: slot.id,
-    vendorId: slot.vendorId,
+    creatorId: slot.creatorId,
     
     userId: context.userId,
     sessionId: context.sessionId,
@@ -251,7 +251,7 @@ async function recordImpression(
     converted: false,
     
     cost,
-    vendorEarning,
+    creatorEarning,
     platformEarning,
     
     pageUrl: typeof window !== 'undefined' ? window.location.href : '',
@@ -271,7 +271,7 @@ async function recordImpression(
   await updateSlotStats(slot.id, {
     impressions: 1,
     revenue: cost,
-    vendorEarnings: vendorEarning
+    creatorEarnings: creatorEarning
   })
 }
 

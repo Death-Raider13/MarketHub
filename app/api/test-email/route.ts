@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendOrderConfirmationEmail, sendServiceBookingConfirmationEmail } from '@/lib/email/service'
 import { generateDownloadLinks } from '@/lib/digital-products/download-links'
+import { devOnlyGuard } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
+  const blocked = devOnlyGuard()
+  if (blocked) return blocked
+
   try {
     const { type, email } = await request.json()
 
@@ -35,7 +39,7 @@ export async function POST(request: NextRequest) {
                   fileUrl: 'https://example.com/download/file1'
                 },
                 {
-                  id: 'file2', 
+                  id: 'file2',
                   fileName: 'Marketing-Course-Module-2.pdf',
                   fileUrl: 'https://example.com/download/file2'
                 }
@@ -74,9 +78,9 @@ export async function POST(request: NextRequest) {
       }
 
       await sendOrderConfirmationEmail(mockOrder, downloadLinks)
-      
-      return NextResponse.json({ 
-        success: true, 
+
+      return NextResponse.json({
+        success: true,
         message: 'Order confirmation email sent successfully',
         downloadLinksGenerated: downloadLinks?.length || 0
       })
@@ -91,13 +95,13 @@ export async function POST(request: NextRequest) {
           orderId: 'order-456',
           serviceName: 'Business Consultation',
           serviceDescription: 'One-on-one business strategy consultation session',
-          vendorId: 'vendor-789'
+          creatorId: 'creator-789'
         },
         5000
       )
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: 'Service booking confirmation email sent successfully'
       })
 
@@ -107,8 +111,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Test email error:', error)
-    return NextResponse.json({ 
-      error: error.message || 'Failed to send test email' 
+    return NextResponse.json({
+      error: error.message || 'Failed to send test email'
     }, { status: 500 })
   }
 }

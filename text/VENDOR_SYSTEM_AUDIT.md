@@ -1,52 +1,52 @@
-# 🔍 Vendor System Audit & Cleanup Plan
+# 🔍 creator System Audit & Cleanup Plan
 
-## 📋 **Current Vendor Pages Inventory**
+## 📋 **Current creator Pages Inventory**
 
 ### ✅ **KEEP - Core Functionality (Using Real Data)**
-1. **`/vendor/dashboard`** - Main dashboard
+1. **`/creator/dashboard`** - Main dashboard
    - Status: ✅ Uses real Firestore data
    - Shows: Products stats, revenue, sales, views
    
-2. **`/vendor/products`** - Products list
+2. **`/creator/products`** - Products list
    - Status: ✅ Uses real Firestore data
-   - Shows: All vendor products from database
+   - Shows: All creator products from database
    
-3. **`/vendor/products/new`** - Create product
+3. **`/creator/products/new`** - Create product
    - Status: ✅ Saves to Firestore
    - Uploads: Images to Cloudinary
    
-4. **`/vendor/products/[id]/edit`** - Edit product
+4. **`/creator/products/[id]/edit`** - Edit product
    - Status: ⚠️ NEEDS IMPLEMENTATION
    - Action: Build edit functionality
    
-5. **`/vendor/store-customize`** - Store customization
+5. **`/creator/store-customize`** - Store customization
    - Status: ✅ Uses real Firestore data
    - Saves: Theme, branding, layout settings
    
-6. **`/vendor/pending-approval`** - Approval waiting page
+6. **`/creator/pending-approval`** - Approval waiting page
    - Status: ✅ Static page (no data needed)
-   - Shows: Message while admin approves vendor
+   - Shows: Message while admin approves creator
 
 ---
 
 ### ❌ **REMOVE - Not Needed/Redundant**
 
-7. **`/vendor/advertising`** - Vendor advertising page
+7. **`/creator/advertising`** - creator advertising page
    - Status: ❌ REMOVE
-   - Reason: Vendors don't need to create ads (that's for advertisers)
+   - Reason: creators don't need to create ads (that's for advertisers)
    - Action: Delete folder and remove from navigation
    
-8. **`/vendor/advertising/new`** - Create ad campaign
+8. **`/creator/advertising/new`** - Create ad campaign
    - Status: ❌ REMOVE
    - Reason: Part of advertising system (for advertisers only)
    - Action: Delete with parent folder
 
-9. **`/vendor/ad-earnings`** - Ad revenue tracking
+9. **`/creator/ad-earnings`** - Ad revenue tracking
    - Status: ❌ REMOVE
-   - Reason: Vendors earn from sales, not ads
+   - Reason: creators earn from sales, not ads
    - Action: Delete folder and remove from navigation
 
-10. **`/vendor/store`** - Store settings
+10. **`/creator/store`** - Store settings
     - Status: ⚠️ CHECK IF DUPLICATE
     - Reason: Might be duplicate of store-customize
     - Action: Review and merge or remove
@@ -55,17 +55,17 @@
 
 ### ⚠️ **NEEDS WORK - Implement with Real Data**
 
-11. **`/vendor/orders`** - Order management
+11. **`/creator/orders`** - Order management
     - Status: ⚠️ USES MOCK DATA
     - Priority: HIGH
     - Action: Connect to real orders from Firestore
     - Features needed:
-      - List all orders for vendor's products
+      - List all orders for creator's products
       - Update order status
       - Track shipments
       - Customer details
 
-12. **`/vendor/analytics`** - Analytics dashboard
+12. **`/creator/analytics`** - Analytics dashboard
     - Status: ⚠️ USES MOCK DATA
     - Priority: MEDIUM
     - Action: Calculate real analytics from Firestore
@@ -75,7 +75,7 @@
       - Revenue charts
       - Customer insights
 
-13. **`/vendor/payouts`** - Payout management
+13. **`/creator/payouts`** - Payout management
     - Status: ⚠️ USES MOCK DATA
     - Priority: MEDIUM
     - Action: Implement real payout system
@@ -90,12 +90,12 @@
 ## 🎯 **Cleanup Action Plan**
 
 ### **Phase 1: Remove Unnecessary Pages** ✅
-- [ ] Delete `/vendor/advertising` folder
-- [ ] Delete `/vendor/advertising/new` folder
-- [ ] Delete `/vendor/ad-earnings` folder
+- [ ] Delete `/creator/advertising` folder
+- [ ] Delete `/creator/advertising/new` folder
+- [ ] Delete `/creator/ad-earnings` folder
 - [ ] Remove advertising links from dashboard navigation
 - [ ] Remove ad-earnings links from dashboard navigation
-- [ ] Check `/vendor/store` - merge with store-customize or remove
+- [ ] Check `/creator/store` - merge with store-customize or remove
 
 ### **Phase 2: Fix Navigation** ✅
 - [ ] Update dashboard sidebar to remove deleted pages
@@ -109,7 +109,7 @@
 - [ ] Implement payout system
 
 ### **Phase 4: Testing** 🧪
-- [ ] Test complete vendor signup flow
+- [ ] Test complete creator signup flow
 - [ ] Test product creation and management
 - [ ] Test store customization
 - [ ] Test all navigation links
@@ -117,10 +117,10 @@
 
 ---
 
-## 📊 **Final Vendor System Structure**
+## 📊 **Final creator System Structure**
 
 ```
-/vendor
+/creator
 ├── /dashboard              ✅ Real data
 ├── /products               ✅ Real data
 │   ├── /new               ✅ Real data
@@ -156,7 +156,7 @@
 
 ## ✅ **Success Criteria**
 
-A vendor should be able to:
+A creator should be able to:
 - ✅ Sign up and get approved
 - ✅ Create and manage products
 - ✅ Customize their store

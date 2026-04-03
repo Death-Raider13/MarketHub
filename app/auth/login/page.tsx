@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Store } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -41,11 +41,11 @@ export default function LoginPage() {
         case "admin":
           router.push("/admin/dashboard")
           break
-        case "vendor":
+        case "creator":
           if (userProfile.verified) {
-            router.push("/vendor/dashboard")
+            router.push("/creator/dashboard")
           } else {
-            router.push("/vendor/pending-approval")
+            router.push("/creator/pending-approval")
           }
           break
         case "customer":
@@ -89,11 +89,11 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <Store className="h-12 w-12" />
+          <div className="flex justify-center mb-4 text-primary">
+            <Sparkles className="h-12 w-12" />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+          <CardTitle className="text-2xl font-bold">Creator Portal</CardTitle>
+          <CardDescription>Enter your credentials to manage your digital hub</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -140,10 +140,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full" 
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
               disabled={loading}
               onClick={handleGoogleSignIn}
             >

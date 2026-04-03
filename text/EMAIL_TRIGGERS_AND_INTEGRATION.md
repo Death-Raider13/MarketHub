@@ -37,7 +37,7 @@ This document summarizes all email-related helpers, their triggers, and where th
     - After:
       - Paystack verification succeeds.
       - Order status set to `paid` and `paymentStatus` set to `completed`.
-      - Inventory and vendor balances updated.
+      - Inventory and creator balances updated.
     - **Call**:
       - `sendOrderConfirmationEmail({ id: orderId, ...orderData })` (best-effort; errors logged, request not failed).
 
@@ -53,7 +53,7 @@ This document summarizes all email-related helpers, their triggers, and where th
   - Order ID, status, optional tracking number.
   - Link to `/orders` page.
 
-#### Trigger A: Admin/vendor status changes
+#### Trigger A: Admin/creator status changes
 
 - **Route**: `app/api/orders/[orderId]/status/route.ts`
 - **Where**:
@@ -88,26 +88,26 @@ This document summarizes all email-related helpers, their triggers, and where th
 
 ---
 
-## 3. Vendor Sale & Payout Emails
+## 3. creator Sale & Payout Emails
 
-### 3.1 Vendor Sale Notification
+### 3.1 creator Sale Notification
 
-- **Helper**: `sendVendorSaleNotification(vendorEmail, orderItem, orderId)`
+- **Helper**: `sendcreatorsaleNotification(creatorEmail, orderItem, orderId)`
   - **File**: `lib/email/service.ts`
-  - **Purpose**: Notifies a vendor when one of their items sells.
-  - **Recipient**: Vendor email from `users/{vendorId}`.
+  - **Purpose**: Notifies a creator when one of their items sells.
+  - **Recipient**: creator email from `users/{creatorId}`.
 
 - **Trigger**: On successful payment verification
   - **Route**: `app/api/payments/verify/route.ts`
   - **Where**:
-    - After vendor balances are updated for the order.
-    - Code groups items by `vendorId`:
-      - Reads each vendor with `adminDb.collection('users').doc(vendorId)`.
-      - For each item in that vendor group, calls:
-        - `sendVendorSaleNotification(vendorEmail, item, orderId)`.
+    - After creator balances are updated for the order.
+    - Code groups items by `creatorId`:
+      - Reads each creator with `adminDb.collection('users').doc(creatorId)`.
+      - For each item in that creator group, calls:
+        - `sendcreatorsaleNotification(creatorEmail, item, orderId)`.
     - Wrapped in `try/catch`; failures logged and ignored.
 
-### 3.2 Payout Completed / Rejected (vendor)
+### 3.2 Payout Completed / Rejected (creator)
 
 - **Helpers**:
   - `sendPayoutCompletedEmail(payout)`
@@ -115,15 +115,15 @@ This document summarizes all email-related helpers, their triggers, and where th
   - **Internal**: `sendPayoutStatusEmail(payout, 'completed' | 'rejected')`
   - **File**: `lib/email/service.ts`
 
-- **Trigger**: Admin processes vendor payout requests
+- **Trigger**: Admin processes creator payout requests
   - **Route**: `app/api/payouts/[payoutId]/route.ts` (`PATCH`)
   - **Actions**:
     - `action === 'approve'` → status `approved` (no email yet).
     - `action === 'reject'` → status `rejected`.
-    - `action === 'complete'` → status `completed`, vendor balance updated.
+    - `action === 'complete'` → status `completed`, creator balance updated.
   - **Notifications & Emails**:
     - For `completed`:
-      - `NotificationTriggers.onPayoutProcessed(vendorId, amount, payoutId)` → in-app `payout_processed`.
+      - `NotificationTriggers.onPayoutProcessed(creatorId, amount, payoutId)` → in-app `payout_processed`.
       - `sendPayoutCompletedEmail(latestPayout)`.
     - For `rejected`:
       - `sendPayoutRejectedEmail(latestPayout)`.
@@ -179,7 +179,7 @@ This document summarizes all email-related helpers, their triggers, and where th
     3. Checks a 7-day window based on `order.createdAt`.
     4. Ensures no active `pending/approved` refunds for the same order/user.
     5. Creates `refunds/{refundId}` with:
-       - `userId`, `orderId`, `vendorId`, `reason`, `status: 'pending'`, `amount`, timestamps.
+       - `userId`, `orderId`, `creatorId`, `reason`, `status: 'pending'`, `amount`, timestamps.
     6. Best-effort order update: `status: 'refund_requested'`.
     7. **Email** (best-effort):
        - `sendRefundRequestedEmail({ id: orderId, ...orderData }, { id: refundRef.id, ...refundData })`.
@@ -241,11 +241,11 @@ This document summarizes all email-related helpers, their triggers, and where th
 | Flow                      | Helper Function                         | Called From                                           | When                                                                 |
 |---------------------------|------------------------------------------|-------------------------------------------------------|----------------------------------------------------------------------|
 | Order confirmation        | `sendOrderConfirmationEmail`            | `api/payments/verify`                                 | After successful Paystack verify and order/payment updates           |
-| Order shipped             | `sendOrderShippedEmail`                 | `api/orders/[orderId]/status`                         | When status set to `shipped` via admin/vendor API                    |
-| Order delivered           | `sendOrderDeliveredEmail`               | `api/orders/[orderId]/status`                         | When status set to `delivered` via admin/vendor API                  |
-| Order cancelled (admin)   | `sendOrderCancelledEmail`               | `api/orders/[orderId]/status`                         | When status set to `cancelled` via admin/vendor API                  |
+| Order shipped             | `sendOrderShippedEmail`                 | `api/orders/[orderId]/status`                         | When status set to `shipped` via admin/creator API                    |
+| Order delivered           | `sendOrderDeliveredEmail`               | `api/orders/[orderId]/status`                         | When status set to `delivered` via admin/creator API                  |
+| Order cancelled (admin)   | `sendOrderCancelledEmail`               | `api/orders/[orderId]/status`                         | When status set to `cancelled` via admin/creator API                  |
 | Order cancelled (customer)| `sendOrderCancelledEmail`               | `api/orders/[orderId]/cancel`                         | When customer cancels own order via cancel API                       |
-| Vendor sale notification  | `sendVendorSaleNotification`            | `api/payments/verify`                                 | On payment success, per vendor per item                              |
+| creator sale notification  | `sendcreatorsaleNotification`            | `api/payments/verify`                                 | On payment success, per creator per item                              |
 | Payout completed          | `sendPayoutCompletedEmail`              | `api/payouts/[payoutId]`                              | When admin marks payout `completed`                                  |
 | Payout rejected           | `sendPayoutRejectedEmail`               | `api/payouts/[payoutId]`                              | When admin marks payout `rejected`                                   |
 | Password changed          | `sendPasswordChangedEmail`              | `api/account/security/password-changed`               | After successful password change on account page                     |

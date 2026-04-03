@@ -165,7 +165,7 @@ match /users/{userId} {
 ```bash
 1. Sign up in your app (if not already)
    → http://localhost:3000/auth/signup
-   → Use any role (customer or vendor)
+   → Use any role (customer or creator)
 
 2. Go to Firebase Console
    → https://console.firebase.google.com

@@ -52,21 +52,23 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AuthResult>
       }
     }
 
-    // Get admin user data from Firestore
-    const adminDoc = await adminDb.collection("admins").doc(decodedToken.uid).get()
+    // Get user data from the 'users' collection (this is the source of truth for roles)
+    const userDoc = await adminDb.collection("users").doc(decodedToken.uid).get()
     
-    if (!adminDoc.exists) {
+    if (!userDoc.exists) {
       return {
         success: false,
-        error: "Admin user not found"
+        error: "User not found"
       }
     }
 
-    const adminData = adminDoc.data()
-    if (!adminData || !adminData.role || adminData.status !== 'active') {
+    const userData = userDoc.data()
+    const adminRoles = ['admin', 'super_admin', 'moderator', 'support']
+    
+    if (!userData?.role || !adminRoles.includes(userData.role)) {
       return {
         success: false,
-        error: "Admin user inactive or invalid"
+        error: "Insufficient permissions - admin role required"
       }
     }
 
@@ -74,10 +76,10 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AuthResult>
       success: true,
       user: {
         uid: decodedToken.uid,
-        email: decodedToken.email || adminData.email,
-        role: adminData.role as AdminRole,
-        permissions: adminData.permissions || [],
-        displayName: adminData.displayName || decodedToken.name
+        email: decodedToken.email || userData.email,
+        role: userData.role as AdminRole,
+        permissions: userData.permissions || [],
+        displayName: userData.displayName || decodedToken.name
       }
     }
   } catch (error) {
@@ -114,21 +116,23 @@ export async function verifyClientAdminAuth(idToken: string): Promise<AuthResult
       }
     }
 
-    // Get admin user data from Firestore
-    const adminDoc = await adminDb.collection("admins").doc(decodedToken.uid).get()
+    // Get user data from the 'users' collection (source of truth for roles)
+    const userDoc = await adminDb.collection("users").doc(decodedToken.uid).get()
     
-    if (!adminDoc.exists) {
+    if (!userDoc.exists) {
       return {
         success: false,
-        error: "Admin user not found"
+        error: "User not found"
       }
     }
 
-    const adminData = adminDoc.data()
-    if (!adminData || !adminData.role || adminData.status !== 'active') {
+    const userData = userDoc.data()
+    const adminRoles = ['admin', 'super_admin', 'moderator', 'support']
+    
+    if (!userData?.role || !adminRoles.includes(userData.role)) {
       return {
         success: false,
-        error: "Admin user inactive or invalid"
+        error: "Insufficient permissions - admin role required"
       }
     }
 
@@ -136,10 +140,10 @@ export async function verifyClientAdminAuth(idToken: string): Promise<AuthResult
       success: true,
       user: {
         uid: decodedToken.uid,
-        email: decodedToken.email || adminData.email,
-        role: adminData.role as AdminRole,
-        permissions: adminData.permissions || [],
-        displayName: adminData.displayName || decodedToken.name
+        email: decodedToken.email || userData.email,
+        role: userData.role as AdminRole,
+        permissions: userData.permissions || [],
+        displayName: userData.displayName || decodedToken.name
       }
     }
   } catch (error) {

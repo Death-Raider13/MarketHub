@@ -52,7 +52,7 @@ All critical customer-facing issues have been fixed! The platform is now ready f
   - Product name
   - Description
   - Category
-  - Vendor name
+  - creator name
 - ✅ Fixed all currency to ₦
 - ✅ Implemented working filters:
   - Price range (₦0 - ₦1,000,000)
@@ -80,9 +80,9 @@ All critical customer-facing issues have been fixed! The platform is now ready f
 
 **Changes:**
 - ✅ "Start Shopping" button now links to `/products` (line 91-96)
-- ✅ "Become a Seller" button links to `/auth/vendor-register-new` (line 97-102)
+- ✅ "Become a Seller" button links to `/auth/creator-register-new` (line 97-102)
 - ✅ Category cards link to `/products` (line 219)
-- ✅ "Become a Vendor" CTA links to `/auth/vendor-register-new` (line 311-321)
+- ✅ "Become a creator" CTA links to `/auth/creator-register-new` (line 311-321)
 - ✅ Changed "Advertise Your Business" to "Start Selling Today" (line 318)
 
 **Impact:** All homepage buttons now functional!
@@ -207,7 +207,7 @@ filtered = filtered.filter(p =>
   p.name?.toLowerCase().includes(searchLower) ||
   p.description?.toLowerCase().includes(searchLower) ||
   p.category?.toLowerCase().includes(searchLower) ||
-  p.vendorName?.toLowerCase().includes(searchLower)
+  p.creatorName?.toLowerCase().includes(searchLower)
 )
 ```
 
@@ -267,7 +267,7 @@ Now that critical fixes are complete, we can move to:
 3. ✅ Improve product detail pages
 4. ✅ Add real category counts
 5. ✅ Add real platform stats
-6. ✅ Verify vendor store pages
+6. ✅ Verify creator store pages
 
 **Estimated Time:** 12-15 hours
 

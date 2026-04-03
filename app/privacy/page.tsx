@@ -5,11 +5,11 @@ export default function PrivacyPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 max-w-4xl">
           <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-          
+
           <div className="prose prose-gray max-w-none">
             <p className="text-muted-foreground mb-8">
               Last updated: January 20, 2025
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
                 We may share your information with:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
-                <li>Vendors to fulfill your orders</li>
+                <li>creators to fulfill your orders</li>
                 <li>Payment processors to process transactions</li>
                 <li>Delivery services to ship your orders</li>
                 <li>Service providers who assist in our operations</li>

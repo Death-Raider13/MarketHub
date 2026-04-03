@@ -16,8 +16,8 @@ Go to Firebase Console → Firestore Database → Create the following collectio
 // Collection: products
 {
   id: "auto-generated",
-  vendorId: "string",
-  vendorName: "string",
+  creatorId: "string",
+  creatorName: "string",
   name: "string",
   description: "string",
   price: number,
@@ -72,11 +72,11 @@ Go to Firebase Console → Firestore Database → Create the following collectio
 {
   uid: "string",
   email: "string",
-  role: "customer" | "vendor" | "admin",
+  role: "customer" | "creator" | "admin",
   displayName: "string",
   photoURL: "string" (optional),
   createdAt: timestamp,
-  // Vendor-specific fields
+  // creator-specific fields
   storeName: "string" (optional),
   storeDescription: "string" (optional),
   verified: boolean (optional),
@@ -105,7 +105,7 @@ Go to Firebase Console → Firestore Database → Create the following collectio
   productCount: number
 }
 
-// Collection: vendors
+// Collection: creators
 {
   id: "auto-generated",
   userId: "string",
@@ -132,7 +132,7 @@ In Firebase Console → Firestore → Indexes, create these composite indexes:
 ```
 Collection: products
 - category (Ascending) + status (Ascending) + createdAt (Descending)
-- vendorId (Ascending) + status (Ascending)
+- creatorId (Ascending) + status (Ascending)
 - featured (Ascending) + status (Ascending)
 - price (Ascending) + status (Ascending)
 - rating (Descending) + status (Ascending)
@@ -535,10 +535,10 @@ Before going live, test these critical features:
 - [ ] Order status updates work
 - [ ] Tracking number displays
 
-### Vendor Features
-- [ ] Vendor can add products
-- [ ] Vendor can view orders
-- [ ] Vendor dashboard displays analytics
+### creator Features
+- [ ] creator can add products
+- [ ] creator can view orders
+- [ ] creator dashboard displays analytics
 
 ### Admin Features
 - [ ] Admin can view all orders

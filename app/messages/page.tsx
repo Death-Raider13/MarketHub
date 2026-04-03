@@ -30,7 +30,7 @@ interface Message {
   conversationId: string
   senderId: string
   senderName: string
-  senderRole: 'customer' | 'vendor'
+  senderRole: 'customer' | 'creator'
   content: string
   timestamp: Date
   read: boolean
@@ -38,8 +38,8 @@ interface Message {
 
 interface Conversation {
   id: string
-  vendorId: string
-  vendorName: string
+  creatorId: string
+  creatorName: string
   customerId: string
   customerName: string
   customerEmail: string
@@ -128,7 +128,7 @@ function CustomerMessagesContent() {
     try {
       setSendingMessage(true)
 
-      const response = await fetch('/api/vendor/messages/send', {
+      const response = await fetch('/api/creator/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -180,7 +180,7 @@ function CustomerMessagesContent() {
   }
 
   const filteredConversations = conversations.filter(conv => 
-    conv.vendorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.creatorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.productName?.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -215,7 +215,7 @@ function CustomerMessagesContent() {
               <div>
                 <h1 className="text-3xl font-bold">My Messages</h1>
                 <p className="text-muted-foreground">
-                  View conversations with vendors and get support
+                  View conversations with creators and get support
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -255,7 +255,7 @@ function CustomerMessagesContent() {
                       <div className="p-6 text-center text-muted-foreground">
                         <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>No conversations found</p>
-                        <p className="text-sm mt-1">Start by contacting a vendor from a product page</p>
+                        <p className="text-sm mt-1">Start by contacting a creator from a product page</p>
                       </div>
                     ) : (
                       filteredConversations.map((conversation) => (
@@ -269,7 +269,7 @@ function CustomerMessagesContent() {
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <Store className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium text-sm">{conversation.vendorName}</span>
+                              <span className="font-medium text-sm">{conversation.creatorName}</span>
                               {conversation.unreadCount > 0 && (
                                 <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
                                   {conversation.unreadCount}
@@ -300,7 +300,7 @@ function CustomerMessagesContent() {
                           {conversation.lastMessage && (
                             <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                               <span className="font-medium">
-                                {conversation.lastMessage.senderRole === 'customer' ? 'You' : conversation.vendorName}:
+                                {conversation.lastMessage.senderRole === 'customer' ? 'You' : conversation.creatorName}:
                               </span>{' '}
                               {conversation.lastMessage.content}
                             </p>
@@ -336,7 +336,7 @@ function CustomerMessagesContent() {
                         <div className="flex-1">
                           <CardTitle className="flex items-center gap-2">
                             <Store className="h-5 w-5" />
-                            {selectedConversation.vendorName}
+                            {selectedConversation.creatorName}
                           </CardTitle>
                           <p className="text-sm text-muted-foreground">
                             {selectedConversation.subject}

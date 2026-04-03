@@ -4,7 +4,7 @@
 
 **Status:** ✅ **COMPLETE - READY FOR DEPLOYMENT**
 
-A fully functional, impression-based ad rotation system that allows vendors to monetize their storefronts while advertisers reach targeted audiences. The system prevents double booking, ensures fair distribution, and maximizes revenue for all parties.
+A fully functional, impression-based ad rotation system that allows creators to monetize their storefronts while advertisers reach targeted audiences. The system prevents double booking, ensures fair distribution, and maximizes revenue for all parties.
 
 ---
 
@@ -16,9 +16,9 @@ A comprehensive advertising platform with:
 - ✅ Smart ad rotation algorithm
 - ✅ Real-time impression tracking
 - ✅ Advertiser dashboard
-- ✅ Vendor earnings portal
+- ✅ creator earnings portal
 - ✅ Ad display components
-- ✅ Revenue sharing (70% vendor, 25% platform, 5% processing)
+- ✅ Revenue sharing (70% creator, 25% platform, 5% processing)
 - ✅ No double booking guarantee
 
 ### **Key Innovation:**
@@ -52,12 +52,12 @@ marketplace-ecommerce/
 │   ├── advertiser/
 │   │   └── dashboard/page.tsx ✅ (Advertiser portal)
 │   │
-│   ├── vendor/
+│   ├── creator/
 │   │   ├── store-customize/page.tsx ✅ (Ad settings)
 │   │   └── ad-earnings/page.tsx ✅ (Earnings dashboard)
 │   │
 │   └── store/
-│       └── [vendorId]/page.tsx ✅ (Storefront with ads)
+│       └── [creatorId]/page.tsx ✅ (Storefront with ads)
 │
 └── docs/
     ├── ADVERTISING_SYSTEM_IMPLEMENTATION.md ✅
@@ -74,11 +74,11 @@ marketplace-ecommerce/
 **Complete TypeScript Interfaces:**
 ```typescript
 - AdCampaign          // Campaign configuration
-- AdSlot              // Vendor ad space
+- AdSlot              // creator ad space
 - AdRotationEntry     // Queue management
 - AdImpression        // Tracking data
 - AdClick             // Click tracking
-- VendorAdEarnings    // Revenue tracking
+- creatorAdEarnings    // Revenue tracking
 - AdDisplayContext    // Targeting context
 - CampaignPerformance // Analytics
 ```
@@ -114,7 +114,7 @@ adCampaigns/
 └── Performance stats
 
 adSlots/
-├── Vendor configuration
+├── creator configuration
 ├── Rotation queue
 ├── Pricing rules
 └── Revenue stats
@@ -130,7 +130,7 @@ adClicks/
 ├── Destination URLs
 └── Cost data
 
-vendorAdEarnings/
+creatorAdEarnings/
 └── Payout records
 ```
 
@@ -140,7 +140,7 @@ vendorAdEarnings/
 - ✅ `addToRotationQueue()` - Transaction-safe queue management
 - ✅ `saveImpression()` - Atomic impression recording
 - ✅ `recordClick()` - Click tracking with revenue calculation
-- ✅ `getVendorEarnings()` - Revenue aggregation
+- ✅ `getcreatorEarnings()` - Revenue aggregation
 
 ### **4. Display Component** (`components/advertising/AdSlot.tsx`)
 
@@ -229,7 +229,7 @@ POST /api/ads/track/click
 - Targeting options
 - Destination URL
 
-### **2. Vendor Earnings Page** (`app/vendor/ad-earnings/page.tsx`)
+### **2. creator Earnings Page** (`app/creator/ad-earnings/page.tsx`)
 
 **Features:**
 - ✅ Earnings overview
@@ -255,7 +255,7 @@ POST /api/ads/track/click
 - Earnings by placement
 - Earnings by device
 
-### **3. Store Customization** (`app/vendor/store-customize/page.tsx`)
+### **3. Store Customization** (`app/creator/store-customize/page.tsx`)
 
 **Advertising Tab:**
 - ✅ Enable/disable advertising
@@ -271,7 +271,7 @@ POST /api/ads/track/click
 - Allowed types (banner, video, sponsored)
 - Revenue estimates (per 1K views, monthly)
 
-### **4. Storefront Integration** (`app/store/[vendorId]/page.tsx`)
+### **4. Storefront Integration** (`app/store/[creatorId]/page.tsx`)
 
 **Ad Placements:**
 - ✅ Banner ad (top of page)
@@ -287,7 +287,7 @@ POST /api/ads/track/click
 ### **Revenue Sharing:**
 ```
 Total Ad Revenue: 100%
-├── Vendor Share: 70%
+├── creator Share: 70%
 ├── Platform (FEROMARKETHUB): 25%
 └── Payment Processing: 5%
 ```
@@ -296,17 +296,17 @@ Total Ad Revenue: 100%
 
 **1. CPM (Cost Per Mille/1000 Impressions)**
 - Advertiser pays: ₦500-2000 per 1000 views
-- Vendor earns: ₦350-1400 (70%)
+- creator earns: ₦350-1400 (70%)
 - Best for: Brand awareness
 
 **2. CPC (Cost Per Click)**
 - Advertiser pays: ₦20-100 per click
-- Vendor earns: ₦14-70 (70%)
+- creator earns: ₦14-70 (70%)
 - Best for: Traffic generation
 
 **3. CPA (Cost Per Action/Conversion)**
 - Advertiser pays: ₦500-5000 per sale
-- Vendor earns: ₦350-3500 (70%)
+- creator earns: ₦350-3500 (70%)
 - Best for: Performance marketing
 
 ### **Revenue Projections:**
@@ -315,25 +315,25 @@ Total Ad Revenue: 100%
 - 10 advertisers
 - ₦500K total ad spend
 - ₦125K platform revenue
-- ₦350K vendor earnings
+- ₦350K creator earnings
 
 **Month 4-6 (Growth):**
 - 50 advertisers
 - ₦2.5M total ad spend
 - ₦625K platform revenue
-- ₦1.75M vendor earnings
+- ₦1.75M creator earnings
 
 **Month 7-12 (Scale):**
 - 200+ advertisers
 - ₦10M+ total ad spend
 - ₦2.5M+ platform revenue
-- ₦7M+ vendor earnings
+- ₦7M+ creator earnings
 
 ---
 
 ## 🚀 How It Works
 
-### **For Vendors:**
+### **For creators:**
 
 ```
 1. Go to "Customize Store" → "Advertising" tab
@@ -357,7 +357,7 @@ Total Ad Revenue: 100%
 5. Upload creative (image, title, description)
 6. Set destination URL
 7. Launch campaign
-8. Ads automatically rotate on vendor stores
+8. Ads automatically rotate on creator stores
 9. Track performance in real-time
 10. Optimize based on analytics
 ```
@@ -365,7 +365,7 @@ Total Ad Revenue: 100%
 ### **For Customers:**
 
 ```
-1. Visit vendor's store
+1. Visit creator's store
 2. See relevant ads (banner, sidebar)
 3. Ads are clearly labeled "Sponsored"
 4. Click if interested
@@ -400,7 +400,7 @@ Total Ad Revenue: 100%
 
 ### **4. Transparent Pricing** ✅
 - Clear CPM/CPC/CPA rates
-- 70% vendor share
+- 70% creator share
 - Real-time earnings tracking
 - Detailed analytics
 - No hidden fees
@@ -431,12 +431,12 @@ Total Ad Revenue: 100%
 - CTR and conversion rate
 - Cost per click/conversion
 - ROI calculation
-- By vendor breakdown
+- By creator breakdown
 - By placement breakdown
 - By device breakdown
 - Time-based trends
 
-### **For Vendors:**
+### **For creators:**
 - Earnings overview
 - Revenue by campaign
 - Revenue by placement
@@ -450,7 +450,7 @@ Total Ad Revenue: 100%
 - Total ad spend
 - Platform revenue
 - Active campaigns
-- Active vendors
+- Active creators
 - Impression volume
 - Click volume
 - Average CTR
@@ -501,7 +501,7 @@ Total Ad Revenue: 100%
   noAdsOn: ["checkout", "payment"],
   loadAsync: true,
   timeout: 3000, // Don't wait more than 3s
-  fallback: "Show vendor's own promotion"
+  fallback: "Show creator's own promotion"
 }
 ```
 
@@ -588,7 +588,7 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 6. Use clear CTAs
 7. Track conversions
 
-### **For Vendors:**
+### **For creators:**
 1. Enable ads on high-traffic pages
 2. Choose non-intrusive placements
 3. Monitor earnings regularly
@@ -616,16 +616,16 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 
 ### **Business Metrics:**
 - ✅ Active campaigns
-- ✅ Active vendors
+- ✅ Active creators
 - ✅ Total ad spend
 - ✅ Platform revenue
-- ✅ Vendor earnings
+- ✅ creator earnings
 - ✅ Average CTR
 - ✅ Customer satisfaction
 
 ### **User Satisfaction:**
 - ✅ Advertiser NPS
-- ✅ Vendor NPS
+- ✅ creator NPS
 - ✅ Customer feedback
 - ✅ Support tickets
 - ✅ Churn rate
@@ -641,7 +641,7 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 - Performance optimization tips
 - Support email/chat
 
-### **For Vendors:**
+### **For creators:**
 - Ad settings guide
 - Earnings explanation
 - Payout process
@@ -672,7 +672,7 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 - ✅ FEROMARKETHUB: E-commerce specific, better ROI
 
 ### **Unique Value:**
-1. **For Vendors:** Passive income from existing traffic
+1. **For creators:** Passive income from existing traffic
 2. **For Advertisers:** Targeted e-commerce audience
 3. **For Platform:** Additional revenue stream
 4. **For Customers:** Discover relevant products
@@ -695,7 +695,7 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 - ✅ 4 ad placement types
 - ✅ 2 tracking APIs
 - ✅ 2 user dashboards
-- ✅ 1 vendor earnings page
+- ✅ 1 creator earnings page
 - ✅ 1 storefront integration
 
 ### **Time to Market:**
@@ -718,7 +718,7 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 
 ✅ **Three User Interfaces**
 - Advertiser dashboard
-- Vendor earnings page
+- creator earnings page
 - Storefront integration
 
 ✅ **Full Database Integration**
@@ -738,13 +738,13 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 - 500+ advertisers
 - ₦50M+ ad spend
 - ₦12.5M+ platform revenue
-- ₦35M+ vendor earnings
+- ₦35M+ creator earnings
 
 ### **Competitive Edge:**
 
 This advertising system is a **UNIQUE FEATURE** that sets FEROMARKETHUB apart from competitors like Selar, Gumroad, and other Nigerian e-commerce platforms. It provides:
 
-1. **Additional Revenue** for vendors
+1. **Additional Revenue** for creators
 2. **Targeted Advertising** for businesses
 3. **Platform Differentiation** for FEROMARKETHUB
 4. **Win-Win-Win** for all parties

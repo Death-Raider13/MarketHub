@@ -7,7 +7,7 @@ export async function PATCH(
 ) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       console.error('Firebase Admin SDK not initialized')
       return NextResponse.json(
@@ -17,11 +17,11 @@ export async function PATCH(
     }
 
     const { payoutId } = params
-    const { vendorId } = await request.json()
+    const { creatorId } = await request.json()
 
-    if (!payoutId || !vendorId) {
+    if (!payoutId || !creatorId) {
       return NextResponse.json(
-        { error: 'payoutId and vendorId are required' },
+        { error: 'payoutId and creatorId are required' },
         { status: 400 }
       )
     }
@@ -39,7 +39,7 @@ export async function PATCH(
     const payoutData = payoutDoc.data() as any
 
     // Verify ownership
-    if (payoutData.vendorId !== vendorId) {
+    if (payoutData.creatorId !== creatorId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }
@@ -61,8 +61,8 @@ export async function PATCH(
       updatedAt: new Date()
     })
 
-    // Restore vendor balance (move from pending back to available)
-    const balanceRef = adminDb.collection('vendorBalances').doc(vendorId)
+    // Restore creator balance (move from pending back to available)
+    const balanceRef = adminDb.collection('creatorBalances').doc(creatorId)
     const balanceDoc = await balanceRef.get()
 
     if (balanceDoc.exists) {

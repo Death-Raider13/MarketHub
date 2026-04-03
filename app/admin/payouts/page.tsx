@@ -65,7 +65,7 @@ function AdminPayoutsContent() {
         requestedAt: doc.data().requestedAt?.toDate(),
         processedAt: doc.data().processedAt?.toDate(),
       })) as PayoutRequest[];
-      
+
       setPayouts(payoutsData);
 
       // Calculate stats
@@ -216,9 +216,9 @@ function AdminPayoutsContent() {
       rejected: { variant: 'destructive', icon: XCircle, color: 'text-red-600' },
       cancelled: { variant: 'secondary', icon: XCircle, color: 'text-gray-600' },
     };
-    
+
     const { variant, icon: Icon, color } = variants[status];
-    
+
     return (
       <Badge variant={variant} className="flex items-center gap-1">
         <Icon className={`h-3 w-3 ${color}`} />
@@ -239,8 +239,8 @@ function AdminPayoutsContent() {
           <div className="flex items-start justify-between">
             <div>
               <p className="font-semibold text-lg">₦{payout.amount.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">{payout.vendorName}</p>
-              <p className="text-xs text-muted-foreground">{payout.vendorEmail}</p>
+              <p className="text-sm text-muted-foreground">{payout.creatorName}</p>
+              <p className="text-xs text-muted-foreground">{payout.creatorEmail}</p>
             </div>
             {getStatusBadge(payout.status)}
           </div>
@@ -248,7 +248,7 @@ function AdminPayoutsContent() {
           <div className="space-y-1 text-sm">
             <p><span className="font-medium">Requested:</span> {payout.requestedAt.toLocaleDateString()} at {payout.requestedAt.toLocaleTimeString()}</p>
             <p><span className="font-medium">Payment Method:</span> {payout.paymentMethod.replace('_', ' ').toUpperCase()}</p>
-            
+
             {payout.bankDetails && (
               <div className="p-2 bg-muted rounded mt-2">
                 <p className="font-medium mb-1">Bank Details:</p>
@@ -258,7 +258,7 @@ function AdminPayoutsContent() {
                 {payout.bankDetails.bankCode && <p>Code: {payout.bankDetails.bankCode}</p>}
               </div>
             )}
-            
+
             {payout.mobileMoneyDetails && (
               <div className="p-2 bg-muted rounded mt-2">
                 <p className="font-medium mb-1">Mobile Money Details:</p>
@@ -267,22 +267,30 @@ function AdminPayoutsContent() {
                 <p>Name: {payout.mobileMoneyDetails.accountName}</p>
               </div>
             )}
-            
+
             {payout.paypalEmail && (
               <div className="p-2 bg-muted rounded mt-2">
                 <p className="font-medium mb-1">PayPal Details:</p>
                 <p>Email: {payout.paypalEmail}</p>
               </div>
             )}
-            
+
+            {(payout as any).cryptoWallet && (
+              <div className="p-2 bg-muted rounded mt-2 border border-orange-200">
+                <p className="font-medium mb-1">🪙 Crypto Wallet (Manual Settlement):</p>
+                <p className="font-mono text-xs break-all">{(payout as any).cryptoWallet}</p>
+                <p className="text-xs text-muted-foreground mt-1">Process via Coinbase or send manually to the address above.</p>
+              </div>
+            )}
+
             {payout.transactionReference && (
               <p><span className="font-medium">Transaction Ref:</span> {payout.transactionReference}</p>
             )}
-            
+
             {payout.processedAt && (
               <p><span className="font-medium">Processed:</span> {payout.processedAt.toLocaleDateString()}</p>
             )}
-            
+
             {payout.rejectionReason && (
               <Alert variant="destructive" className="mt-2">
                 <AlertDescription>
@@ -290,7 +298,7 @@ function AdminPayoutsContent() {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {payout.notes && (
               <Alert className="mt-2">
                 <AlertDescription>
@@ -352,17 +360,17 @@ function AdminPayoutsContent() {
   return (
     <div className="flex h-screen flex-col">
       <AdminHeader />
-      
+
       <div className="flex flex-1 overflow-hidden">
         <AdminSidebar />
-        
+
         <main className="flex-1 overflow-y-auto bg-muted/30 p-6">
           <div className="mb-6">
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Wallet className="h-8 w-8" />
               Payout Management
             </h1>
-            <p className="text-muted-foreground">Review and process vendor withdrawal requests</p>
+            <p className="text-muted-foreground">Review and process creator withdrawal requests</p>
           </div>
 
           {/* Stats Cards */}
@@ -629,7 +637,7 @@ function AdminPayoutsContent() {
               <div className="bg-muted p-4 rounded-lg space-y-2">
                 <h4 className="font-medium">Transfer Details</h4>
                 <div className="text-sm space-y-1">
-                  <p><span className="font-medium">Vendor:</span> {selectedPayout.vendorName}</p>
+                  <p><span className="font-medium">creator:</span> {selectedPayout.creatorName}</p>
                   <p><span className="font-medium">Amount:</span> ₦{selectedPayout.amount.toLocaleString()}</p>
                   <p><span className="font-medium">Bank:</span> {selectedPayout.bankDetails?.bankName}</p>
                   <p><span className="font-medium">Account:</span> {selectedPayout.bankDetails?.accountNumber}</p>
@@ -640,7 +648,7 @@ function AdminPayoutsContent() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                This will create a transfer recipient and initiate the transfer via Paystack. 
+                This will create a transfer recipient and initiate the transfer via Paystack.
                 The transfer will be processed immediately and cannot be undone.
               </AlertDescription>
             </Alert>

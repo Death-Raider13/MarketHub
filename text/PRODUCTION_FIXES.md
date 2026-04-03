@@ -4,12 +4,12 @@
 
 ---
 
-## 🚨 **Issue: Vendor Dashboard 500 Errors**
+## 🚨 **Issue: creator Dashboard 500 Errors**
 
 ### **Error Messages:**
 ```
-GET /api/vendor/stats?vendorId=xxx 500 (Internal Server Error)
-GET /api/vendor/orders?vendorId=xxx 500 (Internal Server Error)
+GET /api/creator/stats?creatorId=xxx 500 (Internal Server Error)
+GET /api/creator/orders?creatorId=xxx 500 (Internal Server Error)
 TypeError: Cannot read properties of undefined (reading 'toLocaleString')
 ```
 
@@ -18,17 +18,17 @@ TypeError: Cannot read properties of undefined (reading 'toLocaleString')
 ## 🔍 **Root Cause Analysis**
 
 ### **Problem 1: Incorrect Order Query Field**
-The APIs were querying orders using `vendorId` field, but orders in Firestore use:
-- `vendorIds` (array) - Contains all vendor IDs in the order
-- `items[].vendorId` - Individual item vendor IDs
+The APIs were querying orders using `creatorId` field, but orders in Firestore use:
+- `creatorIds` (array) - Contains all creator IDs in the order
+- `items[].creatorId` - Individual item creator IDs
 
 **Why This Happened:**
-- Orders can contain products from multiple vendors
-- The checkout process stores `vendorIds` as an array
+- Orders can contain products from multiple creators
+- The checkout process stores `creatorIds` as an array
 - The query was looking for a non-existent field
 
 ### **Problem 2: Missing Firestore Index**
-Querying with `array-contains` on `vendorIds` requires a composite index that may not exist yet.
+Querying with `array-contains` on `creatorIds` requires a composite index that may not exist yet.
 
 ### **Problem 3: Undefined Values**
 When queries failed, the API returned incomplete data structures, causing `.toLocaleString()` to fail on undefined values.
@@ -37,22 +37,22 @@ When queries failed, the API returned incomplete data structures, causing `.toLo
 
 ## ✅ **Solutions Implemented**
 
-### **Fix 1: Updated Vendor Stats API**
-**File:** `app/api/vendor/stats/route.ts`
+### **Fix 1: Updated creator Stats API**
+**File:** `app/api/creator/stats/route.ts`
 
 **Changes:**
 ```typescript
 // Before: Wrong query
 ordersSnapshot = await adminDb
   .collection("orders")
-  .where("vendorId", "==", vendorId) // ❌ This field doesn't exist
+  .where("creatorId", "==", creatorId) // ❌ This field doesn't exist
   .get()
 
 // After: Correct query with fallback
 try {
   ordersSnapshot = await adminDb
     .collection("orders")
-    .where("vendorIds", "array-contains", vendorId) // ✅ Correct field
+    .where("creatorIds", "array-contains", creatorId) // ✅ Correct field
     .orderBy("createdAt", "desc")
     .get()
 } catch (error) {
@@ -68,12 +68,12 @@ try {
 const recentOrders = ordersSnapshot.docs
   .filter((doc: any) => {
     const data = doc.data()
-    return data.items?.some((item: any) => item.vendorId === vendorId)
+    return data.items?.some((item: any) => item.creatorId === creatorId)
   })
 ```
 
-### **Fix 2: Updated Vendor Orders API**
-**File:** `app/api/vendor/orders/route.ts`
+### **Fix 2: Updated creator Orders API**
+**File:** `app/api/creator/orders/route.ts`
 
 **Changes:**
 ```typescript
@@ -81,7 +81,7 @@ const recentOrders = ordersSnapshot.docs
 try {
   ordersSnapshot = await adminDb
     .collection("orders")
-    .where("vendorIds", "array-contains", vendorId)
+    .where("creatorIds", "array-contains", creatorId)
     .orderBy("createdAt", "desc")
     .get()
 } catch (error) {
@@ -93,11 +93,11 @@ try {
     .get()
 }
 
-// Filter for vendor's orders
+// Filter for creator's orders
 const orders = ordersSnapshot.docs
   .filter((doc: any) => {
     const data = doc.data()
-    return data.items?.some((item: any) => item.vendorId === vendorId)
+    return data.items?.some((item: any) => item.creatorId === creatorId)
   })
 ```
 
@@ -116,8 +116,8 @@ const orders = ordersSnapshot.docs
 - Works immediately without waiting for index creation
 
 ### **3. Data Integrity**
-- Correctly identifies orders containing vendor's products
-- Handles multi-vendor orders properly
+- Correctly identifies orders containing creator's products
+- Handles multi-creator orders properly
 - Returns consistent data structure
 
 ---
@@ -126,11 +126,11 @@ const orders = ordersSnapshot.docs
 
 ### **Recommended Indexes:**
 
-#### **Index 1: Orders by Vendor**
+#### **Index 1: Orders by creator**
 ```
 Collection: orders
 Fields:
-  - vendorIds (Array-contains)
+  - creatorIds (Array-contains)
   - createdAt (Descending)
 ```
 
@@ -161,7 +161,7 @@ Fields:
       "collectionGroup": "orders",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "vendorIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "creatorIds", "arrayConfig": "CONTAINS" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }
@@ -178,23 +178,23 @@ firebase deploy --only firestore:indexes
 
 ## 🧪 **Testing Checklist**
 
-### **Test Vendor Dashboard:**
+### **Test creator Dashboard:**
 - [ ] Dashboard loads without errors
 - [ ] Stats display correctly
 - [ ] Recent orders show up
 - [ ] Sales chart renders
 - [ ] No console errors
 
-### **Test Vendor Orders:**
+### **Test creator Orders:**
 - [ ] Orders page loads
-- [ ] All vendor orders displayed
+- [ ] All creator orders displayed
 - [ ] Order filtering works
 - [ ] Order details accessible
 
 ### **Test Edge Cases:**
-- [ ] Vendor with no orders
-- [ ] Vendor with no products
-- [ ] Multi-vendor orders
+- [ ] creator with no orders
+- [ ] creator with no products
+- [ ] Multi-creator orders
 - [ ] Orders with missing data
 
 ---
@@ -203,15 +203,15 @@ firebase deploy --only firestore:indexes
 
 ### **Before Deploying:**
 1. ✅ Code changes committed
-2. ⏳ Test locally with real vendor ID
+2. ⏳ Test locally with real creator ID
 3. ⏳ Verify Firestore indexes exist
 4. ⏳ Check error logs after deployment
 
 ### **After Deploying:**
-1. Monitor vendor dashboard loads
+1. Monitor creator dashboard loads
 2. Check for 500 errors in logs
 3. Verify stats API responses
-4. Test with multiple vendors
+4. Test with multiple creators
 
 ---
 
@@ -231,7 +231,7 @@ firebase deploy --only firestore:indexes
 
 ## 🎯 **Expected Behavior**
 
-### **Vendor Dashboard Should Show:**
+### **creator Dashboard Should Show:**
 - ✅ Total products count
 - ✅ Active products count
 - ✅ Low stock alerts
@@ -262,8 +262,8 @@ firebase deploy --only firestore:indexes
 ## ✅ **Status: FIXED**
 
 **Changes Deployed:**
-- ✅ Vendor stats API updated
-- ✅ Vendor orders API updated
+- ✅ creator stats API updated
+- ✅ creator orders API updated
 - ✅ Fallback logic implemented
 - ✅ Error handling improved
 

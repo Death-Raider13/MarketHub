@@ -21,16 +21,16 @@ import { doc, getDoc, collection, query, where, limit, getDocs } from "firebase/
 import { ProductReviews } from "@/components/customer/product-reviews"
 import { ServiceReviews } from "@/components/services/service-reviews"
 import { DigitalProductReviews } from "@/components/digital-products/digital-product-reviews"
-import { ContactVendor } from "@/components/customer/contact-vendor"
+import { ContactCreator } from "@/components/customer/contact-creator"
 import { ProductQA } from "@/components/customer/product-qa"
 import { ReportContent } from "@/components/common/report-content"
-import { 
-  Star, 
-  Heart, 
-  Share2, 
-  Truck, 
-  Shield, 
-  RotateCcw, 
+import {
+  Star,
+  Heart,
+  Share2,
+  Truck,
+  Shield,
+  RotateCcw,
   Store,
   ChevronRight,
   Minus,
@@ -62,7 +62,7 @@ export default function ProductDetailPage() {
   const { user } = useAuth()
   const { addToCart } = useCart()
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
-  
+
   const [product, setProduct] = useState<Product | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,8 +71,8 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [hasPurchased, setHasPurchased] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
-  const [vendorStats, setVendorStats] = useState<{rating: number, reviewCount: number, productCount: number} | null>(null)
-  const [vendorInfo, setVendorInfo] = useState<{description: string, verified: boolean, name: string} | null>(null)
+  const [creatorstats, setcreatorstats] = useState<{ rating: number, reviewCount: number, productCount: number } | null>(null)
+  const [creatorInfo, setcreatorInfo] = useState<{ description: string, verified: boolean, name: string } | null>(null)
 
   // Fetch product data from Firestore
   useEffect(() => {
@@ -80,33 +80,46 @@ export default function ProductDetailPage() {
       try {
         setLoading(true)
         setError(null)
-        
+
         // Get product document
         const productDoc = await getDoc(doc(db, 'products', id))
-        
+
         if (!productDoc.exists()) {
           setError('Product not found')
           return
         }
-        
+
         const productData = {
           id: productDoc.id,
           ...productDoc.data(),
           createdAt: productDoc.data().createdAt?.toDate(),
           updatedAt: productDoc.data().updatedAt?.toDate()
         } as Product
-        
+
         // Check if product is active
         if (productData.status !== 'active') {
           setError('This product is not available')
           return
         }
-        
+
+        // Log view event for analytics
+        if (productData.status === 'active') {
+          fetch('/api/analytics/view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: id,
+              creatorId: productData.creatorId,
+              userId: user?.uid
+            })
+          }).catch(err => console.error('Failed to log view:', err))
+        }
+
         setProduct(productData)
-        
+
         // Fetch related products (similar tags or same category)
         let related: Product[] = []
-        
+
         // First, try to find products with similar tags
         if (productData.tags && productData.tags.length > 0) {
           const tagQuery = query(
@@ -115,7 +128,7 @@ export default function ProductDetailPage() {
             where('status', '==', 'active'),
             limit(10)
           )
-          
+
           const tagSnapshot = await getDocs(tagQuery)
           related = tagSnapshot.docs
             .filter(doc => doc.id !== id) // Exclude current product
@@ -126,7 +139,7 @@ export default function ProductDetailPage() {
               updatedAt: doc.data().updatedAt?.toDate()
             })) as Product[]
         }
-        
+
         // If not enough products with similar tags, add products from same category
         if (related.length < 4) {
           const categoryQuery = query(
@@ -135,7 +148,7 @@ export default function ProductDetailPage() {
             where('status', '==', 'active'),
             limit(10)
           )
-          
+
           const categorySnapshot = await getDocs(categoryQuery)
           const categoryProducts = categorySnapshot.docs
             .filter(doc => doc.id !== id && !related.some(p => p.id === doc.id))
@@ -145,12 +158,12 @@ export default function ProductDetailPage() {
               createdAt: doc.data().createdAt?.toDate(),
               updatedAt: doc.data().updatedAt?.toDate()
             })) as Product[]
-          
+
           related = [...related, ...categoryProducts]
         }
-        
+
         setRelatedProducts(related.slice(0, 4))
-        
+
         // Check if user has purchased this product (for verified review badge)
         if (user) {
           const purchaseQuery = query(
@@ -161,37 +174,37 @@ export default function ProductDetailPage() {
           const purchaseSnapshot = await getDocs(purchaseQuery)
           setHasPurchased(!purchaseSnapshot.empty)
         }
-        
-        // Fetch vendor information
+
+        // Fetch creator information
         try {
-          const vendorDoc = await getDoc(doc(db, 'users', productData.vendorId))
-          if (vendorDoc.exists()) {
-            const vendorData = vendorDoc.data()
-            setVendorInfo({
-              name: vendorData.displayName || vendorData.businessName || vendorData.email?.split('@')[0] || 'Vendor',
-              description: vendorData.storeDescription || vendorData.bio || 'Quality products with excellent customer service.',
-              verified: vendorData.verified || false
+          const creatorDoc = await getDoc(doc(db, 'users', productData.creatorId))
+          if (creatorDoc.exists()) {
+            const creatorData = creatorDoc.data()
+            setcreatorInfo({
+              name: creatorData.displayName || creatorData.businessName || creatorData.email?.split('@')[0] || 'creator',
+              description: creatorData.storeDescription || creatorData.bio || 'Quality products with excellent customer service.',
+              verified: creatorData.verified || false
             })
           }
-          
-          // Get vendor product count
-          const vendorProductsQuery = query(
+
+          // Get creator product count
+          const creatorProductsQuery = query(
             collection(db, 'products'),
-            where('vendorId', '==', productData.vendorId),
+            where('creatorId', '==', productData.creatorId),
             where('status', '==', 'active')
           )
-          const vendorProductsSnapshot = await getDocs(vendorProductsQuery)
-          
-          // Calculate vendor rating from all their product reviews
+          const creatorProductsSnapshot = await getDocs(creatorProductsQuery)
+
+          // Calculate creator rating from all their product reviews
           const reviewsQuery = query(
             collection(db, 'reviews'),
-            where('vendorId', '==', productData.vendorId)
+            where('creatorId', '==', productData.creatorId)
           )
           const reviewsSnapshot = await getDocs(reviewsQuery)
-          
+
           let totalRating = 0
           let reviewCount = 0
-          
+
           reviewsSnapshot.forEach(doc => {
             const review = doc.data()
             if (review.rating) {
@@ -199,18 +212,18 @@ export default function ProductDetailPage() {
               reviewCount++
             }
           })
-          
+
           const averageRating = reviewCount > 0 ? (totalRating / reviewCount) : 0
-          
-          setVendorStats({
+
+          setcreatorstats({
             rating: reviewCount > 0 ? Number(averageRating.toFixed(1)) : 0,
             reviewCount: reviewCount,
-            productCount: vendorProductsSnapshot.size
+            productCount: creatorProductsSnapshot.size
           })
         } catch (err) {
-          console.error('Error fetching vendor info:', err)
+          console.error('Error fetching creator info:', err)
         }
-        
+
       } catch (err) {
         console.error('Error fetching product:', err)
         setError('Failed to load product. Please try again.')
@@ -218,13 +231,13 @@ export default function ProductDetailPage() {
         setLoading(false)
       }
     }
-    
+
     if (id) {
       fetchProduct()
     }
   }, [id, user])
 
-  // Track product view for analytics (counts toward vendor dashboard total views)
+  // Track product view for analytics (counts toward creator dashboard total views)
   useEffect(() => {
     if (!id) return
 
@@ -236,7 +249,7 @@ export default function ProductDetailPage() {
     })
   }, [id])
 
-  const discount = product?.comparePrice 
+  const discount = product?.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0
 
@@ -253,12 +266,12 @@ export default function ProductDetailPage() {
     // Create rich share content
     const priceText = formatNGN(product.price)
     const compareText = product.comparePrice ? ` (was ${formatNGN(product.comparePrice)})` : ''
-    const vendorText = product.vendorName || 'FEROMARKETHUB Vendor'
-    
+    const creatorText = product.creatorName || 'FEROMARKETHUB creator'
+
     const shareText = `🛍️ ${product.name}
 
 💰 ${priceText}${compareText}
-🏪 Available at ${vendorText}'s store on FEROMARKETHUB
+🏪 Available at ${creatorText}'s store on FEROMARKETHUB
 
 ${product.description.length > 100 ? product.description.substring(0, 100) + '...' : product.description}
 
@@ -274,7 +287,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
 
     try {
       setIsSharing(true)
-      
+
       if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData)
         toast.success('Shared successfully!')
@@ -286,13 +299,13 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
       }
     } catch (error) {
       console.error('Error sharing:', error)
-      
+
       // Handle specific share errors
       if (error instanceof Error && (error.name === 'InvalidStateError' || error.name === 'AbortError')) {
         // User cancelled or share in progress, don't show error
         return
       }
-      
+
       // Fallback: Copy rich text to clipboard
       try {
         const fullShareText = `${shareText}\n\n🔗 ${window.location.href}`
@@ -305,7 +318,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
       setIsSharing(false)
     }
   }
-  
+
   // Loading state
   if (loading) {
     return (
@@ -323,7 +336,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
       </div>
     )
   }
-  
+
   // Error state
   if (error || !product) {
     return (
@@ -350,30 +363,30 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
     <div className="flex min-h-screen flex-col">
       <Head>
         <title>{product.name} - {formatNGN(product.price)} | FEROMARKETHUB</title>
-        <meta name="description" content={`${product.description.substring(0, 160)}... Available at ${product.vendorName || 'FEROMARKETHUB'}'s store. Shop now with secure payment!`} />
-        
+        <meta name="description" content={`${product.description.substring(0, 160)}... Available at ${product.creatorName || 'FEROMARKETHUB'}'s store. Shop now with secure payment!`} />
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="product" />
         <meta property="og:title" content={`${product.name} - ${formatNGN(product.price)}`} />
-        <meta property="og:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'FEROMARKETHUB'}'s store on FEROMARKETHUB!`} />
+        <meta property="og:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.creatorName || 'FEROMARKETHUB'}'s store on FEROMARKETHUB!`} />
         <meta property="og:image" content={product.images[0] || '/placeholder.svg'} />
         <meta property="og:url" content={window.location.href} />
         <meta property="og:site_name" content="FEROMARKETHUB" />
-        
+
         {/* Product specific */}
         <meta property="product:price:amount" content={product.price.toString()} />
         <meta property="product:price:currency" content="NGN" />
         <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
-        <meta property="product:brand" content={product.vendorName || 'FEROMARKETHUB'} />
+        <meta property="product:brand" content={product.creatorName || 'FEROMARKETHUB'} />
         <meta property="product:category" content={product.category} />
-        
+
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${product.name} - ${formatNGN(product.price)}`} />
-        <meta name="twitter:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.vendorName || 'FEROMARKETHUB'}'s store on FEROMARKETHUB!`} />
+        <meta name="twitter:description" content={`${product.description.substring(0, 200)}... Shop now at ${product.creatorName || 'FEROMARKETHUB'}'s store on FEROMARKETHUB!`} />
         <meta name="twitter:image" content={product.images[0] || '/placeholder.svg'} />
       </Head>
-      
+
       <Header />
 
       <main className="flex-1">
@@ -417,9 +430,8 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-colors ${
-                      selectedImage === index ? "border-primary" : "border-border hover:border-primary/50"
-                    }`}
+                    className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-colors ${selectedImage === index ? "border-primary" : "border-border hover:border-primary/50"
+                      }`}
                     aria-label={`View image ${index + 1}`}
                   >
                     <Image
@@ -436,12 +448,12 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
             {/* Product Info */}
             <div className="space-y-6">
               <div>
-                <Link 
-                  href={`/store/${product.vendorId}`}
+                <Link
+                  href={`/hub/${product.creatorId}`}
                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline mb-2"
                 >
                   <Store className="h-4 w-4" />
-                  {vendorInfo?.name || 'Vendor Store'}
+                  {creatorInfo?.name || 'Creator Hub'}
                 </Link>
                 <h1 className="text-3xl font-bold">{product.name}</h1>
                 <div className="mt-2 flex items-center gap-4">
@@ -450,11 +462,10 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-5 w-5 ${
-                            i < Math.floor(product.rating || 0)
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "fill-muted text-muted"
-                          }`}
+                          className={`h-5 w-5 ${i < Math.floor(product.rating || 0)
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "fill-muted text-muted"
+                            }`}
                         />
                       ))}
                     </div>
@@ -483,76 +494,28 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                   )}
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Tax included. {product.type === 'digital' ? 'Instant delivery after payment.' : product.type === 'service' ? 'Service will be scheduled after payment.' : 'Shipping calculated at checkout.'}
+                  Tax included. {product.type === 'digital' ? 'Instant access after payment.' : 'Service scheduling details provided after purchase.'}
                 </p>
               </div>
 
               {/* Stock Status */}
-              {product.type === 'physical' && (
-                <div>
-                  {product.stock > 0 ? (
-                    <div className="flex items-center gap-2 text-green-600">
-                      <Check className="h-5 w-5" />
-                      <span className="font-medium">In Stock ({product.stock} available)</span>
-                    </div>
-                  ) : (
-                    <div className="text-red-600 font-medium">Out of Stock</div>
-                  )}
-                </div>
-              )}
-              {product.type === 'digital' && (
-                <div className="flex items-center gap-2 text-green-600">
-                  <Check className="h-5 w-5" />
-                  <span className="font-medium">Available for instant download</span>
-                </div>
-              )}
-              {product.type === 'service' && (
-                <div className="flex items-center gap-2 text-blue-600">
-                  <Check className="h-5 w-5" />
-                  <span className="font-medium">Service available</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-green-600">
+                <Check className="h-5 w-5" />
+                <span className="font-medium">
+                  {product.type === 'digital' ? 'Available for instant access' : 'Service available'}
+                </span>
+              </div>
 
-              {/* Quantity Selector - Only for physical products */}
-              {product.type === 'physical' && (
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Quantity</label>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-border rounded-lg">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        disabled={quantity <= 1}
-                        aria-label="Decrease quantity"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-12 text-center font-medium">{quantity}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                        disabled={quantity >= product.stock}
-                        aria-label="Increase quantity"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Action Buttons */}
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <Button 
-                    size="lg" 
-                    className="flex-1" 
+                  <Button
+                    size="lg"
+                    className="flex-1"
                     onClick={handleAddToCart}
-                    disabled={product.type === 'physical' && product.stock === 0}
                   >
-                    {product.type === 'digital' ? 'Buy Now' : product.type === 'service' ? 'Book Service' : 'Add to Cart'}
+                    {product.type === 'digital' ? 'Buy Now' : 'Book Service'}
                   </Button>
                   <Button
                     size="lg"
@@ -585,17 +548,17 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                     }
                   />
                 </div>
-                
-                {/* Contact Vendor Button */}
-                <ContactVendor
-                  vendorId={product.vendorId}
-                  vendorName={vendorInfo?.name || 'Vendor'}
+
+                {/* Contact Creator Button */}
+                <ContactCreator
+                  creatorId={product.creatorId}
+                  creatorName={creatorInfo?.name || 'Creator'}
                   productId={product.id}
                   productName={product.name}
                   trigger={
                     <Button variant="outline" size="lg" className="w-full">
                       <MessageCircle className="mr-2 h-5 w-5" />
-                      Contact Vendor
+                      Contact Creator
                     </Button>
                   }
                 />
@@ -604,43 +567,25 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
               {/* Features */}
               <Card>
                 <CardContent className="p-6 space-y-4">
-                  {product.type === 'physical' && (
-                    <>
-                      <div className="flex items-start gap-3">
-                        <Truck className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <p className="font-medium">
-                            {product.shippingInfo?.offerFreeShipping ? "Free Shipping" : "Shipping"}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {product.shippingInfo?.offerFreeShipping
-                              ? product.shippingInfo.notes || "This product qualifies for free shipping based on the vendor's shipping settings."
-                              : "Shipping fees are calculated at checkout according to the vendor's shipping rates."}
-                          </p>
-                        </div>
-                      </div>
-                      <Separator />
-                    </>
-                  )}
                   <div className="flex items-start gap-3">
                     <Shield className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="font-medium">Secure Payment</p>
-                      <p className="text-sm text-muted-foreground">100% secure transactions</p>
+                      <p className="text-sm text-muted-foreground">100% secure encrypted transactions</p>
                     </div>
                   </div>
-                  {product.type === 'physical' && (
-                    <>
-                      <Separator />
-                      <div className="flex items-start gap-3">
-                        <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <p className="font-medium">30-Day Returns</p>
-                          <p className="text-sm text-muted-foreground">Easy returns & refunds</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                  <Separator />
+                  <div className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="font-medium">
+                        {product.type === 'digital' ? 'Instant Access' : 'Verified Service'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {product.type === 'digital' ? 'Download immediately after payment' : 'Professional quality guaranteed'}
+                      </p>
+                    </div>
+                  </div>
                   {product.type === 'digital' && (
                     <>
                       <Separator />
@@ -658,64 +603,64 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
             </div>
           </div>
 
-          {/* Vendor Information Section */}
+          {/* creator Information Section */}
           <div className="mt-12">
             <Card className="border-2">
               <CardContent className="p-6">
                 <div className="flex items-start gap-6">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${vendorInfo?.name}`} />
+                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${creatorInfo?.name}`} />
                     <AvatarFallback className="text-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                      {vendorInfo?.name?.charAt(0) || 'V'}
+                      {creatorInfo?.name?.charAt(0) || 'V'}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-xl font-bold mb-1">{vendorInfo?.name || 'Vendor'}</h3>
+                        <h3 className="text-xl font-bold mb-1">{creatorInfo?.name || 'Creator'}</h3>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                          {vendorStats && (
+                          {creatorstats && (
                             <>
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                <span className="font-medium">{vendorStats.rating}</span>
-                                <span>({vendorStats.reviewCount} reviews)</span>
+                                <span className="font-medium">{creatorstats.rating}</span>
+                                <span>({creatorstats.reviewCount} reviews)</span>
                               </div>
                               <span>•</span>
-                              <span>{vendorStats.productCount}+ products</span>
+                              <span>{creatorstats.productCount}+ creations</span>
                               <span>•</span>
                             </>
                           )}
-                          {vendorInfo?.verified && (
+                          {creatorInfo?.verified && (
                             <Badge variant="secondary" className="gap-1">
                               <Check className="h-3 w-3" />
-                              Verified Seller
+                              Verified Creator
                             </Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground max-w-2xl">
-                          {vendorInfo?.description || 'Quality products with excellent customer service.'}
+                          {creatorInfo?.description || 'Quality creations with excellent service.'}
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-3 mt-4">
                       <Button asChild variant="default">
-                        <Link href={`/store/${product.vendorId}`}>
+                        <Link href={`/hub/${product.creatorId}`}>
                           <Store className="mr-2 h-4 w-4" />
                           Visit Store
                         </Link>
                       </Button>
-                      <ContactVendor
-                        vendorId={product.vendorId}
-                        vendorName={vendorInfo?.name || 'Vendor'}
+                      <ContactCreator
+                        creatorId={product.creatorId}
+                        creatorName={creatorInfo?.name || 'Creator'}
                         productId={product.id}
                         productName={product.name}
                         trigger={
                           <Button variant="outline">
                             <MessageCircle className="mr-2 h-4 w-4" />
-                            Contact Seller
+                            Contact Creator
                           </Button>
                         }
                       />
@@ -825,7 +770,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                 ) : (
                   <ProductReviews
                     productId={product.id}
-                    vendorId={product.vendorId}
+                    creatorId={product.creatorId}
                     canReview={hasPurchased}
                   />
                 )}
@@ -834,7 +779,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
               <TabsContent value="qa" className="mt-6">
                 <ProductQA
                   productId={product.id}
-                  vendorId={product.vendorId}
+                  creatorId={product.creatorId}
                   productName={product.name}
                 />
               </TabsContent>

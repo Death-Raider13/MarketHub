@@ -2,7 +2,7 @@
 
 ## 📋 Executive Summary
 
-This document outlines the improvements needed to transform your multivendor e-commerce platform into an Amazon-like marketplace with enterprise-grade features.
+This document outlines the improvements needed to transform your multicreator e-commerce platform into an Amazon-like marketplace with enterprise-grade features.
 
 ---
 
@@ -11,7 +11,7 @@ This document outlines the improvements needed to transform your multivendor e-c
 ### 1. **New Essential Pages Created**
 - ✅ Product Detail Page (`/products/[id]`) - Full product view with reviews, Q&A, specifications
 - ✅ Search Results Page (`/search`) - Advanced filtering and sorting
-- ✅ Vendor Store Page (`/vendors/[id]`) - Individual vendor storefronts
+- ✅ creator Store Page (`/creators/[id]`) - Individual creator storefronts
 - ✅ Help Center Page (`/help`) - Comprehensive support center
 - ✅ Contact Us Page (`/contact`) - Multi-channel support contact
 
@@ -38,7 +38,7 @@ This document outlines the improvements needed to transform your multivendor e-c
 // Create API routes in app/api/
 - /api/products/[id]/route.ts - Get product details
 - /api/products/search/route.ts - Search products
-- /api/vendors/[id]/route.ts - Get vendor info
+- /api/creators/[id]/route.ts - Get creator info
 - /api/orders/route.ts - Create/manage orders
 - /api/reviews/route.ts - Submit/get reviews
 - /api/cart/route.ts - Sync cart with database
@@ -47,8 +47,8 @@ This document outlines the improvements needed to transform your multivendor e-c
 #### Firebase Collections to Create:
 ```
 /products
-  - id, vendorId, name, description, price, images[], stock, etc.
-/vendors
+  - id, creatorId, name, description, price, images[], stock, etc.
+/creators
   - id, name, description, rating, products[], etc.
 /orders
   - id, userId, items[], status, shipping, payment, etc.
@@ -110,7 +110,7 @@ npm install resend
 - Order delivered
 - Password reset
 - Welcome email
-- Vendor approval
+- creator approval
 - Review reminders
 
 ### 5. **Real-time Features**
@@ -120,7 +120,7 @@ npm install resend
 - Real-time order status
 - Live chat support
 - Notification system
-- Vendor dashboard real-time analytics
+- creator dashboard real-time analytics
 
 ---
 
@@ -248,7 +248,7 @@ Features:
 - [ ] Verified purchase badge
 - [ ] Helpful/not helpful voting
 - [ ] Review filtering (verified, rating, most helpful)
-- [ ] Vendor responses to reviews
+- [ ] creator responses to reviews
 - [ ] Review moderation
 
 ### 7. **Order Tracking**
@@ -265,7 +265,7 @@ Features:
 ```typescript
 // Use Firebase Realtime Database or Socket.io
 - Customer-to-support chat
-- Customer-to-vendor chat
+- Customer-to-creator chat
 - Typing indicators
 - File sharing
 - Chat history
@@ -314,7 +314,7 @@ const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
 
 ### 13. **Advanced Analytics Dashboard**
 
-#### For Vendors:
+#### For creators:
 - Sales trends
 - Top products
 - Customer demographics
@@ -324,7 +324,7 @@ const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
 
 #### For Admins:
 - Platform-wide metrics
-- Vendor performance
+- creator performance
 - User growth
 - Transaction volume
 - Popular categories
@@ -476,7 +476,7 @@ npm install @sentry/nextjs
 ### Phase 2 (Months 4-6):
 - Mobile app development
 - Advanced AI recommendations
-- Vendor analytics dashboard
+- creator analytics dashboard
 - Loyalty program
 
 ### Phase 3 (Months 7-12):

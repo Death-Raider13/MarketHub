@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
+import { FieldValue } from "firebase-admin/firestore"
 
 export async function PATCH(
   request: NextRequest,
@@ -7,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       console.error('Firebase Admin SDK not initialized')
       return NextResponse.json(
@@ -67,8 +68,8 @@ export async function PATCH(
       updateData.transactionReference = transactionReference
       if (notes) updateData.notes = notes
 
-      // Update vendor balance (mirror client-side logic)
-      const balanceRef = adminDb.collection('vendorBalances').doc(payoutData.vendorId)
+      // Update creator balance (mirror client-side logic)
+      const balanceRef = adminDb.collection('creatorBalances').doc(payoutData.creatorId)
       const balanceDoc = await balanceRef.get()
 
       if (balanceDoc.exists) {
@@ -103,9 +104,25 @@ export async function PATCH(
         sendPayoutRejectedEmail,
       } = await import('@/lib/email/service')
 
+      // 4. Update balances based on status
+      if (status === 'completed') {
+        // availableBalance was already decremented when the payout was requested.
+        // We only need to clear the pending balance.
+        await adminDb.collection('users').doc(latestPayout.creatorId).update({
+          pendingBalance: FieldValue.increment(-latestPayout.amount),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      } else if (status === 'rejected') {
+        // Restore available balance and clear pending balance
+        await adminDb.collection('users').doc(latestPayout.creatorId).update({
+          availableBalance: FieldValue.increment(latestPayout.amount),
+          pendingBalance: FieldValue.increment(-latestPayout.amount),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
       if (latestPayout.status === 'completed') {
         await NotificationTriggers.onPayoutProcessed(
-          latestPayout.vendorId,
+          latestPayout.creatorId,
           latestPayout.amount,
           payoutId
         )

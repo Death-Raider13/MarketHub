@@ -23,8 +23,8 @@ All these pages use the `<Footer />` component which includes the CloudSparkDigi
 4. **Search Results** - `/search`
 5. **Shopping Cart** - `/cart`
 6. **Checkout** - `/checkout`
-7. **Vendors Directory** - `/vendors`
-8. **Vendor Store** - `/vendors/[id]`
+7. **creators Directory** - `/creators`
+8. **creator Store** - `/creators/[id]`
 9. **User Account** - `/account`
 10. **Order History** - `/orders`
 11. **Wishlist** - `/wishlist`
@@ -41,21 +41,21 @@ All these pages use the `<Footer />` component which includes the CloudSparkDigi
 19. **Reset Password** - `/auth/reset-password`
 20. **Verify Email** - `/auth/verify-email`
 
-### Vendor Dashboard Pages
+### creator Dashboard Pages
 
-All vendor pages include the Footer component:
+All creator pages include the Footer component:
 
-21. **Vendor Dashboard** - `/vendor/dashboard`
-22. **Vendor Products** - `/vendor/products`
-23. **Add New Product** - `/vendor/products/new`
-24. **Edit Product** - `/vendor/products/[id]/edit`
-25. **Vendor Orders** - `/vendor/orders`
-26. **Vendor Analytics** - `/vendor/analytics`
-27. **Vendor Store Settings** - `/vendor/store`
-28. **Vendor Advertising** - `/vendor/advertising`
-29. **Create Ad Campaign** - `/vendor/advertising/new`
-30. **Vendor Payouts** - `/vendor/payouts`
-31. **Pending Approval** - `/vendor/pending-approval`
+21. **creator Dashboard** - `/creator/dashboard`
+22. **creator Products** - `/creator/products`
+23. **Add New Product** - `/creator/products/new`
+24. **Edit Product** - `/creator/products/[id]/edit`
+25. **creator Orders** - `/creator/orders`
+26. **creator Analytics** - `/creator/analytics`
+27. **creator Store Settings** - `/creator/store`
+28. **creator Advertising** - `/creator/advertising`
+29. **Create Ad Campaign** - `/creator/advertising/new`
+30. **creator Payouts** - `/creator/payouts`
+31. **Pending Approval** - `/creator/pending-approval`
 
 ### Admin Dashboard Pages
 
@@ -63,7 +63,7 @@ All admin pages include the Footer component:
 
 32. **Admin Dashboard** - `/admin/dashboard`
 33. **User Management** - `/admin/users`
-34. **Vendor Management** - `/admin/vendors`
+34. **creator Management** - `/admin/creators`
 35. **Product Management** - `/admin/products`
 36. **Order Management** - `/admin/orders`
 37. **Advertising Management** - `/admin/advertising`

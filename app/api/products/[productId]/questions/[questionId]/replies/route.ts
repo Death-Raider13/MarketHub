@@ -10,7 +10,7 @@ export async function GET(
     const { questionId } = params
 
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -38,7 +38,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching replies:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch replies',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -54,7 +54,7 @@ export async function POST(
 ) {
   try {
     const { questionId } = params
-    const { userId, userName, message, isVendor } = await request.json()
+    const { userId, userName, message, iscreator } = await request.json()
 
     if (!userId || !userName || !message) {
       return NextResponse.json(
@@ -64,7 +64,7 @@ export async function POST(
     }
 
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -77,7 +77,7 @@ export async function POST(
       userId,
       userName,
       message: message.trim(),
-      isVendor: isVendor || false,
+      iscreator: iscreator || false,
       createdAt: new Date()
     }
 
@@ -91,7 +91,7 @@ export async function POST(
   } catch (error) {
     console.error('Error adding reply:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to add reply',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

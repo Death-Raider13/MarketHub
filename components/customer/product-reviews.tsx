@@ -29,6 +29,8 @@ interface Review {
   userName: string
   userAvatar?: string
   rating: number
+  accuracyRating?: number
+  deliveryRating?: number
   title: string
   comment: string
   images?: string[]
@@ -40,11 +42,11 @@ interface Review {
 
 interface ProductReviewsProps {
   productId: string
-  vendorId: string
+  creatorId: string
   canReview?: boolean // If user has purchased this product
 }
 
-export function ProductReviews({ productId, vendorId, canReview = false }: ProductReviewsProps) {
+export function ProductReviews({ productId, creatorId, canReview = false }: ProductReviewsProps) {
   const { user } = useAuth()
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,6 +61,8 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
 
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
+    accuracyRating: 5,
+    deliveryRating: 5,
     title: '',
     comment: ''
   })
@@ -134,9 +138,11 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
           userId: user.uid,
           userName: user.displayName || 'Anonymous',
           rating: reviewForm.rating,
+          accuracyRating: reviewForm.accuracyRating,
+          deliveryRating: reviewForm.deliveryRating,
           title: reviewForm.title.trim(),
           comment: reviewForm.comment.trim(),
-          vendorId
+          creatorId
         })
       })
 
@@ -145,7 +151,7 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
       if (data.success) {
         toast.success('Review submitted successfully! It will appear after admin approval.')
         setShowReviewDialog(false)
-        setReviewForm({ rating: 0, title: '', comment: '' })
+        setReviewForm({ rating: 0, accuracyRating: 5, deliveryRating: 5, title: '', comment: '' })
         loadReviews()
         checkUserReview()
       } else {
@@ -198,11 +204,10 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
             disabled={!interactive}
           >
             <Star
-              className={`h-5 w-5 ${
-                star <= rating
+              className={`h-5 w-5 ${star <= rating
                   ? 'fill-yellow-400 text-yellow-400'
                   : 'text-gray-300'
-              }`}
+                }`}
             />
           </button>
         ))}
@@ -266,9 +271,24 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
                   <form onSubmit={submitReview} className="space-y-4">
                     <div className="space-y-2">
                       <Label>Rating</Label>
-                      {renderStars(reviewForm.rating, true, (rating) => 
+                      {renderStars(reviewForm.rating, true, (rating) =>
                         setReviewForm(prev => ({ ...prev, rating }))
                       )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Content Accuracy</Label>
+                        {renderStars(reviewForm.accuracyRating, true, (val) =>
+                          setReviewForm(prev => ({ ...prev, accuracyRating: val }))
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Delivery Quality</Label>
+                        {renderStars(reviewForm.deliveryRating, true, (val) =>
+                          setReviewForm(prev => ({ ...prev, deliveryRating: val }))
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -382,8 +402,8 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{review.userName}</span>
                           {review.verified && (
-                            <Badge variant="secondary" className="text-xs">
-                              Verified Purchase
+                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 border-blue-200">
+                              Verified Buyer
                             </Badge>
                           )}
                         </div>
@@ -393,6 +413,12 @@ export function ProductReviews({ productId, vendorId, canReview = false }: Produ
                             {formatDistanceToNow(new Date(review.createdAt))} ago
                           </span>
                         </div>
+                        {review.verified && (
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                            <span className="flex items-center gap-1">Accuracy: {review.accuracyRating || 5}/5</span>
+                            <span className="flex items-center gap-1">Delivery: {review.deliveryRating || 5}/5</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <ReportContent

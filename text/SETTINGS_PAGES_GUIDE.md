@@ -1,20 +1,20 @@
 # ⚙️ Settings Pages - Complete Guide
 
 ## Overview
-Comprehensive settings pages for both Vendor and Admin dashboards with all necessary configuration options.
+Comprehensive settings pages for both creator and Admin dashboards with all necessary configuration options.
 
 ---
 
 ## ✅ **What's Created**
 
-### **1. Vendor Store Settings** (`/vendor/store`)
+### **1. creator Store Settings** (`/creator/store`)
 ### **2. Admin Platform Settings** (`/admin/settings`)
 
 ---
 
-## 🏪 **Vendor Store Settings**
+## 🏪 **creator Store Settings**
 
-### **Access:** `/vendor/store`
+### **Access:** `/creator/store`
 
 ### **Tabs:**
 
@@ -90,12 +90,12 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 **Admin Notifications:**
 - ✅ Email Notifications
-- ✅ New Vendor Alerts
+- ✅ New creator Alerts
 - ✅ New Order Alerts
 - ✅ Reported Content Alerts
 
 #### **2. Commission & Fees**
-- ✅ Vendor Commission (%)
+- ✅ creator Commission (%)
 - ✅ Transaction Fee (%)
 - ✅ Minimum Payout Amount ($)
 - ✅ Payout Schedule (Daily, Weekly, Bi-weekly, Monthly)
@@ -116,7 +116,7 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 - ✅ Max Login Attempts
 
 #### **5. Feature Toggles**
-- ✅ Vendor Registration
+- ✅ creator Registration
 - ✅ Customer Reviews
 - ✅ Guest Checkout
 - ✅ Social Login
@@ -166,7 +166,7 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 ## 💡 **Key Features**
 
-### **Vendor Settings:**
+### **creator Settings:**
 
 **Store Management:**
 - Complete store profile
@@ -231,9 +231,9 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 ## 📋 **Use Cases**
 
-### **Vendor Scenarios:**
+### **creator Scenarios:**
 
-**1. New Vendor Setup**
+**1. New creator Setup**
 ```
 1. Complete store information
 2. Upload logo and banner
@@ -285,7 +285,7 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 **3. Adjust Commission**
 ```
 1. Go to Commission tab
-2. Update vendor commission %
+2. Update creator commission %
 3. Update transaction fee %
 4. Set minimum payout
 5. Choose payout schedule
@@ -312,7 +312,7 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 ## 📊 **Settings Comparison**
 
-| Feature | Vendor Settings | Admin Settings |
+| Feature | creator Settings | Admin Settings |
 |---------|----------------|----------------|
 | **Store/Platform Info** | ✅ Store details | ✅ Platform details |
 | **Branding** | ✅ Logo & Banner | ✅ Logo & Favicon |
@@ -330,7 +330,7 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 ## 🎯 **Benefits**
 
-### **For Vendors:**
+### **For creators:**
 1. **Complete Control**
    - Manage all store aspects
    - Customize branding
@@ -378,8 +378,8 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 ### **Files Created:**
 
-1. **`/app/vendor/store/page.tsx`**
-   - Vendor store settings page
+1. **`/app/creator/store/page.tsx`**
+   - creator store settings page
    - 5 tabs (General, Business, Payment, Shipping, Notifications)
    - Complete form controls
    - Image upload functionality
@@ -396,7 +396,7 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 ## 🚀 **Future Enhancements**
 
-### **Vendor Settings:**
+### **creator Settings:**
 - [ ] Multiple store locations
 - [ ] Staff management
 - [ ] Advanced analytics preferences
@@ -415,7 +415,7 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 ## ✅ **Summary**
 
-**Vendor Settings (`/vendor/store`):**
+**creator Settings (`/creator/store`):**
 - ✅ 5 comprehensive tabs
 - ✅ Store information & branding
 - ✅ Business & legal details
@@ -444,4 +444,4 @@ Comprehensive settings pages for both Vendor and Admin dashboards with all neces
 
 **Your settings pages are now complete and professional!** 🎉
 
-Vendors and admins can now configure every aspect of their stores and the platform!
+creators and admins can now configure every aspect of their stores and the platform!

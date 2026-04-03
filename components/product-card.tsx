@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import type { Product } from "@/lib/types"
 import { useState, useEffect } from "react"
-import { getVendorName } from "@/lib/vendor-utils"
+import { getCreatorName } from "@/lib/creator-utils"
 import { useWishlist } from "@/lib/wishlist-context"
 
 interface ProductCardProps {
@@ -17,34 +17,34 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const [vendorName, setVendorName] = useState<string>(product.vendorName || 'Vendor')
+  const [creatorName, setCreatorName] = useState<string>(product.creatorName || 'Creator')
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
-  
+
   // Ensure price is a number
   const price = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0
-  const comparePrice = product.comparePrice 
+  const comparePrice = product.comparePrice
     ? (typeof product.comparePrice === 'number' ? product.comparePrice : parseFloat(product.comparePrice) || 0)
     : 0
-  
+
   const discount = comparePrice > 0
     ? Math.round(((comparePrice - price) / comparePrice) * 100)
     : 0
 
-  // Fetch vendor name if not available or is default
+  // Fetch creator name if not available or is default
   useEffect(() => {
-    const fetchVendorName = async () => {
-      if (product.vendorId && (!product.vendorName || product.vendorName === 'Vendor')) {
+    const fetchCreatorName = async () => {
+      if (product.creatorId && (!product.creatorName || product.creatorName === 'creator' || product.creatorName === 'Creator')) {
         try {
-          const name = await getVendorName(product.vendorId)
-          setVendorName(name)
+          const name = await getCreatorName(product.creatorId)
+          setCreatorName(name)
         } catch (error) {
-          console.error('Error fetching vendor name:', error)
+          console.error('Error fetching creator name:', error)
         }
       }
     }
 
-    fetchVendorName()
-  }, [product.vendorId, product.vendorName])
+    fetchCreatorName()
+  }, [product.creatorId, product.creatorName])
 
   const inWishlist = isInWishlist(product.id)
 
@@ -83,9 +83,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <Link href={`/products/${product.id}`}>
           <h3 className="font-semibold line-clamp-2 hover:underline">{product.name}</h3>
         </Link>
-        {product.vendorId && (
-          <Link href={`/store/${product.vendorId}`} className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
-            <span>by {vendorName}</span>
+        {product.creatorId && (
+          <Link href={`/hub/${product.creatorId}`} className="text-sm text-muted-foreground hover:underline flex items-center gap-1">
+            <span>by {creatorName}</span>
           </Link>
         )}
         <div className="mt-2 flex items-center gap-1">

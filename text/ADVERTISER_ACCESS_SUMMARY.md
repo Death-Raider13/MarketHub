@@ -36,11 +36,11 @@ https://FEROMARKETHUB.com/advertise
 - Can be linked from blog posts
 ```
 
-### **3. Vendor Dashboard**
+### **3. creator Dashboard**
 ```
-Existing vendors can also become advertisers
+Existing creators can also become advertisers
 
-Vendor Dashboard → "Advertise Your Products" card
+creator Dashboard → "Advertise Your Products" card
 ```
 
 ---
@@ -85,7 +85,7 @@ Step 5: CREATE CAMPAIGN
 └─ Launches campaign
 
 Step 6: ADS GO LIVE
-├─ Ads automatically appear on vendor stores
+├─ Ads automatically appear on creator stores
 ├─ Rotation algorithm selects best placements
 └─ Real-time tracking begins
 
@@ -213,8 +213,8 @@ Step 7: TRACK & OPTIMIZE
 │     • Shareable link                       │
 │     • SEO optimized                        │
 │                                             │
-│  3. Vendor Dashboard                       │
-│     • Cross-sell to vendors                │
+│  3. creator Dashboard                       │
+│     • Cross-sell to creators                │
 │     • Promote own products                 │
 │                                             │
 │  4. Footer Links (Future)                  │
@@ -285,7 +285,7 @@ Growth Phase:
 5. **Easy to Track** - Real-time analytics
 
 ### **For FEROMARKETHUB:**
-1. **Multiple Discovery Points** - Header, URL, vendor dashboard
+1. **Multiple Discovery Points** - Header, URL, creator dashboard
 2. **Clear Value Proposition** - Targeted reach, flexible pricing
 3. **Low Friction Signup** - Only 3 required fields
 4. **Immediate Activation** - Create campaigns right away

@@ -1,6 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { db } from "@/lib/firebase/config"
+import { doc, setDoc, getDoc } from "firebase/firestore"
+import { toast } from "sonner"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Button } from "@/components/ui/button"
@@ -49,7 +52,7 @@ function AdminSettingsContent() {
   const [platformFavicon, setPlatformFavicon] = useState("")
 
   // Commission Settings
-  const [vendorCommission, setVendorCommission] = useState("10")
+  const [creatorCommission, setcreatorCommission] = useState("10")
   const [transactionFee, setTransactionFee] = useState("2.5")
   const [minimumPayout, setMinimumPayout] = useState("50")
   const [payoutSchedule, setPayoutSchedule] = useState("weekly")
@@ -67,7 +70,7 @@ function AdminSettingsContent() {
   const [maxLoginAttempts, setMaxLoginAttempts] = useState("5")
 
   // Feature Toggles
-  const [vendorRegistration, setVendorRegistration] = useState(true)
+  const [creatorRegistration, setcreatorRegistration] = useState(true)
   const [customerReviews, setCustomerReviews] = useState(true)
   const [guestCheckout, setGuestCheckout] = useState(true)
   const [socialLogin, setSocialLogin] = useState(true)
@@ -75,7 +78,7 @@ function AdminSettingsContent() {
 
   // Notification Settings
   const [adminEmailNotifications, setAdminEmailNotifications] = useState(true)
-  const [newVendorAlerts, setNewVendorAlerts] = useState(true)
+  const [newcreatorAlerts, setNewcreatorAlerts] = useState(true)
   const [newOrderAlerts, setNewOrderAlerts] = useState(true)
   const [reportedContentAlerts, setReportedContentAlerts] = useState(true)
 
@@ -83,12 +86,66 @@ function AdminSettingsContent() {
   const [maintenanceMode, setMaintenanceMode] = useState(false)
   const [maintenanceMessage, setMaintenanceMessage] = useState("We're currently performing maintenance. Please check back soon.")
 
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settingsDoc = await getDoc(doc(db, "platform_settings", "config"))
+        if (settingsDoc.exists()) {
+          const s = settingsDoc.data()
+          if (s.platformName) setPlatformName(s.platformName)
+          if (s.platformEmail) setPlatformEmail(s.platformEmail)
+          if (s.platformPhone) setPlatformPhone(s.platformPhone)
+          if (s.platformDescription) setPlatformDescription(s.platformDescription)
+          if (s.creatorCommission) setcreatorCommission(s.creatorCommission)
+          if (s.transactionFee) setTransactionFee(s.transactionFee)
+          if (s.minimumPayout) setMinimumPayout(s.minimumPayout)
+          if (s.payoutSchedule) setPayoutSchedule(s.payoutSchedule)
+          if (s.smtpHost) setSmtpHost(s.smtpHost)
+          if (s.smtpPort) setSmtpPort(s.smtpPort)
+          if (s.smtpUsername) setSmtpUsername(s.smtpUsername)
+          if (s.twoFactorAuth !== undefined) setTwoFactorAuth(s.twoFactorAuth)
+          if (s.passwordMinLength) setPasswordMinLength(s.passwordMinLength)
+          if (s.sessionTimeout) setSessionTimeout(s.sessionTimeout)
+          if (s.maxLoginAttempts) setMaxLoginAttempts(s.maxLoginAttempts)
+          if (s.creatorRegistration !== undefined) setcreatorRegistration(s.creatorRegistration)
+          if (s.customerReviews !== undefined) setCustomerReviews(s.customerReviews)
+          if (s.guestCheckout !== undefined) setGuestCheckout(s.guestCheckout)
+          if (s.socialLogin !== undefined) setSocialLogin(s.socialLogin)
+          if (s.wishlist !== undefined) setWishlist(s.wishlist)
+          if (s.maintenanceMode !== undefined) setMaintenanceMode(s.maintenanceMode)
+          if (s.maintenanceMessage) setMaintenanceMessage(s.maintenanceMessage)
+          if (s.adminEmailNotifications !== undefined) setAdminEmailNotifications(s.adminEmailNotifications)
+          if (s.newcreatorAlerts !== undefined) setNewcreatorAlerts(s.newcreatorAlerts)
+          if (s.newOrderAlerts !== undefined) setNewOrderAlerts(s.newOrderAlerts)
+          if (s.reportedContentAlerts !== undefined) setReportedContentAlerts(s.reportedContentAlerts)
+        }
+      } catch (err) {
+        console.error("Failed to load settings", err)
+      }
+    }
+    loadSettings()
+  }, [])
+
   const handleSave = async () => {
     setLoading(true)
-    // Simulate save
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setLoading(false)
-    alert("Settings saved successfully!")
+    try {
+      await setDoc(doc(db, "platform_settings", "config"), {
+        platformName, platformEmail, platformPhone, platformDescription,
+        creatorCommission, transactionFee, minimumPayout, payoutSchedule,
+        smtpHost, smtpPort, smtpUsername,
+        twoFactorAuth, passwordMinLength, sessionTimeout, maxLoginAttempts,
+        creatorRegistration, customerReviews, guestCheckout, socialLogin, wishlist,
+        maintenanceMode, maintenanceMessage,
+        adminEmailNotifications, newcreatorAlerts, newOrderAlerts, reportedContentAlerts,
+        updatedAt: new Date()
+      }, { merge: true })
+      toast.success("Settings saved successfully!")
+    } catch (err) {
+      toast.error("Failed to save settings")
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,10 +158,10 @@ function AdminSettingsContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
@@ -120,362 +177,362 @@ function AdminSettingsContent() {
 
           {/* Content */}
           <div className="space-y-6">
-              <Tabs defaultValue="general" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-                  <TabsTrigger value="general">General</TabsTrigger>
-                  <TabsTrigger value="email">Email</TabsTrigger>
-                  <TabsTrigger value="security">Security</TabsTrigger>
-                  <TabsTrigger value="features">Features</TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="general" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="email">Email</TabsTrigger>
+                <TabsTrigger value="security">Security</TabsTrigger>
+                <TabsTrigger value="features">Features</TabsTrigger>
+              </TabsList>
 
-                {/* General Settings */}
-                <TabsContent value="general" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>
-                        <Globe className="inline h-5 w-5 mr-2" />
-                        Platform Information
-                      </CardTitle>
-                      <CardDescription>Basic platform configuration</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+              {/* General Settings */}
+              <TabsContent value="general" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <Globe className="inline h-5 w-5 mr-2" />
+                      Platform Information
+                    </CardTitle>
+                    <CardDescription>Basic platform configuration</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="platformName">Platform Name *</Label>
+                      <Input
+                        id="platformName"
+                        value={platformName}
+                        onChange={(e) => setPlatformName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="platformDescription">Platform Description</Label>
+                      <Textarea
+                        id="platformDescription"
+                        value={platformDescription}
+                        onChange={(e) => setPlatformDescription(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="platformName">Platform Name *</Label>
+                        <Label htmlFor="platformEmail">Support Email</Label>
                         <Input
-                          id="platformName"
-                          value={platformName}
-                          onChange={(e) => setPlatformName(e.target.value)}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="platformDescription">Platform Description</Label>
-                        <Textarea
-                          id="platformDescription"
-                          value={platformDescription}
-                          onChange={(e) => setPlatformDescription(e.target.value)}
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="platformEmail">Support Email</Label>
-                          <Input
-                            id="platformEmail"
-                            type="email"
-                            value={platformEmail}
-                            onChange={(e) => setPlatformEmail(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="platformPhone">Support Phone</Label>
-                          <Input
-                            id="platformPhone"
-                            type="tel"
-                            value={platformPhone}
-                            onChange={(e) => setPlatformPhone(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Platform Branding</CardTitle>
-                      <CardDescription>Upload platform logo and favicon</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Platform Logo</Label>
-                        <div className="flex items-center gap-4">
-                          {platformLogo ? (
-                            <div className="relative h-20 w-20 rounded-lg overflow-hidden border">
-                              <img src={platformLogo} alt="Platform logo" className="h-full w-full object-cover" />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute right-1 top-1 h-6 w-6"
-                                onClick={() => setPlatformLogo("")}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted">
-                              <Upload className="h-6 w-6 text-muted-foreground" />
-                              <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                            </label>
-                          )}
-                          <div className="text-sm text-muted-foreground">
-                            <p>Recommended: 200x200px</p>
-                            <p>Max size: 2MB</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>
-                        <Bell className="inline h-5 w-5 mr-2" />
-                        Admin Notifications
-                      </CardTitle>
-                      <CardDescription>Configure admin notification preferences</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Email Notifications</Label>
-                          <p className="text-sm text-muted-foreground">Receive admin notifications via email</p>
-                        </div>
-                        <Switch
-                          checked={adminEmailNotifications}
-                          onCheckedChange={setAdminEmailNotifications}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>New Vendor Alerts</Label>
-                          <p className="text-sm text-muted-foreground">Get notified when vendors register</p>
-                        </div>
-                        <Switch
-                          checked={newVendorAlerts}
-                          onCheckedChange={setNewVendorAlerts}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>New Order Alerts</Label>
-                          <p className="text-sm text-muted-foreground">Get notified of all new orders</p>
-                        </div>
-                        <Switch
-                          checked={newOrderAlerts}
-                          onCheckedChange={setNewOrderAlerts}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Reported Content Alerts</Label>
-                          <p className="text-sm text-muted-foreground">Get notified of reported products/reviews</p>
-                        </div>
-                        <Switch
-                          checked={reportedContentAlerts}
-                          onCheckedChange={setReportedContentAlerts}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-
-                {/* Email Settings */}
-                <TabsContent value="email" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>
-                        <Mail className="inline h-5 w-5 mr-2" />
-                        SMTP Configuration
-                      </CardTitle>
-                      <CardDescription>Configure email server settings</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="smtpHost">SMTP Host</Label>
-                          <Input
-                            id="smtpHost"
-                            value={smtpHost}
-                            onChange={(e) => setSmtpHost(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="smtpPort">SMTP Port</Label>
-                          <Input
-                            id="smtpPort"
-                            value={smtpPort}
-                            onChange={(e) => setSmtpPort(e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="smtpUsername">SMTP Username</Label>
-                        <Input
-                          id="smtpUsername"
+                          id="platformEmail"
                           type="email"
-                          value={smtpUsername}
-                          onChange={(e) => setSmtpUsername(e.target.value)}
+                          value={platformEmail}
+                          onChange={(e) => setPlatformEmail(e.target.value)}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="smtpPassword">SMTP Password</Label>
+                        <Label htmlFor="platformPhone">Support Phone</Label>
                         <Input
-                          id="smtpPassword"
-                          type="password"
-                          value={smtpPassword}
-                          onChange={(e) => setSmtpPassword(e.target.value)}
+                          id="platformPhone"
+                          type="tel"
+                          value={platformPhone}
+                          onChange={(e) => setPlatformPhone(e.target.value)}
                         />
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                      <Button variant="outline" className="w-full">
-                        <Mail className="mr-2 h-4 w-4" />
-                        Test Email Configuration
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Security Settings */}
-                <TabsContent value="security" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>
-                        <Shield className="inline h-5 w-5 mr-2" />
-                        Security Configuration
-                      </CardTitle>
-                      <CardDescription>Configure platform security settings</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Two-Factor Authentication</Label>
-                          <p className="text-sm text-muted-foreground">Require 2FA for all admin accounts</p>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Platform Branding</CardTitle>
+                    <CardDescription>Upload platform logo and favicon</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Platform Logo</Label>
+                      <div className="flex items-center gap-4">
+                        {platformLogo ? (
+                          <div className="relative h-20 w-20 rounded-lg overflow-hidden border">
+                            <img src={platformLogo} alt="Platform logo" className="h-full w-full object-cover" />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute right-1 top-1 h-6 w-6"
+                              onClick={() => setPlatformLogo("")}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted">
+                            <Upload className="h-6 w-6 text-muted-foreground" />
+                            <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                          </label>
+                        )}
+                        <div className="text-sm text-muted-foreground">
+                          <p>Recommended: 200x200px</p>
+                          <p>Max size: 2MB</p>
                         </div>
-                        <Switch
-                          checked={twoFactorAuth}
-                          onCheckedChange={setTwoFactorAuth}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <Bell className="inline h-5 w-5 mr-2" />
+                      Admin Notifications
+                    </CardTitle>
+                    <CardDescription>Configure admin notification preferences</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Email Notifications</Label>
+                        <p className="text-sm text-muted-foreground">Receive admin notifications via email</p>
+                      </div>
+                      <Switch
+                        checked={adminEmailNotifications}
+                        onCheckedChange={setAdminEmailNotifications}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>New creator Alerts</Label>
+                        <p className="text-sm text-muted-foreground">Get notified when creators register</p>
+                      </div>
+                      <Switch
+                        checked={newcreatorAlerts}
+                        onCheckedChange={setNewcreatorAlerts}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>New Order Alerts</Label>
+                        <p className="text-sm text-muted-foreground">Get notified of all new orders</p>
+                      </div>
+                      <Switch
+                        checked={newOrderAlerts}
+                        onCheckedChange={setNewOrderAlerts}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Reported Content Alerts</Label>
+                        <p className="text-sm text-muted-foreground">Get notified of reported products/reviews</p>
+                      </div>
+                      <Switch
+                        checked={reportedContentAlerts}
+                        onCheckedChange={setReportedContentAlerts}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+
+              {/* Email Settings */}
+              <TabsContent value="email" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <Mail className="inline h-5 w-5 mr-2" />
+                      SMTP Configuration
+                    </CardTitle>
+                    <CardDescription>Configure email server settings</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="smtpHost">SMTP Host</Label>
+                        <Input
+                          id="smtpHost"
+                          value={smtpHost}
+                          onChange={(e) => setSmtpHost(e.target.value)}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="passwordMinLength">
-                          <Key className="inline h-4 w-4 mr-1" />
-                          Minimum Password Length
-                        </Label>
+                        <Label htmlFor="smtpPort">SMTP Port</Label>
                         <Input
-                          id="passwordMinLength"
-                          type="number"
-                          value={passwordMinLength}
-                          onChange={(e) => setPasswordMinLength(e.target.value)}
+                          id="smtpPort"
+                          value={smtpPort}
+                          onChange={(e) => setSmtpPort(e.target.value)}
                         />
                       </div>
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
-                        <Input
-                          id="sessionTimeout"
-                          type="number"
-                          value={sessionTimeout}
-                          onChange={(e) => setSessionTimeout(e.target.value)}
-                        />
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpUsername">SMTP Username</Label>
+                      <Input
+                        id="smtpUsername"
+                        type="email"
+                        value={smtpUsername}
+                        onChange={(e) => setSmtpUsername(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="smtpPassword">SMTP Password</Label>
+                      <Input
+                        id="smtpPassword"
+                        type="password"
+                        value={smtpPassword}
+                        onChange={(e) => setSmtpPassword(e.target.value)}
+                      />
+                    </div>
+
+                    <Button variant="outline" className="w-full">
+                      <Mail className="mr-2 h-4 w-4" />
+                      Test Email Configuration
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Security Settings */}
+              <TabsContent value="security" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <Shield className="inline h-5 w-5 mr-2" />
+                      Security Configuration
+                    </CardTitle>
+                    <CardDescription>Configure platform security settings</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Two-Factor Authentication</Label>
+                        <p className="text-sm text-muted-foreground">Require 2FA for all admin accounts</p>
                       </div>
+                      <Switch
+                        checked={twoFactorAuth}
+                        onCheckedChange={setTwoFactorAuth}
+                      />
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="maxLoginAttempts">Max Login Attempts</Label>
-                        <Input
-                          id="maxLoginAttempts"
-                          type="number"
-                          value={maxLoginAttempts}
-                          onChange={(e) => setMaxLoginAttempts(e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Account locked after this many failed attempts
-                        </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="passwordMinLength">
+                        <Key className="inline h-4 w-4 mr-1" />
+                        Minimum Password Length
+                      </Label>
+                      <Input
+                        id="passwordMinLength"
+                        type="number"
+                        value={passwordMinLength}
+                        onChange={(e) => setPasswordMinLength(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
+                      <Input
+                        id="sessionTimeout"
+                        type="number"
+                        value={sessionTimeout}
+                        onChange={(e) => setSessionTimeout(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="maxLoginAttempts">Max Login Attempts</Label>
+                      <Input
+                        id="maxLoginAttempts"
+                        type="number"
+                        value={maxLoginAttempts}
+                        onChange={(e) => setMaxLoginAttempts(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Account locked after this many failed attempts
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Feature Toggles */}
+              <TabsContent value="features" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <Database className="inline h-5 w-5 mr-2" />
+                      Platform Features
+                    </CardTitle>
+                    <CardDescription>Enable or disable platform features</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>creator Registration</Label>
+                        <p className="text-sm text-muted-foreground">Allow new creators to register</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                      <Switch
+                        checked={creatorRegistration}
+                        onCheckedChange={setcreatorRegistration}
+                      />
+                    </div>
 
-                {/* Feature Toggles */}
-                <TabsContent value="features" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>
-                        <Database className="inline h-5 w-5 mr-2" />
-                        Platform Features
-                      </CardTitle>
-                      <CardDescription>Enable or disable platform features</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Vendor Registration</Label>
-                          <p className="text-sm text-muted-foreground">Allow new vendors to register</p>
-                        </div>
-                        <Switch
-                          checked={vendorRegistration}
-                          onCheckedChange={setVendorRegistration}
-                        />
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Customer Reviews</Label>
+                        <p className="text-sm text-muted-foreground">Allow customers to leave product reviews</p>
                       </div>
+                      <Switch
+                        checked={customerReviews}
+                        onCheckedChange={setCustomerReviews}
+                      />
+                    </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Customer Reviews</Label>
-                          <p className="text-sm text-muted-foreground">Allow customers to leave product reviews</p>
-                        </div>
-                        <Switch
-                          checked={customerReviews}
-                          onCheckedChange={setCustomerReviews}
-                        />
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Guest Checkout</Label>
+                        <p className="text-sm text-muted-foreground">Allow checkout without account</p>
                       </div>
+                      <Switch
+                        checked={guestCheckout}
+                        onCheckedChange={setGuestCheckout}
+                      />
+                    </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Guest Checkout</Label>
-                          <p className="text-sm text-muted-foreground">Allow checkout without account</p>
-                        </div>
-                        <Switch
-                          checked={guestCheckout}
-                          onCheckedChange={setGuestCheckout}
-                        />
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Social Login</Label>
+                        <p className="text-sm text-muted-foreground">Enable Google/Facebook login</p>
                       </div>
+                      <Switch
+                        checked={socialLogin}
+                        onCheckedChange={setSocialLogin}
+                      />
+                    </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Social Login</Label>
-                          <p className="text-sm text-muted-foreground">Enable Google/Facebook login</p>
-                        </div>
-                        <Switch
-                          checked={socialLogin}
-                          onCheckedChange={setSocialLogin}
-                        />
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Wishlist Feature</Label>
+                        <p className="text-sm text-muted-foreground">Allow customers to save favorites</p>
                       </div>
+                      <Switch
+                        checked={wishlist}
+                        onCheckedChange={setWishlist}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Wishlist Feature</Label>
-                          <p className="text-sm text-muted-foreground">Allow customers to save favorites</p>
-                        </div>
-                        <Switch
-                          checked={wishlist}
-                          onCheckedChange={setWishlist}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Save Button */}
-                <div className="flex justify-end gap-2 mt-6">
-                  <Button variant="outline" onClick={() => router.back()}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSave} disabled={loading}>
-                    <Save className="mr-2 h-4 w-4" />
-                    {loading ? "Saving..." : "Save All Settings"}
-                  </Button>
-                </div>
-              </Tabs>
+              {/* Save Button */}
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={loading}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {loading ? "Saving..." : "Save All Settings"}
+                </Button>
+              </div>
+            </Tabs>
           </div>
         </main>
       </div>

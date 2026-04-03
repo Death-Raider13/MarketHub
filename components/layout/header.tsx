@@ -4,7 +4,7 @@ import type React from "react"
 
 import Image from "next/image"
 import Link from "next/link"
-import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare, Sun, Moon, LogOut } from "lucide-react"
+import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare, Sun, Moon, LogOut, HelpCircle } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -95,7 +95,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/">
-            <Image src="/favicon/FERO.png" alt="FEROMARKETHUB" width={200} height={200} priority />
+            <span className="text-xl font-bold tracking-tight">Fero<span className="text-primary">Library</span></span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -104,11 +104,11 @@ export function Header() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <Input
                 type="search"
-                placeholder="Search products, vendors..."
+                placeholder="Search academic resources, institutions, past questions..."
                 className="w-full pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search products and vendors"
+                aria-label="Search resources"
               />
             </div>
           </form>
@@ -141,15 +141,15 @@ export function Header() {
               </Link>
             </Button>
 
-            {/* Vendor Mode Switch - Show on homepage for vendors */}
-            {user && userProfile?.role === "vendor" && (
+            {/* Creator Mode Switch - Show on homepage for creators */}
+            {user && userProfile?.role === "creator" && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 asChild 
                 className="hidden md:flex bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 border-purple-200"
               >
-                <Link href="/vendor/dashboard">
+                <Link href="/creator/dashboard">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Switch to Selling
                 </Link>
@@ -180,23 +180,15 @@ export function Header() {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Package className="h-5 w-5" />
-                        All Products
+                        Explore Library
                       </Link>
                       <Link 
-                        href="/categories" 
+                        href="/creators" 
                         className="flex items-center gap-3 text-base font-medium hover:text-primary"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Store className="h-5 w-5" />
-                        Categories
-                      </Link>
-                      <Link 
-                        href="/vendors" 
-                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Store className="h-5 w-5" />
-                        Vendors
+                        Educators
                       </Link>
                       <Link 
                         href="/advertise" 
@@ -206,9 +198,9 @@ export function Header() {
                         <Megaphone className="h-5 w-5" />
                         Advertise
                       </Link>
-                      {user && userProfile?.role === "vendor" && (
+                      {user && userProfile?.role === "creator" && (
                         <Link 
-                          href="/vendor/dashboard"
+                          href="/creator/dashboard"
                           className="flex items-center gap-3 text-base font-medium hover:text-primary"
                           onClick={() => setMobileMenuOpen(false)}
                         >
@@ -411,22 +403,46 @@ export function Header() {
                       <DropdownMenuItem asChild>
                         <Link href="/account">Wishlist</Link>
                       </DropdownMenuItem>
-                    </>
-                  )}
-
-                  {userProfile?.role === "vendor" && (
-                    <>
                       <DropdownMenuItem asChild>
-                        <Link href="/vendor/dashboard">
-                          <LayoutDashboard className="mr-2 h-4 w-4" />
-                          Vendor Dashboard
+                        <Link href="/help">
+                          <HelpCircle className="mr-2 h-4 w-4" />
+                          Help Center
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/vendor/products">My Products</Link>
+                        <Link href="/support/my-tickets">
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          My Tickets
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {userProfile?.role === "creator" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/creator/dashboard">
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Creator Dashboard
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/vendor/orders">Orders</Link>
+                        <Link href="/creator/products">My Products</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/creator/orders">Orders</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/help">
+                          <HelpCircle className="mr-2 h-4 w-4" />
+                          Platform Help
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/support/my-tickets">
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          My Support
+                        </Link>
                       </DropdownMenuItem>
                     </>
                   )}
@@ -445,7 +461,7 @@ export function Header() {
                       {userProfile?.role === "admin" && (
                         <>
                           <DropdownMenuItem asChild>
-                            <Link href="/admin/vendors">Manage Vendors</Link>
+                            <Link href="/admin/creators">Manage Creators</Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href="/admin/products">Moderate Products</Link>

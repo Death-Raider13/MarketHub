@@ -218,12 +218,30 @@ export async function POST(request: NextRequest) {
             continue
           }
           
-          // Validate file URL
+          // Validate URL (Support both Cloudinary and ImageKit)
           let url: URL
+          let fileUrl = digitalFile.fileUrl
+          
+          // Cleanup double slashes in URL (common ImageKit issue)
+          if (fileUrl.includes('imagekit.io')) {
+            // Replace double slashes in path, but keep the ones in the protocol (https://)
+            const urlParts = fileUrl.split('://')
+            if (urlParts.length === 2) {
+              urlParts[1] = urlParts[1].replace(/\/\/+/g, '/')
+              fileUrl = urlParts.join('://')
+            }
+          }
+
           try {
-            url = new URL(digitalFile.fileUrl)
+            url = new URL(fileUrl)
           } catch (urlError) {
-            console.error('❌ Invalid file URL:', digitalFile.fileUrl, urlError)
+            console.error('❌ Invalid file URL:', fileUrl, urlError)
+            continue
+          }
+          
+          const allowedHosts = ['cloudinary.com', 'imagekit.io']
+          if (!allowedHosts.some(host => url.hostname.includes(host))) {
+            console.warn('⚠️ File URL is not from a supported provider (Cloudinary/ImageKit):', fileUrl)
             continue
           }
 

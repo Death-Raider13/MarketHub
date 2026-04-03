@@ -126,7 +126,7 @@
 ### **After That (Next 4 hours):**
 4. Integrate reviews into product pages
 5. Integrate messaging system
-6. Verify vendor store pages
+6. Verify creator store pages
 
 ---
 

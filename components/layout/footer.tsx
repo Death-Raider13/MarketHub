@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Store, Facebook, Twitter, Instagram, Youtube } from "lucide-react"
-  
+
 export function Footer() {
   return (
     <footer className="border-t border-border bg-muted/30">
@@ -10,10 +10,10 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <Image src="/favicon/FERO.png" alt="FEROMARKETHUB" width={200} height={200} priority />
+              <span className="text-xl font-bold tracking-tight">Fero<span className="text-primary">Library</span></span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              Your trusted multi-vendor marketplace for quality products from verified sellers.
+              The Trust-First Academic Marketplace. Verified past questions, handouts, and study guides.
             </p>
             <div className="flex gap-3">
               <Link href="#" className="text-muted-foreground hover:text-foreground">
@@ -40,48 +40,43 @@ export function Footer() {
 
           {/* Shop */}
           <div>
-            <h3 className="font-semibold mb-4">Shop</h3>
+            <h3 className="font-semibold mb-4">Explore</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/products?category=electronics" className="hover:text-foreground">
-                  Electronics
+                <Link href="/products?category=university" className="hover:text-foreground">
+                  University Resources
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=fashion" className="hover:text-foreground">
-                  Fashion
+                <Link href="/products?category=secondary" className="hover:text-foreground">
+                  JAMB / WAEC
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=home" className="hover:text-foreground">
-                  Home & Garden
+                <Link href="/products?category=professional" className="hover:text-foreground">
+                  Professional Exams
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=sports" className="hover:text-foreground">
-                  Sports
-                </Link>
-              </li>
-              <li>
-                <Link href="/vendors" className="hover:text-foreground">
-                  All Vendors
+                <Link href="/creators" className="hover:text-foreground">
+                  Verified Educators
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Sell */}
+          {/* Creator Hub */}
           <div>
-            <h3 className="font-semibold mb-4">Sell</h3>
+            <h3 className="font-semibold mb-4">Educator Hub</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/auth/vendor-register-new" className="hover:text-foreground">
-                  Become a Vendor
+                <Link href="/auth/creator-register-new" className="hover:text-foreground">
+                  Become an Educator
                 </Link>
               </li>
               <li>
-                <Link href="/vendor/dashboard" className="hover:text-foreground">
-                  Vendor Dashboard
+                <Link href="/creator/dashboard" className="hover:text-foreground">
+                  Educator Dashboard
                 </Link>
               </li>
               <li>
@@ -90,8 +85,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/help/seller" className="hover:text-foreground">
-                  Seller Help
+                <Link href="/help/creator" className="hover:text-foreground">
+                  Educator Help
                 </Link>
               </li>
             </ul>
@@ -132,28 +127,28 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} FEROMARKETHUB. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} FeroLibrary. All rights reserved.</p>
             <div className="flex items-center gap-2">
               <span>Powered by</span>
-              <Link 
-                href="https://cloudsparkdigital.netlify.app" 
+              <Link
+                href="https://cloudsparkdigital.netlify.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
               >
                 CloudSparkDigital
-                <svg 
-                  className="h-3 w-3" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className="h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                   />
                 </svg>
               </Link>

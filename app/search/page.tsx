@@ -23,7 +23,7 @@ function SearchContent() {
   const router = useRouter()
   const query = searchParams.get("q") || ""
   const { addToCart } = useCart()
-  
+
   const [searchQuery, setSearchQuery] = useState(query)
   const [priceRange, setPriceRange] = useState([0, 1000000]) // Max 1M Naira
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -44,13 +44,13 @@ function SearchContent() {
           where('status', 'in', ['active', 'approved']),
           firestoreLimit(100)
         )
-        
+
         const snapshot = await getDocs(q)
         const fetchedProducts = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as Product[]
-        
+
         setProducts(fetchedProducts)
       } catch (error) {
         console.error("Error fetching products:", error)
@@ -59,44 +59,44 @@ function SearchContent() {
         setLoading(false)
       }
     }
-    
+
     fetchProducts()
   }, [])
 
   // Filter and search products
   useEffect(() => {
     let filtered = [...products]
-    
+
     // Search by query
     if (searchQuery.trim()) {
       const searchLower = searchQuery.toLowerCase()
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.name?.toLowerCase().includes(searchLower) ||
         p.description?.toLowerCase().includes(searchLower) ||
         p.category?.toLowerCase().includes(searchLower) ||
-        p.vendorName?.toLowerCase().includes(searchLower)
+        p.creatorName?.toLowerCase().includes(searchLower)
       )
     }
-    
+
     // Filter by price range
-    filtered = filtered.filter(p => 
+    filtered = filtered.filter(p =>
       p.price >= priceRange[0] && p.price <= priceRange[1]
     )
-    
+
     // Filter by categories
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         selectedCategories.includes(p.category)
       )
     }
-    
+
     // Filter by rating
     if (minRating > 0) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         (p.rating || 0) >= minRating
       )
     }
-    
+
     // Sort products
     switch (sortBy) {
       case 'price-low':
@@ -123,7 +123,7 @@ function SearchContent() {
         // Keep current order (search relevance)
         break
     }
-    
+
     setFilteredProducts(filtered)
   }, [products, searchQuery, priceRange, selectedCategories, minRating, sortBy])
 
@@ -145,7 +145,7 @@ function SearchContent() {
   }
 
   const handleCategoryToggle = (category: string) => {
-    setSelectedCategories(prev => 
+    setSelectedCategories(prev =>
       prev.includes(category)
         ? prev.filter(c => c !== category)
         : [...prev, category]
@@ -156,7 +156,7 @@ function SearchContent() {
     setMinRating(prev => prev === rating ? 0 : rating)
   }
 
-  const activeFiltersCount = selectedCategories.length + 
+  const activeFiltersCount = selectedCategories.length +
     (minRating > 0 ? 1 : 0) +
     (priceRange[0] !== 0 || priceRange[1] !== 1000000 ? 1 : 0)
 
@@ -215,12 +215,12 @@ function SearchContent() {
                 {/* Price Range */}
                 <div className="space-y-4 rounded-lg border border-border p-4 bg-card">
                   <Label>Price Range</Label>
-                  <Slider 
-                    value={priceRange} 
-                    onValueChange={setPriceRange} 
-                    max={1000000} 
-                    step={10000} 
-                    className="mt-2" 
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    max={1000000}
+                    step={10000}
+                    className="mt-2"
                   />
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium">₦{priceRange[0].toLocaleString()}</span>
@@ -234,7 +234,7 @@ function SearchContent() {
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {["electronics", "computers", "phones", "gaming", "fashion-men", "fashion-women", "shoes", "bags", "beauty", "home", "furniture", "appliances", "sports", "books", "food", "health", "toys", "baby", "digital-courses", "digital-ebooks", "digital-software"].map((cat) => (
                       <div key={cat} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           id={cat}
                           checked={selectedCategories.includes(cat)}
                           onCheckedChange={() => handleCategoryToggle(cat)}
@@ -253,7 +253,7 @@ function SearchContent() {
                   <div className="space-y-2">
                     {[4, 3, 2, 1].map((rating) => (
                       <div key={rating} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           id={`rating-${rating}`}
                           checked={minRating === rating}
                           onCheckedChange={() => handleRatingToggle(rating)}

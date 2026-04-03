@@ -67,12 +67,12 @@ interface FinanceData {
   payoutGrowth: number
   monthlyRevenue: Array<{ month: string; revenue: number; payouts: number; fees: number }>
   revenueByCategory: Array<{ category: string; revenue: number; color: string }>
-  topVendorsByRevenue: Array<{ name: string; revenue: number; orders: number }>
+  topcreatorsByRevenue: Array<{ name: string; revenue: number; orders: number }>
   recentTransactions: Array<{
     id: string
     type: 'payment' | 'payout' | 'fee' | 'refund'
     amount: number
-    vendor?: string
+    creator?: string
     customer?: string
     status: string
     date: Date
@@ -93,7 +93,7 @@ function FinanceDashboardContent() {
   const loadFinanceData = async () => {
     try {
       setLoading(true)
-      
+
       // Calculate date ranges
       const now = new Date()
       const monthsBack = timeRange === "3months" ? 3 : timeRange === "6months" ? 6 : 12
@@ -127,24 +127,24 @@ function FinanceDashboardContent() {
       }))
 
       // Calculate totals
-      const totalRevenue = orders.reduce((sum: number, order: any) => 
+      const totalRevenue = orders.reduce((sum: number, order: any) =>
         sum + (order.totalAmount || 0), 0
       )
-      
-      const totalPayouts = payouts.reduce((sum: number, payout: any) => 
+
+      const totalPayouts = payouts.reduce((sum: number, payout: any) =>
         sum + (payout.amount || 0), 0
       )
-      
+
       const platformFeeRate = 0.05 // 5% platform fee
       const platformFees = totalRevenue * platformFeeRate
-      
+
       const pendingPayouts = payouts
         .filter((payout: any) => payout.status === 'pending')
         .reduce((sum: number, payout: any) => sum + (payout.amount || 0), 0)
 
       // Calculate monthly data
       const monthlyData: { [key: string]: { revenue: number; payouts: number; fees: number } } = {}
-      
+
       for (let i = 0; i < monthsBack; i++) {
         const monthStart = startOfMonth(subMonths(now, i))
         const monthKey = format(monthStart, 'MMM yyyy')
@@ -184,8 +184,8 @@ function FinanceDashboardContent() {
         { category: "Sports", revenue: totalRevenue * 0.10, color: "#ef4444" }
       ]
 
-      // Top vendors by revenue (mock data)
-      const topVendorsByRevenue = [
+      // Top creators by revenue (mock data)
+      const topcreatorsByRevenue = [
         { name: "TechStore Pro", revenue: totalRevenue * 0.15, orders: 234 },
         { name: "Fashion Hub", revenue: totalRevenue * 0.12, orders: 198 },
         { name: "Electronics Plus", revenue: totalRevenue * 0.10, orders: 167 },
@@ -207,7 +207,7 @@ function FinanceDashboardContent() {
           id: "txn2",
           type: "payout" as const,
           amount: 180000,
-          vendor: "TechStore Pro",
+          creator: "TechStore Pro",
           status: "completed",
           date: new Date(Date.now() - 4 * 60 * 60 * 1000)
         },
@@ -215,7 +215,7 @@ function FinanceDashboardContent() {
           id: "txn3",
           type: "fee" as const,
           amount: 12500,
-          vendor: "Fashion Hub",
+          creator: "Fashion Hub",
           status: "collected",
           date: new Date(Date.now() - 6 * 60 * 60 * 1000)
         },
@@ -250,7 +250,7 @@ function FinanceDashboardContent() {
         payoutGrowth,
         monthlyRevenue,
         revenueByCategory,
-        topVendorsByRevenue,
+        topcreatorsByRevenue,
         recentTransactions,
         paymentMethods
       })
@@ -303,10 +303,10 @@ function FinanceDashboardContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
@@ -318,7 +318,7 @@ function FinanceDashboardContent() {
                 Monitor revenue, payouts, and financial performance
               </p>
             </div>
-            
+
             <div className="flex gap-2">
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="w-[150px]">
@@ -330,12 +330,12 @@ function FinanceDashboardContent() {
                   <SelectItem value="12months">Last 12 Months</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Button onClick={loadFinanceData} variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
-              
+
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export
@@ -445,21 +445,21 @@ function FinanceDashboardContent() {
                       <YAxis tickFormatter={(value) => `₦${(value / 1000000).toFixed(1)}M`} />
                       <Tooltip formatter={(value) => [formatCurrency(Number(value)), '']} />
                       <Legend />
-                      <Area 
-                        type="monotone" 
-                        dataKey="revenue" 
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
                         stackId="1"
-                        stroke="#10b981" 
-                        fill="#10b981" 
+                        stroke="#10b981"
+                        fill="#10b981"
                         fillOpacity={0.6}
                         name="Revenue"
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="payouts" 
+                      <Area
+                        type="monotone"
+                        dataKey="payouts"
                         stackId="2"
-                        stroke="#3b82f6" 
-                        fill="#3b82f6" 
+                        stroke="#3b82f6"
+                        fill="#3b82f6"
                         fillOpacity={0.6}
                         name="Payouts"
                       />
@@ -495,20 +495,20 @@ function FinanceDashboardContent() {
                   </CardContent>
                 </Card>
 
-                {/* Top Vendors */}
+                {/* Top creators */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Top Vendors by Revenue</CardTitle>
+                    <CardTitle>Top creators by Revenue</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {financeData?.topVendorsByRevenue?.map((vendor, index) => (
+                      {financeData?.topcreatorsByRevenue?.map((creator, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">{vendor.name}</p>
-                            <p className="text-sm text-muted-foreground">{vendor.orders} orders</p>
+                            <p className="font-medium">{creator.name}</p>
+                            <p className="text-sm text-muted-foreground">{creator.orders} orders</p>
                           </div>
-                          <p className="font-medium">{formatCurrency(vendor.revenue)}</p>
+                          <p className="font-medium">{formatCurrency(creator.revenue)}</p>
                         </div>
                       ))}
                     </div>
@@ -607,7 +607,7 @@ function FinanceDashboardContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {financeData?.totalRevenue 
+                      {financeData?.totalRevenue
                         ? ((financeData.totalPayouts / financeData.totalRevenue) * 100).toFixed(1)
                         : '0'}%
                     </div>
@@ -627,10 +627,10 @@ function FinanceDashboardContent() {
                       <XAxis dataKey="month" />
                       <YAxis tickFormatter={(value) => `₦${(value / 1000000).toFixed(1)}M`} />
                       <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Payouts']} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="payouts" 
-                        stroke="#3b82f6" 
+                      <Line
+                        type="monotone"
+                        dataKey="payouts"
+                        stroke="#3b82f6"
                         strokeWidth={3}
                         dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                       />
@@ -670,7 +670,7 @@ function FinanceDashboardContent() {
                             {transaction.type === 'payment' ? '+' : '-'}{formatCurrency(transaction.amount)}
                           </TableCell>
                           <TableCell>
-                            {transaction.vendor || transaction.customer || 'N/A'}
+                            {transaction.creator || transaction.customer || 'N/A'}
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">{transaction.status}</Badge>

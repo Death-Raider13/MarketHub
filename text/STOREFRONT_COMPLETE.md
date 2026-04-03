@@ -9,15 +9,15 @@
 
 ## 🔄 Complete Workflow (WORKING!)
 
-### **Vendor Journey:**
+### **creator Journey:**
 ```
-1. Sign up as vendor
+1. Sign up as creator
    ↓
 2. Choose store URL: FEROMARKETHUB.com/store/my-store
    ↓
 3. Email verification
    ↓
-4. Access vendor dashboard
+4. Access creator dashboard
    ↓
 5. Click "Customize Store"
    ↓
@@ -36,13 +36,13 @@
 
 ### **Customer Journey:**
 ```
-1. Visit: FEROMARKETHUB.com/store/{vendorId}
+1. Visit: FEROMARKETHUB.com/store/{creatorId}
    ↓
 2. See customized storefront with:
-   - Vendor's colors ✅
-   - Vendor's fonts ✅
-   - Vendor's logo & banner ✅
-   - Vendor's products ✅
+   - creator's colors ✅
+   - creator's fonts ✅
+   - creator's logo & banner ✅
+   - creator's products ✅
    ↓
 3. Browse products
    ↓
@@ -57,7 +57,7 @@
 
 ## 🎨 Phase 1: Customization System
 
-### **What Vendors Can Customize:**
+### **What creators Can Customize:**
 
 #### **1. Design Tab:**
 - ✅ 8 Pre-made Theme Presets:
@@ -108,14 +108,14 @@
 
 ## 🏪 Phase 2: Storefront Implementation
 
-### **File:** `app/store/[vendorId]/page.tsx`
+### **File:** `app/store/[creatorId]/page.tsx`
 
 ### **Features:**
 
 #### **1. Dynamic Routing:**
-- ✅ URL: `/store/{vendorId}`
-- ✅ Loads vendor data from Firestore
-- ✅ Loads vendor's products
+- ✅ URL: `/store/{creatorId}`
+- ✅ Loads creator data from Firestore
+- ✅ Loads creator's products
 - ✅ 404 if store not found
 
 #### **2. Customization Applied:**
@@ -171,12 +171,12 @@
 
 ### **Added Links:**
 
-1. **Vendor Dashboard:**
+1. **creator Dashboard:**
    - ✅ "View My Store" button (top right)
    - ✅ Opens in new tab
    - ✅ Green gradient styling
 
-2. **Vendor Dashboard Sidebar:**
+2. **creator Dashboard Sidebar:**
    - ✅ "Customize Store" link
    - ✅ Palette icon
    - ✅ Points to customization page
@@ -198,9 +198,9 @@
 ### **Firestore Document:**
 ```json
 {
-  "uid": "vendor123",
-  "email": "vendor@example.com",
-  "role": "vendor",
+  "uid": "creator123",
+  "email": "creator@example.com",
+  "role": "creator",
   "displayName": "John Doe",
   "storeName": "My Awesome Store",
   "storeUrl": "my-awesome-store",
@@ -230,21 +230,21 @@
 
 ## 🎯 How It All Works Together
 
-### **1. Vendor Customizes:**
+### **1. creator Customizes:**
 ```
-Vendor → Customization Page → Chooses colors/fonts/branding
+creator → Customization Page → Chooses colors/fonts/branding
 → Clicks "Save" → Data saved to Firestore
 ```
 
 ### **2. Customer Visits:**
 ```
-Customer → Visits /store/{vendorId} → Page loads vendor data
+Customer → Visits /store/{creatorId} → Page loads creator data
 → Applies customization → Shows products → Customer shops
 ```
 
 ### **3. Real-Time Updates:**
 ```
-Vendor changes theme → Saves → Customer refreshes page
+creator changes theme → Saves → Customer refreshes page
 → Sees new theme immediately ✅
 ```
 
@@ -252,12 +252,12 @@ Vendor changes theme → Saves → Customer refreshes page
 
 ## 🚀 Testing the Complete Flow
 
-### **Test Scenario 1: Vendor Setup**
+### **Test Scenario 1: creator Setup**
 ```
-1. Sign up as vendor
+1. Sign up as creator
 2. Complete registration
 3. Verify email
-4. Go to vendor dashboard
+4. Go to creator dashboard
 5. Click "Customize Store"
 6. Choose "Sunset Glow" theme
 7. Upload logo
@@ -269,19 +269,19 @@ Vendor changes theme → Saves → Customer refreshes page
 
 ### **Test Scenario 2: Customer Visit**
 ```
-1. Get vendor's store URL
-2. Visit: FEROMARKETHUB.com/store/{vendorId}
-3. See vendor's custom colors ✅
-4. See vendor's logo ✅
-5. See vendor's banner ✅
-6. See vendor's products ✅
+1. Get creator's store URL
+2. Visit: FEROMARKETHUB.com/store/{creatorId}
+3. See creator's custom colors ✅
+4. See creator's logo ✅
+5. See creator's banner ✅
+6. See creator's products ✅
 7. Search products ✅
 8. Add to cart ✅
 ```
 
 ### **Test Scenario 3: Theme Change**
 ```
-1. Vendor changes theme to "Royal Purple"
+1. creator changes theme to "Royal Purple"
 2. Saves changes
 3. Refreshes storefront
 4. See purple theme applied ✅
@@ -338,13 +338,13 @@ Vendor changes theme → Saves → Customer refreshes page
 
 ### **Files Created:**
 
-1. **`app/store/[vendorId]/page.tsx`** (NEW)
+1. **`app/store/[creatorId]/page.tsx`** (NEW)
    - Dynamic storefront page
-   - Loads vendor data
+   - Loads creator data
    - Applies customization
    - Displays products
 
-2. **`app/vendor/store-customize/page.tsx`** (NEW)
+2. **`app/creator/store-customize/page.tsx`** (NEW)
    - Customization interface
    - Theme presets
    - Color pickers
@@ -353,15 +353,15 @@ Vendor changes theme → Saves → Customer refreshes page
    - Save functionality
 
 3. **Updated Files:**
-   - `app/vendor/dashboard/page.tsx` - Added "View My Store" button
+   - `app/creator/dashboard/page.tsx` - Added "View My Store" button
    - `lib/firebase/auth-context.tsx` - Added storeUrl field
-   - `app/auth/vendor-register-new/page.tsx` - Already captures storeUrl
+   - `app/auth/creator-register-new/page.tsx` - Already captures storeUrl
 
 ---
 
 ## 🎉 What's Working Now
 
-### **Vendor Side:**
+### **creator Side:**
 - ✅ Complete customization system
 - ✅ 8 theme presets
 - ✅ Custom colors & fonts
@@ -424,15 +424,15 @@ Vendor changes theme → Saves → Customer refreshes page
 ❌ No public store page
 ❌ No customization
 ❌ Products only on main marketplace
-❌ No vendor branding
+❌ No creator branding
 ❌ Generic appearance
 ```
 
 ### **After (Complete System):**
 ```
-✅ Public storefront for each vendor
+✅ Public storefront for each creator
 ✅ Full customization control
-✅ Vendor-specific branding
+✅ creator-specific branding
 ✅ Custom colors & fonts
 ✅ Logo & banner
 ✅ Unique store URL
@@ -446,15 +446,15 @@ Vendor changes theme → Saves → Customer refreshes page
 ## 🎯 Success Metrics
 
 ### **What We Achieved:**
-- ⬆️ Vendors can fully customize stores
-- ⬆️ Each vendor has unique branding
+- ⬆️ creators can fully customize stores
+- ⬆️ Each creator has unique branding
 - ⬆️ Customers see professional storefronts
 - ⬆️ Better than Selar in customization
 - ⬆️ Complete workflow implemented
 
 ### **Impact:**
-- ✅ More vendor signups (easier setup)
-- ✅ Better vendor satisfaction (control)
+- ✅ More creator signups (easier setup)
+- ✅ Better creator satisfaction (control)
 - ✅ Higher customer trust (professional)
 - ✅ Increased sales (better UX)
 - ✅ Competitive advantage
@@ -473,7 +473,7 @@ Vendor changes theme → Saves → Customer refreshes page
 
 ### **Phase 2: Storefront** ✅
 - Dynamic routing
-- Load vendor data
+- Load creator data
 - Apply customization
 - Display products
 - Search functionality
@@ -491,7 +491,7 @@ Vendor changes theme → Saves → Customer refreshes page
 
 ### **Complete Workflow:**
 ```
-Vendor signs up → Customizes store → Adds products
+creator signs up → Customizes store → Adds products
 → Shares URL → Customers visit → Make purchases
 → Everyone happy! 🎉
 ```

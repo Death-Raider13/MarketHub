@@ -22,13 +22,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { 
-  Flag, 
-  Search, 
-  Eye, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Flag,
+  Search,
+  Eye,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   Package,
   User,
@@ -40,7 +40,7 @@ import { toast } from "sonner"
 
 interface UserReport {
   id: string
-  type: 'product' | 'vendor' | 'review' | 'message'
+  type: 'product' | 'creator' | 'review' | 'message'
   reportedItem: {
     id: string
     title: string
@@ -74,15 +74,15 @@ export default function UserReportsPage() {
   const loadUserReports = async () => {
     try {
       setLoading(true)
-      
+
       const params = new URLSearchParams()
       params.append('userId', user!.uid)
       if (statusFilter !== 'all') params.append('status', statusFilter)
       if (typeFilter !== 'all') params.append('type', typeFilter)
-      
+
       const response = await fetch(`/api/reports/user?${params.toString()}`)
       const data = await response.json()
-      
+
       if (data.success) {
         const reportsData = data.reports.map((report: any) => ({
           ...report,
@@ -94,7 +94,7 @@ export default function UserReportsPage() {
         console.error('Failed to load reports:', data.error)
         toast.error('Failed to load reports')
       }
-      
+
     } catch (error) {
       console.error("Error loading reports:", error)
       toast.error("Failed to load reports")
@@ -104,7 +104,7 @@ export default function UserReportsPage() {
   }
 
   const filteredReports = reports.filter(report => {
-    const matchesSearch = searchTerm === "" || 
+    const matchesSearch = searchTerm === "" ||
       report.reportedItem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.reason.toLowerCase().includes(searchTerm.toLowerCase())
 
@@ -134,7 +134,7 @@ export default function UserReportsPage() {
   const getTypeIcon = (type: UserReport['type']) => {
     switch (type) {
       case 'product': return <Package className="h-4 w-4" />
-      case 'vendor': return <User className="h-4 w-4" />
+      case 'creator': return <User className="h-4 w-4" />
       case 'review': return <MessageSquare className="h-4 w-4" />
       case 'message': return <MessageSquare className="h-4 w-4" />
       default: return <Flag className="h-4 w-4" />
@@ -169,7 +169,7 @@ export default function UserReportsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      
+
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
@@ -252,7 +252,7 @@ export default function UserReportsPage() {
                     />
                   </div>
                 </div>
-                
+
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Status" />
@@ -273,12 +273,12 @@ export default function UserReportsPage() {
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="vendor">Vendor</SelectItem>
+                    <SelectItem value="creator">creator</SelectItem>
                     <SelectItem value="review">Review</SelectItem>
                     <SelectItem value="message">Message</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Button onClick={loadUserReports} variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
@@ -312,7 +312,7 @@ export default function UserReportsPage() {
                           <div className="mt-1">
                             {getTypeIcon(report.type)}
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-medium truncate">{report.reportedItem.title}</h3>
@@ -320,18 +320,18 @@ export default function UserReportsPage() {
                                 {report.type}
                               </Badge>
                             </div>
-                            
+
                             <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
                               {report.reason}
                             </p>
-                            
+
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                               <span>{formatDistanceToNow(report.createdAt, { addSuffix: true })}</span>
                               <span>Category: {report.category}</span>
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 ml-4">
                           <Badge className={getPriorityColor(report.priority)}>
                             {report.priority}
@@ -342,11 +342,11 @@ export default function UserReportsPage() {
                               {report.status}
                             </div>
                           </Badge>
-                          
+
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 size="sm"
                                 onClick={() => setSelectedReport(report)}
                               >
@@ -357,7 +357,7 @@ export default function UserReportsPage() {
                               <DialogHeader>
                                 <DialogTitle>Report Details</DialogTitle>
                               </DialogHeader>
-                              
+
                               {selectedReport && (
                                 <div className="space-y-4">
                                   <div className="grid gap-4 md:grid-cols-2">
@@ -382,19 +382,19 @@ export default function UserReportsPage() {
                                       </Badge>
                                     </div>
                                   </div>
-                                  
+
                                   <div>
                                     <label className="text-sm font-medium">Reason</label>
                                     <p className="text-sm text-muted-foreground mt-1">{selectedReport.reason}</p>
                                   </div>
-                                  
+
                                   {selectedReport.description && (
                                     <div>
                                       <label className="text-sm font-medium">Description</label>
                                       <p className="text-sm text-muted-foreground mt-1">{selectedReport.description}</p>
                                     </div>
                                   )}
-                                  
+
                                   <div className="grid gap-4 md:grid-cols-2">
                                     <div>
                                       <label className="text-sm font-medium">Status</label>
@@ -414,7 +414,7 @@ export default function UserReportsPage() {
                                       </p>
                                     </div>
                                   </div>
-                                  
+
                                   {selectedReport.resolution && (
                                     <div className="pt-4 border-t">
                                       <label className="text-sm font-medium">Resolution</label>
@@ -435,7 +435,7 @@ export default function UserReportsPage() {
           </Card>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   )

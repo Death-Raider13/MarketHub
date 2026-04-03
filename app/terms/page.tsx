@@ -5,11 +5,11 @@ export default function TermsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 max-w-4xl">
           <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
-          
+
           <div className="prose prose-gray max-w-none">
             <p className="text-muted-foreground mb-8">
               Last updated: January 20, 2025
@@ -39,9 +39,9 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">3. Vendor Terms</h2>
+              <h2 className="text-2xl font-semibold mb-4">3. creator Terms</h2>
               <p className="text-muted-foreground mb-4">
-                Vendors using FEROMARKETHUB agree to:
+                creators using FEROMARKETHUB agree to:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
                 <li>Provide accurate product information</li>
@@ -60,7 +60,7 @@ export default function TermsPage() {
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
                 <li>Provide accurate information</li>
                 <li>Make legitimate purchases</li>
-                <li>Respect vendor policies</li>
+                <li>Respect creator policies</li>
                 <li>Not engage in fraudulent activities</li>
               </ul>
             </section>
@@ -68,7 +68,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">5. Payment Terms</h2>
               <p className="text-muted-foreground mb-4">
-                All payments are processed securely through our payment partners. FEROMARKETHUB does not store credit card information. Vendors receive payouts according to the payout schedule minus applicable fees.
+                All payments are processed securely through our payment partners. FEROMARKETHUB does not store credit card information. creators receive payouts according to the payout schedule minus applicable fees.
               </p>
             </section>
 

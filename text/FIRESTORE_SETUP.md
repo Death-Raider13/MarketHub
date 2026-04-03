@@ -32,7 +32,7 @@ firebase deploy --only firestore
 ## 🔍 **New Indexes Added**
 
 ### **Orders Collection:**
-- `vendorId` + `createdAt` (ASC) - For vendor analytics date range queries
+- `creatorId` + `createdAt` (ASC) - For creator analytics date range queries
 
 ### **Reviews Collection:**
 - `productId` + `createdAt` (DESC) - Get reviews for a product
@@ -40,7 +40,7 @@ firebase deploy --only firestore
 - `userId` + `productId` - Check if user reviewed a product
 
 ### **Conversations Collection:**
-- `vendorId` + `lastMessageAt` (DESC) - Vendor message inbox
+- `creatorId` + `lastMessageAt` (DESC) - creator message inbox
 - `customerId` + `lastMessageAt` (DESC) - Customer message inbox
 
 ### **Messages Collection:**
@@ -51,7 +51,7 @@ firebase deploy --only firestore
 - `orderId` + `purchasedAt` (DESC) - Digital products by order
 
 ### **Ad Slots Collection:**
-- `vendorId` + `createdAt` (DESC) - Vendor's ad slots
+- `creatorId` + `createdAt` (DESC) - creator's ad slots
 - `isActive` + `placement` - Find active ad slots by placement
 
 ### **Ad Tracking:**
@@ -59,7 +59,7 @@ firebase deploy --only firestore
 - `campaignId` + `timestamp` (DESC) - Campaign clicks
 
 ### **Payouts Collection:**
-- `vendorId` + `createdAt` (DESC) - Vendor payout history
+- `creatorId` + `createdAt` (DESC) - creator payout history
 - `status` + `createdAt` (DESC) - Payouts by status
 
 ---
@@ -107,13 +107,13 @@ firebase deploy --only firestore
 After deploying:
 
 ### **Test Rules:**
-- [ ] Vendors can only see their own products
+- [ ] creators can only see their own products
 - [ ] Customers can only see their own orders
 - [ ] Reviews require authentication
 - [ ] Admin can access everything
 
 ### **Test Indexes:**
-- [ ] Vendor dashboard loads without errors
+- [ ] creator dashboard loads without errors
 - [ ] Analytics page works
 - [ ] Order history displays
 - [ ] Reviews load on product pages
@@ -161,7 +161,7 @@ Check index build status:
 2. **Wait for indexes to build** (5-10 minutes)
 
 3. **Test your app:**
-   - Vendor dashboard
+   - creator dashboard
    - Analytics
    - Orders
    - Reviews

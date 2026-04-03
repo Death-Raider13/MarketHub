@@ -15,6 +15,7 @@ interface Review {
   review: string
   productName: string
   createdAt: string
+  verified?: boolean
 }
 
 interface DigitalProductReviewsProps {
@@ -174,12 +175,14 @@ export function DigitalProductReviews({ productId, className = "" }: DigitalProd
                         {review.review}
                       </p>
                     )}
-                    <div className="mt-2 flex gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        <Download className="w-3 h-3 mr-1" />
-                        Verified Download
-                      </Badge>
-                    </div>
+                    {review.verified && (
+                      <div className="mt-2 flex gap-2">
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          <Download className="w-3 h-3 mr-1" />
+                          Verified Buyer
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <ReportContent

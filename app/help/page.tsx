@@ -3,12 +3,12 @@ import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { 
-  Search, 
-  Package, 
-  CreditCard, 
-  RotateCcw, 
-  Shield, 
+import {
+  Search,
+  Package,
+  CreditCard,
+  RotateCcw,
+  Shield,
   Truck,
   HelpCircle,
   MessageCircle,
@@ -64,13 +64,13 @@ const helpCategories = [
   },
   {
     icon: Truck,
-    title: "Vendor Information",
+    title: "Creator Information",
     description: "Selling on our platform",
     articles: [
-      "How to Become a Vendor",
-      "Vendor Dashboard Guide",
+      "How to Become a Creator",
+      "Creator Dashboard Guide",
       "Commission Structure",
-      "Vendor Policies",
+      "Creator Policies",
     ],
   },
   {
@@ -88,7 +88,7 @@ const helpCategories = [
 
 const popularArticles = [
   "How to Track My Order",
-  "How to Return an Item", 
+  "How to Return an Item",
   "Shipping Methods and Costs",
   "Reset Password",
   "Accepted Payment Methods",
@@ -121,9 +121,9 @@ export default function HelpCenterPage() {
                     placeholder="Search for help articles..."
                     className="h-14 pl-12 pr-4 text-lg"
                   />
-                  <Button 
-                    type="submit" 
-                    size="lg" 
+                  <Button
+                    type="submit"
+                    size="lg"
                     className="absolute right-2 top-1/2 -translate-y-1/2"
                   >
                     Search

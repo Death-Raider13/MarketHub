@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     // Get the order
     const orderDoc = await adminDb.collection('orders').doc(orderId).get()
-    
+
     if (!orderDoc.exists) {
       return NextResponse.json(
         { error: 'Order not found' },
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const order = orderDoc.data()
-    
+
     if (!order) {
       return NextResponse.json(
         { error: 'Invalid order data' },
@@ -44,15 +44,15 @@ export async function POST(request: NextRequest) {
     })
 
     // Create purchase records for digital products
-    const digitalProducts = order.items?.filter((item: any) => 
+    const digitalProducts = order.items?.filter((item: any) =>
       item.product?.productType === 'digital'
     ) || []
 
     const purchasePromises = digitalProducts.map(async (item: any) => {
       const product = item.product
-      
+
       // Calculate access expiration
-      const accessExpiresAt = product.accessDuration > 0 
+      const accessExpiresAt = product.accessDuration > 0
         ? new Date(Date.now() + (product.accessDuration * 24 * 60 * 60 * 1000))
         : null
 
@@ -72,28 +72,28 @@ export async function POST(request: NextRequest) {
 
     await Promise.all(purchasePromises)
 
-    // Update vendor balances
-    const vendorUpdates = new Map<string, number>()
-    
+    // Update creator balances
+    const creatorUpdates = new Map<string, number>()
+
     order.items?.forEach((item: any) => {
-      const vendorId = item.product?.vendorId
-      if (vendorId) {
+      const creatorId = item.product?.creatorId
+      if (creatorId) {
         const itemTotal = item.product.price * item.quantity
         const commission = 0.10 // 10% platform commission
-        const vendorEarning = itemTotal * (1 - commission)
-        
-        vendorUpdates.set(
-          vendorId, 
-          (vendorUpdates.get(vendorId) || 0) + vendorEarning
+        const creatorEarning = itemTotal * (1 - commission)
+
+        creatorUpdates.set(
+          creatorId,
+          (creatorUpdates.get(creatorId) || 0) + creatorEarning
         )
       }
     })
 
-    // Update vendor balances
-    const balancePromises = Array.from(vendorUpdates.entries()).map(async ([vendorId, earning]) => {
-      const balanceRef = adminDb.collection('vendorBalances').doc(vendorId)
+    // Update creator balances
+    const balancePromises = Array.from(creatorUpdates.entries()).map(async ([creatorId, earning]) => {
+      const balanceRef = adminDb.collection('creatorBalances').doc(creatorId)
       const balanceDoc = await balanceRef.get()
-      
+
       if (balanceDoc.exists) {
         const currentBalance = balanceDoc.data()
         await balanceRef.update({
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
         })
       } else {
         await balanceRef.set({
-          vendorId,
+          creatorId,
           availableBalance: earning,
           pendingBalance: 0,
           totalEarnings: earning,
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
 
         if (userData?.email) {
           const digitalProductNames = digitalProducts.map((item: any) => item.product.name).join(', ')
-          
+
           await sendEmail({
             from: FROM_EMAIL,
             to: userData.email,

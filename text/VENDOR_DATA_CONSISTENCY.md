@@ -1,14 +1,14 @@
-# 🔄 Vendor Data Consistency Plan
+# 🔄 creator Data Consistency Plan
 
 ## 🎯 **Problem:**
-Vendor information is duplicated across multiple places:
+creator information is duplicated across multiple places:
 - User Profile (`users` collection)
 - Store Customization (`storeCustomization` collection)
 - Store Settings (`storeSettings` collection)
 
 This causes:
 - ❌ Data inconsistency
-- ❌ Confusion for vendors
+- ❌ Confusion for creators
 - ❌ Duplicate data entry
 - ❌ Sync issues
 
@@ -19,13 +19,13 @@ This causes:
 ### **Data Hierarchy:**
 
 ```
-users/{vendorId}
+users/{creatorId}
 ├── storeName          ← PRIMARY SOURCE (set during signup)
 ├── email              ← PRIMARY SOURCE
 ├── phone              ← PRIMARY SOURCE
 └── ...
 
-storeCustomization/{vendorId}
+storeCustomization/{creatorId}
 ├── theme              ← Visual design only
 ├── branding
 │   ├── logo           ← Visual assets
@@ -35,7 +35,7 @@ storeCustomization/{vendorId}
 └── ...
 (NO duplicate contact info)
 
-storeSettings/{vendorId}
+storeSettings/{creatorId}
 ├── businessInfo       ← Business registration
 ├── paymentSettings    ← Bank details
 ├── shippingSettings   ← Shipping config
@@ -60,7 +60,7 @@ storeSettings/{vendorId}
 4. ✅ Add "Edit Profile" link to change these
 
 ### **Phase 3: Update Logic**
-1. ✅ Create `/api/vendor/profile` to update user profile
+1. ✅ Create `/api/creator/profile` to update user profile
 2. ✅ When storeName changes → update in `users` collection
 3. ✅ All pages read from `users` collection
 4. ✅ Automatic consistency
@@ -100,7 +100,7 @@ storeSettings/{vendorId}
 │ Store Information (Read-Only)      │
 │ ─────────────────────────────────  │
 │ Store Name: TechStore Pro          │
-│ Email: vendor@example.com          │
+│ Email: creator@example.com          │
 │ Phone: +234 803 123 4567           │
 │ [Edit Profile] ← Link to profile   │
 └─────────────────────────────────────┘
@@ -121,7 +121,7 @@ storeSettings/{vendorId}
 │ Contact Information (Read-Only)    │
 │ ─────────────────────────────────  │
 │ Store Name: TechStore Pro          │
-│ Email: vendor@example.com          │
+│ Email: creator@example.com          │
 │ Phone: +234 803 123 4567           │
 │ [Edit Profile] ← Link to profile   │
 └─────────────────────────────────────┘
@@ -139,7 +139,7 @@ storeSettings/{vendorId}
 
 ## 🚀 **Action Items:**
 
-1. ✅ Create vendor profile edit page
+1. ✅ Create creator profile edit page
 2. ✅ Update Store Customization to remove duplicates
 3. ✅ Update Store Settings to remove duplicates
 4. ✅ Add read-only display of profile data

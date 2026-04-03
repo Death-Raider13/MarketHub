@@ -56,6 +56,8 @@ function MyPurchasesContent() {
   const [rating, setRating] = useState(0)
   const [review, setReview] = useState("")
   const [submittingRating, setSubmittingRating] = useState(false)
+  const [downloadLinksOpen, setDownloadLinksOpen] = useState<{ [key: string]: boolean }>({})
+  const [generatedLinks, setGeneratedLinks] = useState<{ [key: string]: any[] }>({})
 
   useEffect(() => {
     if (user) {
@@ -108,22 +110,17 @@ function MyPurchasesContent() {
       const data = await response.json()
 
       if (data.success && data.downloadLinks && data.downloadLinks.length > 0) {
-        toast.success(`Download links generated successfully! (${data.downloadLinks.length} product(s))`)
+        toast.success(`Download links generated successfully!`)
         
-        // Start downloads automatically
-        data.downloadLinks.forEach((link: any) => {
-          if (link.files && link.files.length > 0) {
-            link.files.forEach((file: any) => {
-              const downloadLink = document.createElement('a')
-              downloadLink.href = file.downloadUrl
-              downloadLink.download = file.fileName
-              downloadLink.target = '_blank'
-              document.body.appendChild(downloadLink)
-              downloadLink.click()
-              document.body.removeChild(downloadLink)
-            })
-          }
-        })
+        // Find links for this specific product
+        const productLinks = data.downloadLinks.find((l: any) => l.productId === productId)
+        if (productLinks && productLinks.files) {
+          setGeneratedLinks(prev => ({ ...prev, [productId]: productLinks.files }))
+          setDownloadLinksOpen(prev => ({ ...prev, [productId]: true }))
+        }
+
+        // Trigger a refresh after a delay to show updated download count
+        setTimeout(() => loadPurchases(), 2000)
       } else {
         toast.error(data.error || 'No download links were generated. Please check if this order contains digital products.')
       }
@@ -326,6 +323,51 @@ function MyPurchasesContent() {
                         Access Expired
                       </Button>
                     )}
+
+                    {/* Download Links Dialog/List */}
+                    <Dialog 
+                      open={downloadLinksOpen[purchase.productId] || false} 
+                      onOpenChange={(open) => setDownloadLinksOpen(prev => ({ ...prev, [purchase.productId]: open }))}
+                    >
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Download Files</DialogTitle>
+                          <DialogDescription>
+                            Your download links are ready. They will expire in 1 hour.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-3">
+                          {generatedLinks[purchase.productId]?.map((file: any, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-blue-600" />
+                                <div>
+                                  <p className="text-sm font-medium leading-none">{file.fileName}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {file.fileSize ? `${(file.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown size'}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button size="sm" asChild>
+                                <a 
+                                  href={file.downloadUrl} 
+                                  download={file.fileName} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  onClick={() => {
+                                    // Refresh UI after a short delay when user clicks single download
+                                    setTimeout(() => loadPurchases(), 3000)
+                                  }}
+                                >
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Download
+                                </a>
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                     
                     <Link href={`/my-orders`}>
                       <Button variant="outline">

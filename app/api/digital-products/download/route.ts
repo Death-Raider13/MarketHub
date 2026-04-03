@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
+import { FieldValue } from 'firebase-admin/firestore'
 import { generateCloudinaryDownloadUrl, validateCloudinaryUrl } from '@/lib/digital-products/cloudinary-download'
 
 // Mark this route as dynamic since it handles download requests with query params
@@ -98,7 +99,15 @@ export async function GET(request: NextRequest) {
     // For proxying we fetch the ORIGINAL URL to avoid Cloudinary transformation quirks
     // across file types (PDF/ZIP/etc.). We still force download via our own
     // Content-Disposition header.
-    const downloadUrl = originalUrl
+    // Sanitize URL (Handle ImageKit double-slash issue)
+    let downloadUrl = originalUrl
+    if (downloadUrl.includes('imagekit.io')) {
+      const urlParts = downloadUrl.split('://')
+      if (urlParts.length === 2) {
+        urlParts[1] = urlParts[1].replace(/\/\/+/g, '/')
+        downloadUrl = urlParts.join('://')
+      }
+    }
 
     // Proxy download through our server to ensure consistent download behavior
     // across file types (PDF/ZIP/etc.). We cap to 100MB to avoid serverless limits.
@@ -142,8 +151,8 @@ export async function GET(request: NextRequest) {
     // Update download count (best effort)
     try {
       await adminDb.collection('purchasedProducts').doc(purchaseId).update({
-        downloadCount: (purchaseData.downloadCount || 0) + 1,
-        lastDownloadedAt: new Date()
+        downloadCount: FieldValue.increment(1),
+        lastDownloadedAt: FieldValue.serverTimestamp()
       })
     } catch (updateError) {
       console.error('Failed to update download count:', updateError)

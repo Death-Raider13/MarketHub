@@ -5,7 +5,7 @@ import { NotificationType } from './types';
  * Notification triggers for various system events
  */
 export class NotificationTriggers {
-  
+
   /**
    * Trigger when a new user registers
    */
@@ -20,12 +20,12 @@ export class NotificationTriggers {
       });
 
       // Notify admins about new user registration
-      if (userRole === 'vendor') {
-        await createAdminNotification('new_vendor_application', {
+      if (userRole === 'creator') {
+        await createAdminNotification('new_creator_application', {
           metadata: {
             userId: userId,
             userName: userName,
-            actionUrl: `/admin/vendors`
+            actionUrl: `/admin/creators`
           }
         });
       } else {
@@ -45,22 +45,22 @@ export class NotificationTriggers {
   /**
    * Trigger when a new product is created
    */
-  static async onProductCreated(productId: string, productName: string, vendorId: string, vendorName: string) {
+  static async onProductCreated(productId: string, productName: string, creatorId: string, creatorName: string) {
     try {
       // Notify moderators about new product pending approval
       await createModeratorNotification('product_pending_approval', {
         metadata: {
           productId: productId,
           productName: productName,
-          vendorId: vendorId,
-          vendorName: vendorName,
+          creatorId: creatorId,
+          creatorName: creatorName,
           actionUrl: `/admin/products`
         }
       });
 
-      // Notify followers of the vendor's store (if implemented)
+      // Notify followers of the creator's store (if implemented)
       // This would require a followers collection
-      // await this.notifyStoreFollowers(vendorId, 'favorite_store_new_product', { productId, productName });
+      // await this.notifyStoreFollowers(creatorId, 'favorite_store_new_product', { productId, productName });
     } catch (error) {
       console.error('Error triggering product creation notifications:', error);
     }
@@ -69,7 +69,7 @@ export class NotificationTriggers {
   /**
    * Trigger when a new order is placed
    */
-  static async onOrderPlaced(orderId: string, customerId: string, vendorId: string, amount: number) {
+  static async onOrderPlaced(orderId: string, customerId: string, creatorId: string, amount: number) {
     try {
       // Notify customer about order confirmation
       await notificationService.createNotification(customerId, 'order_placed', {
@@ -80,12 +80,12 @@ export class NotificationTriggers {
         }
       });
 
-      // Notify vendor about new order
-      await notificationService.createNotification(vendorId, 'new_order_received', {
+      // Notify creator about new order
+      await notificationService.createNotification(creatorId, 'new_order_received', {
         metadata: {
           orderId: orderId,
           amount: amount,
-          actionUrl: `/vendor/orders/${orderId}`
+          actionUrl: `/creator/orders/${orderId}`
         }
       });
     } catch (error) {
@@ -99,7 +99,7 @@ export class NotificationTriggers {
   static async onOrderStatusChange(orderId: string, customerId: string, newStatus: string) {
     try {
       let notificationType: NotificationType;
-      
+
       switch (newStatus) {
         case 'confirmed':
           notificationType = 'order_confirmed';
@@ -168,12 +168,12 @@ export class NotificationTriggers {
   /**
    * Trigger when a payout is processed
    */
-  static async onPayoutProcessed(vendorId: string, amount: number, payoutId: string) {
+  static async onPayoutProcessed(creatorId: string, amount: number, payoutId: string) {
     try {
-      await notificationService.createNotification(vendorId, 'payout_processed', {
+      await notificationService.createNotification(creatorId, 'payout_processed', {
         metadata: {
           amount: amount,
-          actionUrl: `/vendor/payouts/${payoutId}`
+          actionUrl: `/creator/payouts/${payoutId}`
         }
       });
     } catch (error) {
@@ -202,7 +202,7 @@ export class NotificationTriggers {
     try {
       // Notify all users about upcoming maintenance
       await notificationService.createRoleNotification(
-        ['customer', 'vendor', 'admin', 'super_admin', 'moderator', 'support'],
+        ['customer', 'creator', 'admin', 'super_admin', 'moderator', 'support'],
         'system_maintenance',
         {
           priority: 'high',

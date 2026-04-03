@@ -81,8 +81,8 @@ This document outlines the complete advertising workflow that connects the adver
     ctaText: string
   }
   placement: {
-    type: 'vendor_store' | 'homepage' | 'category' | 'sponsored_product'
-    targetVendors: string[]
+    type: 'creator_store' | 'homepage' | 'category' | 'sponsored_product'
+    targetcreators: string[]
     targetCategories: string[]
   }
   stats: {
@@ -189,7 +189,7 @@ This document outlines the complete advertising workflow that connects the adver
 ## Budget Management
 
 ### Placement Type Minimums
-- **Vendor Store Ads**: ₦1,000 minimum
+- **creator Store Ads**: ₦1,000 minimum
 - **Homepage Banner**: ₦50,000 minimum (1 week)
 - **Category Page Ads**: ₦20,000 minimum (1 week)
 - **Sponsored Product**: ₦5,000 minimum (1 day)

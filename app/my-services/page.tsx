@@ -11,12 +11,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  MessageSquare, 
-  CheckCircle, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  MessageSquare,
+  CheckCircle,
   AlertCircle,
   User,
   Phone,
@@ -33,33 +33,33 @@ interface ServiceBooking {
   orderId: string
   serviceId: string
   customerId: string
-  vendorId: string
+  creatorId: string
   serviceName: string
   serviceDescription: string
-  
+
   // Scheduling
   scheduledDate?: string
   scheduledTime?: string
   duration?: number
   location?: string
   address?: string
-  
+
   // Requirements
   requirements?: string
   customerNotes?: string
-  vendorNotes?: string
-  
+  creatorNotes?: string
+
   // Status
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
-  
+
   // Communication
   messages?: any[]
-  
+
   // Completion
   completedAt?: string
   rating?: number
   review?: string
-  
+
   createdAt: string
   updatedAt: string
 }
@@ -86,7 +86,7 @@ function MyServicesContent() {
     try {
       setLoading(true)
       const response = await fetch(`/api/customer/services?customerId=${user?.uid}`)
-      
+
       if (response.ok) {
         const data = await response.json()
         setBookings(data.bookings || [])
@@ -198,7 +198,7 @@ function MyServicesContent() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">My Service Bookings</h1>
@@ -282,11 +282,11 @@ function MyServicesContent() {
                     </div>
                   )}
 
-                  {/* Vendor Notes */}
-                  {booking.vendorNotes && (
+                  {/* creator Notes */}
+                  {booking.creatorNotes && (
                     <div className="mb-4 p-3 bg-green-50 rounded">
                       <h4 className="font-medium mb-2">Provider Notes:</h4>
-                      <p className="text-sm">{booking.vendorNotes}</p>
+                      <p className="text-sm">{booking.creatorNotes}</p>
                     </div>
                   )}
 
@@ -325,11 +325,10 @@ function MyServicesContent() {
                               {booking.messages && booking.messages.length > 0 ? (
                                 booking.messages.map((msg, index) => (
                                   <div key={index} className={`flex ${msg.senderType === 'customer' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-xs p-3 rounded-lg ${
-                                      msg.senderType === 'customer' 
-                                        ? 'bg-blue-500 text-white' 
+                                    <div className={`max-w-xs p-3 rounded-lg ${msg.senderType === 'customer'
+                                        ? 'bg-blue-500 text-white'
                                         : 'bg-white border'
-                                    }`}>
+                                      }`}>
                                       <p className="text-sm">{msg.message}</p>
                                       <p className="text-xs opacity-70 mt-1">
                                         {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
@@ -372,11 +371,10 @@ function MyServicesContent() {
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                               key={star}
-                              className={`w-4 h-4 ${
-                                star <= (booking.rating ?? 0)
+                              className={`w-4 h-4 ${star <= (booking.rating ?? 0)
                                   ? 'text-yellow-400 fill-yellow-400'
                                   : 'text-gray-300'
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -404,7 +402,7 @@ function MyServicesContent() {
                               <h4 className="font-medium mb-2">{booking.serviceName}</h4>
                               <p className="text-sm text-gray-600">{booking.serviceDescription}</p>
                             </div>
-                            
+
                             {/* Star Rating */}
                             <div>
                               <label className="block text-sm font-medium mb-2">Rating</label>
@@ -417,11 +415,10 @@ function MyServicesContent() {
                                     className="focus:outline-none"
                                   >
                                     <Star
-                                      className={`w-6 h-6 ${
-                                        star <= rating
+                                      className={`w-6 h-6 ${star <= rating
                                           ? 'text-yellow-400 fill-yellow-400'
                                           : 'text-gray-300'
-                                      }`}
+                                        }`}
                                     />
                                   </button>
                                 ))}

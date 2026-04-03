@@ -31,9 +31,9 @@ service cloud.firestore {
       return isSignedIn() && getUserData().role == 'super_admin';
     }
     
-    // Check if user is vendor
-    function isVendor() {
-      return isSignedIn() && getUserData().role == 'vendor';
+    // Check if user is creator
+    function isCreator() {
+      return isSignedIn() && getUserData().role == 'creator';
     }
     
     // Check if user is customer
@@ -41,14 +41,24 @@ service cloud.firestore {
       return isSignedIn() && getUserData().role == 'customer';
     }
     
-    // Check if vendor is verified
-    function isVerifiedVendor() {
-      return isVendor() && getUserData().verified == true;
+    // Check if user is support staff
+    function isSupport() {
+      return isSignedIn() && getUserData().role == 'support';
     }
     
-    // Check if user owns the vendor account
-    function isVendorOwner(vendorId) {
-      return isSignedIn() && request.auth.uid == vendorId;
+    // Check if user is moderator
+    function isModerator() {
+      return isSignedIn() && getUserData().role == 'moderator';
+    }
+    
+    // Check if creator is verified
+    function isVerifiedCreator() {
+      return isCreator() && getUserData().verified == true;
+    }
+    
+    // Check if user owns the creator account
+    function isCreatorOwner(creatorId) {
+      return isSignedIn() && request.auth.uid == creatorId;
     }
     
     // Validate email format
@@ -69,7 +79,7 @@ service cloud.firestore {
                       (
                         // Email signup: must have role
                         (request.resource.data.keys().hasAll(['role']) &&
-                         request.resource.data.role in ['customer', 'vendor']) ||
+                         request.resource.data.role in ['customer', 'creator']) ||
                         // Google signup: role not required initially
                         (!request.resource.data.keys().hasAny(['role']))
                       );
@@ -77,27 +87,27 @@ service cloud.firestore {
       // Users can read their own data, admins can read all
       allow read: if isOwner(userId) || isAdmin();
       
-      // Anyone can read vendor profiles (for storefront pages and featured vendors)
-      allow read: if resource.data.role == 'vendor';
+      // Anyone can read creator profiles (for storefront pages and featured creators)
+      allow read: if resource.data.role == 'creator';
       
       // Users can update their own data (except uid)
       // Allow adding role during onboarding (if not already set)
-      // Allow setting verified: false for new vendors during onboarding
+      // Allow setting verified: false for new creators during onboarding
       allow update: if isOwner(userId) && 
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid']) &&
                       (
                         // Can't change role if already set
-                        (!resource.data.keys().hasAny(['role']) && request.resource.data.keys().hasAll(['role']) && request.resource.data.role in ['customer', 'vendor']) ||
+                        (!resource.data.keys().hasAny(['role']) && request.resource.data.keys().hasAll(['role']) && request.resource.data.role in ['customer', 'creator']) ||
                         // Can't change role if already set
                         (resource.data.keys().hasAll(['role']) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||
-                        // Allow setting verified: false for new vendors
+                        // Allow setting verified: false for new creators
                         (!resource.data.keys().hasAny(['verified']) && 
                          request.resource.data.keys().hasAll(['verified']) && 
                          request.resource.data.verified == false &&
-                         request.resource.data.role == 'vendor')
+                         request.resource.data.role == 'creator')
                       );
       
-      // Only admins can update verified status (except setting to false for new vendors)
+      // Only admins can update verified status (except setting to false for new creators)
       allow update: if isAdmin();
       
       // Only admins can delete users
@@ -105,73 +115,86 @@ service cloud.firestore {
     }
     
     // ============================================
-    // VENDORS COLLECTION
+    // CREATORS COLLECTION
     // ============================================
-    match /vendors/{vendorId} {
-      // Vendors can create their own store
-      allow create: if isVendor() && 
-                      request.auth.uid == vendorId &&
+    match /creators/{creatorId} {
+      // Creators can create their own hub
+      // Relaxing the isCreator() check slightly for the initial creation to avoid race conditions
+      allow create: if isSignedIn() && 
+                      request.auth.uid == creatorId &&
                       request.resource.data.keys().hasAll(['storeName', 'ownerId', 'verified', 'createdAt']) &&
                       request.resource.data.ownerId == request.auth.uid &&
                       request.resource.data.verified == false;
       
-      // Anyone can read vendor info (for public store pages)
+      // Anyone can read creator hub info (for public profiles)
       allow read: if true;
       
-      // Vendors can update their own store info (except verified and commission)
-      allow update: if isVendorOwner(vendorId) && 
+      // Creators can update their own hub info (except verified and commission)
+      allow update: if isCreatorOwner(creatorId) && 
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'commission', 'ownerId']);
       
       // Admins can update verification status and commission rates
       allow update: if isAdmin();
       
-      // Only admins can delete vendor stores
+      // Only admins can delete creator hubs
       allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // HUB CUSTOMIZATION COLLECTION
+    // ============================================
+    match /hubCustomization/{creatorId} {
+      // Anyone can read hub customization (for public profiles)
+      allow read: if true;
+      
+      // Creators can update their own hub customization
+      allow write: if isCreatorOwner(creatorId) || isAdmin();
     }
     
     // ============================================
     // PRODUCTS COLLECTION
     // ============================================
     match /products/{productId} {
-      // Verified vendors can create products
-      allow create: if isVerifiedVendor() &&
-                      request.resource.data.vendorId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['name', 'price', 'stock', 'vendorId', 'status', 'createdAt']) &&
+      // Verified creators can create products
+      allow create: if isVerifiedCreator() &&
+                      request.resource.data.creatorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['name', 'price', 'stock', 'creatorId', 'status', 'createdAt']) &&
                       request.resource.data.price > 0 &&
                       request.resource.data.stock >= 0;
       
       // Anyone can read active or approved products (for public browsing)
       allow read: if resource.data.status == "approved" || resource.data.status == "active";
       
-      // Vendors can read their own products (all statuses)
-      allow read: if isVendorOwner(resource.data.vendorId);
+      // Creators can read their own products (all statuses)
+      allow read: if isCreatorOwner(resource.data.creatorId);
       
       // Admins can read all products
       allow read: if isAdmin();
       
-      // Vendors can update their own products (except approved status)
-      allow update: if isVendorOwner(resource.data.vendorId) &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['approved', 'vendorId', 'featured']);
+      // Creators can update their own products (except approved status)
+      allow update: if isCreatorOwner(resource.data.creatorId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['approved', 'creatorId', 'featured']);
       
       // Admins can approve/reject products and feature them
       allow update: if isAdmin();
       
-      // Vendors can delete their own products
-      allow delete: if isVendorOwner(resource.data.vendorId);
+      // Creators can delete their own products
+      allow delete: if isCreatorOwner(resource.data.creatorId);
       
       // Admins can delete any product
       allow delete: if isAdmin();
     }
     
     // ============================================
-    // PURCHASED PRODUCTS COLLECTION
+    // PURCHASED PRODUCTS COLLECTION (first match - basic rules)
+    // Note: Creation is handled via Admin SDK only (server-side after payment verification)
     // ============================================
     match /purchasedProducts/{purchaseId} {
       // Users can read their own purchased products
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Allow creation from server/API
-      allow create: if true;
+      // Only Admin SDK can create purchase records (no client-side creation)
+      allow create: if isAdmin();
       
       // Admins can read all
       allow read: if isAdmin();
@@ -191,9 +214,9 @@ service cloud.firestore {
       // Customers can read their own orders
       allow read: if isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.userId == request.auth.uid);
       
-      // Vendors can read orders containing their products
-      allow read: if isVerifiedVendor() && 
-                    request.auth.uid in resource.data.vendorIds;
+      // Creators can read orders containing their products
+      allow read: if isVerifiedCreator() && 
+                    request.auth.uid in resource.data.creatorIds;
       
       // Admins can read all orders
       allow read: if isAdmin();
@@ -212,16 +235,15 @@ service cloud.firestore {
                       request.resource.data.status == 'cancelled' &&
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['total', 'items', 'userId', 'customerId']);
       
-      // Vendors can update order status for their items (but NOT cancelled orders)
-      // Physical products: paid -> processing -> shipped -> delivered
+      // Creators can update order status for their items (but NOT cancelled orders)
       // Digital products: paid -> delivered
       // Services: paid -> processing -> delivered
-      allow update: if isVerifiedVendor() && 
-                      request.auth.uid in resource.data.vendorIds &&
+      allow update: if isVerifiedCreator() && 
+                      request.auth.uid in resource.data.creatorIds &&
                       resource.data.status != 'cancelled' &&
-                      resource.data.status in ['paid', 'processing', 'shipped'] &&
-                      request.resource.data.status in ['processing', 'shipped', 'delivered'] &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['total', 'items', 'userId', 'customerId', 'vendorIds']);
+                      resource.data.status in ['paid', 'processing'] &&
+                      request.resource.data.status in ['processing', 'delivered'] &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['total', 'items', 'userId', 'customerId', 'creatorIds']);
       
       // Admins can update any order
       allow update: if isAdmin();
@@ -247,10 +269,10 @@ service cloud.firestore {
       // Users can read their own reviews (any status)
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Vendors can read reviews for their products
-      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      // Creators can read reviews for their products
+      allow read: if isSignedIn() && resource.data.creatorId == request.auth.uid;
       
-      // Allow reading reviews for vendor stats calculation (public access)
+      // Allow reading reviews for creator stats calculation (public access)
       allow read: if true;
       
       // Admins can read all reviews
@@ -277,7 +299,7 @@ service cloud.firestore {
       // Anyone can create questions
       allow create: if isSignedIn() &&
                       request.resource.data.userId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['productId', 'vendorId', 'userId', 'question', 'createdAt']);
+                      request.resource.data.keys().hasAll(['productId', 'creatorId', 'userId', 'question', 'createdAt']);
       
       // Everyone can read approved questions
       allow read: if resource.data.status == 'approved';
@@ -285,12 +307,12 @@ service cloud.firestore {
       // Users can read their own questions (any status)
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Vendors can read questions for their products
-      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      // Creators can read questions for their products
+      allow read: if isSignedIn() && resource.data.creatorId == request.auth.uid;
       
-      // Vendors can answer questions for their products
+      // Creators can answer questions for their products
       allow update: if isSignedIn() && 
-                      resource.data.vendorId == request.auth.uid &&
+                      resource.data.creatorId == request.auth.uid &&
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answer', 'answeredBy', 'answeredAt', 'updatedAt']);
       
       // Admins can read, update, and approve/reject questions
@@ -331,67 +353,32 @@ service cloud.firestore {
     // ADVERTISEMENTS COLLECTION
     // ============================================
     match /advertisements/{adId} {
-      // Verified vendors can create advertisements
-      allow create: if isVerifiedVendor() &&
-                      request.resource.data.vendorId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['vendorId', 'type', 'title', 'status', 'createdAt']) &&
+      // Verified creators can create advertisements
+      allow create: if isVerifiedCreator() &&
+                      request.resource.data.creatorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['creatorId', 'type', 'title', 'status', 'createdAt']) &&
                       request.resource.data.status == 'pending';
       
       // Everyone can read active/approved advertisements
       allow read: if resource.data.status == 'active';
       
-      // Vendors can read their own advertisements
-      allow read: if isVendorOwner(resource.data.vendorId);
+      // Creators can read their own advertisements
+      allow read: if isCreatorOwner(resource.data.creatorId);
       
       // Admins can read all advertisements
       allow read: if isAdmin();
       
-      // Vendors can update their own advertisements (except status and metrics)
-      allow update: if isVendorOwner(resource.data.vendorId) &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'impressions', 'clicks', 'vendorId']);
+      // Creators can update their own advertisements (except status and metrics)
+      allow update: if isCreatorOwner(resource.data.creatorId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'impressions', 'clicks', 'creatorId']);
       
       // Admins can approve/reject and update advertisements
       allow update: if isAdmin();
       
-      // Vendors can delete their own pending advertisements
-      allow delete: if isVendorOwner(resource.data.vendorId) && resource.data.status == 'pending';
+      // Creators can delete their own pending advertisements
+      allow delete: if isCreatorOwner(resource.data.creatorId) && resource.data.status == 'pending';
       
       // Admins can delete any advertisement
-      allow delete: if isAdmin();
-    }
-    
-    // ============================================
-    // ADS COLLECTION (Legacy - keeping for compatibility)
-    // ============================================
-    match /ads/{adId} {
-      // Verified vendors can create ad campaigns
-      allow create: if isVerifiedVendor() &&
-                      request.resource.data.vendorId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['vendorId', 'type', 'budget', 'status', 'createdAt']) &&
-                      request.resource.data.budget > 0 &&
-                      request.resource.data.status == 'pending';
-      
-      // Everyone can read active/approved ads
-      allow read: if resource.data.status == 'active' && resource.data.approved == true;
-      
-      // Vendors can read their own ads
-      allow read: if isVendorOwner(resource.data.vendorId);
-      
-      // Admins can read all ads
-      allow read: if isAdmin();
-      
-      // Vendors can update their own ads (except approved status and impressions/clicks)
-      allow update: if isVendorOwner(resource.data.vendorId) &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['approved', 'impressions', 'clicks', 'vendorId']);
-      
-      // System can update impressions and clicks (use Cloud Functions)
-      // Admins can approve/reject and pause ads
-      allow update: if isAdmin();
-      
-      // Vendors can delete their own pending ads
-      allow delete: if isVendorOwner(resource.data.vendorId) && resource.data.status == 'pending';
-      
-      // Admins can delete any ad
       allow delete: if isAdmin();
     }
     
@@ -434,19 +421,19 @@ service cloud.firestore {
     // AD CAMPAIGNS COLLECTION (For advertising system)
     // ============================================
     match /adCampaigns/{campaignId} {
-      // Verified vendors can create ad campaigns
-      allow create: if isVerifiedVendor() &&
+      // Verified creators can create ad campaigns
+      allow create: if isVerifiedCreator() &&
                       request.resource.data.advertiserId == request.auth.uid &&
                       request.resource.data.keys().hasAll(['advertiserId', 'campaignName', 'budget', 'status', 'createdAt']) &&
                       request.resource.data.status == 'pending_review';
       
-      // Vendors can read their own campaigns
+      // Creators can read their own campaigns
       allow read: if isSignedIn() && resource.data.advertiserId == request.auth.uid;
       
       // Admins can read all campaigns
       allow read: if isAdmin();
       
-      // Vendors can update their own pending campaigns
+      // Creators can update their own pending campaigns
       allow update: if isSignedIn() && 
                       resource.data.advertiserId == request.auth.uid &&
                       resource.data.status == 'pending_review' &&
@@ -455,7 +442,7 @@ service cloud.firestore {
       // Admins can approve/reject/pause campaigns
       allow update: if isAdmin();
       
-      // Vendors can delete their own pending campaigns
+      // Creators can delete their own pending campaigns
       allow delete: if isSignedIn() && 
                       resource.data.advertiserId == request.auth.uid &&
                       resource.data.status == 'pending_review';
@@ -539,14 +526,14 @@ service cloud.firestore {
     }
     
     // ============================================
-    // PAYOUTS COLLECTION (Vendor Earnings)
+    // PAYOUTS COLLECTION (Creator Earnings)
     // ============================================
     match /payouts/{payoutId} {
       // Only system/admins can create payouts
       allow create: if isAdmin();
       
-      // Vendors can read their own payouts
-      allow read: if isVendorOwner(resource.data.vendorId);
+      // Creators can read their own payouts
+      allow read: if isCreatorOwner(resource.data.creatorId);
       
       // Admins can read all payouts
       allow read: if isAdmin();
@@ -559,18 +546,18 @@ service cloud.firestore {
     }
 
     // ============================================
-    // PAYOUT REQUESTS COLLECTION (Vendor-Initiated Withdrawals)
+    // PAYOUT REQUESTS COLLECTION (creator-Initiated Withdrawals)
     // ============================================
     match /payoutRequests/{payoutRequestId} {
-      // Vendors create their own payout requests
-      allow create: if isVendor() &&
-                      request.resource.data.vendorId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['vendorId', 'amount', 'paymentMethod', 'status', 'requestedAt']) &&
+      // Creators create their own payout requests
+      allow create: if isCreator() &&
+                      request.resource.data.creatorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['creatorId', 'amount', 'paymentMethod', 'status', 'requestedAt']) &&
                       request.resource.data.amount > 0 &&
                       request.resource.data.status == 'pending';
 
-      // Vendors can read only their own payout requests
-      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      // Creators can read only their own payout requests
+      allow read: if isSignedIn() && resource.data.creatorId == request.auth.uid;
 
       // Admins can read, update, and manage all payout requests
       allow read, update: if isAdmin();
@@ -600,8 +587,8 @@ service cloud.firestore {
       // Customers can read their own service bookings
       allow read: if isSignedIn() && resource.data.customerId == request.auth.uid;
       
-      // Vendors can read bookings for their services
-      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      // Creators can read bookings for their services
+      allow read: if isSignedIn() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all service bookings
       allow read: if isAdmin();
@@ -609,12 +596,12 @@ service cloud.firestore {
       // Customers can update their own bookings (requirements, notes)
       allow update: if isSignedIn() && 
                       resource.data.customerId == request.auth.uid &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['customerId', 'vendorId', 'serviceId', 'orderId']);
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['customerId', 'creatorId', 'serviceId', 'orderId']);
       
-      // Vendors can update their service bookings (scheduling, status, notes)
+      // Creators can update their service bookings (scheduling, status, notes)
       allow update: if isSignedIn() && 
-                      resource.data.vendorId == request.auth.uid &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['customerId', 'vendorId', 'serviceId', 'orderId']);
+                      resource.data.creatorId == request.auth.uid &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['customerId', 'creatorId', 'serviceId', 'orderId']);
       
       // Admins can update any service booking
       allow update: if isAdmin();
@@ -624,25 +611,25 @@ service cloud.firestore {
     }
     
     // ============================================
-    // VENDOR AVAILABILITY COLLECTION
+    // creator AVAILABILITY COLLECTION
     // ============================================
-    match /vendorAvailability/{availabilityId} {
-      // Vendors can create their own availability
+    match /creatorAvailability/{availabilityId} {
+      // Creators can create their own availability
       allow create: if isSignedIn() && 
-                      request.resource.data.vendorId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['vendorId', 'dayOfWeek', 'startTime', 'endTime', 'isAvailable']);
+                      request.resource.data.creatorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['creatorId', 'dayOfWeek', 'startTime', 'endTime', 'isAvailable']);
       
-      // Anyone can read vendor availability (for booking)
+      // Anyone can read creator availability (for booking)
       allow read: if true;
       
-      // Vendors can update their own availability
-      allow update: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      // Creators can update their own availability
+      allow update: if isSignedIn() && resource.data.creatorId == request.auth.uid;
       
       // Admins can manage all availability
       allow update, delete: if isAdmin();
       
-      // Vendors can delete their own availability
-      allow delete: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      // Creators can delete their own availability
+      allow delete: if isSignedIn() && resource.data.creatorId == request.auth.uid;
     }
     
     // ============================================
@@ -655,8 +642,8 @@ service cloud.firestore {
       // Users can read their own purchased products
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Vendors can read purchases of their products
-      allow read: if isSignedIn() && resource.data.product.vendorId == request.auth.uid;
+      // creators can read purchases of their products
+      allow read: if isSignedIn() && resource.data.product.creatorId == request.auth.uid;
       
       // Admins can read all purchased products
       allow read: if isAdmin();
@@ -674,27 +661,27 @@ service cloud.firestore {
     }
     
     // ============================================
-    // VENDOR BALANCES COLLECTION
+    // creator BALANCES COLLECTION
     // ============================================
-    match /vendorBalances/{vendorId} {
-      // System creates vendor balances
+    match /creatorBalances/{creatorId} {
+      // System creates creator balances
       allow create: if isAdmin();
       
-      // Vendors can read their own balance
-      allow read: if isSignedIn() && vendorId == request.auth.uid;
+      // Creators can read their own balance
+      allow read: if isSignedIn() && creatorId == request.auth.uid;
       
-      // Admins can read all vendor balances
+      // Admins can read all creator balances
       allow read: if isAdmin();
       
-      // System/admins can update balances; vendors can update their own balance
+      // System/admins can update balances; creators can update their own balance
       // (used when submitting payout requests to move funds between available and pending)
       allow update: if isAdmin() || (
         isSignedIn() &&
-        vendorId == request.auth.uid &&
-        request.resource.data.vendorId == vendorId &&
-        // Ensure core fields are present and immutable totals are not changed by vendors
-        request.resource.data.keys().hasAll(['vendorId', 'availableBalance', 'pendingBalance', 'totalEarnings', 'totalWithdrawn']) &&
-        resource.data.keys().hasAll(['vendorId', 'availableBalance', 'pendingBalance', 'totalEarnings', 'totalWithdrawn']) &&
+        creatorId == request.auth.uid &&
+        request.resource.data.creatorId == creatorId &&
+        // Ensure core fields are present and immutable totals are not changed by creators
+        request.resource.data.keys().hasAll(['creatorId', 'availableBalance', 'pendingBalance', 'totalEarnings', 'totalWithdrawn']) &&
+        resource.data.keys().hasAll(['creatorId', 'availableBalance', 'pendingBalance', 'totalEarnings', 'totalWithdrawn']) &&
         request.resource.data.totalEarnings == resource.data.totalEarnings &&
         request.resource.data.totalWithdrawn == resource.data.totalWithdrawn
       );
@@ -733,8 +720,8 @@ service cloud.firestore {
       // System creates inventory logs
       allow create: if isAdmin();
       
-      // Vendors can read logs for their products
-      allow read: if isSignedIn() && resource.data.vendorId == request.auth.uid;
+      // creators can read logs for their products
+      allow read: if isSignedIn() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all inventory logs
       allow read: if isAdmin();
@@ -759,14 +746,14 @@ service cloud.firestore {
     }
     
     // ============================================
-    // ANALYTICS COLLECTION (Read-only for vendors)
+    // ANALYTICS COLLECTION (Read-only for creators)
     // ============================================
     match /analytics/{docId} {
       // System creates analytics (use Cloud Functions)
       allow create: if false;
       
-      // Vendors can read their own analytics
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // creators can read their own analytics
+      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all analytics
       allow read: if isAdmin();
@@ -810,8 +797,8 @@ service cloud.firestore {
       // Users can read their own transactions
       allow read: if isOwner(resource.data.userId);
       
-      // Vendors can read transactions for their orders
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // creators can read transactions for their orders
+      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all transactions
       allow read: if isAdmin();
@@ -905,8 +892,8 @@ service cloud.firestore {
       // Users can read their own refund requests
       allow read: if isOwner(resource.data.userId);
       
-      // Vendors can read refunds for their products
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // creators can read refunds for their products
+      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all refunds
       allow read: if isAdmin();
@@ -953,11 +940,11 @@ service cloud.firestore {
     // REPORTS COLLECTION (Report Abuse)
     // ============================================
     match /reports/{reportId} {
-      // Users can report products, vendors, or reviews
+      // Users can report products, creators, or reviews
       allow create: if isSignedIn() &&
                       request.resource.data.reporterId == request.auth.uid &&
                       request.resource.data.keys().hasAll(['reporterId', 'type', 'targetId', 'reason', 'status', 'createdAt']) &&
-                      request.resource.data.type in ['product', 'vendor', 'review', 'user'] &&
+                      request.resource.data.type in ['product', 'creator', 'review', 'user'] &&
                       request.resource.data.status == 'pending';
       
       // Users can read their own reports
@@ -995,10 +982,10 @@ service cloud.firestore {
     }
     
     // ============================================
-    // VENDOR APPLICATIONS COLLECTION
+    // creator APPLICATIONS COLLECTION
     // ============================================
-    match /vendor_applications/{applicationId} {
-      // Users can apply to become vendors
+    match /creator_applications/{applicationId} {
+      // Users can apply to become creators
       allow create: if isCustomer() &&
                       request.resource.data.userId == request.auth.uid &&
                       request.resource.data.keys().hasAll(['userId', 'businessName', 'storeName', 'email', 'phone', 'status', 'createdAt']) &&
@@ -1044,15 +1031,15 @@ service cloud.firestore {
       // Customers can read their own shipping info
       allow read: if isOwner(resource.data.userId);
       
-      // Vendors can read shipping for their orders
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // creators can read shipping for their orders
+      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all shipping records
       allow read: if isAdmin();
       
-      // Vendors can update tracking info
-      allow update: if isVerifiedVendor() && 
-                      resource.data.vendorId == request.auth.uid &&
+      // creators can update tracking info
+      allow update: if isVerifiedcreator() && 
+                      resource.data.creatorId == request.auth.uid &&
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['trackingNumber', 'carrier', 'status', 'updatedAt']);
       
       // Admins can update any shipping record
@@ -1098,11 +1085,11 @@ service cloud.firestore {
     }
     
     // ============================================
-    // STORE CUSTOMIZATION COLLECTION (Vendor Store Settings)
+    // STORE CUSTOMIZATION COLLECTION (creator Store Settings)
     // ============================================
-    match /storeCustomization/{vendorId} {
-      // Vendors can read and write their own store customization
-      allow read, write: if isSignedIn() && request.auth.uid == vendorId;
+    match /hubCustomization/{creatorId} {
+      // creators can read and write their own store customization
+      allow read, write: if isSignedIn() && request.auth.uid == creatorId;
       
       // Anyone can read store customization (for public store pages)
       allow read: if true;
@@ -1114,9 +1101,9 @@ service cloud.firestore {
     // ============================================
     // STORE SETTINGS COLLECTION (Business Settings)
     // ============================================
-    match /storeSettings/{vendorId} {
-      // Vendors can read and write their own store settings
-      allow read, write: if isSignedIn() && request.auth.uid == vendorId;
+    match /hubSettings/{creatorId} {
+      // creators can read and write their own store settings
+      allow read, write: if isSignedIn() && request.auth.uid == creatorId;
       
       // Admins can read all store settings
       allow read: if isAdmin();
@@ -1168,13 +1155,13 @@ service cloud.firestore {
     }
     
     // ============================================
-    // AD SLOTS COLLECTION (Vendor Ad Spaces)
+    // AD SLOTS COLLECTION (creator Ad Spaces)
     // ============================================
     match /adSlots/{slotId} {
-      // Vendors can create ad slots for their stores
-      allow create: if isVerifiedVendor() &&
-                      request.resource.data.vendorId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['vendorId', 'vendorName', 'storeName', 'placement', 'availability', 'pricing', 'isActive', 'createdAt']);
+      // creators can create ad slots for their stores
+      allow create: if isVerifiedcreator() &&
+                      request.resource.data.creatorId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['creatorId', 'creatorName', 'storeName', 'placement', 'availability', 'pricing', 'isActive', 'createdAt']);
       
       // Everyone can read active ad slots (for ad placement)
       allow read: if resource.data.isActive == true;
@@ -1182,22 +1169,22 @@ service cloud.firestore {
       // Anyone can query ad slots (for storefront ad display)
       allow read: if true;
       
-      // Vendors can read their own slots
-      allow read: if isVendorOwner(resource.data.vendorId);
+      // creators can read their own slots
+      allow read: if iscreatorOwner(resource.data.creatorId);
       
       // Admins can read all slots
       allow read: if isAdmin();
       
-      // Vendors can update their own slots (except stats)
-      allow update: if isVendorOwner(resource.data.vendorId) &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['vendorId', 'stats']);
+      // creators can update their own slots (except stats)
+      allow update: if iscreatorOwner(resource.data.creatorId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['creatorId', 'stats']);
       
       // System can update stats and rotation queue
       // Admins can update any slot
       allow update: if isAdmin();
       
-      // Vendors can delete their own slots
-      allow delete: if isVendorOwner(resource.data.vendorId);
+      // creators can delete their own slots
+      allow delete: if iscreatorOwner(resource.data.creatorId);
       
       // Admins can delete any slot
       allow delete: if isAdmin();
@@ -1215,8 +1202,8 @@ service cloud.firestore {
                     exists(/databases/$(database)/documents/advertisers/$(request.auth.uid)) &&
                     resource.data.campaignId in get(/databases/$(database)/documents/advertisers/$(request.auth.uid)).data.campaigns;
       
-      // Vendors can read impressions for their slots
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // creators can read impressions for their slots
+      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all impressions
       allow read: if isAdmin();
@@ -1239,8 +1226,8 @@ service cloud.firestore {
       allow read: if isSignedIn() && 
                     exists(/databases/$(database)/documents/advertisers/$(request.auth.uid));
       
-      // Vendors can read clicks for their slots
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // creators can read clicks for their slots
+      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all clicks
       allow read: if isAdmin();
@@ -1250,14 +1237,14 @@ service cloud.firestore {
     }
     
     // ============================================
-    // VENDOR AD EARNINGS COLLECTION
+    // CREATOR AD EARNINGS COLLECTION
     // ============================================
-    match /vendorAdEarnings/{earningsId} {
+    match /creatorAdEarnings/{earningsId} {
       // System creates earnings records
       allow create: if false;
       
-      // Vendors can read their own earnings
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // Creators can read their own earnings
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all earnings
       allow read: if isAdmin();
@@ -1270,18 +1257,18 @@ service cloud.firestore {
     }
     
     // ============================================
-    // CONVERSATIONS COLLECTION (Vendor-Customer Messaging)
+    // CONVERSATIONS COLLECTION (Creator-Customer Messaging)
     // ============================================
     match /conversations/{conversationId} {
-      // Customers can create conversations with vendors
+      // Customers can create conversations with creators
       allow create: if isSignedIn() &&
                       request.resource.data.customerId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['vendorId', 'customerId', 'productId', 'status', 'createdAt']);
+                      request.resource.data.keys().hasAll(['creatorId', 'customerId', 'productId', 'status', 'createdAt']);
       
       // Participants can read their conversations
       allow read: if isSignedIn() && 
                     (resource.data.customerId == request.auth.uid || 
-                     resource.data.vendorId == request.auth.uid);
+                     resource.data.creatorId == request.auth.uid);
       
       // Admins can read all conversations
       allow read: if isAdmin();
@@ -1289,8 +1276,8 @@ service cloud.firestore {
       // Participants can update conversation (mark as read, close, etc.)
       allow update: if isSignedIn() && 
                       (resource.data.customerId == request.auth.uid || 
-                       resource.data.vendorId == request.auth.uid) &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['vendorId', 'customerId', 'productId']);
+                       resource.data.creatorId == request.auth.uid) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['creatorId', 'customerId', 'productId']);
       
       // Admins can update any conversation
       allow update: if isAdmin();
@@ -1306,7 +1293,7 @@ service cloud.firestore {
         allow create: if isSignedIn() &&
                         request.resource.data.senderId == request.auth.uid &&
                         (get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
-                         get(/databases/$(database)/documents/conversations/$(conversationId)).data.vendorId == request.auth.uid) &&
+                         get(/databases/$(database)/documents/conversations/$(conversationId)).data.creatorId == request.auth.uid) &&
                         request.resource.data.keys().hasAll(['senderId', 'message', 'createdAt']) &&
                         request.resource.data.message.size() > 0 &&
                         request.resource.data.message.size() <= 2000;
@@ -1314,7 +1301,7 @@ service cloud.firestore {
         // Conversation participants can read messages
         allow read: if isSignedIn() &&
                       (get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
-                       get(/databases/$(database)/documents/conversations/$(conversationId)).data.vendorId == request.auth.uid);
+                       get(/databases/$(database)/documents/conversations/$(conversationId)).data.creatorId == request.auth.uid);
         
         // Admins can read all messages
         allow read: if isAdmin();
@@ -1334,8 +1321,8 @@ service cloud.firestore {
       // Customers can read their own digital products
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // Vendors can read digital products they sold
-      allow read: if isVerifiedVendor() && resource.data.vendorId == request.auth.uid;
+      // Creators can read digital products they sold
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all digital products
       allow read: if isAdmin();
@@ -1344,6 +1331,38 @@ service cloud.firestore {
       allow update: if false;
       
       // No one can delete digital product records (audit trail)
+      allow delete: if false;
+    }
+
+    // ============================================
+    // CREATOR REPUTATION COLLECTION
+    // ============================================
+    match /creator_reputation/{creatorId} {
+      // Anyone can read creator reputation
+      allow read: if true;
+      
+      // Only system/admins can update reputation scores
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // DOWNLOAD TOKENS COLLECTION (DRM)
+    // ============================================
+    match /downloadTokens/{tokenId} {
+      // Users can read tokens assigned to them
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.creatorId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      // Tokens are created by the system only
+      allow create: if false;
+      
+      // Tokens are updated/revoked by the system only
+      allow update: if false;
+      
+      // Tokens are deleted by the system only
       allow delete: if false;
     }
     

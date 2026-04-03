@@ -5,14 +5,14 @@ import { FieldValue } from "firebase-admin/firestore"
 export async function POST(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
       )
     }
-    
+
     const campaignData = await request.json()
 
     const {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       destinationUrl,
       targeting,
       placementType,
-      targetVendors,
+      targetcreators,
       targetCategories,
     } = campaignData
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Validate minimum budget based on placement type
     const totalBudget = parseFloat(budget)
     let minBudget = 0
-    
+
     switch (placementType) {
       case 'homepage':
         minBudget = 50000
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       case 'sponsored_product':
         minBudget = 5000
         break
-      case 'vendor_store':
+      case 'creator_store':
         minBudget = 1000
         break
     }
@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
         storeTypes: ["all"],
       },
       placement: {
-        type: placementType, // vendor_store, homepage, category, sponsored_product
-        targetVendors: targetVendors || [],
+        type: placementType, // creator_store, homepage, category, sponsored_product
+        targetcreators: targetcreators || [],
         targetCategories: targetCategories || [],
         minBudget: minBudget,
       },
@@ -146,14 +146,14 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
       )
     }
-    
+
     const { searchParams } = new URL(request.url)
     const advertiserId = searchParams.get("advertiserId")
 

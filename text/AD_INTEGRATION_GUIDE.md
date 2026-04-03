@@ -39,32 +39,32 @@ export default function Homepage() {
 }
 ```
 
-### 2. **Vendor Store Ads**
-- **Component**: `VendorStoreAds`
-- **Location**: Individual vendor store pages
+### 2. **creator Store Ads**
+- **Component**: `creatorstoreAds`
+- **Location**: Individual creator store pages
 - **Features**:
-  - Shows ads targeted to specific vendors OR general vendor store ads
+  - Shows ads targeted to specific creators OR general creator store ads
   - Multiple placement options: sidebar, banner, inline
-  - Up to 3 ads per vendor store
+  - Up to 3 ads per creator store
   - Dismissible ads with X button
 
 **Integration Example:**
 ```tsx
-// In vendor store page (app/vendor/[vendorId]/page.tsx)
-import { VendorStoreAds } from "@/components/advertising/VendorStoreAds"
+// In creator store page (app/creator/[creatorId]/page.tsx)
+import { creatorstoreAds } from "@/components/advertising/creatorstoreAds"
 
-export default function VendorStorePage({ params }: { params: { vendorId: string } }) {
+export default function creatorstorePage({ params }: { params: { creatorId: string } }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Main content */}
       <div className="lg:col-span-3">
-        {/* Vendor products, info, etc. */}
+        {/* creator products, info, etc. */}
       </div>
       
       {/* Sidebar with ads */}
       <div className="lg:col-span-1">
-        <VendorStoreAds 
-          vendorId={params.vendorId}
+        <creatorstoreAds 
+          creatorId={params.creatorId}
           placement="sidebar"
           maxAds={3}
         />
@@ -165,7 +165,7 @@ export default function ProductListing({ category }: { category: string }) {
 
 ### **Multiple Ads in Same Position**
 - **Homepage**: Up to 5 ads rotate automatically
-- **Vendor Stores**: Up to 3 ads can show simultaneously in different slots
+- **creator Stores**: Up to 3 ads can show simultaneously in different slots
 - **Category Pages**: Up to 4 ads (2 banner + 2 sidebar)
 - **Sponsored Products**: Up to 6 products mixed with regular products
 
@@ -188,14 +188,14 @@ export default function ProductListing({ category }: { category: string }) {
 
 ### **Automatic Targeting Logic**
 ```typescript
-// Example: Vendor store ads
-if (campaign.placement.type === 'vendor_store') {
-  // Show on ALL vendor stores if no specific targeting
-  if (campaign.placement.targetVendors.length === 0) {
-    showOnAllVendorStores = true
+// Example: creator store ads
+if (campaign.placement.type === 'creator_store') {
+  // Show on ALL creator stores if no specific targeting
+  if (campaign.placement.targetcreators.length === 0) {
+    showOnAllcreatorstores = true
   } else {
-    // Show only on specified vendor stores
-    showOnlyOn = campaign.placement.targetVendors
+    // Show only on specified creator stores
+    showOnlyOn = campaign.placement.targetcreators
   }
 }
 
@@ -222,13 +222,13 @@ import { HomepageBanner } from "@/components/advertising/HomepageBanner"
 <HomepageBanner maxAds={5} />
 ```
 
-### **Step 2: Add to Vendor Stores**
+### **Step 2: Add to creator Stores**
 ```tsx
-// app/vendor/[vendorId]/page.tsx
-import { VendorStoreAds } from "@/components/advertising/VendorStoreAds"
+// app/creator/[creatorId]/page.tsx
+import { creatorstoreAds } from "@/components/advertising/creatorstoreAds"
 
 // Add to sidebar or any section
-<VendorStoreAds vendorId={vendorId} placement="sidebar" />
+<creatorstoreAds creatorId={creatorId} placement="sidebar" />
 ```
 
 ### **Step 3: Add to Category Pages**
@@ -256,8 +256,8 @@ import { SponsoredProducts } from "@/components/advertising/SponsoredProducts"
 - `autoRotate`: Enable auto-rotation (default: true)
 - `rotationInterval`: Seconds between rotations (default: 10)
 
-### **VendorStoreAds Props**
-- `vendorId`: Target vendor ID (required)
+### **creatorstoreAds Props**
+- `creatorId`: Target creator ID (required)
 - `placement`: 'sidebar' | 'banner' | 'inline' (default: 'sidebar')
 - `maxAds`: Maximum ads to show (default: 3)
 

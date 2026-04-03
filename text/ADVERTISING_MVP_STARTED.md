@@ -7,11 +7,11 @@
 
 **Includes:**
 - `AdCampaign` - Complete campaign structure
-- `AdSlot` - Vendor ad space configuration
+- `AdSlot` - creator ad space configuration
 - `AdRotationEntry` - Queue management
 - `AdImpression` - Tracking data
 - `AdClick` - Click tracking
-- `VendorAdEarnings` - Earnings tracking
+- `creatorAdEarnings` - Earnings tracking
 - `AdDisplayContext` - Targeting context
 - `CampaignPerformance` - Analytics
 
@@ -33,7 +33,7 @@
 
 ### **Ad Selection Flow:**
 ```
-1. Vendor's store page loads
+1. creator's store page loads
    ↓
 2. AdSlot component requests ad
    ↓
@@ -67,7 +67,7 @@ Weight = (
 ### **Revenue Sharing:**
 ```
 Ad Revenue: ₦100
-├── Vendor: ₦70 (70%)
+├── creator: ₦70 (70%)
 ├── Platform: ₦25 (25%)
 └── Processing: ₦5 (5%)
 ```
@@ -83,7 +83,7 @@ Ad Revenue: ₦100
    - adSlots
    - adImpressions
    - adClicks
-   - vendorEarnings
+   - creatorEarnings
 
 2. Implement database functions:
    - getAdSlot()
@@ -119,7 +119,7 @@ Ad Revenue: ₦100
 5. Performance analytics
 ```
 
-### **Phase 5: Vendor Earnings**
+### **Phase 5: creator Earnings**
 ```
 1. Earnings dashboard
 2. Revenue breakdown
@@ -141,7 +141,7 @@ Ad Revenue: ₦100
 
 ### **Should Have (V1.1):**
 - ⏳ Advertiser dashboard
-- ⏳ Vendor earnings page
+- ⏳ creator earnings page
 - ⏳ Analytics dashboard
 - ⏳ Campaign approval workflow
 
@@ -175,7 +175,7 @@ Ad Revenue: ₦100
 
 ### **4. Transparent Pricing** ✅
 - Clear CPM/CPC/CPA rates
-- 70% vendor share
+- 70% creator share
 - Real-time earnings tracking
 - Detailed analytics
 
@@ -196,13 +196,13 @@ Ad Revenue: ₦100
 Month 1-3:
 - 10 advertisers
 - ₦500K ad spend
-- ₦350K vendor earnings
+- ₦350K creator earnings
 - ₦125K platform revenue
 
 Month 4-6:
 - 50 advertisers
 - ₦2.5M ad spend
-- ₦1.75M vendor earnings
+- ₦1.75M creator earnings
 - ₦625K platform revenue
 ```
 
@@ -237,7 +237,7 @@ Month 4-6:
 - ✅ Real-time analytics
 - ✅ Good ROI
 
-### **For Vendors:**
+### **For creators:**
 - ✅ Passive income
 - ✅ No management needed
 - ✅ Fair revenue share
@@ -253,7 +253,7 @@ Month 4-6:
 
 ## 🚀 Quick Start (When Complete)
 
-### **For Vendors:**
+### **For creators:**
 ```
 1. Go to "Customize Store"
 2. Click "Advertising" tab
@@ -317,14 +317,14 @@ Month 4-6:
 - ⏳ Ad display component
 - ⏳ Tracking APIs
 - ⏳ Advertiser dashboard
-- ⏳ Vendor earnings page
+- ⏳ creator earnings page
 
 ### **Timeline:**
 ```
 Week 1: Database + Display Component
 Week 2: Tracking APIs + Testing
 Week 3: Advertiser Dashboard
-Week 4: Vendor Earnings + Launch
+Week 4: creator Earnings + Launch
 ```
 
 ---

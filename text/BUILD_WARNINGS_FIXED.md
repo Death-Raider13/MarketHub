@@ -6,7 +6,7 @@
 During Vercel deployment, Next.js was trying to pre-render API routes at build time, but these routes use `request.url` which is only available at runtime. This caused warnings like:
 
 ```
-Error fetching orders: Dynamic server usage: Route /api/vendor/orders 
+Error fetching orders: Dynamic server usage: Route /api/creator/orders 
 couldn't be rendered statically because it used `request.url`
 ```
 
@@ -21,13 +21,13 @@ Added `export const dynamic = 'force-dynamic'` to all affected API routes to tel
 1. ✅ `/app/api/customer/orders/route.ts`
 2. ✅ `/app/api/customer/purchases/route.ts`
 
-### **Vendor APIs:**
-3. ✅ `/app/api/vendor/analytics/route.ts`
-4. ✅ `/app/api/vendor/analytics/conversion/route.ts`
-5. ✅ `/app/api/vendor/messages/route.ts`
-6. ✅ `/app/api/vendor/orders/route.ts`
-7. ✅ `/app/api/vendor/profile/route.ts`
-8. ✅ `/app/api/vendor/stats/route.ts`
+### **creator APIs:**
+3. ✅ `/app/api/creator/analytics/route.ts`
+4. ✅ `/app/api/creator/analytics/conversion/route.ts`
+5. ✅ `/app/api/creator/messages/route.ts`
+6. ✅ `/app/api/creator/orders/route.ts`
+7. ✅ `/app/api/creator/profile/route.ts`
+8. ✅ `/app/api/creator/stats/route.ts`
 
 ---
 

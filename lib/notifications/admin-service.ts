@@ -21,17 +21,17 @@ export class AdminNotificationService {
   ): Promise<string> {
     try {
       const template = NOTIFICATION_TEMPLATES[type]
-      
+
       // Replace placeholders in title and message
       let title = template.title
       let message = template.message
-      
+
       if (customData?.metadata) {
         const metadata = customData.metadata
-        
+
         // Replace common placeholders
         title = title.replace('{productName}', metadata.productName || '')
-        title = title.replace('{vendorName}', metadata.vendorName || '')
+        title = title.replace('{creatorName}', metadata.creatorName || '')
         title = title.replace('{storeName}', metadata.storeName || '')
         title = title.replace('{userName}', metadata.userName || '')
         title = title.replace('{orderId}', metadata.orderId || '')
@@ -42,9 +42,9 @@ export class AdminNotificationService {
         title = title.replace('{category}', (metadata as any).category || '')
         title = title.replace('{priority}', (metadata as any).priority || '')
         title = title.replace('{status}', (metadata as any).status || '')
-        
+
         message = message.replace('{productName}', metadata.productName || '')
-        message = message.replace('{vendorName}', metadata.vendorName || '')
+        message = message.replace('{creatorName}', metadata.creatorName || '')
         message = message.replace('{storeName}', metadata.storeName || '')
         message = message.replace('{userName}', metadata.userName || '')
         message = message.replace('{orderId}', metadata.orderId || '')

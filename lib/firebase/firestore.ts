@@ -77,7 +77,7 @@ export async function searchProducts(searchTerm: string, filters: any = {}): Pro
         (product) =>
           product.name.toLowerCase().includes(searchLower) ||
           product.description.toLowerCase().includes(searchLower) ||
-          product.vendorName.toLowerCase().includes(searchLower)
+          product.creatorName.toLowerCase().includes(searchLower)
       )
     }
 
@@ -92,8 +92,8 @@ export async function getFeaturedProducts(): Promise<Product[]> {
   return getProducts([where('featured', '==', true), where('status', '==', 'active'), limit(8)])
 }
 
-export async function getVendorProducts(vendorId: string): Promise<Product[]> {
-  return getProducts([where('vendorId', '==', vendorId), where('status', '==', 'active')])
+export async function getcreatorProducts(creatorId: string): Promise<Product[]> {
+  return getProducts([where('creatorId', '==', creatorId), where('status', '==', 'active')])
 }
 
 // Orders
@@ -118,12 +118,12 @@ export async function createOrder(orderData: Omit<Order, 'id'>): Promise<string 
         )
       }
 
-      // Notify each vendor involved in the order
+      // Notify each creator involved in the order
       const items: any[] = (orderData as any).items || []
-      const vendorIds = Array.from(new Set(items.map((i) => i.product?.vendorId).filter(Boolean)))
-      vendorIds.forEach((vendorId) => {
-        onOrderPlaced(orderId, customerId, vendorId, amount).catch((err) =>
-          console.error('notify onOrderPlaced (vendor) failed', err)
+      const creatorIds = Array.from(new Set(items.map((i) => i.product?.creatorId).filter(Boolean)))
+      creatorIds.forEach((creatorId) => {
+        onOrderPlaced(orderId, customerId, creatorId, amount).catch((err) =>
+          console.error('notify onOrderPlaced (creator) failed', err)
         )
       })
     } catch (err) {
@@ -248,16 +248,16 @@ export async function updateReviewHelpful(reviewId: string, increment: boolean):
   }
 }
 
-// Vendors
-export async function getVendor(vendorId: string): Promise<any | null> {
+// creators
+export async function getcreator(creatorId: string): Promise<any | null> {
   try {
-    const vendorDoc = await getDoc(doc(db, 'vendors', vendorId))
-    if (vendorDoc.exists()) {
-      return { id: vendorDoc.id, ...vendorDoc.data() }
+    const creatorDoc = await getDoc(doc(db, 'creators', creatorId))
+    if (creatorDoc.exists()) {
+      return { id: creatorDoc.id, ...creatorDoc.data() }
     }
     return null
   } catch (error) {
-    console.error('Error fetching vendor:', error)
+    console.error('Error fetching creator:', error)
     return null
   }
 }
@@ -289,28 +289,28 @@ export async function createPayoutRequest(payoutData: any): Promise<string | nul
   }
 }
 
-export async function getVendorBalance(vendorId: string): Promise<any | null> {
+export async function getcreatorBalance(creatorId: string): Promise<any | null> {
   try {
-    const balanceDoc = await getDoc(doc(db, 'vendorBalances', vendorId))
+    const balanceDoc = await getDoc(doc(db, 'creatorBalances', creatorId))
     if (balanceDoc.exists()) {
       return { id: balanceDoc.id, ...balanceDoc.data() }
     }
     return null
   } catch (error) {
-    console.error('Error fetching vendor balance:', error)
+    console.error('Error fetching creator balance:', error)
     return null
   }
 }
 
-export async function updateVendorBalance(vendorId: string, balanceData: any): Promise<boolean> {
+export async function updatecreatorBalance(creatorId: string, balanceData: any): Promise<boolean> {
   try {
-    await updateDoc(doc(db, 'vendorBalances', vendorId), {
+    await updateDoc(doc(db, 'creatorBalances', creatorId), {
       ...balanceData,
       updatedAt: new Date(),
     })
     return true
   } catch (error) {
-    console.error('Error updating vendor balance:', error)
+    console.error('Error updating creator balance:', error)
     return false
   }
 }

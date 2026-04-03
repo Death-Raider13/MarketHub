@@ -8,7 +8,7 @@ const adminDb = getAdminFirestore()
 
 export async function POST(request: NextRequest) {
   const logger = createApiLogger(request, '/api/payments/verify')
-  
+
   try {
     const { reference } = await request.json()
     logger.info('Payment verification requested', { reference })
@@ -30,8 +30,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Verifying payment with reference:', reference)
-    console.log('Using secret key:', secretKey.substring(0, 10) + '...')
+    logger.info('Verifying payment with Paystack', { reference })
 
     // Verify payment with Paystack
     const response = await axios.get(
@@ -50,7 +49,7 @@ export async function POST(request: NextRequest) {
       // Payment successful - update order in database using Admin SDK
       const orderId = reference
       const adminDb = getAdminFirestore()
-      
+
       if (!adminDb) {
         console.error('❌ Firebase Admin SDK not configured')
         return NextResponse.json(
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const orderRef = adminDb.collection('orders').doc(orderId)
-        
+
         // Check if order exists
         const orderDoc = await orderRef.get()
         if (!orderDoc.exists) {
@@ -73,31 +72,7 @@ export async function POST(request: NextRequest) {
 
         let orderData = orderDoc.data()
 
-        // Reduce inventory for physical products
-        try {
-          const physicalItems = orderData?.items?.filter((item: any) => 
-            item.product?.productType === 'physical' || item.product?.type === 'physical'
-          ).map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            productName: item.productName,
-            vendorId: item.vendorId
-          })) || []
-
-          if (physicalItems.length > 0) {
-            const { reduceInventory } = await import('@/lib/inventory/management')
-            const inventoryResults = await reduceInventory(physicalItems)
-            
-            // Log inventory results
-            const failedUpdates = inventoryResults.filter(r => !r.success)
-            if (failedUpdates.length > 0) {
-              console.warn('Some inventory updates failed:', failedUpdates)
-            }
-          }
-        } catch (inventoryError) {
-          console.error('⚠️ Failed to reduce inventory:', inventoryError)
-          // Don't fail the payment if inventory update fails
-        }
+        // Note: Physical inventory reduction removed as per digital-first pivot
 
         // Update order status
         await orderRef.update({
@@ -121,17 +96,17 @@ export async function POST(request: NextRequest) {
         const updatedOrderDoc = await orderRef.get()
         orderData = updatedOrderDoc.data()
 
-        console.log('✅ Payment verified successfully for order:', orderId)
+        logger.info('Payment verified successfully', { orderId })
 
         // Create purchased products records for digital products
         try {
-          const digitalItems = orderData.items?.filter((item: any) => 
+          const digitalItems = orderData.items?.filter((item: any) =>
             item.product?.productType === 'digital' || item.product?.type === 'digital'
           ) || []
 
           if (digitalItems.length > 0) {
-            console.log('✅ Creating purchase records for', digitalItems.length, 'digital products')
-            
+            logger.info('Creating purchase records for digital products', { count: digitalItems.length })
+
             for (const item of digitalItems) {
               const purchaseData = {
                 userId: orderData.userId,
@@ -140,143 +115,112 @@ export async function POST(request: NextRequest) {
                 product: item.product,
                 purchasedAt: new Date(),
                 downloadCount: 0,
-                accessExpiresAt: item.product.accessDuration > 0 
+                accessExpiresAt: item.product.accessDuration > 0
                   ? new Date(Date.now() + (item.product.accessDuration * 24 * 60 * 60 * 1000))
                   : null
               }
-              
+
               await adminDb.collection('purchasedProducts').add(purchaseData)
             }
-            
-            console.log('✅ Created purchase records for digital products')
+
+            logger.info('Created purchase records for digital products')
           }
         } catch (purchaseError) {
           console.error('⚠️ Failed to create purchase records:', purchaseError)
           // Don't fail the payment if purchase record creation fails
         }
 
-        // Update vendor balances for this order
+        // Update creator balances safely using transactions
         try {
-          const vendorUpdates = new Map<string, number>()
+          const { updateCreatorBalances } = await import('@/lib/services/creator-balance')
+          await updateCreatorBalances(orderData, orderId)
+          logger.info('creator balances updated successfully')
 
-          orderData.items?.forEach((item: any) => {
-            const vendorId = item.product?.vendorId || item.vendorId
-            if (!vendorId) return
+          // Log checkout event for analytics
+          const { logEvent } = await import('@/lib/analytics')
+          for (const item of (orderData.items || [])) {
+            await logEvent('checkout', {
+              productId: item.productId,
+              creatorId: item.product?.creatorId || item.creatorId,
+              userId: orderData.userId,
+              orderId,
+              amount: (item.productPrice || 0) * (item.quantity || 1)
+            })
+          }
 
-            const price =
-              item.product?.price ??
-              item.productPrice ??
-              item.price ??
-              0
-            const quantity = item.quantity || 1
-            const itemTotal = price * quantity
-            const commission = 0.10 // 10% platform commission
-            const vendorEarning = itemTotal * (1 - commission)
+          // Update Creator Reputation
+          const { updateCreatorReputation } = await import('@/lib/services/reputation')
+          const uniquecreatorIds = new Set((orderData.items || []).map((item: any) =>
+            (item.product?.creatorId || item.creatorId) as string
+          ).filter(Boolean))
 
-            vendorUpdates.set(
-              vendorId,
-              (vendorUpdates.get(vendorId) || 0) + vendorEarning
-            )
-          })
-
-          const balancePromises = Array.from(vendorUpdates.entries()).map(
-            async ([vendorId, earning]) => {
-              const balanceRef = adminDb.collection('vendorBalances').doc(vendorId)
-              const balanceDoc = await balanceRef.get()
-
-              if (balanceDoc.exists) {
-                const currentBalance = balanceDoc.data()
-                await balanceRef.update({
-                  availableBalance: (currentBalance?.availableBalance || 0) + earning,
-                  totalEarnings: (currentBalance?.totalEarnings || 0) + earning,
-                  updatedAt: new Date(),
-                })
-              } else {
-                await balanceRef.set({
-                  vendorId,
-                  availableBalance: earning,
-                  pendingBalance: 0,
-                  totalEarnings: earning,
-                  totalWithdrawn: 0,
-                  updatedAt: new Date(),
-                })
-              }
-            }
-          )
-
-          await Promise.all(balancePromises)
+          for (const vId of Array.from(uniquecreatorIds)) {
+            await updateCreatorReputation(vId as string)
+          }
         } catch (balanceError) {
-          console.error('⚠️ Failed to update vendor balances:', balanceError)
+          console.error('⚠️ Failed to update creator balances:', balanceError)
           // Don't fail the payment if balance update fails
         }
 
-        // Notify vendors of new sales via email (best-effort)
+        // Notify creators of new sales via email (best-effort)
         try {
-          const { sendVendorSaleNotification } = await import('@/lib/email/service')
+          const { sendCreatorSaleNotification } = await import('@/lib/email/service')
 
-          const vendorItemsMap = new Map<string, any[]>()
+          const creatorItemsMap = new Map<string, any[]>()
 
           orderData.items?.forEach((item: any) => {
-            const vendorId = item.product?.vendorId || item.vendorId
-            if (!vendorId) return
+            const creatorId = item.product?.creatorId || item.creatorId
+            if (!creatorId) return
 
-            const existing = vendorItemsMap.get(vendorId) || []
+            const existing = creatorItemsMap.get(creatorId) || []
             existing.push(item)
-            vendorItemsMap.set(vendorId, existing)
+            creatorItemsMap.set(creatorId, existing)
           })
 
-          for (const [vendorId, items] of vendorItemsMap.entries()) {
-            const vendorDoc = await adminDb.collection('users').doc(vendorId).get()
-            const vendorEmail = vendorDoc.exists ? vendorDoc.data()?.email : null
-            if (!vendorEmail) continue
+          for (const [creatorId, items] of creatorItemsMap.entries()) {
+            const creatorDoc = await adminDb.collection('users').doc(creatorId).get()
+            const creatorEmail = creatorDoc.exists ? creatorDoc.data()?.email : null
+            if (!creatorEmail) continue
 
             for (const item of items) {
-              await sendVendorSaleNotification(vendorEmail, item, orderId)
+              await sendCreatorSaleNotification(creatorEmail, item, orderId)
             }
           }
-        } catch (vendorEmailError) {
-          console.error('⚠️ Failed to send vendor sale notification emails:', vendorEmailError)
-          // Don't fail the payment if vendor emails fail
+        } catch (creatorEmailError) {
+          console.error('⚠️ Failed to send creator sale notification emails:', creatorEmailError)
+          // Don't fail the payment if creator emails fail
         }
 
-        // Generate download links for digital products and send confirmation email
+        // Generate secure DRM download links and send confirmation email
         try {
           const { sendOrderConfirmationEmail } = await import('@/lib/email/service')
-          let downloadLinks: any[] | undefined = undefined
+          const { createDownloadToken } = await import('@/lib/drm-utils')
+          const downloadLinks: any[] = []
 
-          // Generate download links for digital products
-          const digitalItems = orderData.items?.filter((item: any) => 
+          const digitalItems = orderData.items?.filter((item: any) =>
             item.product?.productType === 'digital' || item.product?.type === 'digital'
           ) || []
 
           if (digitalItems.length > 0) {
-            const { generateDownloadLinks } = await import('@/lib/digital-products/download-links')
-            
-            // Extract digital files from all digital products
-            const allDigitalFiles = digitalItems.flatMap((item: any) => 
-              item.product?.digitalFiles || []
-            ).filter((file: any) => file && file.id && file.fileName && file.fileUrl)
+            for (const item of digitalItems) {
+              const files = item.product?.digitalFiles || []
+              for (const file of files) {
+                // Create a secure token for this file/purchase
+                const tokenId = await createDownloadToken(
+                  orderData.userId,
+                  item.productId,
+                  orderId,
+                  { maxDownloads: item.product.downloadLimit || 3 }
+                )
 
-            if (allDigitalFiles.length > 0) {
-              // Get the first purchase record ID for this order (for tracking)
-              let purchaseId = undefined
-              try {
-                const purchaseQuery = await adminDb
-                  .collection('purchasedProducts')
-                  .where('orderId', '==', orderId)
-                  .where('userId', '==', orderData.userId)
-                  .limit(1)
-                  .get()
-                
-                if (!purchaseQuery.empty) {
-                  purchaseId = purchaseQuery.docs[0].id
-                }
-              } catch (purchaseError) {
-                console.warn('Could not get purchase ID for download links:', purchaseError)
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+                downloadLinks.push({
+                  fileId: file.id,
+                  fileName: file.fileName,
+                  url: `${baseUrl}/api/download/${tokenId}?fileId=${file.id}`,
+                  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+                })
               }
-
-              downloadLinks = await generateDownloadLinks(allDigitalFiles, 24, purchaseId)
-              console.log('✅ Generated', downloadLinks.length, 'download links for digital products')
             }
           }
 
@@ -284,33 +228,32 @@ export async function POST(request: NextRequest) {
             { id: orderId, ...orderData },
             downloadLinks
           )
-          console.log('✅ Confirmation email sent with', downloadLinks?.length || 0, 'download links')
-        } catch (emailError) {
-          console.error('⚠️ Failed to send confirmation email:', emailError)
-          // Don't fail the payment if email fails
+          logger.info('Digital fulfillment completed and confirmation email sent', { downloadLinkCount: downloadLinks.length })
+        } catch (fulfillmentError) {
+          console.error('⚠️ Failed digital fulfillment/email:', fulfillmentError)
         }
 
         // Create service bookings for service products
         try {
-          const serviceItems = orderData.items?.filter((item: any) => 
+          const serviceItems = orderData.items?.filter((item: any) =>
             item.product?.productType === 'service' || item.product?.type === 'service'
           ) || []
 
           if (serviceItems.length > 0) {
             const { createServiceBooking } = await import('@/lib/services/booking')
-            
+
             for (const serviceItem of serviceItems) {
               await createServiceBooking(orderId, serviceItem, orderData.userId)
             }
-            
-            console.log('✅ Created', serviceItems.length, 'service bookings')
+
+            logger.info('Created service bookings', { count: serviceItems.length })
           }
         } catch (serviceError) {
           console.error('⚠️ Failed to create service bookings:', serviceError)
           // Don't fail the payment if service booking fails
         }
 
-        // TODO: Notify vendors of new sale
+        // TODO: Notify creators of new sale
 
         return NextResponse.json({
           success: true,
@@ -335,7 +278,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error: any) {
     console.error('Payment verification error:', error)
-    
+
     // Handle specific Paystack errors
     if (error.response?.status === 404) {
       return NextResponse.json(

@@ -6,7 +6,7 @@ import { sendPayoutRequestSubmittedEmail, sendPayoutRequestAdminEmail } from '@/
 export async function GET(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       console.error('Firebase Admin SDK not initialized')
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const vendorId = searchParams.get('vendorId')
+    const creatorId = searchParams.get('creatorId')
     const status = searchParams.get('status')
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
     let query = adminDb.collection('payoutRequests').orderBy('requestedAt', 'desc')
 
     // Apply filters
-    if (vendorId) {
-      query = query.where('vendorId', '==', vendorId)
+    if (creatorId) {
+      query = query.where('creatorId', '==', creatorId)
     }
     if (status && status !== 'all') {
       query = query.where('status', '==', status)
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     const snapshot = await query.limit(limit).get()
-    
+
     const payouts = snapshot.docs.map((doc: any) => {
       const data = doc.data()
       return {
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       console.error('Firebase Admin SDK not initialized')
       return NextResponse.json(
@@ -89,9 +89,9 @@ export async function POST(request: NextRequest) {
     }
 
     const {
-      vendorId,
-      vendorName,
-      vendorEmail,
+      creatorId,
+      creatorName,
+      creatorEmail,
       amount,
       paymentMethod,
       bankDetails,
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // Validate required fields
-    if (!vendorId || !vendorName || !vendorEmail || !amount || !paymentMethod) {
+    if (!creatorId || !creatorName || !creatorEmail || !amount || !paymentMethod) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -124,11 +124,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check vendor balance
-    const balanceDoc = await adminDb.collection('vendorBalances').doc(vendorId).get()
+    // Check creator balance
+    const balanceDoc = await adminDb.collection('creatorBalances').doc(creatorId).get()
     if (!balanceDoc.exists) {
       return NextResponse.json(
-        { error: 'Vendor balance not found' },
+        { error: 'creator balance not found' },
         { status: 404 }
       )
     }
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     // Check for pending payout requests (prevent duplicate requests)
     const pendingPayoutsSnapshot = await adminDb
       .collection('payoutRequests')
-      .where('vendorId', '==', vendorId)
+      .where('creatorId', '==', creatorId)
       .where('status', 'in', ['pending', 'approved', 'processing'])
       .get()
 
@@ -181,9 +181,9 @@ export async function POST(request: NextRequest) {
 
     // Create payout request
     const payoutData = {
-      vendorId,
-      vendorName,
-      vendorEmail,
+      creatorId,
+      creatorName,
+      creatorEmail,
       amount,
       paymentMethod,
       status: 'pending',
@@ -195,24 +195,24 @@ export async function POST(request: NextRequest) {
 
     const payoutRef = await adminDb.collection('payoutRequests').add(payoutData)
 
-    // Update vendor balance (move from available to pending)
-    await adminDb.collection('vendorBalances').doc(vendorId).update({
+    // Update creator balance (move from available to pending)
+    await adminDb.collection('creatorBalances').doc(creatorId).update({
       availableBalance: balance.availableBalance - amount,
       pendingBalance: (balance.pendingBalance || 0) + amount,
       updatedAt: new Date()
     })
 
-    // Send confirmation email to vendor
+    // Send confirmation email to creator
     try {
-      await sendPayoutRequestSubmittedEmail(vendorEmail, {
-        vendorName,
+      await sendPayoutRequestSubmittedEmail(creatorEmail, {
+        creatorName,
         amount,
         paymentMethod,
         payoutId: payoutRef.id,
         requestedAt: new Date()
       })
     } catch (emailError) {
-      console.error('Failed to send vendor confirmation email:', emailError)
+      console.error('Failed to send creator confirmation email:', emailError)
     }
 
     // Send notification email to admins
@@ -223,8 +223,8 @@ export async function POST(request: NextRequest) {
 
       if (allAdminEmails.length > 0) {
         await sendPayoutRequestAdminEmail(allAdminEmails, {
-          vendorName,
-          vendorEmail,
+          creatorName,
+          creatorEmail,
           amount,
           paymentMethod,
           payoutId: payoutRef.id,
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
     try {
       await createAdminRoleNotification(['admin', 'super_admin'], 'payout_pending', {
         metadata: {
-          vendorName,
+          creatorName,
           amount,
           paymentMethod,
           actionUrl: '/admin/payouts'

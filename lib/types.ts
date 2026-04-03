@@ -1,7 +1,7 @@
 export interface Product {
   id: string
-  vendorId: string
-  vendorName: string
+  creatorId: string
+  creatorName: string
   name: string
   description: string
   price: number
@@ -17,14 +17,15 @@ export interface Product {
   sponsored: boolean
   status: "active" | "inactive" | "pending" | "rejected"
   
-  // Digital Product Fields
-  productType: "physical" | "digital" | "service"
-  type: "physical" | "digital" | "service" // Alias for productType
-  shippingInfo?: {
-    baseShippingFee?: number
-    offerFreeShipping?: boolean
-    notes?: string
-  }
+  // Reputation & Analytics
+  reputationScore?: number
+  salesCount?: number
+  viewCount?: number
+  downloadCount?: number
+  
+  // Digital-First Fields (Physical removed)
+  productType: "digital" | "service"
+  type: "digital" | "service" // Alias for productType
   digitalFiles?: DigitalFile[]
   accessType?: "instant" | "scheduled" | "lifetime"
   accessDuration?: number // days (0 = lifetime)
@@ -86,16 +87,37 @@ export interface Review {
   productId: string
   userId: string
   userName: string
+  userAvatar?: string
   rating: number
+  accuracyRating?: number
+  deliveryRating?: number
+  title: string
   comment: string
   images?: string[]
   helpful: number
+  verified: boolean
+  orderId?: string
+  status: "pending" | "approved" | "spam"
   createdAt: Date
+  updatedAt: Date
+}
+
+export interface CreatorReputation {
+  creatorId: string
+  score: number // 0-100
+  level: "new" | "rising" | "pro" | "elite"
+  badges: string[]
+  totalSales: number
+  averageRating: number
+  reviewCount: number
+  accuracyScore: number // 0-5
+  deliveryScore: number // 0-5
+  updatedAt: Date
 }
 
 export interface Advertisement {
   id: string
-  vendorId: string
+  creatorId: string
   type: "banner" | "sidebar" | "sponsored-product"
   title: string
   imageUrl: string
@@ -119,7 +141,7 @@ export interface Order {
   shipping: number
   total: number
   totalAmount: number
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "confirmed" | "paid" | "refunded"
+  status: "pending" | "processing" | "delivered" | "cancelled" | "confirmed" | "paid" | "refunded"
   paymentStatus: "pending" | "completed" | "paid" | "refunded" | "failed"
   shippingAddress: Address
   paymentMethod: string
@@ -141,9 +163,9 @@ export interface Address {
 
 export interface PayoutRequest {
   id: string
-  vendorId: string
-  vendorName: string
-  vendorEmail: string
+  creatorId: string
+  creatorName: string
+  creatorEmail: string
   amount: number
   paymentMethod: "bank_transfer" | "mobile_money" | "paypal"
   bankDetails?: {
@@ -167,8 +189,8 @@ export interface PayoutRequest {
   transactionReference?: string
 }
 
-export interface VendorBalance {
-  vendorId: string
+export interface CreatorBalance {
+  creatorId: string
   availableBalance: number
   pendingBalance: number
   totalEarnings: number

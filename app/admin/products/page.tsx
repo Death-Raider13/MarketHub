@@ -54,8 +54,8 @@ import { formatDistanceToNow } from "date-fns"
 
 interface Product {
   id: string
-  vendorId: string
-  vendorName: string
+  creatorId: string
+  creatorName: string
   name: string
   description: string
   price: number
@@ -88,14 +88,14 @@ function ProductsManagementContent() {
   const loadProducts = async () => {
     try {
       setLoading(true)
-      
+
       // Get products from Firestore
       const productsQuery = query(
         collection(db, "products"),
         orderBy("createdAt", "desc"),
         limit(100)
       )
-      
+
       const productsSnapshot = await getDocs(productsQuery)
       const productsData = productsSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -119,40 +119,40 @@ function ProductsManagementContent() {
         status: newStatus,
         updatedAt: new Date()
       })
-      
-      // Find the product to get vendor info
+
+      // Find the product to get creator info
       const product = products.find(p => p.id === productId)
-      
+
       // Update local state
-      setProducts(products.map(product => 
-        product.id === productId 
+      setProducts(products.map(product =>
+        product.id === productId
           ? { ...product, status: newStatus as any, updatedAt: new Date() }
           : product
       ))
-      
-      // Send notification to vendor
-      if (product?.vendorId) {
+
+      // Send notification to creator
+      if (product?.creatorId) {
         if (newStatus === 'approved') {
-          await createNotification(product.vendorId, 'product_approved', {
+          await createNotification(product.creatorId, 'product_approved', {
             metadata: {
               productId: productId,
               productName: product.name,
-              actionUrl: `/vendor/products/${productId}`
+              actionUrl: `/creator/products/${productId}`
             }
           })
-          toast.success(`Product "${product.name}" approved and vendor notified`)
+          toast.success(`Product "${product.name}" approved and creator notified`)
         } else if (newStatus === 'rejected') {
-          await createNotification(product.vendorId, 'product_rejected', {
+          await createNotification(product.creatorId, 'product_rejected', {
             metadata: {
               productId: productId,
               productName: product.name,
-              actionUrl: `/vendor/products/${productId}`
+              actionUrl: `/creator/products/${productId}`
             }
           })
-          toast.success(`Product "${product.name}" rejected and vendor notified`)
+          toast.success(`Product "${product.name}" rejected and creator notified`)
         }
       }
-      
+
       console.log(`Product ${productId} status updated to ${newStatus}`)
     } catch (error) {
       console.error("Error updating product status:", error)
@@ -172,15 +172,15 @@ function ProductsManagementContent() {
   }
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = 
+    const matchesSearch =
       product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.vendorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.creatorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     const matchesStatus = statusFilter === "all" || product.status === statusFilter
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
-    
+
     return matchesSearch && matchesStatus && matchesCategory
   })
 
@@ -195,10 +195,10 @@ function ProductsManagementContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6">
@@ -296,14 +296,14 @@ function ProductsManagementContent() {
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="search"
-                      placeholder="Search by name, vendor, SKU..."
+                      placeholder="Search by name, creator, SKU..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -320,7 +320,7 @@ function ProductsManagementContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="category">Category</Label>
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -337,7 +337,7 @@ function ProductsManagementContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <Button onClick={loadProducts} variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
@@ -361,7 +361,7 @@ function ProductsManagementContent() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Product</TableHead>
-                      <TableHead>Vendor</TableHead>
+                      <TableHead>creator</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Stock</TableHead>
@@ -392,7 +392,7 @@ function ProductsManagementContent() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{product.vendorName || 'N/A'}</TableCell>
+                        <TableCell>{product.creatorName || 'N/A'}</TableCell>
                         <TableCell className="capitalize">{product.category || 'N/A'}</TableCell>
                         <TableCell>₦{product.price?.toLocaleString() || '0'}</TableCell>
                         <TableCell>{product.stock || 0}</TableCell>
@@ -416,7 +416,7 @@ function ProductsManagementContent() {
                             >
                               <Eye className="h-3 w-3" />
                             </Button>
-                            
+
                             {product.status === 'pending' && (
                               <>
                                 <Button
@@ -426,7 +426,7 @@ function ProductsManagementContent() {
                                 >
                                   <CheckCircle className="h-3 w-3" />
                                 </Button>
-                                
+
                                 <Button
                                   size="sm"
                                   variant="destructive"
@@ -452,10 +452,10 @@ function ProductsManagementContent() {
               <DialogHeader>
                 <DialogTitle>Product Details</DialogTitle>
                 <DialogDescription>
-                  {selectedProduct?.name} by {selectedProduct?.vendorName}
+                  {selectedProduct?.name} by {selectedProduct?.creatorName}
                 </DialogDescription>
               </DialogHeader>
-              
+
               {selectedProduct && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -464,18 +464,18 @@ function ProductsManagementContent() {
                       <p className="font-medium">{selectedProduct.name}</p>
                     </div>
                     <div>
-                      <Label>Vendor</Label>
-                      <p className="font-medium">{selectedProduct.vendorName}</p>
+                      <Label>creator</Label>
+                      <p className="font-medium">{selectedProduct.creatorName}</p>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label>Description</Label>
                     <p className="mt-1 p-3 bg-muted rounded-lg">
                       {selectedProduct.description || 'No description available'}
                     </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label>Price</Label>
@@ -490,7 +490,7 @@ function ProductsManagementContent() {
                       <p className="font-medium capitalize">{selectedProduct.category}</p>
                     </div>
                   </div>
-                  
+
                   {selectedProduct.images && selectedProduct.images.length > 0 && (
                     <div>
                       <Label>Product Images</Label>
@@ -510,12 +510,12 @@ function ProductsManagementContent() {
                   )}
                 </div>
               )}
-              
+
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowProductDetails(false)}>
                   Close
                 </Button>
-                
+
                 {selectedProduct?.status === 'pending' && (
                   <>
                     <Button
@@ -528,7 +528,7 @@ function ProductsManagementContent() {
                       <XCircle className="h-4 w-4 mr-2" />
                       Reject
                     </Button>
-                    
+
                     <Button
                       onClick={() => {
                         updateProductStatus(selectedProduct.id, 'approved')

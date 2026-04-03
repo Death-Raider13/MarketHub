@@ -31,7 +31,7 @@ import {
 } from "../session-management"
 import { tokenRefreshManager, getCurrentToken } from "./token-refresh"
 
-export type UserRole = "customer" | "vendor" | "admin" | "super_admin" | "moderator" | "support"
+export type UserRole = "customer" | "creator" | "admin" | "super_admin" | "moderator" | "support"
 
 export interface UserProfile {
   uid: string
@@ -54,7 +54,7 @@ export interface UserProfile {
     postalCode?: string
     country?: string
   }
-  // Vendor-specific fields
+  // creator-specific fields
   storeName?: string
   storeUrl?: string
   storeDescription?: string
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
           const profile = userDoc.data() as UserProfile
-          
+
           // Sync emailVerified status from Firebase Auth to Firestore
           if (user.emailVerified && !profile.emailVerified) {
             await setDoc(doc(db, "users", user.uid), {
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             })
             profile.emailVerified = true
           }
-          
+
           setUserProfile(profile)
         }
 
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Send email verification with custom action handler
       // Automatically uses correct URL for dev/production
       const actionCodeSettings = {
-        url: typeof window !== 'undefined' 
+        url: typeof window !== 'undefined'
           ? `${window.location.origin}/auth/action`
           : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
         handleCodeInApp: false
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailVerified: false, // Track email verification status
         lastLoginAt: new Date(),
         updatedAt: new Date(),
-        ...(role === "vendor" && { verified: false, commission: 10 }),
+        ...(role === "creator" && { verified: false, commission: 10 }),
       }
 
       await setDoc(doc(db, "users", userCredential.user.uid), userProfile)
@@ -183,9 +183,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         console.error('Error calling onUserRegistration:', err)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const authError = error as { code?: string; message?: string }
       // Handle rate limit errors
-      if (error.code === 'auth/too-many-requests') {
+      if (authError.code === 'auth/too-many-requests') {
         throw new Error('Too many signup attempts. Please try again later.')
       }
       const userFriendlyMessage = handleAuthError(error)
@@ -201,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Check if user profile exists
       const userDoc = await getDoc(doc(db, "users", user.uid))
-      
+
       if (!userDoc.exists()) {
         // New user: create a minimal profile and redirect to onboarding
         const minimalProfile: Partial<UserProfile> = {
@@ -214,9 +215,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           lastLoginAt: new Date(),
           updatedAt: new Date(),
         }
-        
+
         await setDoc(doc(db, "users", user.uid), minimalProfile)
-        
+
         // Set a flag in sessionStorage to show onboarding
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('needsOnboarding', 'true')
@@ -234,13 +235,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (profile.role) {
           // Create session (best-effort)
           try {
-            const ipAddress = await fetch('https://api.ipify.org?format=json')
-              .then(res => res.json())
-              .then(data => data.ip)
-              .catch(() => 'unknown')
-            
+            // Note: External IP resolution removed for performance and reliability.
+            // IP tracking should be handled exclusively on the server side via middleware/headers.
+            const ipAddress = 'client-ip'
+
             const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
-            
+
             const newSession = await createSession(
               user.uid,
               user.email!,
@@ -249,7 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               userAgent,
               false
             )
-            
+
             setSession(newSession)
           } catch (sessionError) {
             console.error('Session creation failed:', sessionError)
@@ -261,12 +261,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const userFriendlyMessage = handleAuthError(error)
       throw new Error(userFriendlyMessage)
     }
   }
-    const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     try {
       // 1) Primary auth step – if this fails, we show an error to the user
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
@@ -288,28 +288,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profile = userDoc.data() as UserProfile
 
         // Create session (best-effort)
-        const ipAddress = await fetch('https://api.ipify.org?format=json')
-          .then(res => res.json())
-          .then(data => data.ip)
-          .catch(() => 'unknown')
-        
+        // Note: External IP tracking is now handled on the server side
+        const ipAddress = 'client-ip'
+
         const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
-        
+
         const newSession = await createSession(
           userCredential.user.uid,
           userCredential.user.email!,
-          profile.role,
+          profile.role as UserRole,
           ipAddress,
           userAgent,
           rememberMe
         )
-        
+
         setSession(newSession)
-      } catch (secondaryError: any) {
+      } catch (secondaryError: unknown) {
         // Log but don't block login flow
         console.error('Post-sign-in profile/session setup failed:', secondaryError)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Only true auth failures should surface to the UI
       const userFriendlyMessage = handleAuthError(error)
       throw new Error(userFriendlyMessage)
@@ -321,7 +319,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (session) {
       await terminateSession(session.sessionId)
     }
-    
+
     await signOut(auth)
     setUserProfile(null)
     setSession(null)
@@ -332,7 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) {
       await terminateAllUserSessions(user.uid)
     }
-    
+
     await signOut(auth)
     setUserProfile(null)
     setSession(null)
@@ -351,14 +349,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) {
       throw new Error('No user logged in')
     }
-    
+
     if (user.emailVerified) {
       throw new Error('Email already verified')
     }
 
     // Automatically uses correct URL for dev/production
     const actionCodeSettings = {
-      url: typeof window !== 'undefined' 
+      url: typeof window !== 'undefined'
         ? `${window.location.origin}/auth/action`
         : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
       handleCodeInApp: false
@@ -374,7 +372,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUserProfile = async () => {
     if (!user) return
-    
+
     try {
       const userDoc = await getDoc(doc(db, "users", user.uid))
       if (userDoc.exists()) {

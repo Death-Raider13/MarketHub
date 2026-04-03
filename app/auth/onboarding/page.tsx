@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import { Store } from "lucide-react"
 
 export default function OnboardingPage() {
-  const [role, setRole] = useState<"customer" | "vendor">("customer")
+  const [role, setRole] = useState<"customer" | "creator">("customer")
   const [displayName, setDisplayName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -35,11 +35,11 @@ export default function OnboardingPage() {
         case "admin":
           router.push("/admin/dashboard")
           break
-        case "vendor":
+        case "creator":
           if (userProfile.verified) {
-            router.push("/vendor/dashboard")
+            router.push("/creator/dashboard")
           } else {
-            router.push("/vendor/pending-approval")
+            router.push("/creator/pending-approval")
           }
           break
         case "customer":
@@ -72,7 +72,7 @@ export default function OnboardingPage() {
         role,
         displayName: displayName.trim(),
         updatedAt: new Date(),
-        ...(role === "vendor" && { verified: false, commission: 10 }),
+        ...(role === "creator" && { verified: false, commission: 10 }),
       }
 
       await setDoc(doc(db, "users", user!.uid), updateData, { merge: true })
@@ -80,11 +80,11 @@ export default function OnboardingPage() {
       // Refresh the user profile in context
       await refreshUserProfile()
 
-      if (role === "vendor") {
+      if (role === "creator") {
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('suppressRoleRedirect', 'true')
         }
-        router.push("/auth/vendor-register-new")
+        router.push("/auth/creator-register-new")
         return
       }
 
@@ -130,14 +130,14 @@ export default function OnboardingPage() {
 
             <div className="space-y-2">
               <Label>Account type</Label>
-              <RadioGroup value={role} onValueChange={(value: "customer" | "vendor") => setRole(value)}>
+              <RadioGroup value={role} onValueChange={(value: "customer" | "creator") => setRole(value)}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="customer" id="customer" />
                   <Label htmlFor="customer">Customer - I want to buy products</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="vendor" id="vendor" />
-                  <Label htmlFor="vendor">Vendor - I want to sell products</Label>
+                  <RadioGroupItem value="creator" id="creator" />
+                  <Label htmlFor="creator">Creator - I want to build a digital hub</Label>
                 </div>
               </RadioGroup>
             </div>

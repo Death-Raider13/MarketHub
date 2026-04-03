@@ -48,7 +48,7 @@ Tracks all admin actions:
 - ✅ Create/edit/delete admin accounts
 - ✅ System backup and maintenance
 - ✅ Financial settings
-- ✅ All vendor and product operations
+- ✅ All creator and product operations
 - ✅ Complete user management
 
 ### Admin
@@ -59,9 +59,9 @@ Tracks all admin actions:
 - ❌ Cannot change financial settings
 
 **Can Do:**
-- ✅ Approve/reject vendors and products
+- ✅ Approve/reject creators and products
 - ✅ Manage orders and refunds
-- ✅ Process vendor payouts
+- ✅ Process creator payouts
 - ✅ View analytics and reports
 - ✅ Moderate content
 
@@ -77,14 +77,14 @@ Tracks all admin actions:
 **Cannot:**
 - ❌ Manage finances
 - ❌ Edit platform settings
-- ❌ Delete users or vendors
+- ❌ Delete users or creators
 
 ### Support
 
 **Customer Support** focused:
 - ✅ View users and orders
 - ✅ Edit order information
-- ✅ View products and vendors
+- ✅ View products and creators
 - ✅ View analytics
 
 **Cannot:**
@@ -105,15 +105,15 @@ Tracks all admin actions:
 - `users.ban` - Ban/suspend users
 - `users.verify` - Verify user accounts
 
-### Vendor Management
-- `vendors.view` - View vendor accounts
-- `vendors.approve` - Approve vendor applications
-- `vendors.reject` - Reject vendor applications
-- `vendors.suspend` - Suspend vendor accounts
-- `vendors.edit` - Edit vendor information
-- `vendors.delete` - Delete vendor accounts
-- `vendors.verify` - Verify vendor accounts
-- `vendors.commission` - Manage commission rates
+### creator Management
+- `creators.view` - View creator accounts
+- `creators.approve` - Approve creator applications
+- `creators.reject` - Reject creator applications
+- `creators.suspend` - Suspend creator accounts
+- `creators.edit` - Edit creator information
+- `creators.delete` - Delete creator accounts
+- `creators.verify` - Verify creator accounts
+- `creators.commission` - Manage commission rates
 
 ### Product Management
 - `products.view` - View all products
@@ -132,7 +132,7 @@ Tracks all admin actions:
 
 ### Financial Management
 - `finance.view` - View financial data
-- `finance.payouts` - Process vendor payouts
+- `finance.payouts` - Process creator payouts
 - `finance.refunds` - Process customer refunds
 - `finance.reports` - Generate financial reports
 - `finance.settings` - Manage financial settings
@@ -147,10 +147,10 @@ Tracks all admin actions:
 - user.create, user.edit, user.delete
 - user.ban, user.unban, user.verify
 
-**Vendor Actions:**
-- vendor.approve, vendor.reject
-- vendor.suspend, vendor.unsuspend
-- vendor.commission_change
+**creator Actions:**
+- creator.approve, creator.reject
+- creator.suspend, creator.unsuspend
+- creator.commission_change
 
 **Product Actions:**
 - product.approve, product.reject
@@ -170,12 +170,12 @@ Tracks all admin actions:
 
 ```typescript
 {
-  action: 'vendor.approve',
+  action: 'creator.approve',
   adminId: 'admin123',
   adminEmail: 'admin@example.com',
   adminRole: 'admin',
-  targetType: 'vendor',
-  targetId: 'vendor456',
+  targetType: 'creator',
+  targetId: 'creator456',
   targetName: 'TechStore Pro',
   details: {
     previousStatus: 'pending',
@@ -199,11 +199,11 @@ Tracks all admin actions:
 import { hasPermission } from '@/lib/admin/permissions';
 
 function ApproveButton({ adminRole }) {
-  const canApprove = hasPermission(adminRole, 'vendors.approve');
+  const canApprove = hasPermission(adminRole, 'creators.approve');
   
   if (!canApprove) return null;
   
-  return <Button>Approve Vendor</Button>;
+  return <Button>Approve creator</Button>;
 }
 ```
 
@@ -212,20 +212,20 @@ function ApproveButton({ adminRole }) {
 ```typescript
 import { logAdminAction, createAuditLog } from '@/lib/admin/audit-log';
 
-async function approveVendor(vendorId: string, adminId: string) {
+async function approvecreator(creatorId: string, adminId: string) {
   try {
     // Perform the action
-    await updateVendorStatus(vendorId, 'approved');
+    await updatecreatorstatus(creatorId, 'approved');
     
     // Log the action
     await logAdminAction(
       createAuditLog(
-        'vendor.approve',
+        'creator.approve',
         adminId,
         'admin@example.com',
         'admin',
-        'vendor',
-        vendorId,
+        'creator',
+        creatorId,
         { previousStatus: 'pending', newStatus: 'approved' },
         '41.58.123.45',
         navigator.userAgent,
@@ -236,12 +236,12 @@ async function approveVendor(vendorId: string, adminId: string) {
     // Log failure
     await logAdminAction(
       createAuditLog(
-        'vendor.approve',
+        'creator.approve',
         adminId,
         'admin@example.com',
         'admin',
-        'vendor',
-        vendorId,
+        'creator',
+        creatorId,
         { error: error.message },
         '41.58.123.45',
         navigator.userAgent,
@@ -286,7 +286,7 @@ import EnhancedAdminDashboard from '@/app/admin/dashboard-enhanced/page';
 
 ### Real-Time Stats
 - Total revenue with growth percentage
-- Active vendors + pending count
+- Active creators + pending count
 - Total products + pending count
 - Total users with growth percentage
 - Total orders + pending count
@@ -295,19 +295,19 @@ import EnhancedAdminDashboard from '@/app/admin/dashboard-enhanced/page';
 - Revenue trend (last 6 months)
 - Order volume (last 7 days)
 - User growth
-- Vendor performance
+- creator performance
 
 ### Pending Approvals
-- Vendor applications
+- creator applications
 - Product submissions
 - Advertisement campaigns
 - Review submissions
 
 ### Quick Actions
-- Review pending vendors
+- Review pending creators
 - Review pending products
 - Process pending orders
-- Process vendor payouts
+- Process creator payouts
 - Review reported items
 
 ---
@@ -373,10 +373,10 @@ async function deleteUser(userId: string, adminRole: string) {
 
 ```typescript
 // ❌ Bad - No audit trail
-await updateDoc(doc(db, 'vendors', vendorId), { verified: true });
+await updateDoc(doc(db, 'creators', creatorId), { verified: true });
 
 // ✅ Good - Log the action
-await updateDoc(doc(db, 'vendors', vendorId), { verified: true });
+await updateDoc(doc(db, 'creators', creatorId), { verified: true });
 await logAdminAction(...);
 ```
 
@@ -384,17 +384,17 @@ await logAdminAction(...);
 
 ```typescript
 // ❌ Bad - No validation
-async function updateCommission(vendorId: string, rate: number) {
-  await updateDoc(doc(db, 'vendors', vendorId), { commission: rate });
+async function updateCommission(creatorId: string, rate: number) {
+  await updateDoc(doc(db, 'creators', creatorId), { commission: rate });
 }
 
 // ✅ Good - Validate input
-async function updateCommission(vendorId: string, rate: number) {
+async function updateCommission(creatorId: string, rate: number) {
   if (rate < 0 || rate > 50) {
     throw new Error('Invalid commission rate');
   }
   
-  await updateDoc(doc(db, 'vendors', vendorId), { commission: rate });
+  await updateDoc(doc(db, 'creators', creatorId), { commission: rate });
 }
 ```
 
@@ -438,8 +438,8 @@ Before granting admin access:
 ```typescript
 import { hasPermission } from '@/lib/admin/permissions';
 
-const canAccess = hasPermission(userRole, 'vendors.view');
-console.log('Can access vendors page:', canAccess);
+const canAccess = hasPermission(userRole, 'creators.view');
+console.log('Can access creators page:', canAccess);
 ```
 
 ### Issue: Audit logs not appearing

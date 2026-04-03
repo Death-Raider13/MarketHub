@@ -77,12 +77,12 @@ export interface AdCampaign {
   lastModifiedBy: string
 }
 
-// Ad Slot (Vendor's ad space)
+// Ad Slot (Creator's ad space)
 export interface AdSlot {
   id: string
-  vendorId: string
-  vendorName: string
-  storeName: string
+  creatorId: string
+  creatorName: string
+  hubName: string
   
   // Slot Configuration
   placement: {
@@ -102,7 +102,7 @@ export interface AdSlot {
   pricing: {
     baseRate: number // Base CPM rate
     premiumMultiplier: number // For premium placements
-    vendorShare: number // Percentage (e.g., 0.70 for 70%)
+    creatorShare: number // Percentage (e.g., 0.70 for 70%)
   }
   
   // Rotation Queue (Active campaigns)
@@ -113,7 +113,7 @@ export interface AdSlot {
     totalImpressions: number
     totalClicks: number
     totalRevenue: number
-    vendorEarnings: number
+    creatorEarnings: number
     averageCTR: number
   }
   
@@ -138,7 +138,7 @@ export interface AdImpression {
   id: string
   campaignId: string
   slotId: string
-  vendorId: string
+  creatorId: string
   
   // User Context
   userId?: string // If logged in
@@ -167,7 +167,7 @@ export interface AdImpression {
   
   // Revenue
   cost: number // Cost to advertiser
-  vendorEarning: number // Vendor's share
+  creatorEarning: number // Creator's share
   platformEarning: number // Platform's share
   
   // Metadata
@@ -181,7 +181,7 @@ export interface AdClick {
   impressionId: string
   campaignId: string
   slotId: string
-  vendorId: string
+  creatorId: string
   
   // Click Details
   timestamp: Date
@@ -201,13 +201,13 @@ export interface AdClick {
   
   // Revenue
   cost: number
-  vendorEarning: number
+  creatorEarning: number
   platformEarning: number
 }
 
-// Vendor Ad Earnings
-export interface VendorAdEarnings {
-  vendorId: string
+// Creator Ad Earnings
+export interface CreatorAdEarnings {
+  creatorId: string
   period: {
     start: Date
     end: Date
@@ -251,10 +251,10 @@ export interface VendorAdEarnings {
 
 // Ad Display Context (for targeting)
 export interface AdDisplayContext {
-  vendorId: string
-  storeCategory: string
-  storeRating: number
-  storeType: 'all' | 'premium' | 'verified'
+  creatorId: string
+  hubCategory: string
+  hubRating: number
+  hubType: 'all' | 'premium' | 'verified'
   
   // User Context
   userId?: string
@@ -302,10 +302,10 @@ export interface CampaignPerformance {
     roi: number
   }
   
-  // By Vendor
-  byVendor: {
-    vendorId: string
-    vendorName: string
+  // By Creator
+  byCreator: {
+    creatorId: string
+    creatorName: string
     impressions: number
     clicks: number
     conversions: number

@@ -5,7 +5,7 @@ import { FieldValue } from "firebase-admin/firestore"
 export async function POST(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
-    
+
     if (!adminDb) {
       return NextResponse.json(
         { error: "Server configuration error" },
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { campaignId, placement, vendorId, category, deviceType, userAgent, timestamp } = await request.json()
+    const { campaignId, placement, creatorId, category, deviceType, userAgent, timestamp } = await request.json()
 
     if (!campaignId || !placement) {
       return NextResponse.json(
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       campaignId,
       advertiserId: campaignData.advertiserId,
       placement,
-      vendorId: vendorId || null,
+      creatorId: creatorId || null,
       category: category || null,
       deviceType,
       userAgent,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // Calculate cost per click if using CPC model
     if (campaignData.bidding?.type === 'CPC') {
       const cpcCost = campaignData.bidding?.bidAmount || 1
-      
+
       // Update budget
       await campaignRef.update({
         "budget.spent": FieldValue.increment(cpcCost),

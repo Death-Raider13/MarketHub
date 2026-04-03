@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -10,8 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Mail, Phone, MapPin, Clock, MessageCircle } from "lucide-react"
+import { useAuth } from "@/lib/firebase/auth-context"
 
 export default function ContactPage() {
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,31 +21,45 @@ export default function ContactPage() {
     category: "",
     message: "",
   })
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.displayName || prev.name,
+        email: user.email || prev.email,
+      }))
+    }
+  }, [user])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.name || !formData.email || !formData.subject || !formData.category || !formData.message) {
       alert("Please fill in all required fields.")
       return
     }
 
     setIsSubmitting(true)
-    
+
     try {
       const response = await fetch('/api/support/tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          userId: user?.uid || null
+        }),
       })
 
       const data = await response.json()
 
       if (data.success) {
-        alert(`Thank you for contacting us! Your support ticket ${data.ticketNumber} has been created. We'll get back to you within 24 hours.`)
+        alert(`Thank you for contacting us! Your support ticket ${data.ticketNumber} has been created. You can track its status in your "My Tickets" dashboard.`)
+        window.location.href = "/support/my-tickets"
         setFormData({ name: "", email: "", subject: "", category: "", message: "" })
       } else {
         alert(`Error: ${data.error || 'Failed to create support ticket'}`)
@@ -149,7 +165,11 @@ export default function ContactPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Need immediate assistance? Chat with our support team now.
                   </p>
-                  <Button className="w-full">Start Live Chat</Button>
+                  <Button className="w-full" asChild>
+                    <a href="https://wa.me/234XXXXXXXXXX" target="_blank" rel="noopener noreferrer">
+                      Start Live Chat
+                    </a>
+                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -201,7 +221,7 @@ export default function ContactPage() {
                             <SelectItem value="general">General Inquiry</SelectItem>
                             <SelectItem value="order">Order Support</SelectItem>
                             <SelectItem value="technical">Technical Issue</SelectItem>
-                            <SelectItem value="vendor">Vendor Support</SelectItem>
+                            <SelectItem value="creator">creator Support</SelectItem>
                             <SelectItem value="billing">Billing Question</SelectItem>
                             <SelectItem value="feedback">Feedback</SelectItem>
                           </SelectContent>
@@ -259,21 +279,21 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold mb-2">What is your response time?</h3>
                     <p className="text-sm text-muted-foreground">
-                      We aim to respond to all inquiries within 24 hours during business days. 
+                      We aim to respond to all inquiries within 24 hours during business days.
                       For urgent matters, please use our live chat feature.
                     </p>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">Can I track my inquiry?</h3>
                     <p className="text-sm text-muted-foreground">
-                      Yes! After submitting your inquiry, you'll receive a ticket number via email 
+                      Yes! After submitting your inquiry, you'll receive a ticket number via email
                       that you can use to track the status of your request.
                     </p>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">Do you offer phone support?</h3>
                     <p className="text-sm text-muted-foreground">
-                      Yes, our phone support is available Monday-Friday, 9AM-6PM PST. 
+                      Yes, our phone support is available Monday-Friday, 9AM-6PM PST.
                       Call us at 1-800-MARKET-HUB.
                     </p>
                   </div>

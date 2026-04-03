@@ -67,8 +67,8 @@ function SuperAdminContent() {
   const [stats, setStats] = useState({
     totalRevenue: 0,
     revenueGrowth: 18.2,
-    activeVendors: 0,
-    pendingVendors: 0,
+    activeCreators: 0,
+    pendingCreators: 0,
     totalProducts: 0,
     pendingProducts: 0,
     totalUsers: 0,
@@ -88,7 +88,7 @@ function SuperAdminContent() {
   });
 
   // Data states
-  const [vendors, setVendors] = useState<any[]>([]);
+  const [creators, setCreators] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [admins, setAdmins] = useState<any[]>([]);
@@ -106,12 +106,12 @@ function SuperAdminContent() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      // Load vendors
-      const vendorsSnapshot = await getDocs(collection(db, 'vendors'));
-      const vendorsData = vendorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setVendors(vendorsData);
-      const activeVendors = vendorsData.filter((v: any) => v.verified).length;
-      const pendingVendors = vendorsData.filter((v: any) => !v.verified).length;
+      // Load creators
+      const creatorsSnapshot = await getDocs(collection(db, 'creators'));
+      const creatorsData = creatorsSnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+      setCreators(creatorsData);
+      const activeCreators = creatorsData.filter((v: any) => v.verified).length;
+      const pendingCreators = creatorsData.filter((v: any) => !v.verified).length;
 
       // Load products
       const productsSnapshot = await getDocs(collection(db, 'products'));
@@ -127,7 +127,7 @@ function SuperAdminContent() {
       const totalUsers = usersData.length;
 
       // Load admins
-      const adminsData = usersData.filter((u: any) => 
+      const adminsData = usersData.filter((u: any) =>
         ['admin', 'super_admin', 'moderator', 'support'].includes(u.role)
       );
       setAdmins(adminsData);
@@ -142,8 +142,8 @@ function SuperAdminContent() {
       setStats(prev => ({
         ...prev,
         totalRevenue,
-        activeVendors,
-        pendingVendors,
+        activeCreators,
+        pendingCreators,
         totalProducts,
         pendingProducts,
         totalUsers,
@@ -178,7 +178,7 @@ function SuperAdminContent() {
   return (
     <div className="flex h-screen flex-col">
       <AdminHeader />
-      
+
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar with Tabs */}
         <div className="w-64 border-r bg-muted/10 flex flex-col">
@@ -212,15 +212,15 @@ function SuperAdminContent() {
             </Button>
 
             <Button
-              variant={activeTab === 'vendors' ? 'secondary' : 'ghost'}
+              variant={activeTab === 'creators' ? 'secondary' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setActiveTab('vendors')}
+              onClick={() => setActiveTab('creators')}
             >
               <Store className="mr-2 h-4 w-4" />
-              Vendors
-              {stats.pendingVendors > 0 && (
+              Creators
+              {stats.pendingCreators > 0 && (
                 <Badge variant="destructive" className="ml-auto">
-                  {stats.pendingVendors}
+                  {stats.pendingCreators}
                 </Badge>
               )}
             </Button>
@@ -362,10 +362,10 @@ function SuperAdminContent() {
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Active Vendors</p>
-                        <p className="text-2xl font-bold">{stats.activeVendors}</p>
+                        <p className="text-sm text-muted-foreground">Active Creators</p>
+                        <p className="text-2xl font-bold">{stats.activeCreators}</p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {stats.pendingVendors} pending
+                          {stats.pendingCreators} pending
                         </p>
                       </div>
                       <div className="rounded-full bg-blue-500/10 p-3">
@@ -649,28 +649,28 @@ function SuperAdminContent() {
             </div>
           )}
 
-          {/* Vendors Tab */}
-          {activeTab === 'vendors' && (
+          {/* Creators Tab */}
+          {activeTab === 'creators' && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-3xl font-bold flex items-center gap-2">
                   <Store className="h-8 w-8 text-primary" />
-                  Vendor Management
+                  Creator Management
                 </h1>
-                <p className="text-muted-foreground">Manage all platform vendors</p>
+                <p className="text-muted-foreground">Manage all platform creators</p>
               </div>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>All Vendors ({vendors.length})</CardTitle>
-                  <CardDescription>View and manage vendor accounts</CardDescription>
+                  <CardTitle>All Creators ({creators.length})</CardTitle>
+                  <CardDescription>View and manage creator accounts</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Store Name</TableHead>
+                          <TableHead>Brand Name</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Commission</TableHead>
@@ -678,26 +678,26 @@ function SuperAdminContent() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {vendors.length === 0 ? (
+                        {creators.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={5} className="text-center">
-                              No vendors found
+                              No creators found
                             </TableCell>
                           </TableRow>
                         ) : (
-                          vendors.map((vendor: any) => (
-                            <TableRow key={vendor.id}>
-                              <TableCell className="font-medium">{vendor.storeName || 'N/A'}</TableCell>
-                              <TableCell>{vendor.email}</TableCell>
+                          creators.map((creator: any) => (
+                            <TableRow key={creator.id}>
+                              <TableCell className="font-medium">{creator.brandName || creator.hubName || creator.storeName || 'N/A'}</TableCell>
+                              <TableCell>{creator.email}</TableCell>
                               <TableCell>
-                                <Badge variant={vendor.verified ? 'default' : 'secondary'}>
-                                  {vendor.verified ? 'Verified' : 'Pending'}
+                                <Badge variant={creator.verified ? 'default' : 'secondary'}>
+                                  {creator.verified ? 'Verified' : 'Pending'}
                                 </Badge>
                               </TableCell>
-                              <TableCell>{vendor.commission || platformCommission}%</TableCell>
+                              <TableCell>{creator.commission || platformCommission}%</TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
-                                  {!vendor.verified && (
+                                  {!creator.verified && (
                                     <Button variant="ghost" size="sm">
                                       <CheckCircle className="mr-1 h-3 w-3" />
                                       Approve
@@ -739,7 +739,7 @@ function SuperAdminContent() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Product Name</TableHead>
-                          <TableHead>Vendor</TableHead>
+                          <TableHead>creator</TableHead>
                           <TableHead>Price</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Actions</TableHead>
@@ -756,14 +756,14 @@ function SuperAdminContent() {
                           products.map((product: any) => (
                             <TableRow key={product.id}>
                               <TableCell className="font-medium">{product.name || 'N/A'}</TableCell>
-                              <TableCell>{product.vendorName || product.vendorId}</TableCell>
+                              <TableCell>{product.creatorName || product.creatorId}</TableCell>
                               <TableCell>₦{product.price?.toLocaleString() || '0'}</TableCell>
                               <TableCell>
-                                <Badge 
+                                <Badge
                                   variant={
-                                    product.status === 'approved' ? 'default' : 
-                                    product.status === 'pending' ? 'secondary' : 
-                                    'destructive'
+                                    product.status === 'approved' ? 'default' :
+                                      product.status === 'pending' ? 'secondary' :
+                                        'destructive'
                                   }
                                 >
                                   {product.status || 'pending'}
@@ -896,7 +896,7 @@ function SuperAdminContent() {
                   <CardContent className="pt-6">
                     <div className="text-sm text-muted-foreground">Pending Payouts</div>
                     <div className="text-2xl font-bold">₦245,000</div>
-                    <div className="text-xs text-orange-600 mt-1">12 vendors waiting</div>
+                    <div className="text-xs text-orange-600 mt-1">12 creators waiting</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -921,7 +921,7 @@ function SuperAdminContent() {
                         <TableRow>
                           <TableHead>Date</TableHead>
                           <TableHead>Type</TableHead>
-                          <TableHead>Vendor</TableHead>
+                          <TableHead>creator</TableHead>
                           <TableHead>Amount</TableHead>
                           <TableHead>Commission</TableHead>
                           <TableHead>Status</TableHead>
@@ -929,24 +929,24 @@ function SuperAdminContent() {
                       </TableHeader>
                       <TableBody>
                         {[
-                          { date: '2025-09-30', type: 'Sale', vendor: 'TechStore Pro', amount: 45000, commission: 6750, status: 'completed' },
-                          { date: '2025-09-30', type: 'Payout', vendor: 'Fashion Hub', amount: -120000, commission: 0, status: 'completed' },
-                          { date: '2025-09-29', type: 'Sale', vendor: 'Home Essentials', amount: 28000, commission: 4200, status: 'completed' },
-                          { date: '2025-09-29', type: 'Sale', vendor: 'Electronics Plus', amount: 95000, commission: 14250, status: 'completed' },
-                          { date: '2025-09-28', type: 'Refund', vendor: 'TechStore Pro', amount: -15000, commission: -2250, status: 'completed' },
+                          { date: '2025-09-30', type: 'Sale', creator: 'TechStore Pro', amount: 45000, commission: 6750, status: 'completed' },
+                          { date: '2025-09-30', type: 'Payout', creator: 'Fashion Hub', amount: -120000, commission: 0, status: 'completed' },
+                          { date: '2025-09-29', type: 'Sale', creator: 'Home Essentials', amount: 28000, commission: 4200, status: 'completed' },
+                          { date: '2025-09-29', type: 'Sale', creator: 'Electronics Plus', amount: 95000, commission: 14250, status: 'completed' },
+                          { date: '2025-09-28', type: 'Refund', creator: 'TechStore Pro', amount: -15000, commission: -2250, status: 'completed' },
                         ].map((transaction, index) => (
                           <TableRow key={index}>
                             <TableCell>{transaction.date}</TableCell>
                             <TableCell>
                               <Badge variant={
                                 transaction.type === 'Sale' ? 'default' :
-                                transaction.type === 'Payout' ? 'secondary' :
-                                'destructive'
+                                  transaction.type === 'Payout' ? 'secondary' :
+                                    'destructive'
                               }>
                                 {transaction.type}
                               </Badge>
                             </TableCell>
-                            <TableCell>{transaction.vendor}</TableCell>
+                            <TableCell>{transaction.creator}</TableCell>
                             <TableCell className={transaction.amount < 0 ? 'text-red-600' : ''}>
                               ₦{Math.abs(transaction.amount).toLocaleString()}
                             </TableCell>
@@ -968,18 +968,18 @@ function SuperAdminContent() {
               <Card>
                 <CardHeader>
                   <CardTitle>Pending Payouts</CardTitle>
-                  <CardDescription>Vendor payout requests awaiting approval</CardDescription>
+                  <CardDescription>creator payout requests awaiting approval</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {[
-                      { vendor: 'TechStore Pro', amount: 85000, requested: '2025-09-28' },
-                      { vendor: 'Fashion Hub', amount: 120000, requested: '2025-09-27' },
-                      { vendor: 'Home Essentials', amount: 40000, requested: '2025-09-26' },
+                      { creator: 'TechStore Pro', amount: 85000, requested: '2025-09-28' },
+                      { creator: 'Fashion Hub', amount: 120000, requested: '2025-09-27' },
+                      { creator: 'Home Essentials', amount: 40000, requested: '2025-09-26' },
                     ].map((payout, index) => (
                       <div key={index} className="flex items-center justify-between rounded-lg border p-4">
                         <div>
-                          <p className="font-medium">{payout.vendor}</p>
+                          <p className="font-medium">{payout.creator}</p>
                           <p className="text-sm text-muted-foreground">Requested: {payout.requested}</p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -1020,7 +1020,7 @@ function SuperAdminContent() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Platform Commission</CardTitle>
-                    <CardDescription>Default commission rate for all vendors</CardDescription>
+                    <CardDescription>Default commission rate for all creators</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -1035,7 +1035,7 @@ function SuperAdminContent() {
                         step="0.1"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Current rate: {platformCommission}% (Vendor keeps {100 - platformCommission}%)
+                        Current rate: {platformCommission}% (creator keeps {100 - platformCommission}%)
                       </p>
                     </div>
 
@@ -1050,7 +1050,7 @@ function SuperAdminContent() {
                         step="100"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Vendors can request payout when balance reaches ₦{minimumPayout.toLocaleString()}
+                        creators can request payout when balance reaches ₦{minimumPayout.toLocaleString()}
                       </p>
                     </div>
 
@@ -1062,7 +1062,7 @@ function SuperAdminContent() {
                       <p className="text-sm text-blue-800 dark:text-blue-200">
                         <strong>Example:</strong> On a ₦10,000 sale with {platformCommission}% commission:
                         <br />• Platform earns: ₦{(10000 * platformCommission / 100).toLocaleString()}
-                        <br />• Vendor receives: ₦{(10000 * (100 - platformCommission) / 100).toLocaleString()}
+                        <br />• creator receives: ₦{(10000 * (100 - platformCommission) / 100).toLocaleString()}
                       </p>
                     </div>
                   </CardContent>
@@ -1070,22 +1070,22 @@ function SuperAdminContent() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Vendor-Specific Rates</CardTitle>
-                    <CardDescription>Set custom commission for individual vendors</CardDescription>
+                    <CardTitle>creator-Specific Rates</CardTitle>
+                    <CardDescription>Set custom commission for individual creators</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {vendors.slice(0, 5).map((vendor: any) => (
-                        <div key={vendor.id} className="flex items-center justify-between rounded-lg border p-3">
+                      {creators.slice(0, 5).map((creator: any) => (
+                        <div key={creator.id} className="flex items-center justify-between rounded-lg border p-3">
                           <div>
-                            <p className="font-medium">{vendor.storeName}</p>
-                            <p className="text-xs text-muted-foreground">{vendor.email}</p>
+                            <p className="font-medium">{creator.storeName}</p>
+                            <p className="text-xs text-muted-foreground">{creator.email}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
                               className="w-20"
-                              defaultValue={vendor.commission || platformCommission}
+                              defaultValue={creator.commission || platformCommission}
                               min="0"
                               max="100"
                               step="0.1"
@@ -1094,9 +1094,9 @@ function SuperAdminContent() {
                           </div>
                         </div>
                       ))}
-                      {vendors.length === 0 && (
+                      {creators.length === 0 && (
                         <p className="text-sm text-muted-foreground text-center py-4">
-                          No vendors to configure
+                          No creators to configure
                         </p>
                       )}
                     </div>
@@ -1205,7 +1205,7 @@ function SuperAdminContent() {
               <div className="grid gap-6 lg:grid-cols-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Top Vendors</CardTitle>
+                    <CardTitle>Top creators</CardTitle>
                     <CardDescription>By revenue this month</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1216,19 +1216,19 @@ function SuperAdminContent() {
                         { name: 'Electronics Plus', revenue: 320000, orders: 67 },
                         { name: 'Home Essentials', revenue: 280000, orders: 94 },
                         { name: 'Beauty Corner', revenue: 220000, orders: 112 },
-                      ].map((vendor, index) => (
+                      ].map((creator, index) => (
                         <div key={index} className="flex items-center justify-between rounded-lg border p-3">
                           <div className="flex items-center gap-3">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                               {index + 1}
                             </div>
                             <div>
-                              <p className="font-medium">{vendor.name}</p>
-                              <p className="text-xs text-muted-foreground">{vendor.orders} orders</p>
+                              <p className="font-medium">{creator.name}</p>
+                              <p className="text-xs text-muted-foreground">{creator.orders} orders</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold">₦{vendor.revenue.toLocaleString()}</p>
+                            <p className="font-bold">₦{creator.revenue.toLocaleString()}</p>
                           </div>
                         </div>
                       ))}
@@ -1309,7 +1309,7 @@ function SuperAdminContent() {
                       </TableHeader>
                       <TableBody>
                         {[
-                          { time: '2025-09-30 14:05', admin: 'super_admin@platform.com', action: 'Approved Vendor', target: 'TechStore Pro', status: 'success', ip: '41.58.123.45' },
+                          { time: '2025-09-30 14:05', admin: 'super_admin@platform.com', action: 'Approved creator', target: 'TechStore Pro', status: 'success', ip: '41.58.123.45' },
                           { time: '2025-09-30 13:58', admin: 'admin@platform.com', action: 'Rejected Product', target: 'Product #12345', status: 'success', ip: '41.58.123.46' },
                           { time: '2025-09-30 13:45', admin: 'super_admin@platform.com', action: 'Updated Commission', target: 'Platform Settings', status: 'success', ip: '41.58.123.45' },
                           { time: '2025-09-30 13:30', admin: 'moderator@platform.com', action: 'Banned User', target: 'user@example.com', status: 'success', ip: '41.58.123.47' },
@@ -1453,8 +1453,8 @@ function SuperAdminContent() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label>Vendor Registration</Label>
-                        <p className="text-xs text-muted-foreground">Allow new vendors to register</p>
+                        <Label>creator Registration</Label>
+                        <p className="text-xs text-muted-foreground">Allow new creators to register</p>
                       </div>
                       <Switch defaultChecked />
                     </div>
@@ -1542,8 +1542,8 @@ function SuperAdminContent() {
                           {maintenanceMode ? 'Platform is offline' : 'Platform is live'}
                         </p>
                       </div>
-                      <Switch 
-                        checked={maintenanceMode} 
+                      <Switch
+                        checked={maintenanceMode}
                         onCheckedChange={setMaintenanceMode}
                       />
                     </div>

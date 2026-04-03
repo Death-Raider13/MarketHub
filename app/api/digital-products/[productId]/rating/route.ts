@@ -69,7 +69,7 @@ export async function POST(
       customerId,
       orderId: orderId || null,
       productName: productData?.name || 'Unknown Product',
-      vendorId: productData?.vendorId || null,
+      creatorId: productData?.creatorId || null,
       rating,
       review: review || '',
       createdAt: new Date()

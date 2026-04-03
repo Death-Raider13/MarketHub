@@ -6,7 +6,7 @@ Successfully enhanced FEROMARKETHUB's admin system with comprehensive dashboards
 ## 🎯 Completed Enhancements
 
 ### 1. **Main Admin Dashboard** (`/admin/dashboard`)
-- **Real-time metrics**: Users, vendors, products, orders, revenue
+- **Real-time metrics**: Users, creators, products, orders, revenue
 - **Interactive charts**: Monthly revenue trends with Recharts
 - **Activity feed**: Recent platform activities with priority indicators
 - **Quick actions**: Direct links to pending approvals and key admin functions
@@ -38,7 +38,7 @@ Successfully enhanced FEROMARKETHUB's admin system with comprehensive dashboards
 - **Revenue analytics**: Total revenue, payouts, platform fees
 - **Financial trends**: Monthly revenue and payout charts
 - **Payment methods**: Distribution analysis
-- **Top vendors**: Revenue performance tracking
+- **Top creators**: Revenue performance tracking
 - **Transaction history**: Recent payments, payouts, refunds
 - **Growth metrics**: Revenue and payout growth rates
 
@@ -71,7 +71,7 @@ const ordersQuery = query(
 
 ### Key Metrics Cards
 - **Total Users**: Growth tracking with percentage indicators
-- **Active Vendors**: Vendor count with approval status
+- **Active creators**: creator count with approval status
 - **Total Products**: Product inventory with pending reviews
 - **Revenue Tracking**: Financial performance with trends
 

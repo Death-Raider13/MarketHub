@@ -55,8 +55,8 @@ interface Review {
   productName: string
   customerId: string
   customerName: string
-  vendorId: string
-  vendorName: string
+  creatorId: string
+  creatorName: string
   rating: number
   comment: string
   status: 'pending' | 'approved' | 'rejected' | 'flagged'
@@ -85,14 +85,14 @@ function ReviewsModerationContent() {
   const loadReviews = async () => {
     try {
       setLoading(true)
-      
+
       // Get reviews from Firestore
       const reviewsQuery = query(
         collection(db, "reviews"),
         orderBy("createdAt", "desc"),
         limit(100)
       )
-      
+
       const reviewsSnapshot = await getDocs(reviewsQuery)
       const reviewsData = reviewsSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -117,14 +117,14 @@ function ReviewsModerationContent() {
         moderatorNote: note || '',
         updatedAt: new Date()
       })
-      
+
       // Update local state
-      setReviews(reviews.map(review => 
-        review.id === reviewId 
+      setReviews(reviews.map(review =>
+        review.id === reviewId
           ? { ...review, status: action, moderatorNote: note || '', updatedAt: new Date() }
           : review
       ))
-      
+
       console.log(`Review ${reviewId} ${action}`)
       setShowReviewDetails(false)
       setModeratorNote("")
@@ -147,23 +147,22 @@ function ReviewsModerationContent() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-4 w-4 ${
-          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-        }`}
+        className={`h-4 w-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+          }`}
       />
     ))
   }
 
   const filteredReviews = reviews.filter(review => {
-    const matchesSearch = 
+    const matchesSearch =
       review.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       review.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       review.comment?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.vendorName?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+      review.creatorName?.toLowerCase().includes(searchTerm.toLowerCase())
+
     const matchesStatus = statusFilter === "all" || review.status === statusFilter
     const matchesRating = ratingFilter === "all" || review.rating.toString() === ratingFilter
-    
+
     return matchesSearch && matchesStatus && matchesRating
   })
 
@@ -173,7 +172,7 @@ function ReviewsModerationContent() {
     approved: reviews.filter(r => r.status === 'approved').length,
     rejected: reviews.filter(r => r.status === 'rejected').length,
     flagged: reviews.filter(r => r.status === 'flagged').length,
-    averageRating: reviews.length > 0 
+    averageRating: reviews.length > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
       : '0.0'
   }
@@ -181,10 +180,10 @@ function ReviewsModerationContent() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <AdminHeader />
-        
+
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="mb-6">
@@ -289,7 +288,7 @@ function ReviewsModerationContent() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -305,7 +304,7 @@ function ReviewsModerationContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="rating">Rating</Label>
                   <Select value={ratingFilter} onValueChange={setRatingFilter}>
@@ -322,7 +321,7 @@ function ReviewsModerationContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <Button onClick={loadReviews} variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
@@ -361,7 +360,7 @@ function ReviewsModerationContent() {
                           <div>
                             <div className="font-medium">{review.productName || 'N/A'}</div>
                             <div className="text-sm text-muted-foreground">
-                              by {review.vendorName || 'N/A'}
+                              by {review.creatorName || 'N/A'}
                             </div>
                           </div>
                         </TableCell>
@@ -411,7 +410,7 @@ function ReviewsModerationContent() {
                             >
                               <Eye className="h-3 w-3" />
                             </Button>
-                            
+
                             {review.status === 'pending' && (
                               <>
                                 <Button
@@ -421,7 +420,7 @@ function ReviewsModerationContent() {
                                 >
                                   <CheckCircle className="h-3 w-3" />
                                 </Button>
-                                
+
                                 <Button
                                   size="sm"
                                   variant="destructive"
@@ -450,14 +449,14 @@ function ReviewsModerationContent() {
                   Review by {selectedReview?.customerName} for {selectedReview?.productName}
                 </DialogDescription>
               </DialogHeader>
-              
+
               {selectedReview && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Product</Label>
                       <p className="font-medium">{selectedReview.productName}</p>
-                      <p className="text-sm text-muted-foreground">by {selectedReview.vendorName}</p>
+                      <p className="text-sm text-muted-foreground">by {selectedReview.creatorName}</p>
                     </div>
                     <div>
                       <Label>Customer</Label>
@@ -469,7 +468,7 @@ function ReviewsModerationContent() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label>Rating</Label>
                     <div className="flex items-center gap-2 mt-1">
@@ -477,14 +476,14 @@ function ReviewsModerationContent() {
                       <span className="font-medium">({selectedReview.rating}/5)</span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label>Review Comment</Label>
                     <p className="mt-1 p-3 bg-muted rounded-lg">
                       {selectedReview.comment || 'No comment provided'}
                     </p>
                   </div>
-                  
+
                   {selectedReview.reportCount > 0 && (
                     <div>
                       <Label className="text-red-600">Reports</Label>
@@ -493,7 +492,7 @@ function ReviewsModerationContent() {
                       </p>
                     </div>
                   )}
-                  
+
                   {selectedReview.status === 'pending' && (
                     <div>
                       <Label htmlFor="moderatorNote">Moderator Note (Optional)</Label>
@@ -506,7 +505,7 @@ function ReviewsModerationContent() {
                       />
                     </div>
                   )}
-                  
+
                   {selectedReview.moderatorNote && (
                     <div>
                       <Label>Previous Moderator Note</Label>
@@ -517,12 +516,12 @@ function ReviewsModerationContent() {
                   )}
                 </div>
               )}
-              
+
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowReviewDetails(false)}>
                   Cancel
                 </Button>
-                
+
                 {selectedReview?.status === 'pending' && (
                   <>
                     <Button
@@ -532,7 +531,7 @@ function ReviewsModerationContent() {
                       <XCircle className="h-4 w-4 mr-2" />
                       Reject
                     </Button>
-                    
+
                     <Button
                       onClick={() => moderateReview(selectedReview.id, 'approved', moderatorNote)}
                       className="bg-green-600 hover:bg-green-700"

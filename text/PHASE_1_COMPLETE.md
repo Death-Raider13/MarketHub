@@ -51,7 +51,7 @@
 **Email Templates Created:**
 - ✅ Order confirmation email (beautiful HTML)
 - ✅ Digital product delivery email
-- ✅ Vendor sale notification
+- ✅ creator sale notification
 - ✅ Password reset email
 
 **Features:**
@@ -179,7 +179,7 @@ npm run dev
 3. **Replace Mock Data** (3 hours)
    - Update homepage to fetch real products
    - Update product pages
-   - Update vendor dashboard
+   - Update creator dashboard
 
 4. **Coupon System** (2 hours)
    - Create coupon codes
@@ -201,10 +201,10 @@ npm run dev
    - But no actual files to download yet
    - Need Firebase Storage integration
 
-3. **Vendor notifications not sent**
+3. **creator notifications not sent**
    - Email function exists
    - But not called after payment
-   - Need to add vendor email lookup
+   - Need to add creator email lookup
 
 4. **Mock data still in use**
    - Homepage uses mock products

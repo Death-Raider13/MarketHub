@@ -107,7 +107,7 @@ FEROMARKETHUB is now fully localized for the Nigerian market with Nigerian curre
 
 #### **Processing Time:**
 - Standard: 1-3 business days
-- Vendors can customize
+- creators can customize
 
 #### **Delivery Options:**
 - Standard Delivery
@@ -382,7 +382,7 @@ Nigeria
 2. **Konga** - Second largest
 3. **Jiji** - Classifieds
 4. **OLX** - Classifieds
-5. **Instagram Vendors** - Very popular
+5. **Instagram creators** - Very popular
 6. **WhatsApp Business** - Direct selling
 
 ---

@@ -27,7 +27,7 @@ Replace mock payment with real Paystack integration
 Add productType, digitalFiles, accessDuration fields
 
 ### Create file upload component
-components/vendor/digital-file-upload.tsx
+components/creator/digital-file-upload.tsx
 
 ### Update product creation form
 Add digital product options
@@ -77,7 +77,7 @@ app/dashboard/purchases/page.tsx
 Update lib/types.ts
 
 ### Create coupon management
-app/vendor/coupons/page.tsx
+app/creator/coupons/page.tsx
 
 ---
 

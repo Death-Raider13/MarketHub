@@ -58,7 +58,7 @@ After adding the environment variables, you need to restart your development ser
 ### Cloudinary Keys
 - **`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`**: Identifies your Cloudinary account
 - **`NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`**: Allows users to upload images directly from the browser without exposing your API secret
-  - This is used for product images, vendor logos, user avatars, etc.
+  - This is used for product images, creator logos, user avatars, etc.
   - The preset "Andrew Cares Village Hub" should be configured in your Cloudinary dashboard
 
 ### Paystack Key
@@ -81,7 +81,7 @@ After adding the keys and restarting the server:
 
 1. **Test Cloudinary**:
    - Try uploading a product image
-   - Try updating your vendor profile picture
+   - Try updating your creator profile picture
    - Check if images are being uploaded to your Cloudinary account
 
 2. **Test Paystack**:

@@ -7,11 +7,11 @@ export default function ReturnsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 max-w-4xl">
           <h1 className="text-4xl font-bold mb-8">Returns & Refunds Policy</h1>
-          
+
           <div className="prose prose-gray max-w-none">
             <p className="text-muted-foreground mb-8">
               Last updated: January 20, 2025
@@ -98,13 +98,13 @@ export default function ReturnsPage() {
                   <strong>Click "Return Item"</strong> and select the reason for return
                 </li>
                 <li>
-                  <strong>Wait for approval</strong> from the vendor (usually within 24 hours)
+                  <strong>Wait for approval</strong> from the creator (usually within 24 hours)
                 </li>
                 <li>
                   <strong>Ship the item back</strong> using the provided return label
                 </li>
                 <li>
-                  <strong>Receive your refund</strong> once the vendor confirms receipt
+                  <strong>Receive your refund</strong> once the creator confirms receipt
                 </li>
               </ol>
             </section>
@@ -128,7 +128,7 @@ export default function ReturnsPage() {
                 If you need to exchange an item for a different size, color, or variant:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
-                <li>Contact the vendor directly through the messaging system</li>
+                <li>Contact the creator directly through the messaging system</li>
                 <li>Exchanges are subject to product availability</li>
                 <li>Additional shipping charges may apply</li>
               </ul>
@@ -142,7 +142,7 @@ export default function ReturnsPage() {
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
                 <li>Contact us immediately with photos of the damage</li>
                 <li>We'll arrange for a replacement or full refund</li>
-                <li>Return shipping will be covered by the vendor</li>
+                <li>Return shipping will be covered by the creator</li>
                 <li>Priority processing for damaged item claims</li>
               </ul>
             </section>

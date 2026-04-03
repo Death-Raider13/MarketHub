@@ -50,8 +50,8 @@ After thorough analysis of your customer-facing system, I've identified both **s
 // Current: Hard-coded mock product
 const mockProduct: Product = {
   id: "1",
-  vendorId: "v1",
-  vendorName: "TechStore Pro",
+  creatorId: "v1",
+  creatorName: "TechStore Pro",
   // ... static data
 }
 ```
@@ -61,7 +61,7 @@ const mockProduct: Product = {
 - ❌ No real-time stock updates
 - ❌ No product variant selection
 - ❌ Mock reviews instead of real data
-- ❌ No "Contact Vendor" button integration
+- ❌ No "Contact creator" button integration
 - ❌ No product review component integration
 
 **Impact:** Customers can't view real products!
@@ -167,7 +167,7 @@ We built the review system, but it's not integrated into:
 **Status:** ❌ **NOT INTEGRATED**
 
 We built the messaging system, but customers can't:
-- ❌ Contact vendors from product pages
+- ❌ Contact creators from product pages
 - ❌ Ask questions before purchase
 - ❌ Message about orders
 
@@ -232,20 +232,20 @@ import { ProductReviews } from '@/components/customer/product-reviews'
 // In product page
 <ProductReviews 
   productId={product.id}
-  vendorId={product.vendorId}
+  creatorId={product.creatorId}
   canReview={hasPurchased}
 />
 ```
 
-#### **5. Integrate Contact Vendor**
+#### **5. Integrate Contact creator**
 **Add to product detail page:**
 ```tsx
-import { ContactVendor } from '@/components/customer/contact-vendor'
+import { Contactcreator } from '@/components/customer/contact-creator'
 
 // In product page
-<ContactVendor
-  vendorId={product.vendorId}
-  vendorName={product.vendorName}
+<Contactcreator
+  creatorId={product.creatorId}
+  creatorName={product.creatorName}
   productId={product.id}
   productName={product.name}
 />
@@ -274,7 +274,7 @@ const searchProducts = async (query: string) => {
 
 #### **2. Add Product Recommendations**
 ```typescript
-// Based on category, vendor, or purchase history
+// Based on category, creator, or purchase history
 const getRecommendations = async (productId: string) => {
   // Fetch similar products
   // Use collaborative filtering
@@ -413,7 +413,7 @@ const trackOrder = async (orderId: string) => {
 2. ✅ Create customer order history page
 3. ✅ Fix currency display ($ → ₦)
 4. ✅ Integrate review system
-5. ✅ Integrate contact vendor
+5. ✅ Integrate contact creator
 
 ### **Week 2: Core Features**
 1. ✅ Implement real search
