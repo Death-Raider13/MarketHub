@@ -78,7 +78,7 @@ const helpCategories = [
     title: "General Questions",
     description: "FAQs and general information",
     articles: [
-      "About FEROMARKETHUB",
+      "About FeroLibrary",
       "How to Contact Support",
       "Terms of Service",
       "Privacy Policy",

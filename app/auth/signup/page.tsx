@@ -1,29 +1,25 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sparkles, ShoppingBag } from "lucide-react"
+import { GraduationCap, ShieldCheck, Zap, Megaphone, ArrowRight } from "lucide-react"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [displayName, setDisplayName] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [phone, setPhone] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [agreeToTerms, setAgreeToTerms] = useState(false)
-  const [role, setRole] = useState<UserRole>("customer")
+  const [role, setRole] = useState<"customer" | "creator" | "promoter" | "verifier">("customer")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const { signUp, signInWithGoogle } = useAuth()
@@ -33,9 +29,14 @@ export default function SignupPage() {
     e.preventDefault()
     setError("")
 
-    // Redirect creators to new streamlined registration
+    // Redirect to specialized onboarding flows
     if (role === "creator") {
       router.push("/auth/creator-register-new")
+      return
+    }
+    
+    if (role === "verifier") {
+      router.push("/auth/verifier-apply")
       return
     }
 
@@ -56,10 +57,13 @@ export default function SignupPage() {
     try {
       // Combine first and last name for display name
       const fullName = `${firstName} ${lastName}`.trim()
-      await signUp(email, password, role, fullName)
+      await signUp(email, password, role as UserRole, fullName)
       
-      // Redirect to email verification page
-      router.push("/auth/verify-email")
+      if (role === "promoter") {
+        router.push("/dashboard/promoter") 
+      } else {
+        router.push("/auth/verify-email")
+      }
     } catch (err: any) {
       setError(err.message || "Failed to create account")
     } finally {
@@ -73,7 +77,6 @@ export default function SignupPage() {
 
     try {
       await signInWithGoogle()
-      // After Google signup, always go to onboarding to finish profile
       router.push("/auth/onboarding")
     } catch (err: any) {
       setError(err.message || "Failed to sign up with Google")
@@ -83,215 +86,202 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4 text-primary">
-            <Sparkles className="h-12 w-12" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Choose your account type and get started</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 relative overflow-hidden bg-background">
+      {/* Background Ambience */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -z-10 opacity-30" />
+      <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -z-10 opacity-20" />
 
-            <div className="space-y-2">
-              <Label>I want to</Label>
-              <RadioGroup value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                <div className="flex items-center space-x-2 rounded-lg border border-border p-4 hover:bg-muted/50">
-                  <RadioGroupItem value="customer" id="customer" />
-                  <Label htmlFor="customer" className="flex flex-1 cursor-pointer items-center gap-3">
-                    <ShoppingBag className="h-5 w-5" />
-                    <div>
-                      <div className="font-medium">Shop as Customer</div>
-                      <div className="text-xs text-muted-foreground">Browse and purchase products</div>
-                    </div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 rounded-lg border border-border p-4 hover:bg-muted/50">
-                  <RadioGroupItem value="creator" id="creator" />
-                  <Label htmlFor="creator" className="flex flex-1 cursor-pointer items-center gap-3">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <div>
-                      <div className="font-medium">Build as Creator</div>
-                      <div className="text-xs text-muted-foreground">Launch your digital portfolio and start selling</div>
-                    </div>
-                  </Label>
-                </div>
+      <div className="w-full max-w-[1000px] mx-auto grid lg:grid-cols-2 gap-8 items-center z-10">
+        
+        {/* Left column - Branding */}
+        <div className="hidden lg:flex flex-col justify-center h-full pr-8">
+          <Link href="/" className="flex items-center gap-2 mb-8">
+            <div className="relative h-10 w-10">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+            </div>
+            <span className="text-3xl font-bold tracking-tight">Fero<span className="text-primary text-gradient">Library</span></span>
+          </Link>
+          
+          <h1 className="text-5xl font-black mb-6 tracking-tighter leading-[1.1]">
+            Join the Engine of <br />
+            <span className="text-muted-foreground/50">Academic Trust.</span>
+          </h1>
+          <p className="text-lg text-muted-foreground mb-12">
+            Create an account to gain access to tens of thousands of verified past questions, exam guides, and institutional resources.
+          </p>
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 glass rounded-[1.2rem] text-primary">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm">3-Tier Verification</h4>
+                <p className="text-xs text-muted-foreground mt-1">Every resource is academically audited.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="p-3 glass rounded-[1.2rem] text-primary">
+                <Zap className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm">Instant Fulfillment</h4>
+                <p className="text-xs text-muted-foreground mt-1">Zero wait times on digital deliveries.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right column - Form */}
+        <div className="glass-card rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden w-full max-w-xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-black mb-2">Create your account</h2>
+            <p className="text-sm text-muted-foreground">Choose how you want to join the network.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20 text-center font-medium">{error}</div>}
+
+            <div className="space-y-3">
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">1. Select Identity</Label>
+              <RadioGroup value={role} onValueChange={(value: any) => setRole(value)} className="grid grid-cols-2 gap-3">
+                
+                {/* Student */}
+                <Label htmlFor="customer" className={`cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'customer' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
+                  <RadioGroupItem value="customer" id="customer" className="sr-only" />
+                  <GraduationCap className={`h-6 w-6 ${role === 'customer' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div>
+                    <div className={`text-sm font-bold ${role === 'customer' ? 'text-foreground' : 'text-muted-foreground'}`}>Student</div>
+                  </div>
+                </Label>
+
+                {/* Creator */}
+                <Label htmlFor="creator" className={`relative overflow-hidden cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'creator' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
+                  <div className="absolute top-0 right-0 bg-primary/20 text-primary text-[8px] font-black uppercase px-2 py-0.5 rounded-bl-lg">Hot</div>
+                  <RadioGroupItem value="creator" id="creator" className="sr-only" />
+                  <Zap className={`h-6 w-6 ${role === 'creator' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div>
+                    <div className={`text-sm font-bold ${role === 'creator' ? 'text-foreground' : 'text-muted-foreground'}`}>Educator</div>
+                  </div>
+                </Label>
+
+                {/* Promoter */}
+                <Label htmlFor="promoter" className={`cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'promoter' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
+                  <RadioGroupItem value="promoter" id="promoter" className="sr-only" />
+                  <Megaphone className={`h-6 w-6 ${role === 'promoter' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div>
+                    <div className={`text-sm font-bold ${role === 'promoter' ? 'text-foreground' : 'text-muted-foreground'}`}>Affiliate</div>
+                  </div>
+                </Label>
+
+                {/* Verifier */}
+                <Label htmlFor="verifier" className={`cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'verifier' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
+                  <RadioGroupItem value="verifier" id="verifier" className="sr-only" />
+                  <ShieldCheck className={`h-6 w-6 ${role === 'verifier' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div>
+                    <div className={`text-sm font-bold ${role === 'verifier' ? 'text-foreground' : 'text-muted-foreground'}`}>Verifier</div>
+                  </div>
+                </Label>
+
               </RadioGroup>
             </div>
 
-            {role === "customer" && (
-              <>
+            {/* Form Fields - Only show for Student and Promoter in this view */}
+            {(role === "customer" || role === "promoter") && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="firstName" className="text-xs text-muted-foreground font-bold uppercase">First Name</Label>
+                    <Input id="firstName" required className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={firstName} onChange={e => setFirstName(e.target.value)} />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="lastName" className="text-xs text-muted-foreground font-bold uppercase">Last Name</Label>
+                    <Input id="lastName" required className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={lastName} onChange={e => setLastName(e.target.value)} />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="john.doe@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    We'll send order confirmations to this email
-                  </p>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs text-muted-foreground font-bold uppercase">Email Address</Label>
+                  <Input id="email" type="email" required className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={email} onChange={e => setEmail(e.target.value)} />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-xs text-muted-foreground font-bold uppercase">Phone Number</Label>
+                  <Input id="phone" type="tel" required className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={phone} onChange={e => setPhone(e.target.value)} />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 123-4567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    For order updates and delivery notifications
-                  </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="password" className="text-xs text-muted-foreground font-bold uppercase">Password</Label>
+                    <Input id="password" type="password" required minLength={8} className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={password} onChange={e => setPassword(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="confirmPassword" className="text-xs text-muted-foreground font-bold uppercase">Confirm Password</Label>
+                    <Input id="confirmPassword" type="password" required minLength={8} className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Minimum 8 characters"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Must be at least 8 characters with letters and numbers
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Re-enter your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    minLength={8}
-                  />
-                </div>
-
-                <div className="flex items-start space-x-2">
+                <div className="flex items-start space-x-3 pt-2">
                   <input
                     type="checkbox"
                     id="terms"
                     checked={agreeToTerms}
                     onChange={(e) => setAgreeToTerms(e.target.checked)}
                     required
-                    className="mt-1"
+                    className="mt-1 flex-shrink-0 w-4 h-4 rounded appearance-none border border-white/20 checked:bg-primary checked:border-primary relative
+                      after:content-[''] after:absolute after:top-[2px] after:left-[5px] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-white after:rotate-45 after:scale-0 checked:after:scale-100 transition-all cursor-pointer"
                   />
-                  <label htmlFor="terms" className="text-sm text-muted-foreground">
-                    I agree to the{" "}
-                    <Link href="/terms" className="text-primary hover:underline" target="_blank">
-                      Terms of Service
-                    </Link>
-                    {" "}and{" "}
-                    <Link href="/privacy" className="text-primary hover:underline" target="_blank">
-                      Privacy Policy
-                    </Link>
+                  <label htmlFor="terms" className="text-xs text-muted-foreground cursor-pointer leading-tight">
+                    I agree to the <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
                   </label>
                 </div>
-
-                <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-3 text-sm">
-                  <p className="text-blue-800 dark:text-blue-200">
-                    <strong>Why we need this information:</strong>
-                  </p>
-                  <ul className="mt-2 space-y-1 text-blue-700 dark:text-blue-300 text-xs">
-                    <li>• Email: Order confirmations and account recovery</li>
-                    <li>• Phone: Delivery updates and customer support</li>
-                    <li>• Name: Shipping labels and personalization</li>
-                  </ul>
-                </div>
-              </>
+              </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : role === "creator" ? "Continue to Creator Onboarding" : "Create Account"}
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-black h-14 rounded-xl text-md transition-all active:scale-[0.98]" disabled={loading}>
+              {loading ? "Processing..." : 
+               role === "creator" ? "Continue to Educator Setup" : 
+               role === "verifier" ? "Start Verifier Application" :
+               role === "promoter" ? "Setup Affiliate Account" :
+               "Create Account"}
+              {!loading && <ArrowRight className="ml-2 h-5 w-5" />}
             </Button>
 
-            <div className="relative">
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
+                <div className="w-full border-t border-white/10" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or sign up with</span>
+              <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-widest">
+                <span className="bg-background px-4 text-muted-foreground">Or sign up with</span>
               </div>
             </div>
 
             <Button 
               type="button" 
               variant="outline" 
-              className="w-full" 
+              className="w-full border-border bg-background hover:bg-muted h-12 rounded-xl text-sm font-bold transition-all" 
               disabled={loading}
               onClick={handleGoogleSignUp}
             >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
+              <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
               Continue with Google
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-8 text-center text-sm font-medium">
             <span className="text-muted-foreground">Already have an account? </span>
-            <Link href="/auth/login" className="font-medium hover:underline">
-              Login
+            <Link href="/auth/login" className="text-primary hover:underline">
+              Sign In
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+      </div>
     </div>
   )
 }

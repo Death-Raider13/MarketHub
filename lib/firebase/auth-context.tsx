@@ -31,7 +31,7 @@ import {
 } from "../session-management"
 import { tokenRefreshManager, getCurrentToken } from "./token-refresh"
 
-export type UserRole = "customer" | "creator" | "admin" | "super_admin" | "moderator" | "support"
+export type UserRole = "customer" | "creator" | "admin" | "super_admin" | "moderator" | "support" | "promoter" | "verifier"
 
 export interface UserProfile {
   uid: string
@@ -61,6 +61,12 @@ export interface UserProfile {
   verified?: boolean
   commission?: number
   businessName?: string
+  hubName?: string
+  // promoter fields
+  referralCode?: string
+  earnings?: number
+  // verifier fields
+  verificationStatus?: 'pending' | 'approved' | 'rejected'
 }
 
 interface AuthContextType {
@@ -162,6 +168,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       await sendEmailVerification(userCredential.user, actionCodeSettings)
 
+      const generateReferralCode = (name: string) => {
+        return `${name.split(' ')[0].toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+      }
+
       // Create user profile in Firestore
       const userProfile: UserProfile = {
         uid: userCredential.user.uid,
@@ -172,7 +182,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailVerified: false, // Track email verification status
         lastLoginAt: new Date(),
         updatedAt: new Date(),
-        ...(role === "creator" && { verified: false, commission: 10 }),
+        ...(role === "creator" && { verified: false, commission: 80 }),
+        ...(role === "promoter" && { 
+          referralCode: displayName ? generateReferralCode(displayName) : `PRO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          commission: 20,
+          earnings: 0
+        }),
+        ...(role === "verifier" && { verificationStatus: 'pending' }),
       }
 
       await setDoc(doc(db, "users", userCredential.user.uid), userProfile)

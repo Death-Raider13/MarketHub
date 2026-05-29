@@ -106,7 +106,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold">Email</h3>
-                      <p className="text-sm text-muted-foreground">support@FEROMARKETHUB.com</p>
+                      <p className="text-sm text-muted-foreground">support@FeroLibrary.com</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Response within 24 hours
                       </p>
@@ -259,7 +259,7 @@ export default function ContactPage() {
                         <a href="/privacy" className="text-primary hover:underline">
                           Privacy Policy
                         </a>{" "}
-                        and consent to being contacted by FEROMARKETHUB.
+                        and consent to being contacted by FeroLibrary.
                       </label>
                     </div>
 

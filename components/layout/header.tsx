@@ -1,13 +1,32 @@
 "use client"
 
 import type React from "react"
-
-import Image from "next/image"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Search, ShoppingCart, User, Menu, Store, LayoutDashboard, X, Heart, Package, Megaphone, MessageSquare, Sun, Moon, LogOut, HelpCircle } from "lucide-react"
-import { NotificationBell } from "@/components/notifications/notification-bell"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  GraduationCap,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  MessageSquare,
+  HelpCircle,
+  Store,
+  Bell
+} from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
+import { useCart } from "@/lib/cart-context"
+import { useMessages } from "@/hooks/use-messages"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,545 +41,238 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
-import { Badge } from "@/components/ui/badge"
-import { useEffect, useState } from "react"
-import { useCart } from "@/lib/cart-context"
-import { useRouter } from "next/navigation"
-import { useMessages } from "@/hooks/use-messages"
-import { useTheme } from "next-themes"
+import { NotificationBell } from "@/components/notifications/notification-bell"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export function Header() {
+  const router = useRouter()
   const { user, userProfile, logout } = useAuth()
   const { totalItems } = useCart()
   const { unreadCount } = useMessages()
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const [query, setQuery] = useState("")
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+    if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query)}`)
+      setIsMobileMenuOpen(false)
     }
   }
 
-  // Get role-specific dashboard info
-  const getRoleDashboardInfo = (role?: UserRole) => {
-    switch (role) {
-      case 'super_admin':
-        return {
-          href: '/super-admin',
-          label: 'Super Admin Dashboard',
-          description: 'Full platform control'
-        }
-      case 'admin':
-        return {
-          href: '/admin/dashboard',
-          label: 'Admin Dashboard',
-          description: 'Operations management'
-        }
-      case 'moderator':
-        return {
-          href: '/moderator/dashboard',
-          label: 'Moderator Dashboard',
-          description: 'Content moderation'
-        }
-      case 'support':
-        return {
-          href: '/support/dashboard',
-          label: 'Support Dashboard',
-          description: 'Customer support'
-        }
-      default:
-        return null
-    }
-  }
-
-  const dashboardInfo = getRoleDashboardInfo(userProfile?.role)
   const isAdminRole = ['admin', 'super_admin', 'moderator', 'support'].includes(userProfile?.role || '')
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Top Banner - Optional promotional banner */}
-     
-
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Logo */}
-          <Link href="/">
-            <span className="text-xl font-bold tracking-tight">Fero<span className="text-primary">Library</span></span>
-          </Link>
-
-          {/* Search Bar - Desktop */}
-          <form onSubmit={handleSearch} className="hidden flex-1 max-w-2xl md:flex" role="search">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-              <Input
-                type="search"
-                placeholder="Search academic resources, institutions, past questions..."
-                className="w-full pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search resources"
-              />
-            </div>
-          </form>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-2">
-            {/* Help/Support Button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              asChild 
-              className="hidden lg:flex text-muted-foreground hover:text-foreground"
-            >
-              <Link href="/help">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Help
-              </Link>
-            </Button>
-
-            {/* Advertise Button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              asChild 
-              className="hidden lg:flex text-primary hover:text-primary"
-            >
-              <Link href="/advertise">
-                <Megaphone className="mr-2 h-4 w-4" />
-                Advertise
-              </Link>
-            </Button>
-
-            {/* Creator Mode Switch - Show on homepage for creators */}
-            {user && userProfile?.role === "creator" && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                asChild 
-                className="hidden md:flex bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 border-purple-200"
-              >
-                <Link href="/creator/dashboard">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Switch to Selling
-                </Link>
-              </Button>
-            )}
-            {/* Mobile Menu */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <button 
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 md:hidden"
-                  aria-label="Open menu"
-                >
-                  <Menu className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
-                </SheetHeader>
-                <nav className="mt-6 flex flex-col gap-6" aria-label="Mobile navigation">
-                  {/* Shop Section */}
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Shop</h4>
-                    <div className="flex flex-col gap-3">
-                      <Link 
-                        href="/products" 
-                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Package className="h-5 w-5" />
-                        Explore Library
-                      </Link>
-                      <Link 
-                        href="/creators" 
-                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Store className="h-5 w-5" />
-                        Educators
-                      </Link>
-                      <Link 
-                        href="/advertise" 
-                        className="flex items-center gap-3 text-base font-medium hover:text-primary text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Megaphone className="h-5 w-5" />
-                        Advertise
-                      </Link>
-                      {user && userProfile?.role === "creator" && (
-                        <Link 
-                          href="/creator/dashboard"
-                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <LayoutDashboard className="h-5 w-5" />
-                          Switch to Selling
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Account Section (only when logged in) */}
-                  {user && (
-                    <div>
-                      <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Account</h4>
-                      <div className="flex flex-col gap-3">
-                        <Link 
-                          href="/account" 
-                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <User className="h-5 w-5" />
-                          My Account
-                        </Link>
-                        <Link 
-                          href="/my-purchases" 
-                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <Package className="h-5 w-5" />
-                          My Purchases
-                        </Link>
-                        <Link 
-                          href="/messages" 
-                          className="flex items-center justify-between text-base font-medium hover:text-primary"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <MessageSquare className="h-5 w-5" />
-                            Messages
-                          </div>
-                          {unreadCount > 0 && (
-                            <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
-                              {unreadCount}
-                            </Badge>
-                          )}
-                        </Link>
-                        <Link 
-                          href="/account" 
-                          className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <Heart className="h-5 w-5" />
-                          Wishlist
-                        </Link>
-                        {dashboardInfo && (
-                          <Link 
-                            href={dashboardInfo.href}
-                            className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <LayoutDashboard className="h-5 w-5" />
-                            {dashboardInfo.label}
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Support */}
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Support</h4>
-                    <div className="flex flex-col gap-3">
-                      <Link 
-                        href="/help" 
-                        className="flex items-center gap-3 text-base font-medium hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <MessageSquare className="h-5 w-5" />
-                        Help Center
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Auth / Logout */}
-                  {!user ? (
-                    <div className="pt-4 border-t">
-                      <div className="flex flex-col gap-2">
-                        <Button asChild onClick={() => setMobileMenuOpen(false)}>
-                          <Link href="/auth/login">Login</Link>
-                        </Button>
-                        <Button variant="outline" asChild onClick={() => setMobileMenuOpen(false)}>
-                          <Link href="/auth/signup">Sign Up</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="pt-4 border-t">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-base font-medium"
-                        onClick={async () => {
-                          try {
-                            await logout()
-                            setMobileMenuOpen(false)
-                            router.push("/auth/login")
-                          } catch (error) {
-                            console.error("Logout error:", error)
-                          }
-                        }}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Logout
-                      </Button>
-                    </div>
-                  )}
-                </nav>
-              </SheetContent>
-            </Sheet>
-
-            {/* Notifications - Only show for logged in users */}
-            {user && <NotificationBell />}
-
-            {/* Theme Toggle */}
-           
-
-            {/* Cart */}
-            <Link href="/cart" aria-label={`Shopping cart with ${totalItems} items`}>
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                {totalItems > 0 && (
-                  <Badge 
-                    className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-xs"
-                    aria-label={`${totalItems} items in cart`}
-                  >
-                    {totalItems}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
-
-            {/* User Menu */}
-            {user ? (
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
-                    aria-label="User menu"
-                    onClick={(e) => {
-                      console.log("User button clicked")
-                    }}
-                  >
-                    <User className="h-5 w-5" aria-hidden="true" />
-                    <span className="sr-only">Open user menu</span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
-                  className="w-56 z-[9999]"
-                  sideOffset={5}
-                >
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{userProfile?.displayName || "User"}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                    <Badge variant="secondary" className="mt-1 text-xs">
-                      {userProfile?.role}
-                    </Badge>
-                  </div>
-                  <DropdownMenuSeparator />
-
-                  {userProfile?.role === "customer" && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/account">My Account</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/orders">
-                          <Package className="mr-2 h-4 w-4" />
-                          My Orders
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/my-purchases">
-                          <Package className="mr-2 h-4 w-4" />
-                          My Purchases
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/messages" className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Messages
-                          </div>
-                          {unreadCount > 0 && (
-                            <Badge variant="destructive" className="text-xs px-1.5 py-0.5 ml-2">
-                              {unreadCount}
-                            </Badge>
-                          )}
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/account">Wishlist</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/help">
-                          <HelpCircle className="mr-2 h-4 w-4" />
-                          Help Center
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/support/my-tickets">
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                          My Tickets
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-
-                  {userProfile?.role === "creator" && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/dashboard">
-                          <LayoutDashboard className="mr-2 h-4 w-4" />
-                          Creator Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/products">My Products</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/creator/orders">Orders</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/help">
-                          <HelpCircle className="mr-2 h-4 w-4" />
-                          Platform Help
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/support/my-tickets">
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                          My Support
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-
-                  {/* Admin Role Dashboard Links */}
-                  {isAdminRole && dashboardInfo && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href={dashboardInfo.href}>
-                          <LayoutDashboard className="mr-2 h-4 w-4" />
-                          {dashboardInfo.label}
-                        </Link>
-                      </DropdownMenuItem>
-                      
-                      {/* Additional admin-specific links */}
-                      {userProfile?.role === "admin" && (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/creators">Manage Creators</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/products">Moderate Products</Link>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      
-                      {/* Super Admin specific links */}
-                      {userProfile?.role === "super_admin" && (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/super-admin/#users">Manage Users</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/super-admin/#settings">Platform Settings</Link>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      
-                      {/* Moderator specific links */}
-                      {userProfile?.role === "moderator" && (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/products">Review Products</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/reviews">Moderate Reviews</Link>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      
-                      {/* Support specific links */}
-                      {userProfile?.role === "support" && (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/orders">View Orders</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/users">Customer Support</Link>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </>
-                  )}
-
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={async () => {
-                      try {
-                        await logout()
-                        router.push("/auth/login")
-                      } catch (error) {
-                        console.error("Logout error:", error)
-                      }
-                    }} 
-                    className="text-destructive cursor-pointer"
-                  >
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <>
-                {/* Mobile: Direct login icon */}
-                <Link href="/auth/login" aria-label="Login" className="md:hidden">
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
-
-                {/* Desktop: Login/Sign Up buttons */}
-                <div className="hidden gap-2 md:flex">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/auth/login">Login</Link>
-                  </Button>
-                  <Button size="sm" asChild>
-                    <Link href="/auth/signup">Sign Up</Link>
-                  </Button>
-                </div>
-              </>
-            )}
+    <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-white/10 glass shadow-2xl" : "bg-transparent border-b border-transparent"
+      }`}>
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 relative z-50 shrink-0">
+          <div className="relative h-8 w-8 rounded-lg overflow-hidden">
+            <Image src="/logo.png" alt="FeroLibrary Logo" fill className="object-contain" />
           </div>
-        </div>
+          <span className="text-xl font-bold tracking-tight hidden sm:inline-block">
+            Fero<span className="text-primary text-gradient">Library</span>
+          </span>
+        </Link>
 
-        {/* Mobile Search */}
-        <form onSubmit={handleSearch} className="pb-4 md:hidden" role="search">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <Input
-              type="search"
-              placeholder="Search products..."
-              className="w-full pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search products"
+        {/* Search Bar - Desktop */}
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md lg:max-w-xl mx-4">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search resources, past questions..."
+              className="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50"
             />
           </div>
         </form>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-2 lg:gap-4 relative z-50 shrink-0">
+          <ModeToggle />
+          {/* Cart */}
+          <Link href="/cart" className="relative p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer group">
+            <ShoppingCart className="h-5 w-5 text-foreground/80 group-hover:text-primary transition-colors" />
+            {totalItems > 0 && (
+              <Badge className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-primary text-[10px] flex items-center justify-center rounded-full text-white border-0 p-0 font-bold">
+                {totalItems}
+              </Badge>
+            )}
+          </Link>
+
+          {/* User Section */}
+          {user ? (
+            <>
+              <div className="hidden sm:block">
+                <NotificationBell />
+              </div>
+
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full bg-white/5 border border-white/10">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 glass-card border-white/10 z-[9999] p-2 mt-2">
+                  <div className="px-3 py-3 mb-2">
+                    <p className="text-sm font-bold truncate">{userProfile?.displayName || "Member"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    <Badge variant="secondary" className="mt-2 text-[10px] uppercase tracking-wider bg-primary/20 text-primary border-primary/20">
+                      {userProfile?.role || 'user'}
+                    </Badge>
+                  </div>
+                  <DropdownMenuSeparator className="bg-white/5" />
+
+                  {userProfile?.role === "creator" ? (
+                    <>
+                      <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1">
+                        <Link href="/creator/dashboard" className="flex items-center w-full py-2">
+                          <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
+                          Educator Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1">
+                        <Link href="/creator/products" className="flex items-center w-full py-2">
+                          <Package className="mr-3 h-4 w-4" />
+                          My Resources
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1">
+                        <Link href="/my-purchases" className="flex items-center w-full py-2">
+                          <Package className="mr-3 h-4 w-4" />
+                          My Library
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1">
+                        <Link href="/messages" className="flex items-center w-full py-2">
+                          <MessageSquare className="mr-3 h-4 w-4" />
+                          Messages
+                          {unreadCount > 0 && <Badge className="ml-auto bg-destructive">{unreadCount}</Badge>}
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {isAdminRole && (
+                    <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1 border border-primary/20 bg-primary/5">
+                      <Link href="/admin/dashboard" className="flex items-center w-full py-2">
+                        <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1">
+                    <Link href="/account" className="flex items-center w-full py-2">
+                      <User className="mr-3 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="bg-white/5" />
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      await logout()
+                      router.push("/auth/login")
+                    }}
+                    className="focus:bg-destructive/10 text-destructive cursor-pointer rounded-lg"
+                  >
+                    <LogOut className="mr-3 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Link href="/auth/login" className="flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary px-4 lg:px-6 py-2 rounded-full text-sm font-bold hover:bg-primary/20 transition-all active:scale-95">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign In</span>
+            </Link>
+          )}
+
+          {/* Mobile Menu Trigger */}
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <button
+                className="md:hidden p-2 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Open menu"
+              >
+                <Menu className="h-6 w-6 text-foreground/80" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] glass-card border-white/10 p-6 z-[10000]">
+              <SheetHeader className="mb-8">
+                <SheetTitle className="text-left flex items-center gap-2">
+                  <div className="relative h-6 w-6">
+                    <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+                  </div>
+                  Fero<span className="text-primary">Library</span>
+                </SheetTitle>
+              </SheetHeader>
+
+              <div className="space-y-6">
+                <form onSubmit={handleSearch} className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search resources..."
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm"
+                  />
+                </form>
+
+                <div className="flex items-center justify-between p-2 glass rounded-xl border border-white/10">
+                  <span className="text-sm font-medium ml-2">Theme Preference</span>
+                  <ModeToggle />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {!user ? (
+                    <Button asChild className="w-full bg-primary font-bold rounded-xl h-12" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link href="/auth/login">Sign In / Register</Link>
+                    </Button>
+                  ) : (
+                    <Button asChild variant="outline" className="w-full border-white/10 bg-white/5 rounded-xl h-12" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link href="/account">My Profile</Link>
+                    </Button>
+                  )}
+
+                  <nav className="space-y-2 pt-4">
+                    <Link href="/products" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                      <GraduationCap className="h-5 w-5 text-primary" />
+                      Browse Resources
+                    </Link>
+                    <Link href="/creators" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Store className="h-5 w-5 text-primary" />
+                      Find Educators
+                    </Link>
+                    {userProfile?.role === 'creator' && (
+                      <Link href="/creator/dashboard" className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl transition-colors font-bold text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                        <LayoutDashboard className="h-5 w-5" />
+                        Educator Hub
+                      </Link>
+                    )}
+                  </nav>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
-    </header>
+    </nav>
   )
 }

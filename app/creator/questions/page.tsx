@@ -373,7 +373,7 @@ function CreatorQuestionsContent() {
                           {question.replies.map((reply) => (
                             <div key={reply.id} className="pl-4 border-l-2 border-muted bg-muted/30 p-3 rounded-r-lg">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className={`font-medium ${reply.iscreator ? 'text-primary' : ''}`}>
+                                <span className={`font-medium ${reply.isCreator ? 'text-primary' : ''}`}>
                                   {reply.userName}
                                   {reply.isCreator && (
                                     <span className="ml-1 text-xs bg-primary text-primary-foreground px-1 rounded">

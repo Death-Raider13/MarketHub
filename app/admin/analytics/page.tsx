@@ -171,7 +171,7 @@ function AnalyticsDashboardContent() {
       orders.forEach((order: any) => {
         const cid = order.creatorId || order.vendorId
         if (!cid) return
-        const creator = users.find((u: any) => u.id === cid)
+        const creator = users.find((u: any) => (u.id === cid)) as any
         const name = creator?.hubName || creator?.storeName || creator?.displayName || 'Unknown'
         if (!creatorSalesMap[cid]) {
           creatorSalesMap[cid] = { name, sales: 0, revenue: 0 }

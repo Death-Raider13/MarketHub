@@ -1430,11 +1430,11 @@ function SuperAdminContent() {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="platformName">Platform Name</Label>
-                      <Input id="platformName" defaultValue="FEROMARKETHUB Nigeria" />
+                      <Input id="platformName" defaultValue="FeroLibrary Nigeria" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="supportEmail">Support Email</Label>
-                      <Input id="supportEmail" type="email" defaultValue="support@FEROMARKETHUB.ng" />
+                      <Input id="supportEmail" type="email" defaultValue="support@FeroLibrary.ng" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="supportPhone">Support Phone</Label>

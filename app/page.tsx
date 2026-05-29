@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { HomepageBanner } from "@/components/advertising/HomepageBanner"
-import { ShoppingBag, TrendingUp, Shield, Zap, ArrowRight, Star, Store } from "lucide-react"
+import { ShoppingBag, TrendingUp, Shield, Zap, ArrowRight, Star, GraduationCap, ShieldCheck, Search } from "lucide-react"
 import { getAdminFirestore } from "@/lib/firebase/admin-simple"
 
 // Define types
@@ -33,22 +32,14 @@ export default async function HomePage() {
 
   let featuredProducts: Product[] = []
   let featuredCreators: any[] = []
-  let realStats = { products: "10K+", creators: "1K+", visitors: "500K+" }
+  let realStats = { products: "10K+", students: "150K+", visitors: "500K+", rating: "4.9/5" }
 
   if (adminDb) {
     try {
-      // 1. Fetch real stats (approximate for performance)
       const productsMeta = await adminDb.collection("products").count().get()
-      const creatorsMeta = await adminDb.collection("users").where("role", "==", "creator").count().get()
-
       const pCount = productsMeta.data().count
-      const cCount = creatorsMeta.data().count
-
-      // Update stats based on real data if available
       if (pCount > 0) realStats.products = pCount > 1000 ? `${Math.floor(pCount / 1000)}K+` : `${pCount}+`
-      if (cCount > 0) realStats.creators = cCount > 1000 ? `${Math.floor(cCount / 1000)}K+` : `${cCount}+`
 
-      // 2. Fetch featured active products
       const productsQuery = await adminDb
         .collection("products")
         .where("status", "in", ["active", "approved"])
@@ -62,382 +53,212 @@ export default async function HomePage() {
         return {
           id: doc.id,
           ...data,
-          creatorId: data.creatorId || data.creatorId || "",
-          creatorName: data.creatorName || data.creatorName || "Creator"
+          creatorId: data.creatorId || "",
+          creatorName: data.creatorName || "Verified Educator"
         }
       }) as Product[]
-
-      // 3. Fetch featured/verified creators only
-      const creatorsQuery = await adminDb
-        .collection("users")
-        .where("role", "==", "creator")
-        .where("featured", "==", true)
-        .limit(6)
-        .get()
-
-      featuredCreators = await Promise.all(creatorsQuery.docs.map(async (doc: any) => {
-        const userData = doc.data()
-        // Fetch reputation for each featured creator
-        const reputationDoc = await adminDb.collection("creator_reputation").doc(doc.id).get()
-        return {
-          id: doc.id,
-          ...userData,
-          reputation: reputationDoc.exists ? reputationDoc.data() : null
-        }
-      }))
 
     } catch (error) {
       console.error("Error fetching homepage data:", error)
     }
   }
 
-  const categories = [
-    { name: "University Past Questions", icon: "🎓" },
-    { name: "Secondary (WAEC/JAMB)", icon: "📚" },
-    { name: "Professional Exams", icon: "💼" },
-    { name: "Project Templates", icon: "📝" },
-    { name: "Post-UTME Guides", icon: "🏫" },
-    { name: "Study Handouts", icon: "📄" },
-  ]
-
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/30">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 text-white py-20 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-                🎉 Nigeria's Most Trusted Academic Library
-              </Badge>
-              <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-                High-Grade Resources for Academic Excellence
-              </h1>
-              <p className="text-xl text-white/90">
-                The leading platform for verified past questions, handouts, and study guides. Built for students, verified by top scholars.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link href="/products">
-                  <Button size="lg" className="bg-white text-blue-700 hover:bg-gray-100">
-                    <ShoppingBag className="mr-2 h-5 w-5" />
-                    Explore Library
-                  </Button>
-                </Link>
-                <Link href="/auth/creator-register-new">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                    Become an Educator
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8">
-                <div>
-                  <div className="text-3xl font-bold">{realStats.visitors}</div>
-                  <div className="text-white/80">Monthly Visitors</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold">{realStats.products}</div>
-                  <div className="text-white/80">Products</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold">{realStats.creators}</div>
-                  <div className="text-white/80">Educators</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="hidden md:block">
-              <div className="relative">
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-3xl transform rotate-6"></div>
-                <div className="relative bg-white/20 backdrop-blur-md rounded-3xl p-8 space-y-4">
-                  <div className="flex items-center gap-4 bg-white/90 rounded-xl p-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg"></div>
-                    <div className="flex-1">
-                      <div className="h-3 bg-gray-300 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 bg-white/90 rounded-xl p-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg"></div>
-                    <div className="flex-1">
-                      <div className="h-3 bg-gray-300 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 bg-white/90 rounded-xl p-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg"></div>
-                    <div className="flex-1">
-                      <div className="h-3 bg-gray-300 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Hero Section - High Fidelity */}
+      <section className="relative pt-20 pb-32 overflow-hidden px-4">
+        {/* Ambient background glows */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] -z-10 opacity-30 animate-pulse-slow" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -z-10 opacity-20" />
+        
+        <div className="container mx-auto max-w-7xl text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-primary/30 text-primary text-[10px] font-black uppercase tracking-widest mb-8">
+            <Zap className="h-3 w-3 fill-primary" />
+            Nigeria's High-Trust Academic Library
           </div>
-        </div>
-      </section>
-
-      {/* Advertisement Banner Section */}
-      <section className="py-8 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <HomepageBanner
-            maxAds={5}
-            autoRotate={true}
-            rotationInterval={10}
-            className="rounded-xl shadow-lg"
-          />
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 px-4 bg-gray-50">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-4 gap-8">
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-blue-600" />
-                </div>
-                <CardTitle>Secure Payments</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">100% secure transactions with Paystack integration</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <Zap className="h-6 w-6 text-green-600" />
-                </div>
-                <CardTitle>Instant Fulfillment</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Zero wait times. Access your digital assets immediately after payment</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <Star className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle>Digital Quality</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Verified resources curated by top scholars and students</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-orange-600" />
-                </div>
-                <CardTitle>Creator Economy</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Supporting thousands of academic contributors across Nigeria</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Browse by Education Level</h2>
-            <p className="text-gray-600 text-lg">Find the exact material for your academic journey</p>
+          
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-8 leading-[0.9] md:leading-[0.95]">
+            The New Standard for <br />
+            <span className="text-gradient">Academic Trust</span>
+          </h1>
+          
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-12 font-medium leading-relaxed">
+            Access verified study materials from top educators. 
+            Guaranteed accuracy for JAMB, WAEC, and your University exams.
+          </p>
+          
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/products">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-black px-10 h-14 rounded-full transition-all shadow-[0_0_25px_rgba(79,70,229,0.5)] active:scale-95">
+                Explore Resources
+              </Button>
+            </Link>
+            <Link href="/auth/signup">
+              <Button size="lg" variant="outline" className="glass border-border hover:bg-muted px-10 h-14 rounded-full font-black transition-all active:scale-95">
+                Join the Network
+              </Button>
+            </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {categories.map((category) => (
-              <Link key={category.name} href={`/products`}>
-                <Card className="hover:shadow-lg transition-all hover:scale-105 cursor-pointer border-2 hover:border-blue-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-3">{category.icon}</div>
-                    <h3 className="font-semibold mb-1">{category.name}</h3>
-                  </CardContent>
-                </Card>
-              </Link>
+          {/* Real-time Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mt-20">
+            {[
+              { label: "Verified Library", value: realStats.products, icon: ShieldCheck },
+              { label: "Active Students", value: realStats.students, icon: GraduationCap },
+              { label: "Monthly Reach", value: realStats.visitors, icon: TrendingUp },
+              { label: "Trust Score", value: realStats.rating, icon: Star },
+            ].map((stat, i) => (
+              <div key={i} className="text-center group">
+                <div className="text-3xl md:text-4xl font-black mb-1 group-hover:text-primary transition-colors">{stat.value}</div>
+                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Products Section */}
-      <section className="py-16 px-4 bg-gray-50">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex justify-between items-center mb-12">
-            <div>
-              <h2 className="text-4xl font-bold mb-2">Editor's Choice</h2>
-              <p className="text-gray-600">Premium study materials selected for accuracy</p>
-            </div>
-            <Link href="/products">
-              <Button variant="outline">
-                View All Materials
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+      {/* Trust ecosystem Storyboards - High Fidelity */}
+      <section className="py-32 bg-primary/[0.02] border-y border-border/50">
+        <div className="container mx-auto max-w-7xl px-4">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">One Ecosystem. <br className="md:hidden" /><span className="text-muted-foreground/50">Total Reliability.</span></h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto italic font-medium">
+              "Building the infrastructure for verified academic exchange in West Africa."
+            </p>
           </div>
 
-          {featuredProducts.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">No products found</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <Link key={product.id} href={`/products/${product.id}`}>
-                  <Card className="hover:shadow-xl transition-all hover:scale-105 cursor-pointer h-full">
-                    <div className="relative h-48 bg-gray-100 overflow-hidden rounded-t-lg">
-                      {product.imageUrl || (product.images && product.images[0]) ? (
-                        <Image
-                          src={product.imageUrl || product.images![0]}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 absolute inset-0">
-                          <div className="text-center">
-                            <ShoppingBag className="h-16 w-16 mx-auto mb-2" />
-                            <p className="text-sm">No Image</p>
-                          </div>
-                        </div>
-                      )}
-                      {product.featured && (
-                        <Badge className="absolute top-2 left-2 bg-yellow-500">Featured</Badge>
-                      )}
-                      <Badge className="absolute top-2 right-2 bg-green-500 text-[10px] uppercase">Instant Access</Badge>
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2 line-clamp-2">{product.name}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{product.creatorName}</p>
-                      <div className="flex items-center justify-between">
-                        <Link href={`/hub/${product.creatorId}`} className="text-secondary hover:underline">
-                          by {product.creatorName || "Creator"}
-                        </Link>
-                        <div className="flex items-center text-yellow-500">
-                          <Star className={`h-4 w-4 ${product.rating ? "fill-current" : "text-gray-300"}`} />
-                          <span className="ml-1 text-sm text-gray-600">
-                            {product.rating ? product.rating.toFixed(1) : "5.0"}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          )}
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "For Students",
+                desc: "High-quality, verified materials tailored to your specific institution and level.",
+                img: "/student.png",
+                color: "from-cyan-500/10",
+                href: "/auth/signup"
+              },
+              {
+                title: "For Educators",
+                desc: "Monetize your teaching excellence while reaching thousands of students nationwide.",
+                img: "/contributor.png",
+                color: "from-indigo-500/10",
+                href: "/auth/signup?role=creator"
+              },
+              {
+                title: "For Verifiers",
+                desc: "Our rigorous 3-tier audit layer ensures every document is 100% accurate and relevant.",
+                img: "/verifier.png",
+                color: "from-purple-500/10",
+                href: "/register"
+              },
+            ].map((role, i) => (
+              <div key={i} className="group relative rounded-[3rem] overflow-hidden glass-card border-border/50 hover:border-primary/40 transition-all p-10 flex flex-col h-full text-center hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)]">
+                <div className={`absolute inset-0 bg-gradient-to-b ${role.color} to-transparent opacity-40 group-hover:opacity-70 transition-opacity`} />
+                <div className="relative z-10">
+                  <div className="relative aspect-square w-full max-w-[220px] mx-auto rounded-full overflow-hidden mb-10 border-8 border-border/50 group-hover:border-primary/30 transition-all shadow-2xl">
+                    <img src={role.img} alt={role.title} className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-700" />
+                  </div>
+                  <h3 className="text-3xl font-black mb-4">{role.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-10 font-medium leading-relaxed">
+                    {role.desc}
+                  </p>
+                  <Link href={role.href} className="inline-flex items-center gap-3 bg-muted/50 group-hover:bg-primary group-hover:text-white px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all">
+                    Learn More <Zap className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Featured Creators Section */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex justify-between items-center mb-12">
-            <div>
-              <h2 className="text-4xl font-bold mb-2">Verified Educators</h2>
-              <p className="text-gray-600">Learn from the best minds in your institution</p>
+      {/* Featured Resources Section - Real Data */}
+      <section className="py-32 px-4 container mx-auto max-w-7xl">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-xs mb-4">
+              <Star className="h-4 w-4 fill-primary" /> Editor's Choice
             </div>
-            <Link href="/creators">
-              <Button variant="outline">
-                View All Educators
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight">Premium Study <span className="text-muted-foreground/30">Materials</span></h2>
           </div>
-
-          {featuredCreators.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">No creators found</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredCreators.map((creator) => (
-                <Card key={creator.id} className="hover:shadow-xl transition-all hover:scale-105">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="relative mb-4 h-24 w-24 overflow-hidden rounded-full bg-muted shadow-md border-2 border-white">
-                        {creator.imageUrl ? (
-                          <Image
-                            src={creator.imageUrl}
-                            alt={creator.hubName || creator.displayName || 'Creator'}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-r from-sky-500 to-blue-700 flex items-center justify-center text-white font-bold text-2xl">
-                            {creator.hubName?.charAt(0) || creator.displayName?.charAt(0) || 'C'}
-                          </div>
-                        )}
-                      </div>
-                      <div className="mb-4">
-                        <h3 className="font-semibold text-lg">{creator.hubName || creator.displayName || 'Creator Hub'}</h3>
-                        <Badge variant="secondary" className="text-xs mt-1 bg-green-50 text-green-700 border-green-200">
-                          ✓ Verified Educator
-                        </Badge>
-                        <div className="flex items-center justify-center mt-2">
-                          <div className="flex text-yellow-500">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-4 w-4 ${i < Math.floor(creator.reputation?.averageRating || 5) ? "fill-current" : "text-gray-300"}`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm text-gray-600 ml-1">
-                            ({creator.reputation?.averageRating ? creator.reputation.averageRating.toFixed(1) : "5.0"})
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-gray-500 mb-6 line-clamp-2">
-                        Accurate, verified academic materials and tutoring.
-                      </p>
-
-                      <Link href={`/hub/${creator.id}`} className="w-full">
-                        <Button className="w-full" variant="outline">
-                          <Store className="mr-2 h-4 w-4" />
-                          Visit Hub
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <Link href="/products">
+            <Button variant="link" className="text-primary font-bold text-lg p-0 h-auto group">
+              Browse All Resources <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform" />
+            </Button>
+          </Link>
         </div>
+
+        {featuredProducts.length === 0 ? (
+          <div className="text-center py-20 glass-card rounded-[2rem] border-border/50">
+            <Search className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
+            <p className="text-muted-foreground font-medium text-lg">Initializing real-time library feed...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {featuredProducts.map((product) => (
+              <Link key={product.id} href={`/products/${product.id}`} className="group">
+                <div className="glass-card rounded-[2.5rem] border-border/50 overflow-hidden transition-all hover:border-primary/40 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] h-full flex flex-col">
+                  <div className="relative aspect-[4/3] bg-muted/20 overflow-hidden">
+                    {product.imageUrl || (product.images && product.images[0]) ? (
+                      <Image
+                        src={product.imageUrl || product.images![0]}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
+                        <ShoppingBag className="h-20 w-20" />
+                      </div>
+                    )}
+                    <div className="absolute top-4 right-4 h-10 w-10 glass rounded-full flex items-center justify-center backdrop-blur-md border-white/10 text-white shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Zap className="h-5 w-5 fill-primary text-primary" />
+                    </div>
+                  </div>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 mb-4 text-[10px] font-bold uppercase tracking-widest text-primary">
+                       {product.category || 'Academic'}
+                    </div>
+                    <h3 className="text-xl font-bold mb-4 line-clamp-2 leading-tight flex-1">{product.name}</h3>
+                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-border/50">
+                      <div className="text-xs text-muted-foreground font-medium">By {product.creatorName}</div>
+                      <div className="text-lg font-black text-primary">₦{(product.price || 0).toLocaleString()}</div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-700 text-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Share Your Knowledge?
-          </h2>
-          <p className="text-xl mb-8 text-white/90">
-            Join thousands of scholars and students monetizing their academic materials. Build your educational library in minutes.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link href="/auth/creator-register-new">
-              <Button size="lg" className="bg-white text-blue-700 hover:bg-gray-100">
-                Start as an Educator
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/help/creator">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                View Creator Playbook
-              </Button>
-            </Link>
+      {/* CTA Section - Advanced Storytelling */}
+      <section className="py-32 px-4">
+        <div className="container mx-auto max-w-6xl relative">
+          <div className="absolute inset-0 bg-primary/20 rounded-[4rem] blur-[100px] -z-10" />
+          <div className="glass-card rounded-[4rem] p-12 md:p-20 border-border text-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+            
+            <Badge className="bg-primary/20 text-primary border-primary/20 mb-8 px-4 py-1.5 rounded-full font-bold">
+               VERIFIERS WANTED
+            </Badge>
+            <h2 className="text-4xl md:text-6xl font-black mb-8 tracking-tighter">Help Us Bridge the <br /> <span className="text-gradient">Information Gap</span></h2>
+            <p className="max-w-2xl mx-auto text-lg text-muted-foreground font-medium mb-12">
+              Our unique 3-tier verification system is what makes FeroLibrary different. Join as a verifier or contributor and build a legacy of academic trust.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/auth/signup">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-black px-12 h-16 rounded-full text-lg shadow-xl transition-all active:scale-95">
+                  Start Contributing
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="lg" variant="outline" className="glass border-border hover:bg-muted px-12 h-16 rounded-full font-black text-lg transition-all active:scale-95">
+                  Verifier Portal
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

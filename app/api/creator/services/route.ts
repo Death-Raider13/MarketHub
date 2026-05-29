@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getcreatorserviceBookings } from '@/lib/services/booking'
+import { getCreatorServiceBookings } from '@/lib/services/booking'
 import { verifyAuthToken } from '@/lib/api-auth'
 import { logger } from '@/lib/logger'
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     // SECURITY: Use the authenticated user's ID as the creatorId
     const creatorId = user.uid
 
-    const bookings = await getcreatorserviceBookings(creatorId)
+    const bookings = await getCreatorServiceBookings(creatorId)
 
     // Format the bookings for the frontend
     const formattedBookings = bookings.map((booking: any) => ({

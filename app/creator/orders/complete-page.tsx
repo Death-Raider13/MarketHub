@@ -15,7 +15,7 @@ import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { Package, Truck, CheckCircle, XCircle, Clock, Eye, Loader2, Edit } from "lucide-react"
 import { toast } from "sonner"
 
-interface creatorOrder {
+interface CreatorOrder {
   id: string
   userId: string
   userEmail: string
@@ -36,12 +36,12 @@ interface creatorOrder {
   deliveredAt?: string
 }
 
-function creatorOrdersContent() {
+function CreatorOrdersContent() {
   const { user } = useAuth()
-  const [orders, setOrders] = useState<creatorOrder[]>([])
+  const [orders, setOrders] = useState<CreatorOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<string>("all")
-  const [selectedOrder, setSelectedOrder] = useState<creatorOrder | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<CreatorOrder | null>(null)
   const [updateLoading, setUpdateLoading] = useState(false)
 
   // Status update form
@@ -405,10 +405,10 @@ function creatorOrdersContent() {
   )
 }
 
-export default function creatorOrdersPage() {
+export default function CreatorOrdersPage() {
   return (
     <ProtectedRoute allowedRoles={["creator"]}>
-      <creatorOrdersContent />
+      <CreatorOrdersContent />
     </ProtectedRoute>
   )
 }

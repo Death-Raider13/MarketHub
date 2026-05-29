@@ -16,7 +16,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { CreatorHubAds } from "@/components/advertising/CreatorHubAds"
 import { ReportContent } from "@/components/common/report-content"
 import { useCart } from "@/lib/cart-context"
 import type { Product } from "@/lib/types"
@@ -204,14 +203,14 @@ export default function CreatorHubPage() {
   }
 
   // Get customization or use defaults gracefully
-  const custom = creator.storeCustomization || {}
+  const custom = (creator.storeCustomization || {}) as any
   const theme = custom.theme || {
-    primaryColor: "#0EA5E9",
-    secondaryColor: "#06B6D4",
-    backgroundColor: "#F0F9FF",
-    textColor: "#0C4A6E",
+    primaryColor: "hsl(var(--primary))",
+    secondaryColor: "hsl(var(--secondary))",
+    backgroundColor: "hsl(var(--background))",
+    textColor: "hsl(var(--foreground))",
     accentColor: "#7DD3FC",
-    fontFamily: "Inter, sans-serif"
+    fontFamily: "var(--font-sans)"
   }
   const customBranding = custom.branding || {}
   const layout = custom.layout || {
@@ -392,8 +391,6 @@ export default function CreatorHubPage() {
               </div>
             )}
 
-            {/* Hub Ads (Banner Placement) */}
-            <CreatorHubAds placement="banner" maxAds={2} className="mb-8" creatorId={creatorId} />
 
             <Tabs defaultValue="products" className="w-full">
               <TabsList 
@@ -695,8 +692,6 @@ export default function CreatorHubPage() {
                 </Card>
               )}
 
-              {/* Sidebar Ads */}
-              <CreatorHubAds placement="sidebar" maxAds={2} creatorId={creatorId} />
             </div>
           </div>
         </div>

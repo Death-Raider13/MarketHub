@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       .orderBy('uploadedAt', 'desc')
       .get();
 
-    const documents = docsSnapshot.docs.map(doc => ({
+    const documents = docsSnapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data()
     }));

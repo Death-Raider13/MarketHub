@@ -35,7 +35,7 @@ export interface Session {
   sessionId: string;
   userId: string;
   email: string;
-  role: 'customer' | 'creator' | 'admin' | 'super_admin' | 'moderator' | 'support';
+  role: 'customer' | 'creator' | 'admin' | 'super_admin' | 'moderator' | 'support' | 'promoter' | 'verifier';
   createdAt: Date;
   lastActivity: Date;
   expiresAt: Date;
@@ -201,7 +201,7 @@ export function getDeviceInfo(userAgent: string): DeviceInfo {
 export async function createSession(
   userId: string,
   email: string,
-  role: 'customer' | 'creator' | 'admin' | 'super_admin' | 'moderator' | 'support',
+  role: 'customer' | 'creator' | 'admin' | 'super_admin' | 'moderator' | 'support' | 'promoter' | 'verifier',
   ipAddress: string,
   userAgent: string,
   rememberMe: boolean = false

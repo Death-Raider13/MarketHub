@@ -141,7 +141,7 @@ export interface Order {
   shipping: number
   total: number
   totalAmount: number
-  status: "pending" | "processing" | "delivered" | "cancelled" | "confirmed" | "paid" | "refunded"
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "confirmed" | "paid" | "refunded"
   paymentStatus: "pending" | "completed" | "paid" | "refunded" | "failed"
   shippingAddress: Address
   paymentMethod: string

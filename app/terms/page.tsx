@@ -18,14 +18,14 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground mb-4">
-                By accessing and using FEROMARKETHUB, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                By accessing and using FeroLibrary, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">2. Use License</h2>
               <p className="text-muted-foreground mb-4">
-                Permission is granted to temporarily access the materials (information or software) on FEROMARKETHUB for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title.
+                Permission is granted to temporarily access the materials (information or software) on FeroLibrary for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title.
               </p>
               <p className="text-muted-foreground mb-4">
                 Under this license you may not:
@@ -41,7 +41,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">3. creator Terms</h2>
               <p className="text-muted-foreground mb-4">
-                creators using FEROMARKETHUB agree to:
+                creators using FeroLibrary agree to:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
                 <li>Provide accurate product information</li>
@@ -55,7 +55,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">4. Customer Terms</h2>
               <p className="text-muted-foreground mb-4">
-                Customers using FEROMARKETHUB agree to:
+                Customers using FeroLibrary agree to:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
                 <li>Provide accurate information</li>
@@ -68,21 +68,21 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">5. Payment Terms</h2>
               <p className="text-muted-foreground mb-4">
-                All payments are processed securely through our payment partners. FEROMARKETHUB does not store credit card information. creators receive payouts according to the payout schedule minus applicable fees.
+                All payments are processed securely through our payment partners. FeroLibrary does not store credit card information. creators receive payouts according to the payout schedule minus applicable fees.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">6. Disclaimer</h2>
               <p className="text-muted-foreground mb-4">
-                The materials on FEROMARKETHUB are provided on an 'as is' basis. FEROMARKETHUB makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+                The materials on FeroLibrary are provided on an 'as is' basis. FeroLibrary makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">7. Limitations</h2>
               <p className="text-muted-foreground mb-4">
-                In no event shall FEROMARKETHUB or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on FEROMARKETHUB.
+                In no event shall FeroLibrary or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on FeroLibrary.
               </p>
             </section>
 
@@ -96,7 +96,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">9. Contact Information</h2>
               <p className="text-muted-foreground mb-4">
-                If you have any questions about these Terms, please contact us at support@FEROMARKETHUB.ng
+                If you have any questions about these Terms, please contact us at support@FeroLibrary.ng
               </p>
             </section>
           </div>

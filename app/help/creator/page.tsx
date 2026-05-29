@@ -15,7 +15,7 @@ export default function CreatorHelpPage() {
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4">Creator Help Center</h1>
             <p className="text-xl text-muted-foreground">
-              Everything you need to know about creating and selling on FEROMARKETHUB
+              Everything you need to know about creating and selling on FeroLibrary
             </p>
           </div>
 

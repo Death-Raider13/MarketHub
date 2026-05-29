@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const snapshot = await query.orderBy('createdAt', 'desc').get()
     
-    const tickets = snapshot.docs.map(doc => ({
+    const tickets = snapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       success: true,
       tickets,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching staff tickets:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }

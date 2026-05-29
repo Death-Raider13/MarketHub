@@ -100,11 +100,17 @@ const blockedIPs = new Set<string>([
 const whitelistedIPs = new Set<string>([
   '127.0.0.1',
   'localhost',
+  '::1',
   // Add trusted IPs here
 ]);
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Disable rate limiting in development
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.next();
+  }
   
   // Skip rate limiting for static files and Next.js internals
   if (

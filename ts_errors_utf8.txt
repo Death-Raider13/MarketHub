@@ -1,0 +1,88 @@
+﻿.next/types/app/advertise/page.ts(2,24): error TS2307: Cannot find module '../../../../app/advertise/page.js' or its corresponding type declarations.
+.next/types/app/advertise/page.ts(5,29): error TS2307: Cannot find module '../../../../app/advertise/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/dashboard/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/advertiser/dashboard/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/dashboard/page.ts(5,29): error TS2307: Cannot find module '../../../../../app/advertiser/dashboard/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/signup/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/advertiser/signup/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/signup/page.ts(5,29): error TS2307: Cannot find module '../../../../../app/advertiser/signup/page.js' or its corresponding type declarations.
+.next/types/app/advertising/page.ts(2,24): error TS2307: Cannot find module '../../../../app/advertising/page.js' or its corresponding type declarations.
+.next/types/app/advertising/page.ts(5,29): error TS2307: Cannot find module '../../../../app/advertising/page.js' or its corresponding type declarations.
+.next/types/app/creators/[id]/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/creators/[id]/page.js' or its corresponding type declarations.
+.next/types/app/creators/[id]/page.ts(5,29): error TS2307: Cannot find module '../../../../../app/creators/[id]/page.js' or its corresponding type declarations.
+.next/types/app/creators/page.ts(2,24): error TS2307: Cannot find module '../../../../app/creators/page.js' or its corresponding type declarations.
+.next/types/app/creators/page.ts(5,29): error TS2307: Cannot find module '../../../../app/creators/page.js' or its corresponding type declarations.
+.next/types/app/invite/page.ts(2,24): error TS2307: Cannot find module '../../../../app/invite/page.js' or its corresponding type declarations.
+.next/types/app/invite/page.ts(5,29): error TS2307: Cannot find module '../../../../app/invite/page.js' or its corresponding type declarations.
+.next/types/app/my-services/page.ts(2,24): error TS2307: Cannot find module '../../../../app/my-services/page.js' or its corresponding type declarations.
+.next/types/app/my-services/page.ts(5,29): error TS2307: Cannot find module '../../../../app/my-services/page.js' or its corresponding type declarations.
+.next/types/app/returns/page.ts(2,24): error TS2307: Cannot find module '../../../../app/returns/page.js' or its corresponding type declarations.
+.next/types/app/returns/page.ts(5,29): error TS2307: Cannot find module '../../../../app/returns/page.js' or its corresponding type declarations.
+.next/types/app/test-email/page.ts(2,24): error TS2307: Cannot find module '../../../../app/test-email/page.js' or its corresponding type declarations.
+.next/types/app/test-email/page.ts(5,29): error TS2307: Cannot find module '../../../../app/test-email/page.js' or its corresponding type declarations.
+app/account/page.tsx(42,32): error TS2307: Cannot find module '@/components/creator/dashboard-stats' or its corresponding type declarations.
+app/admin/analytics/page.tsx(175,31): error TS2339: Property 'hubName' does not exist on type '{ createdAt: any; id: string; }'.
+app/admin/analytics/page.tsx(175,51): error TS2339: Property 'storeName' does not exist on type '{ createdAt: any; id: string; }'.
+app/admin/analytics/page.tsx(175,73): error TS2339: Property 'displayName' does not exist on type '{ createdAt: any; id: string; }'.
+app/api/creator/services/route.ts(2,10): error TS2724: '"@/lib/services/booking"' has no exported member named 'getcreatorserviceBookings'. Did you mean 'getCreatorServiceBookings'?
+app/api/creator/verification/route.ts(35,45): error TS7006: Parameter 'doc' implicitly has an 'any' type.
+app/api/support/staff/tickets/route.ts(32,39): error TS7006: Parameter 'doc' implicitly has an 'any' type.
+app/api/webhooks/paystack/route.ts(62,45): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'LogContext | undefined'.
+app/api/webhooks/paystack/route.ts(105,15): error TS2339: Property 'updatecreatorBalances' does not exist on type 'typeof import("C:/Users/DELL/CascadeProjects/MarketHub/lib/services/creator-balance")'.
+app/api/webhooks/paystack/route.ts(158,86): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | undefined'.
+app/api/webhooks/paystack/route.ts(165,71): error TS2345: Argument of type '{ fileName: string; url: string; }[]' is not assignable to parameter of type 'SecureDownloadLink[]'.
+  Type '{ fileName: string; url: string; }' is missing the following properties from type 'SecureDownloadLink': fileId, expiresAt
+app/creator/hub-customize/page.tsx(879,80): error TS2339: Property 'hubName' does not exist on type 'UserProfile'.
+app/creator/hub-customize/page.tsx(1052,74): error TS2339: Property 'hubName' does not exist on type 'UserProfile'.
+app/creator/orders/complete-page.tsx(411,7): error TS2339: Property 'creatorOrdersContent' does not exist on type 'JSX.IntrinsicElements'.
+app/creator/products/[id]/edit/page.tsx(721,22): error TS2304: Cannot find name 'BarChart3'.
+app/creator/questions/page.tsx(376,71): error TS2551: Property 'iscreator' does not exist on type 'Reply'. Did you mean 'isCreator'?
+app/dashboard/page.tsx(49,5): error TS2322: Type '"shipped"' is not assignable to type '"pending" | "processing" | "delivered" | "cancelled" | "confirmed" | "paid" | "refunded"'.
+app/dashboard/page.tsx(72,12): error TS2678: Type '"shipped"' is not comparable to type '"pending" | "processing" | "delivered" | "cancelled" | "confirmed" | "paid" | "refunded"'.
+app/hub/[creatorId]/page.tsx(235,71): error TS2339: Property 'hubName' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(236,29): error TS2339: Property 'tagline' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(237,33): error TS2339: Property 'description' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(238,26): error TS2339: Property 'logo' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(239,33): error TS2339: Property 'bannerImage' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(248,29): error TS2339: Property 'twitter' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(248,47): error TS2339: Property 'instagram' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(248,67): error TS2339: Property 'facebook' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(248,86): error TS2339: Property 'linkedin' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(248,105): error TS2339: Property 'youtube' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(248,123): error TS2339: Property 'tiktok' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(248,140): error TS2339: Property 'website' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(249,56): error TS2339: Property 'aboutPage' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(250,38): error TS2339: Property 'supportPolicy' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(251,29): error TS2339: Property 'faqs' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(251,45): error TS2339: Property 'faqs' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(365,16): error TS2339: Property 'announcement' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(367,20): error TS2339: Property 'announcement' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(540,32): error TS2339: Property 'aboutPage' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(542,36): error TS2339: Property 'aboutPage' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(558,35): error TS2339: Property 'supportPolicy' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(571,35): error TS2339: Property 'faqs' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(617,39): error TS2339: Property 'whatsapp' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(626,35): error TS2339: Property 'twitter' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(628,70): error TS2339: Property 'twitter' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(631,35): error TS2339: Property 'instagram' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(633,72): error TS2339: Property 'instagram' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(636,35): error TS2339: Property 'facebook' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(638,71): error TS2339: Property 'facebook' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(641,35): error TS2339: Property 'youtube' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(643,71): error TS2339: Property 'youtube' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(646,35): error TS2339: Property 'linkedin' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(648,74): error TS2339: Property 'linkedin' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(651,35): error TS2339: Property 'tiktok' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(653,70): error TS2339: Property 'tiktok' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(656,35): error TS2339: Property 'website' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(658,47): error TS2339: Property 'website' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(658,83): error TS2339: Property 'website' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(658,111): error TS2339: Property 'website' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(677,35): error TS2339: Property 'whatsapp' does not exist on type '{}'.
+app/hub/[creatorId]/page.tsx(683,64): error TS2339: Property 'whatsapp' does not exist on type '{}'.
+app/page.tsx(8,32): error TS2307: Cannot find module '@/components/advertising/HomepageBanner' or its corresponding type declarations.
+app/products/page.tsx(18,33): error TS2307: Cannot find module '@/components/advertising/CategoryPageAds' or its corresponding type declarations.
+app/products/page.tsx(19,35): error TS2307: Cannot find module '@/components/advertising/SponsoredProducts' or its corresponding type declarations.
+components/common/report-content.tsx(54,3): error TS1117: An object literal cannot have multiple properties with the same name.
+examples/creator-hub-with-ads.tsx(4,31): error TS2307: Cannot find module '@/components/advertising/CreatorHubAds' or its corresponding type declarations.
+examples/homepage-with-ads.tsx(4,32): error TS2307: Cannot find module '@/components/advertising/HomepageBanner' or its corresponding type declarations.
+examples/homepage-with-ads.tsx(5,35): error TS2307: Cannot find module '@/components/advertising/SponsoredProducts' or its corresponding type declarations.
+lib/advertising/ad-database.ts(29,3): error TS2724: '"@/lib/types/advertising"' has no exported member named 'creatorAdEarnings'. Did you mean 'CreatorAdEarnings'?

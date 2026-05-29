@@ -58,8 +58,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ received: true }, { status: 200 })
-  } catch (error) {
-    logger.error('Paystack webhook error:', error)
+  } catch (error: any) {
+    logger.error('Paystack webhook error:', undefined, error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
@@ -102,15 +102,15 @@ async function handleChargeSuccess(data: any) {
 
     // 4. Update creator Balances (Safe transaction)
     try {
-      const { updatecreatorBalances } = await import('@/lib/services/creator-balance')
-      await updatecreatorBalances(orderData, orderId)
+      const { updateCreatorBalances } = await import('@/lib/services/creator-balance')
+      await updateCreatorBalances(orderData, orderId)
     } catch (balanceErr: any) {
       logger.error(`Failed to update creator balances via webhook for ${orderId}`, undefined, balanceErr)
     }
 
     // 5. Digital Product Fulfillment & Emails (Robust)
     try {
-      const downloadLinks: { fileName: string; url: string }[] = []
+      const downloadLinks: any[] = []
       const items = orderData.items || []
 
       for (const item of items) {
@@ -154,7 +154,7 @@ async function handleChargeSuccess(data: any) {
               fileName: p.name || 'Digital Product',
               url: downloadUrl
             })
-          } catch (tokenErr) {
+          } catch (tokenErr: any) {
             logger.error(`Failed to generate download token for ${p.id}`, undefined, tokenErr)
           }
         }

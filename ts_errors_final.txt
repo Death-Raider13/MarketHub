@@ -1,0 +1,29 @@
+﻿.next/types/app/advertise/page.ts(2,24): error TS2307: Cannot find module '../../../../app/advertise/page.js' or its corresponding type declarations.
+.next/types/app/advertise/page.ts(5,29): error TS2307: Cannot find module '../../../../app/advertise/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/dashboard/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/advertiser/dashboard/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/dashboard/page.ts(5,29): error TS2307: Cannot find module '../../../../../app/advertiser/dashboard/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/signup/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/advertiser/signup/page.js' or its corresponding type declarations.
+.next/types/app/advertiser/signup/page.ts(5,29): error TS2307: Cannot find module '../../../../../app/advertiser/signup/page.js' or its corresponding type declarations.
+.next/types/app/advertising/page.ts(2,24): error TS2307: Cannot find module '../../../../app/advertising/page.js' or its corresponding type declarations.
+.next/types/app/advertising/page.ts(5,29): error TS2307: Cannot find module '../../../../app/advertising/page.js' or its corresponding type declarations.
+.next/types/app/creators/[id]/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/creators/[id]/page.js' or its corresponding type declarations.
+.next/types/app/creators/[id]/page.ts(5,29): error TS2307: Cannot find module '../../../../../app/creators/[id]/page.js' or its corresponding type declarations.
+.next/types/app/creators/page.ts(2,24): error TS2307: Cannot find module '../../../../app/creators/page.js' or its corresponding type declarations.
+.next/types/app/creators/page.ts(5,29): error TS2307: Cannot find module '../../../../app/creators/page.js' or its corresponding type declarations.
+.next/types/app/invite/page.ts(2,24): error TS2307: Cannot find module '../../../../app/invite/page.js' or its corresponding type declarations.
+.next/types/app/invite/page.ts(5,29): error TS2307: Cannot find module '../../../../app/invite/page.js' or its corresponding type declarations.
+.next/types/app/my-services/page.ts(2,24): error TS2307: Cannot find module '../../../../app/my-services/page.js' or its corresponding type declarations.
+.next/types/app/my-services/page.ts(5,29): error TS2307: Cannot find module '../../../../app/my-services/page.js' or its corresponding type declarations.
+.next/types/app/returns/page.ts(2,24): error TS2307: Cannot find module '../../../../app/returns/page.js' or its corresponding type declarations.
+.next/types/app/returns/page.ts(5,29): error TS2307: Cannot find module '../../../../app/returns/page.js' or its corresponding type declarations.
+.next/types/app/test-email/page.ts(2,24): error TS2307: Cannot find module '../../../../app/test-email/page.js' or its corresponding type declarations.
+.next/types/app/test-email/page.ts(5,29): error TS2307: Cannot find module '../../../../app/test-email/page.js' or its corresponding type declarations.
+app/api/admin/advertising/revenue/route.ts(3,97): error TS2307: Cannot find module '@/lib/advertising/revenue-calculator' or its corresponding type declarations.
+app/api/ads/track/click/route.ts(2,29): error TS2307: Cannot find module '@/lib/advertising/ad-database' or its corresponding type declarations.
+app/api/ads/track/impression/route.ts(2,32): error TS2307: Cannot find module '@/lib/advertising/ad-database' or its corresponding type declarations.
+app/api/advertising/track-impression/route.ts(3,71): error TS2307: Cannot find module '@/lib/advertising/revenue-calculator' or its corresponding type declarations.
+app/api/creator/verification/route.ts(35,45): error TS7006: Parameter 'doc' implicitly has an 'any' type.
+app/api/support/staff/tickets/route.ts(32,39): error TS7006: Parameter 'doc' implicitly has an 'any' type.
+app/creator/hub-customize/page.tsx(879,80): error TS2339: Property 'hubName' does not exist on type 'UserProfile'.
+app/creator/hub-customize/page.tsx(1052,74): error TS2339: Property 'hubName' does not exist on type 'UserProfile'.
+app/creator/orders/complete-page.tsx(411,7): error TS2339: Property 'creatorOrdersContent' does not exist on type 'JSX.IntrinsicElements'.

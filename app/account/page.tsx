@@ -39,7 +39,6 @@ import { collection, query, where, getDocs, orderBy, limit, addDoc, deleteDoc, d
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth"
 import { useCart } from "@/lib/cart-context"
 import { ProductCard } from "@/components/product-card"
-import { DashboardStats } from "@/components/creator/dashboard-stats"
 import type { Product } from "@/lib/types"
 import { toast } from "sonner"
 import { NotificationTriggers } from "@/lib/notifications/triggers"

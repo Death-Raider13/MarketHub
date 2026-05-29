@@ -15,8 +15,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import type { Product } from "@/lib/types"
 import { collection, getDocs, query, where, orderBy, limit as firestoreLimit, doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
-import { CategoryPageAds } from "@/components/advertising/CategoryPageAds"
-import { SponsoredProducts } from "@/components/advertising/SponsoredProducts"
 
 export default function ProductsPage() {
   const { addToCart } = useCart()
@@ -165,25 +163,11 @@ export default function ProductsPage() {
             <p className="text-muted-foreground">Discover amazing products from our creators</p>
           </div>
 
-          {/* Category Banner Ads */}
-          <CategoryPageAds
-            category="general"
-            placement="top"
-            maxAds={2}
-            className="mb-8"
-          />
 
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Filters Sidebar */}
             <aside className="hidden w-full lg:block lg:w-80 lg:flex-shrink-0">
               <div className="sticky top-8 space-y-6">
-                {/* Sidebar Ads */}
-                <CategoryPageAds
-                  category="general"
-                  placement="sidebar"
-                  maxAds={2}
-                  className="mb-6"
-                />
                 <div>
                   <h3 className="mb-4 font-semibold flex items-center gap-2">
                     <SlidersHorizontal className="h-4 w-4" />
@@ -448,14 +432,6 @@ export default function ProductsPage() {
                     ))}
                   </div>
 
-                  {/* Sponsored Products */}
-                  <div className="mt-12">
-                    <SponsoredProducts
-                      category="general"
-                      layout="grid"
-                      maxAds={6}
-                    />
-                  </div>
                 </>
               )}
             </div>

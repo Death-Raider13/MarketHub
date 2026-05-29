@@ -26,7 +26,7 @@ import { Flag, Loader2, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 
 interface ReportContentProps {
-  type: 'product' | 'creator' | 'creator' | 'review' | 'message' | 'user'
+  type: 'product' | 'creator' | 'review' | 'message' | 'user'
   itemId: string
   itemTitle: string
   itemUrl?: string
@@ -41,14 +41,6 @@ const reportCategories = {
     { value: 'inappropriate', label: 'Inappropriate Content' },
     { value: 'copyright', label: 'Copyright Violation' },
     { value: 'dangerous', label: 'Dangerous/Unsafe Product' },
-    { value: 'other', label: 'Other' }
-  ],
-  creator: [
-    { value: 'fraud', label: 'Fraudulent Activity' },
-    { value: 'not_delivering', label: 'Not Delivering Products' },
-    { value: 'poor_service', label: 'Poor Customer Service' },
-    { value: 'fake_business', label: 'Fake Business' },
-    { value: 'harassment', label: 'Harassment' },
     { value: 'other', label: 'Other' }
   ],
   creator: [

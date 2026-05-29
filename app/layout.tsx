@@ -24,43 +24,44 @@ if (typeof window !== 'undefined') {
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://ferolibrary.com'),
   title: {
-    default: "FeroLibrary - The Trust-First Academic Marketplace",
+    default: "FeroLibrary | Nigeria's Most Trusted Academic Marketplace",
     template: "%s | FeroLibrary"
   },
-  description: "FeroLibrary is Nigeria's most trusted platform for high-quality, verified academic resources, study guides, and past questions.",
-  generator: 'v0.app',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://ferolibrary.com'),
-  keywords: [
-    "FeroLibrary",
-    "Academic Marketplace",
-    "Verified Study Guides",
-    "University Past Questions",
-    "WAEC and JAMB resources",
-    "Nigeria student materials"
-  ],
+  description: "Access verified past questions, study guides, and project templates. Guaranteed accuracy for academic success.",
+  keywords: ["FeroLibrary", "Academic Resources", "JAMB", "WAEC", "University Notes", "Verified Study Guides"],
   icons: {
-    icon: [
-      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      "/favicon/favicon.ico"
-    ],
-    apple: "/favicon/apple-touch-icon.png"
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
-  manifest: "/favicon/site.webmanifest",
   openGraph: {
-    title: "FeroLibrary - The Trust-First Academic Marketplace",
-    description: "FeroLibrary is Nigeria's most trusted platform for high-quality, verified academic resources, study guides, and past questions.",
+    title: "FeroLibrary | Nigeria's Most Trusted Academic Marketplace",
+    description: "The trust-first academic marketplace for verified study materials.",
     url: "/",
     siteName: "FeroLibrary",
     locale: "en_NG",
-    type: "website"
+    type: "website",
+    images: [{ url: "/hero.png", width: 1200, height: 630, alt: "FeroLibrary Ecosystem" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "FeroLibrary - The Trust-First Academic Marketplace",
-    description: "FeroLibrary is Nigeria's most trusted platform for high-quality, verified academic resources, study guides, and past questions."
-  }
+    title: "FeroLibrary | Nigeria's Most Trusted Academic Marketplace",
+    description: "Access verified past questions, study guides, and project templates. Guaranteed accuracy for academic success.",
+    images: ["/hero.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default function RootLayout({
@@ -73,8 +74,8 @@ export default function RootLayout({
       <body className={`font-sans antialiased ${inter.variable}`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem={true}
           disableTransitionOnChange
         >
           <ProductionErrorBoundary>
