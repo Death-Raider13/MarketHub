@@ -8,8 +8,14 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get('x-cc-webhook-signature') || ''
     const webhookSecret = process.env.COINBASE_COMMERCE_WEBHOOK_SECRET || ''
 
-    // Verify webhook signature (skip if no secret configured for testing)
-    if (webhookSecret && !verifyCoinbaseWebhook(rawBody, signature, webhookSecret)) {
+    // Webhook secret MUST be configured — without it, an attacker can forge
+    // "charge:completed" events to obtain digital products for free.
+    if (!webhookSecret) {
+      console.error('CRITICAL: COINBASE_COMMERCE_WEBHOOK_SECRET not configured — rejecting webhook')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
+    if (!signature || !verifyCoinbaseWebhook(rawBody, signature, webhookSecret)) {
       console.error('Invalid Coinbase webhook signature')
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }

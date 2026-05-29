@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { checkRateLimit, sweepMemoryStore } from '@/lib/rate-limit-store';
 
 /**
- * Global Middleware for Rate Limiting
- * Runs on every request to protect the application
+ * Global middleware: rate limiting + security headers.
+ *
+ * Rate limit counters live in Upstash Redis (REDIS_URL + REDIS_TOKEN) when
+ * configured, so they survive across serverless instances. Falls back to a
+ * per-instance in-memory map for local development.
  */
-
-/**
- * Simple in-memory rate limiter.
- * 
- * TODO (Phase 3 Architecture): Move to Redis (Upstash) or Vercel KV for production.
- * In-memory map won't work across multiple serverless function instances
- * and will reset on every deployment. This is currently functional for
- * a single-instance deployment but must be upgraded before scaling out.
- */
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 // Rate limit configuration
 const RATE_LIMIT_CONFIG = {
@@ -65,32 +59,6 @@ function getRateLimitConfig(pathname: string) {
   return RATE_LIMIT_CONFIG;
 }
 
-function checkRateLimit(
-  identifier: string,
-  config: { windowMs: number; maxRequests: number }
-): { allowed: boolean; remaining: number; retryAfter?: number } {
-  const now = Date.now();
-  let store = rateLimitStore.get(identifier);
-  
-  // Initialize or reset if window has passed
-  if (!store || now > store.resetTime) {
-    store = {
-      count: 0,
-      resetTime: now + config.windowMs,
-    };
-    rateLimitStore.set(identifier, store);
-  }
-  
-  // Increment request count
-  store.count++;
-  
-  const allowed = store.count <= config.maxRequests;
-  const remaining = Math.max(0, config.maxRequests - store.count);
-  const retryAfter = allowed ? undefined : Math.ceil((store.resetTime - now) / 1000);
-  
-  return { allowed, remaining, retryAfter };
-}
-
 // Blocked IPs (for severe abuse)
 const blockedIPs = new Set<string>([
   // Add IPs to block here
@@ -104,56 +72,95 @@ const whitelistedIPs = new Set<string>([
   // Add trusted IPs here
 ]);
 
-export function middleware(request: NextRequest) {
+function buildSecurityHeaders(response: NextResponse, pathname: string, method: string) {
+  // CORS for API routes. Tighten via ALLOWED_ORIGINS in production.
+  if (pathname.startsWith('/api')) {
+    const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+    response.headers.set('Access-Control-Allow-Origin', allowedOrigin);
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    response.headers.set(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, X-Requested-With'
+    );
+  }
+
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(self "https://js.paystack.co")'
+  );
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+
+  // CSP — locked to known asset & payment origins. Adjust if you add new CDNs.
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://commerce.coinbase.com https://www.googletagmanager.com https://www.google-analytics.com https://*.firebaseapp.com https://apis.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob: https: ",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.paystack.co https://api.commerce.coinbase.com https://ik.imagekit.io https://res.cloudinary.com https://www.google-analytics.com https://*.sentry.io",
+    "frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://commerce.coinbase.com https://*.firebaseapp.com",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
+  ].join('; ');
+  response.headers.set('Content-Security-Policy', csp);
+
+  return response;
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Disable rate limiting in development
-  if (process.env.NODE_ENV === 'development') {
-    return NextResponse.next();
-  }
-  
-  // Skip rate limiting for static files and Next.js internals
+  // Static assets & internals bypass everything
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
-    pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|webp|css|js|woff|woff2|ttf|eot)$/)
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|webp|css|js|woff|woff2|ttf|eot|map)$/)
   ) {
     return NextResponse.next();
   }
-  
+
+  // Always handle CORS preflight first
+  if (request.method === 'OPTIONS' && pathname.startsWith('/api')) {
+    const preflight = new NextResponse(null, { status: 204 });
+    return buildSecurityHeaders(preflight, pathname, 'OPTIONS');
+  }
+
+  // Skip rate limiting in development, but still apply security headers
+  if (process.env.NODE_ENV === 'development') {
+    return buildSecurityHeaders(NextResponse.next(), pathname, request.method);
+  }
+
   const ip = getClientIP(request);
-  
-  // Check if IP is blocked
+
   if (blockedIPs.has(ip)) {
-    return new NextResponse(
+    const blocked = new NextResponse(
       JSON.stringify({
         error: 'Access denied',
         message: 'Your IP has been blocked due to suspicious activity',
       }),
-      {
-        status: 403,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
     );
+    return buildSecurityHeaders(blocked, pathname, request.method);
   }
-  
-  // Skip rate limiting for whitelisted IPs
+
   if (whitelistedIPs.has(ip)) {
-    return NextResponse.next();
+    return buildSecurityHeaders(NextResponse.next(), pathname, request.method);
   }
-  
-  // Get rate limit config for this path
+
   const config = getRateLimitConfig(pathname);
-  
-  // Create identifier (IP + path for more granular control)
   const identifier = `${ip}:${pathname}`;
-  
-  // Check rate limit
-  const result = checkRateLimit(identifier, config);
-  
-  // Create response
+
+  const result = await checkRateLimit(identifier, config);
+  sweepMemoryStore();
+
   const response = result.allowed
     ? NextResponse.next()
     : new NextResponse(
@@ -166,38 +173,16 @@ export function middleware(request: NextRequest) {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Retry-After': String(result.retryAfter),
+            'Retry-After': String(result.retryAfter ?? 60),
           },
         }
       );
-  
-  // 1. Add rate limit headers
-  response.headers.set('X-RateLimit-Limit', String(config.maxRequests));
+
+  response.headers.set('X-RateLimit-Limit', String(result.limit));
   response.headers.set('X-RateLimit-Remaining', String(result.remaining));
-  response.headers.set('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + (config.windowMs / 1000)));
+  response.headers.set('X-RateLimit-Reset', String(result.resetAt));
 
-  // 2. Add CORS headers for API routes
-  if (pathname.startsWith('/api')) {
-    response.headers.set('Access-Control-Allow-Origin', '*'); // Adjust this in production if needed
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    
-    // Handle preflight requests
-    if (request.method === 'OPTIONS') {
-      return new NextResponse(null, {
-        status: 204,
-        headers: response.headers
-      });
-    }
-  }
-
-  // 3. Add Security Headers
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
-  return response;
+  return buildSecurityHeaders(response, pathname, request.method);
 }
 
 // Configure which paths the middleware runs on
@@ -213,14 +198,3 @@ export const config = {
   ],
 };
 
-// Cleanup old entries every 5 minutes
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, store] of rateLimitStore.entries()) {
-      if (now > store.resetTime) {
-        rateLimitStore.delete(key);
-      }
-    }
-  }, 5 * 60 * 1000);
-}

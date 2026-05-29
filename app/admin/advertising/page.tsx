@@ -81,8 +81,6 @@ function AdminAdvertisingContent() {
     try {
       setLoading(true)
 
-      // TEMPORARY: Skip auth headers for testing
-      // TODO: Re-enable after Firebase login is fixed
 
       const token = await getCurrentToken()
       if (!token) {
@@ -125,8 +123,6 @@ function AdminAdvertisingContent() {
     try {
       setSubmittingReview(true)
 
-      // TEMPORARY: Skip auth headers for testing
-      // TODO: Re-enable after Firebase login is fixed
       const token = await getCurrentToken()
       if (!token) {
         throw new Error('Admin authentication required')
@@ -163,8 +159,6 @@ function AdminAdvertisingContent() {
 
   const updateAdStatus = async (adId: string, action: 'pause' | 'resume') => {
     try {
-      // TEMPORARY: Skip auth headers for testing
-      // TODO: Re-enable after Firebase login is fixed
       const token = await getCurrentToken()
       if (!token) {
         throw new Error('Admin authentication required')

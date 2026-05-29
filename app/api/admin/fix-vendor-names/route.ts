@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
+import { requireAdmin } from "@/lib/api-auth"
 
-// POST - Fix creator names for existing products
+// POST - Fix creator names for existing products (super-admin only migration)
 export async function POST(request: NextRequest) {
+  const authResult = await requireAdmin(request, ['super_admin'])
+  if ('error' in authResult) return authResult.error
+
   try {
     const adminDb = getAdminFirestore()
 

@@ -73,3 +73,44 @@ export function devOnlyGuard(): NextResponse | null {
   }
   return null
 }
+
+const ADMIN_ROLES = new Set(['admin', 'super_admin', 'moderator', 'support'])
+
+/**
+ * Verify the request bears a valid token AND the caller has an admin-tier role.
+ * Role is read from Firestore `users/{uid}` when not present on the token, so
+ * a stale custom-claim cache on the client can't be used to bypass checks.
+ */
+export async function requireAdmin(
+  request: NextRequest,
+  allowed: string[] = ['admin', 'super_admin']
+): Promise<{ user: AuthenticatedRequest & { role: string } } | { error: NextResponse }> {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth
+
+  let role = auth.user.role
+
+  if (!role) {
+    try {
+      const { getAdminFirestore } = await import('@/lib/firebase/admin-simple')
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        const userDoc = await adminDb.collection('users').doc(auth.user.uid).get()
+        role = userDoc.exists ? (userDoc.data()?.role as string | undefined) : undefined
+      }
+    } catch (err) {
+      console.error('requireAdmin: failed to read user role', err)
+    }
+  }
+
+  if (!role || !ADMIN_ROLES.has(role) || !allowed.includes(role)) {
+    return {
+      error: NextResponse.json(
+        { error: 'Forbidden: admin privileges required' },
+        { status: 403 }
+      ),
+    }
+  }
+
+  return { user: { ...auth.user, role } }
+}
