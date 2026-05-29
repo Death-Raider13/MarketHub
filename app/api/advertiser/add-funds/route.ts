@@ -1,80 +1,147 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { verifyAuthToken } from "@/lib/api-auth"
+import axios from "axios"
 
+/**
+ * Credit an advertiser's account balance after a confirmed Paystack payment.
+ *
+ * Security:
+ *  - Requires a valid Firebase ID token.
+ *  - The authenticated user must match the userId being credited (or be admin).
+ *  - The Paystack reference is verified server-side via the Paystack API.
+ *  - The amount credited is taken from Paystack's response, not the request body.
+ *  - References are idempotent: a second call with the same reference is a no-op.
+ */
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
-    const { userId, amount, reference } = await request.json()
+    const body = await request.json()
+    const { userId, reference } = body as { userId?: string; reference?: string }
 
-    console.log("Add funds request:", { userId, amount, reference })
-
-    if (!userId || !amount || !reference) {
+    if (!userId || !reference) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required fields: userId and reference" },
         { status: 400 }
       )
     }
 
-    // Get Admin Firestore
-    const adminDb = getAdminFirestore()
-    
-    if (!adminDb) {
-      console.error("Firebase Admin not initialized")
+    const isAdmin = auth.user.role === 'admin' || auth.user.role === 'super_admin'
+    if (userId !== auth.user.uid && !isAdmin) {
       return NextResponse.json(
-        { error: "Server configuration error - Admin SDK not initialized" },
+        { error: "You can only top up your own account" },
+        { status: 403 }
+      )
+    }
+
+    const adminDb = getAdminFirestore()
+    if (!adminDb) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+    }
+
+    const secretKey = process.env.PAYSTACK_SECRET_KEY
+    if (!secretKey) {
+      console.error("PAYSTACK_SECRET_KEY not configured")
+      return NextResponse.json(
+        { error: "Payment gateway configuration error" },
         { status: 500 }
       )
     }
 
-    // Verify payment with Paystack (you can add this later)
-    // For now, we'll trust the reference
+    // Idempotency: refuse to credit twice for the same reference.
+    const existing = await adminDb
+      .collection("transactions")
+      .where("reference", "==", reference)
+      .where("type", "==", "credit")
+      .limit(1)
+      .get()
 
-    try {
-      // Update advertiser balance using Admin SDK (bypasses security rules)
-      const advertiserRef = adminDb.collection("advertisers").doc(userId)
-      
-      console.log("Updating advertiser balance with Admin SDK...")
-      await advertiserRef.update({
-        accountBalance: FieldValue.increment(amount),
-        updatedAt: FieldValue.serverTimestamp(),
+    if (!existing.empty) {
+      return NextResponse.json({
+        success: true,
+        message: "Funds already credited for this reference",
+        idempotent: true,
       })
-      console.log("Balance updated successfully")
+    }
 
-      // Create transaction record
-      console.log("Creating transaction record...")
-      await adminDb.collection("transactions").add({
+    // Verify the transaction with Paystack — trust their response, not the caller.
+    let paystackData: any
+    try {
+      const verifyRes = await axios.get(
+        `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      paystackData = verifyRes.data?.data
+    } catch (err: any) {
+      console.error("Paystack verification failed:", err?.response?.data || err?.message)
+      return NextResponse.json(
+        { error: "Could not verify payment with Paystack" },
+        { status: 400 }
+      )
+    }
+
+    if (!paystackData || paystackData.status !== "success") {
+      return NextResponse.json(
+        { error: "Payment was not successful", status: paystackData?.status },
+        { status: 400 }
+      )
+    }
+
+    // Paystack amounts are in kobo — convert to Naira.
+    const amount = Math.floor(Number(paystackData.amount) / 100)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return NextResponse.json({ error: "Invalid payment amount" }, { status: 400 })
+    }
+
+    // Atomic credit + transaction log.
+    const advertiserRef = adminDb.collection("advertisers").doc(userId)
+    const txRef = adminDb.collection("transactions").doc()
+
+    await adminDb.runTransaction(async (tx) => {
+      const advertiserDoc = await tx.get(advertiserRef)
+      if (!advertiserDoc.exists) {
+        tx.set(advertiserRef, {
+          userId,
+          accountBalance: amount,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        })
+      } else {
+        tx.update(advertiserRef, {
+          accountBalance: FieldValue.increment(amount),
+          updatedAt: FieldValue.serverTimestamp(),
+        })
+      }
+
+      tx.set(txRef, {
         userId,
         type: "credit",
         amount,
         reference,
         description: "Account top-up",
         status: "completed",
+        provider: "paystack",
+        paystackChannel: paystackData.channel || null,
         createdAt: FieldValue.serverTimestamp(),
       })
-      console.log("Transaction created successfully")
+    })
 
-      return NextResponse.json({
-        success: true,
-        message: "Funds added successfully",
-      })
-    } catch (firestoreError: any) {
-      console.error("Firestore error:", firestoreError)
-      console.error("Error code:", firestoreError.code)
-      console.error("Error message:", firestoreError.message)
-      
-      return NextResponse.json(
-        { 
-          error: "Database error",
-          details: firestoreError.message 
-        },
-        { status: 500 }
-      )
-    }
+    return NextResponse.json({
+      success: true,
+      message: "Funds added successfully",
+      amount,
+      transactionId: txRef.id,
+    })
   } catch (error: any) {
     console.error("Error adding funds:", error)
-    return NextResponse.json(
-      { error: "Failed to add funds", details: error.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to add funds" }, { status: 500 })
   }
 }

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { verifyAuthToken } from "@/lib/api-auth"
 
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const adminDb = getAdminFirestore()
 
@@ -37,6 +41,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
+      )
+    }
+
+    // Caller can only create campaigns under their own advertiser profile.
+    const isAdmin = auth.user.role === 'admin' || auth.user.role === 'super_admin'
+    if (advertiserId !== auth.user.uid && !isAdmin) {
+      return NextResponse.json(
+        { error: "You can only create campaigns for your own advertiser account" },
+        { status: 403 }
       )
     }
 
