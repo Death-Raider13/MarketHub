@@ -3,7 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { NotificationData } from '@/lib/notifications/types';
-import { notificationService } from '@/lib/notifications/service';
+import {
+  getUserNotifications,
+  markAsRead as markNotificationAsRead,
+  markAllAsRead as markAllNotificationsAsRead,
+  subscribeToNotifications,
+} from '@/lib/notifications/client-service';
 
 interface NotificationContextType {
   notifications: NotificationData[];
@@ -39,7 +44,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
     try {
       // Subscribe to real-time notifications
-      const unsubscribe = notificationService.subscribeToNotifications(
+      const unsubscribe = subscribeToNotifications(
         user.uid,
         (newNotifications) => {
           setNotifications(newNotifications);
@@ -58,7 +63,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await notificationService.markAsRead(notificationId);
+      await markNotificationAsRead(notificationId);
       
       // Update local state optimistically
       setNotifications(prev => 
@@ -79,7 +84,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     if (!user?.uid) return;
 
     try {
-      await notificationService.markAllAsRead(user.uid);
+      await markAllNotificationsAsRead(user.uid);
       
       // Update local state optimistically
       setNotifications(prev => 
@@ -101,7 +106,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
     try {
       setLoading(true);
-      const freshNotifications = await notificationService.getUserNotifications(user.uid, 50);
+      const freshNotifications = await getUserNotifications(user.uid, 50);
       setNotifications(freshNotifications);
       setUnreadCount(freshNotifications.filter(n => n.status === 'unread').length);
     } catch (error) {

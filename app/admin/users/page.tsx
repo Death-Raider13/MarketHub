@@ -13,7 +13,7 @@ import { usePermissions } from "@/hooks/use-permissions"
 import { collection, query, orderBy, limit, getDocs, where, doc, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
 import { toast } from "sonner"
-import { createNotification, createAdminNotification } from "@/lib/notifications/service"
+import { createNotification } from "@/lib/notifications/client-service"
 import {
   LayoutDashboard,
   Users,

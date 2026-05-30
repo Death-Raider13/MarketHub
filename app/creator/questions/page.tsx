@@ -24,7 +24,7 @@ import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { db } from "@/lib/firebase/config"
 import { collection, query, where, orderBy, getDocs, doc, updateDoc } from "firebase/firestore"
-import { notificationService } from "@/lib/notifications/service"
+import { createNotification } from '@/lib/notifications/client-service'
 
 interface Reply {
   id: string
@@ -142,7 +142,7 @@ function CreatorQuestionsContent() {
       // Notify customer that their question was answered
       if (question?.userId) {
         try {
-          await notificationService.createNotification(question.userId, 'question_answered', {
+          await createNotification(question.userId, 'question_answered', {
             metadata: {
               productId: question.productId,
               productName: question.productName,

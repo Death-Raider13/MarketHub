@@ -15,7 +15,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/contexts/notification-context';
 import { NotificationData, NOTIFICATION_TEMPLATES } from '@/lib/notifications/types';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { clearUserNotifications } from '@/lib/notifications/test-notifications';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -108,19 +107,6 @@ export function NotificationBell() {
   const handleRefresh = async () => {
     await refreshNotifications();
   };
-
-  const handleClearAllNotifications = async () => {
-    if (user?.uid) {
-      try {
-        await clearUserNotifications(user.uid);
-        await refreshNotifications();
-        console.log('✅ All notifications cleared');
-      } catch (error) {
-        console.error('Failed to clear notifications:', error);
-      }
-    }
-  };
-
 
   return (
     <DropdownMenu>
@@ -223,17 +209,6 @@ export function NotificationBell() {
             </Button>
           )}
           
-          {/* Development only - Clear all notifications */}
-          {process.env.NODE_ENV === 'production' && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-center text-xs text-red-600 hover:text-red-700"
-              onClick={handleClearAllNotifications}
-            >
-              🗑️ Clear All 
-            </Button>
-          )}
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -20,7 +20,7 @@ import { initiatePaystackPayment } from "@/lib/payment/paystack"
 import { db } from "@/lib/firebase/config"
 import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore"
 import { toast } from "sonner"
-import { NotificationTriggers } from "@/lib/notifications/triggers"
+import { onOrderPlaced } from "@/lib/notifications/client-triggers"
 import { logger } from "@/lib/logger"
 
 function CheckoutContent() {
@@ -112,12 +112,12 @@ function CheckoutContent() {
       const orderId = orderRef.id
 
       try {
-        await NotificationTriggers.onOrderPlaced(orderId, user!.uid, '', total)
+        await onOrderPlaced(orderId, user!.uid, '', total)
         const creatorIds = [...new Set(items.map(item => item.product.creatorId))]
         for (const creatorId of creatorIds) {
           const creatorItems = items.filter(item => item.product.creatorId === creatorId)
           const creatorTotal = creatorItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
-          await NotificationTriggers.onOrderPlaced(orderId, user!.uid, creatorId, creatorTotal)
+          await onOrderPlaced(orderId, user!.uid, creatorId, creatorTotal)
         }
       } catch (notificationError) {
         logger.error('Failed to send order notifications', undefined, notificationError as Error)

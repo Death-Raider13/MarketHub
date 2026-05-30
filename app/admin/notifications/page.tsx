@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ProtectedRoute } from '@/lib/firebase/protected-route';
-import { notificationService } from '@/lib/notifications/service';
-import { NotificationTriggers } from '@/lib/notifications/triggers';
+import { createRoleNotification } from '@/lib/notifications/client-service';
+import { onSystemMaintenance } from '@/lib/notifications/client-triggers';
 import { NotificationType, NotificationPriority } from '@/lib/notifications/types';
 import { toast } from 'sonner';
 import { Bell, Send, Users, AlertTriangle, Megaphone, Settings } from 'lucide-react';
@@ -61,7 +61,7 @@ function NotificationManagementContent() {
 
     setSending(true);
     try {
-      await notificationService.createRoleNotification(
+      await createRoleNotification(
         targetRoles,
         'system_maintenance', // Using as a generic system notification
         {
@@ -92,7 +92,7 @@ function NotificationManagementContent() {
   const handleSystemMaintenance = async () => {
     const maintenanceDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
     try {
-      await NotificationTriggers.onSystemMaintenance(maintenanceDate, '2 hours');
+      await onSystemMaintenance(maintenanceDate.toISOString(), '2 hours');
       toast.success('System maintenance notification sent to all users');
     } catch (error) {
       toast.error('Failed to send maintenance notification');

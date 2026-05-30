@@ -1,10 +1,26 @@
 import { NotificationData, NotificationType, NotificationPriority, NOTIFICATION_TEMPLATES } from './types';
-import { getAdminFirestore } from '@/lib/firebase/admin'
 
-// We avoid importing the client `db` at module load to prevent initializing
-// the client Firebase SDK during server builds (which can cause invalid API key errors).
-// When running on the server (Admin SDK available) we use admin Firestore. Otherwise
-// we dynamically import the client `db` at runtime in the browser.
+// We avoid importing the server-only Firebase Admin SDK at module load so this file
+// can be used in browser code without bundling `firebase-admin`.
+// When running on the server we dynamically load the admin helper.
+async function getAdminDb() {
+  if (typeof window !== 'undefined') {
+    return null
+  }
+
+  try {
+    const { getAdminFirestore } = await import('@/lib/firebase/admin')
+    return getAdminFirestore()
+  } catch (error) {
+    console.error('Failed to dynamically load Firebase Admin SDK:', error)
+    return null
+  }
+}
+
+async function getClientDb() {
+  const { db } = await import('@/lib/firebase/config')
+  return db
+}
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -64,7 +80,7 @@ export class NotificationService {
         metadata: customData?.metadata || {},
       };
 
-      const adminDb = getAdminFirestore()
+      const adminDb = await getAdminDb()
       if (adminDb) {
         const docRef = await adminDb.collection('notifications').add({
           ...notification,
@@ -99,7 +115,7 @@ export class NotificationService {
     unreadOnly: boolean = false
   ): Promise<NotificationData[]> {
     try {
-      const adminDb = getAdminFirestore()
+      const adminDb = await getAdminDb()
       if (adminDb) {
         let q = adminDb.collection('notifications')
           .where('recipientId', '==', userId)
@@ -170,7 +186,7 @@ export class NotificationService {
    */
   async markAsRead(notificationId: string): Promise<void> {
     try {
-      const adminDb = getAdminFirestore()
+      const adminDb = await getAdminDb()
       if (adminDb) {
         await adminDb.collection('notifications').doc(notificationId).update({
           status: 'read',
@@ -196,7 +212,7 @@ export class NotificationService {
    */
   async markAllAsRead(userId: string): Promise<void> {
     try {
-      const adminDb = getAdminFirestore()
+      const adminDb = await getAdminDb()
       if (adminDb) {
         const snapshot = await adminDb.collection('notifications')
           .where('recipientId', '==', userId)
@@ -242,7 +258,7 @@ export class NotificationService {
    */
   async deleteNotification(notificationId: string): Promise<void> {
     try {
-      const adminDb = getAdminFirestore()
+      const adminDb = await getAdminDb()
       if (adminDb) {
         await adminDb.collection('notifications').doc(notificationId).delete()
         return
@@ -262,7 +278,7 @@ export class NotificationService {
    */
   async getUnreadCount(userId: string): Promise<number> {
     try {
-      const adminDb = getAdminFirestore()
+      const adminDb = await getAdminDb()
       if (adminDb) {
         const snapshot = await adminDb.collection('notifications')
           .where('recipientId', '==', userId)
@@ -365,17 +381,28 @@ export class NotificationService {
     customData?: Partial<NotificationData>
   ): Promise<void> {
     try {
-      // Get all users with target roles
-      const usersQuery = query(
-        collection(db, 'users'),
-        where('role', 'in', targetRoles)
-      );
+      const adminDb = await getAdminDb()
+      let userIds: string[] = []
 
-      const usersSnapshot = await getDocs(usersQuery);
-      const userIds = usersSnapshot.docs.map(doc => doc.id);
+      if (adminDb) {
+        const snapshot = await adminDb.collection('users')
+          .where('role', 'in', targetRoles)
+          .get()
+        userIds = snapshot.docs.map((docSnapshot: any) => docSnapshot.id)
+      } else {
+        const { collection, query, where, getDocs } = await import('firebase/firestore')
+        const db = await getClientDb()
+        const usersQuery = query(
+          collection(db, 'users'),
+          where('role', 'in', targetRoles)
+        )
+
+        const usersSnapshot = await getDocs(usersQuery)
+        userIds = usersSnapshot.docs.map(doc => doc.id)
+      }
 
       if (userIds.length > 0) {
-        await this.createBulkNotifications(userIds, type, customData);
+        await this.createBulkNotifications(userIds, type, customData)
       }
     } catch (error) {
       console.error('Error creating role notifications:', error);

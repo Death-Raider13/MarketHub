@@ -15,7 +15,6 @@ import Link from "next/link"
 import { collection, query, orderBy, limit, getDocs, doc, updateDoc, where } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
 import { toast } from "sonner"
-import { createNotification, createAdminNotification } from "@/lib/notifications/service"
 import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "@/lib/firebase/auth-context"
 

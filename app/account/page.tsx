@@ -41,7 +41,7 @@ import { useCart } from "@/lib/cart-context"
 import { ProductCard } from "@/components/product-card"
 import type { Product } from "@/lib/types"
 import { toast } from "sonner"
-import { NotificationTriggers } from "@/lib/notifications/triggers"
+import { onPasswordChanged } from "@/lib/notifications/client-triggers"
 
 // Mock data - replace with real data from Firebase
 const mockOrders = [
@@ -521,7 +521,7 @@ function AccountPageContent() {
 
       // Best-effort in-app password_changed notification
       try {
-        await NotificationTriggers.onPasswordChanged(user.uid)
+        await onPasswordChanged(user.uid)
       } catch (notifyError) {
         console.error('Failed to create password changed notification:', notifyError)
       }

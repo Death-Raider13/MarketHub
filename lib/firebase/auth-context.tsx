@@ -16,7 +16,7 @@ import {
   signInWithCredential,
   signInWithPopup,
 } from "firebase/auth"
-import { onUserRegistration } from '@/lib/notifications/triggers'
+import { onUserRegistration } from '@/lib/notifications/client-triggers'
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { auth, db } from "./config"
 import { handleAuthError, handleFirestoreError } from '@/lib/production-error-handler'
