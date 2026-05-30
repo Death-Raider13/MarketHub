@@ -198,7 +198,6 @@ async function handlePaymentCompleted(
             orderId,
             productName: primaryProduct,
             amount: creatorRevenue,
-            itemCount: items.length,
             actionUrl: '/creator/orders',
           },
         })

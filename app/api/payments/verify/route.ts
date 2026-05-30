@@ -196,7 +196,6 @@ export async function POST(request: NextRequest) {
                   orderId,
                   productName: primaryProduct,
                   amount: creatorRevenue,
-                  itemCount: items.length,
                   actionUrl: '/creator/orders',
                 },
               })
