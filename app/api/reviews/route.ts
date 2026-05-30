@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimitMiddleware, getRateLimitIdentifier, getClientIP } from '@/lib/rate-limit';
 import { reviewSchema } from '@/lib/validation';
 import { collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { getAdminFirestore } from '@/lib/firebase/admin'
 
 // GET - Fetch product reviews
 export async function GET(request: NextRequest) {
@@ -17,14 +17,31 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Build query
+    // Use Admin SDK on server when available
+    const adminDb = getAdminFirestore()
+    if (adminDb) {
+      const q = adminDb.collection('reviews')
+        .where('productId', '==', productId)
+        .where('approved', '==', true)
+        .orderBy('createdAt', 'desc')
+
+      const snapshot = await q.get()
+      const reviews = snapshot.docs.map((docSnapshot: any) => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data(),
+      }))
+
+      return NextResponse.json({ reviews })
+    }
+
+    // Fallback to client SDK in browser
     const q = query(
-      collection(db, 'reviews'),
+      collection((await import('@/lib/firebase/config')).db, 'reviews'),
       where('productId', '==', productId),
       where('approved', '==', true),
       orderBy('createdAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
     const reviews = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -85,7 +102,31 @@ export async function POST(request: NextRequest) {
         createdAt: new Date(),
       };
       
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        const docRef = await adminDb.collection('reviews').add(reviewData)
+        return NextResponse.json(
+          { 
+            success: true,
+            reviewId: docRef.id,
+            message: 'Review submitted successfully. Awaiting approval.',
+          },
+          { status: 201 }
+        )
+      }
+
+      const { addDoc, collection } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
       const docRef = await addDoc(collection(db, 'reviews'), reviewData);
+      
+      return NextResponse.json(
+        { 
+          success: true,
+          reviewId: docRef.id,
+          message: 'Review submitted successfully. Awaiting approval.',
+        },
+        { status: 201 }
+      );
       
       return NextResponse.json(
         { 

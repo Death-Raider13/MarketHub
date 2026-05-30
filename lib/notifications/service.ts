@@ -1,6 +1,10 @@
-import { collection, addDoc, query, where, orderBy, limit, getDocs, doc, updateDoc, deleteDoc, onSnapshot, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
 import { NotificationData, NotificationType, NotificationPriority, NOTIFICATION_TEMPLATES } from './types';
+import { getAdminFirestore } from '@/lib/firebase/admin'
+
+// We avoid importing the client `db` at module load to prevent initializing
+// the client Firebase SDK during server builds (which can cause invalid API key errors).
+// When running on the server (Admin SDK available) we use admin Firestore. Otherwise
+// we dynamically import the client `db` at runtime in the browser.
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -60,11 +64,24 @@ export class NotificationService {
         metadata: customData?.metadata || {},
       };
 
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        const docRef = await adminDb.collection('notifications').add({
+          ...notification,
+          createdAt: notification.createdAt, // Date is stored as Firestore timestamp by Admin SDK
+          expiresAt: notification.expiresAt || null,
+        })
+        return docRef.id
+      }
+
+      // Fallback to client SDK in browser only
+      const { collection, addDoc, Timestamp } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
       const docRef = await addDoc(collection(db, 'notifications'), {
         ...notification,
         createdAt: Timestamp.fromDate(notification.createdAt),
         expiresAt: notification.expiresAt ? Timestamp.fromDate(notification.expiresAt) : null,
-      });
+      })
 
       return docRef.id;
     } catch (error) {
@@ -82,12 +99,44 @@ export class NotificationService {
     unreadOnly: boolean = false
   ): Promise<NotificationData[]> {
     try {
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        let q = adminDb.collection('notifications')
+          .where('recipientId', '==', userId)
+          .orderBy('createdAt', 'desc')
+          .limit(limitCount)
+
+        if (unreadOnly) {
+          q = adminDb.collection('notifications')
+            .where('recipientId', '==', userId)
+            .where('status', '==', 'unread')
+            .orderBy('createdAt', 'desc')
+            .limit(limitCount)
+        }
+
+        const snapshot = await q.get()
+        return snapshot.docs.map((docSnapshot: any) => {
+          const data = docSnapshot.data()
+          return {
+            id: docSnapshot.id,
+            ...data,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || new Date()),
+            readAt: data.readAt?.toDate ? data.readAt.toDate() : data.readAt || null,
+            expiresAt: data.expiresAt?.toDate ? data.expiresAt.toDate() : data.expiresAt || null,
+          } as NotificationData
+        })
+      }
+
+      // Fallback to client SDK in browser
+      const { collection, query, where, orderBy, limit, getDocs } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
+
       let q = query(
         collection(db, 'notifications'),
         where('recipientId', '==', userId),
         orderBy('createdAt', 'desc'),
         limit(limitCount)
-      );
+      )
 
       if (unreadOnly) {
         q = query(
@@ -96,21 +145,20 @@ export class NotificationService {
           where('status', '==', 'unread'),
           orderBy('createdAt', 'desc'),
           limit(limitCount)
-        );
+        )
       }
 
-      const snapshot = await getDocs(q);
-
+      const snapshot = await getDocs(q)
       return snapshot.docs.map(doc => {
-        const data = doc.data();
+        const data = doc.data()
         return {
           id: doc.id,
           ...data,
           createdAt: data.createdAt?.toDate() || new Date(),
           readAt: data.readAt?.toDate(),
           expiresAt: data.expiresAt?.toDate(),
-        } as NotificationData;
-      });
+        } as NotificationData
+      })
     } catch (error) {
       console.error('Error fetching notifications:', error);
       return [];
@@ -122,10 +170,21 @@ export class NotificationService {
    */
   async markAsRead(notificationId: string): Promise<void> {
     try {
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        await adminDb.collection('notifications').doc(notificationId).update({
+          status: 'read',
+          readAt: new Date(),
+        })
+        return
+      }
+
+      const { doc, updateDoc, Timestamp } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
       await updateDoc(doc(db, 'notifications', notificationId), {
         status: 'read',
         readAt: Timestamp.now(),
-      });
+      })
     } catch (error) {
       console.error('Error marking notification as read:', error);
       throw error;
@@ -137,21 +196,41 @@ export class NotificationService {
    */
   async markAllAsRead(userId: string): Promise<void> {
     try {
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        const snapshot = await adminDb.collection('notifications')
+          .where('recipientId', '==', userId)
+          .where('status', '==', 'unread')
+          .get()
+
+        const promises = snapshot.docs.map((docSnapshot: any) =>
+          adminDb.collection('notifications').doc(docSnapshot.id).update({
+            status: 'read',
+            readAt: new Date(),
+          })
+        )
+
+        await Promise.all(promises)
+        return
+      }
+
+      const { collection, query, where, getDocs, updateDoc, doc, Timestamp } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
       const notificationsQuery = query(
         collection(db, 'notifications'),
         where('recipientId', '==', userId),
         where('status', '==', 'unread')
-      );
+      )
 
-      const snapshot = await getDocs(notificationsQuery);
+      const snapshot = await getDocs(notificationsQuery)
       const promises = snapshot.docs.map(docSnapshot =>
         updateDoc(doc(db, 'notifications', docSnapshot.id), {
           status: 'read',
           readAt: Timestamp.now()
         })
-      );
+      )
 
-      await Promise.all(promises);
+      await Promise.all(promises)
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       throw error;
@@ -163,7 +242,15 @@ export class NotificationService {
    */
   async deleteNotification(notificationId: string): Promise<void> {
     try {
-      await deleteDoc(doc(db, 'notifications', notificationId));
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        await adminDb.collection('notifications').doc(notificationId).delete()
+        return
+      }
+
+      const { doc, deleteDoc } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
+      await deleteDoc(doc(db, 'notifications', notificationId))
     } catch (error) {
       console.error('Error deleting notification:', error);
       throw error;
@@ -175,14 +262,25 @@ export class NotificationService {
    */
   async getUnreadCount(userId: string): Promise<number> {
     try {
+      const adminDb = getAdminFirestore()
+      if (adminDb) {
+        const snapshot = await adminDb.collection('notifications')
+          .where('recipientId', '==', userId)
+          .where('status', '==', 'unread')
+          .get()
+        return snapshot.size
+      }
+
+      const { collection, query, where, getDocs } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
       const q = query(
         collection(db, 'notifications'),
         where('recipientId', '==', userId),
         where('status', '==', 'unread')
-      );
+      )
 
-      const snapshot = await getDocs(q);
-      return snapshot.size;
+      const snapshot = await getDocs(q)
+      return snapshot.size
     } catch (error) {
       console.error('Error getting unread count:', error);
       return 0;
@@ -197,27 +295,45 @@ export class NotificationService {
     callback: (notifications: NotificationData[]) => void,
     limitCount: number = 20
   ): () => void {
-    const q = query(
-      collection(db, 'notifications'),
-      where('recipientId', '==', userId),
-      orderBy('createdAt', 'desc'),
-      limit(limitCount)
-    );
+    // Real-time subscriptions require client SDK. Only support in browser.
+    if (typeof window === 'undefined') {
+      console.warn('subscribeToNotifications is only supported in the browser (client SDK).')
+      return () => {}
+    }
 
-    return onSnapshot(q, (snapshot) => {
-      const notifications = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          readAt: data.readAt?.toDate(),
-          expiresAt: data.expiresAt?.toDate(),
-        } as NotificationData;
-      });
+    // Dynamically import client SDK pieces in browser
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    const setup = async () => {
+      const { collection, query, where, orderBy, limit, onSnapshot } = await import('firebase/firestore')
+      const { db } = await import('@/lib/firebase/config')
 
-      callback(notifications);
-    });
+      const q = query(
+        collection(db, 'notifications'),
+        where('recipientId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(limitCount)
+      )
+
+      return onSnapshot(q, (snapshot) => {
+        const notifications = snapshot.docs.map(doc => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            readAt: data.readAt?.toDate(),
+            expiresAt: data.expiresAt?.toDate(),
+          } as NotificationData
+        })
+
+        callback(notifications)
+      })
+    }
+
+    let unsub: (() => void) | null = null
+    setup().then(u => { unsub = u }).catch(err => console.error(err))
+
+    return () => { if (unsub) unsub() }
   }
 
   /**
