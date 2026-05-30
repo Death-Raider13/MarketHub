@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { verifyAuthToken } from "@/lib/api-auth"
 
-// GET - Get store settings for creator
+// GET - Get store settings for creator (public read — storefronts are public)
 export async function GET(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
@@ -55,8 +56,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST/PUT - Save store settings
+// POST/PUT - Save store settings (auth required, ownership enforced)
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const adminDb = getAdminFirestore()
 
@@ -68,14 +72,9 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json()
-    const { creatorId, ...settings } = data
-
-    if (!creatorId) {
-      return NextResponse.json(
-        { error: "Missing creatorId" },
-        { status: 400 }
-      )
-    }
+    // Always derive creatorId from the authenticated user — never from the body.
+    const creatorId = auth.user.uid
+    const { creatorId: _bodyCreatorId, ...settings } = data
 
     // Save settings
     await adminDb.collection("storeSettings").doc(creatorId).set({

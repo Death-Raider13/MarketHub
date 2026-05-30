@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
+import { verifyAuthToken } from "@/lib/api-auth"
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const adminDb = getAdminFirestore()
 
@@ -16,7 +20,14 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const creatorId = searchParams.get("creatorId")
+    const requestedCreatorId = searchParams.get("creatorId")
+
+    // Ownership check: a creator can only read their own stats.
+    const isAdmin = auth.user.role === 'admin' || auth.user.role === 'super_admin'
+    if (requestedCreatorId && requestedCreatorId !== auth.user.uid && !isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+    const creatorId = requestedCreatorId || auth.user.uid
 
     if (!creatorId) {
       return NextResponse.json(

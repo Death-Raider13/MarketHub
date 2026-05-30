@@ -1,8 +1,39 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { verifyAuthToken } from "@/lib/api-auth"
 
-// GET - Get single product
+/**
+ * Asserts the authenticated caller owns the product OR is an admin.
+ * Returns null when authorized, or a NextResponse error when not.
+ */
+async function assertProductOwner(
+  request: NextRequest,
+  productId: string
+): Promise<{ uid: string } | NextResponse> {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
+  const adminDb = getAdminFirestore()
+  if (!adminDb) {
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+  }
+
+  const productDoc = await adminDb.collection("products").doc(productId).get()
+  if (!productDoc.exists) {
+    return NextResponse.json({ error: "Product not found" }, { status: 404 })
+  }
+
+  const ownerId = productDoc.data()?.creatorId
+  const isAdmin = auth.user.role === 'admin' || auth.user.role === 'super_admin'
+  if (ownerId !== auth.user.uid && !isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  return { uid: auth.user.uid }
+}
+
+// GET - Get single product (public)
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -39,11 +70,14 @@ export async function GET(
   }
 }
 
-// PUT - Update product
+// PUT - Update product (owner or admin only)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const ownership = await assertProductOwner(request, params.id)
+  if (ownership instanceof NextResponse) return ownership
+
   try {
     const adminDb = getAdminFirestore()
 
@@ -98,11 +132,14 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete product
+// DELETE - Archive product (owner or admin only)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const ownership = await assertProductOwner(request, params.id)
+  if (ownership instanceof NextResponse) return ownership
+
   try {
     const adminDb = getAdminFirestore()
 

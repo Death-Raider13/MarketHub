@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminFirestore } from "@/lib/firebase/admin"
 import { FieldValue } from "firebase-admin/firestore"
+import { verifyAuthToken } from "@/lib/api-auth"
 
-// GET - List all products for a creator
+// GET - List all products for a creator (public — storefronts are browsable)
 export async function GET(request: NextRequest) {
   try {
     const adminDb = getAdminFirestore()
@@ -45,8 +46,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create a new product
+// POST - Create a new product (auth required, creator can only create for self)
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const productData = await request.json()
 
@@ -63,8 +67,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Always use the authenticated user as creatorId — body value is ignored.
+    const creatorId = auth.user.uid
+
     const {
-      creatorId,
+      creatorId: _bodyCreatorId,
       creatorName,
       name,
       description,
@@ -87,9 +94,8 @@ export async function POST(request: NextRequest) {
       downloadLimit,
     } = productData
 
-    if (!creatorId || !name || !price || !category || !type) {
+    if (!name || !price || !category || !type) {
       const missingFields = [];
-      if (!creatorId) missingFields.push('creatorId');
       if (!name) missingFields.push('name');
       if (!price) missingFields.push('price');
       if (!category) missingFields.push('category');

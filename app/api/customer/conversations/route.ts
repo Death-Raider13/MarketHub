@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
+    const body = await request.json()
     const {
       creatorId,
       creatorName,
-      customerId,
       customerName,
       customerEmail,
       subject,
       productId,
       productName,
       orderId
-    } = await request.json()
+    } = body
+
+    // Always derive customerId from the authenticated user — body value ignored.
+    const customerId = auth.user.uid
 
     console.log('Creating conversation with data:', {
       creatorId,

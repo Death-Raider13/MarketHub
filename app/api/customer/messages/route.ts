@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const { searchParams } = new URL(request.url)
-    const customerId = searchParams.get('customerId')
+    const requestedCustomerId = searchParams.get('customerId')
+
+    const isAdmin = auth.user.role === 'admin' || auth.user.role === 'super_admin'
+    if (requestedCustomerId && requestedCustomerId !== auth.user.uid && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    const customerId = requestedCustomerId || auth.user.uid
 
     if (!customerId) {
       return NextResponse.json(
