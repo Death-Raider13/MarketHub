@@ -162,9 +162,10 @@ export async function POST(request: NextRequest) {
           // Don't fail the payment if balance update fails
         }
 
-        // Notify creators of new sales via email (best-effort)
+        // Notify creators of new sales — both via email and in-app bell.
         try {
           const { sendCreatorSaleNotification } = await import('@/lib/email/service')
+          const { notificationService } = await import('@/lib/notifications/service')
 
           const creatorItemsMap = new Map<string, any[]>()
 
@@ -180,15 +181,43 @@ export async function POST(request: NextRequest) {
           for (const [creatorId, items] of creatorItemsMap.entries()) {
             const creatorDoc = await adminDb.collection('users').doc(creatorId).get()
             const creatorEmail = creatorDoc.exists ? creatorDoc.data()?.email : null
-            if (!creatorEmail) continue
 
-            for (const item of items) {
-              await sendCreatorSaleNotification(creatorEmail, item, orderId)
+            // Sum this creator's share of the order for the in-app message.
+            const creatorRevenue = items.reduce(
+              (sum, it) => sum + (Number(it.productPrice) || 0) * (Number(it.quantity) || 1),
+              0
+            )
+            const primaryProduct = items[0]?.product?.name || 'a product'
+
+            // In-app notification (creator dashboard bell).
+            try {
+              await notificationService.createNotification(creatorId, 'new_order_received', {
+                metadata: {
+                  orderId,
+                  productName: primaryProduct,
+                  amount: creatorRevenue,
+                  itemCount: items.length,
+                  actionUrl: '/creator/orders',
+                },
+              })
+            } catch (notifyErr) {
+              console.error('⚠️ Failed to create in-app sale notification:', notifyErr)
+            }
+
+            // Email notification (best-effort, one per item).
+            if (creatorEmail) {
+              for (const item of items) {
+                try {
+                  await sendCreatorSaleNotification(creatorEmail, item, orderId)
+                } catch (emailErr) {
+                  console.error('⚠️ Failed to email creator sale notification:', emailErr)
+                }
+              }
             }
           }
         } catch (creatorEmailError) {
-          console.error('⚠️ Failed to send creator sale notification emails:', creatorEmailError)
-          // Don't fail the payment if creator emails fail
+          console.error('⚠️ Failed to send creator sale notifications:', creatorEmailError)
+          // Don't fail the payment if creator notifications fail
         }
 
         // Generate secure DRM download links and send confirmation email
@@ -252,8 +281,6 @@ export async function POST(request: NextRequest) {
           console.error('⚠️ Failed to create service bookings:', serviceError)
           // Don't fail the payment if service booking fails
         }
-
-        // TODO: Notify creators of new sale
 
         return NextResponse.json({
           success: true,

@@ -169,6 +169,57 @@ async function handlePaymentCompleted(
     console.error('⚠️ creator balance update failed:', err)
   }
 
+  // Notify creators of new crypto sale — in-app notifications + email
+  try {
+    const { notificationService } = await import('@/lib/notifications/service')
+    const { sendCreatorSaleNotification } = await import('@/lib/email/service')
+
+    const creatorItemsMap = new Map<string, any[]>()
+    orderData?.items?.forEach((item: any) => {
+      const creatorId = item.product?.creatorId || item.creatorId
+      if (!creatorId) return
+      const existing = creatorItemsMap.get(creatorId) || []
+      existing.push(item)
+      creatorItemsMap.set(creatorId, existing)
+    })
+
+    for (const [creatorId, items] of creatorItemsMap.entries()) {
+      const creatorDoc = await adminDb.collection('users').doc(creatorId).get()
+      const creatorEmail = creatorDoc.exists ? creatorDoc.data()?.email : null
+      const creatorRevenue = items.reduce(
+        (sum, it) => sum + (Number(it.productPrice) || 0) * (Number(it.quantity) || 1),
+        0
+      )
+      const primaryProduct = items[0]?.product?.name || 'a product'
+
+      try {
+        await notificationService.createNotification(creatorId, 'new_order_received', {
+          metadata: {
+            orderId,
+            productName: primaryProduct,
+            amount: creatorRevenue,
+            itemCount: items.length,
+            actionUrl: '/creator/orders',
+          },
+        })
+      } catch (notifyErr) {
+        console.error('⚠️ Failed in-app sale notification (crypto):', notifyErr)
+      }
+
+      if (creatorEmail) {
+        for (const item of items) {
+          try {
+            await sendCreatorSaleNotification(creatorEmail, item, orderId)
+          } catch (emailErr) {
+            console.error('⚠️ Failed creator sale email (crypto):', emailErr)
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('⚠️ Creator sale notifications failed (crypto):', err)
+  }
+
   // Generate download links for digital products and send confirmation email
   try {
     const { sendOrderConfirmationEmail } = await import('@/lib/email/service')

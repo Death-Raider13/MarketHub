@@ -82,9 +82,26 @@ class Logger {
   }
 
   private sendToExternalLogger(level: string, message: string, context?: LogContext, error?: Error): void {
-    // TODO: Implement external logging service integration
-    // Examples: Sentry, LogRocket, DataDog, etc.
-    // For now, we'll just ensure the error is logged to console
+    // Forward to Sentry when the SDK and DSN are present. The dynamic import
+    // means this is a silent no-op until @sentry/nextjs is installed.
+    const dsn =
+      (typeof process !== 'undefined' && (process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN)) || null
+    if (!dsn) return
+
+    import('@sentry/nextjs')
+      .then((Sentry) => {
+        if (error) {
+          Sentry.captureException(error, { extra: { message, ...(context || {}) } })
+        } else {
+          Sentry.captureMessage(message, {
+            level: level === 'ERROR' ? 'error' : level === 'WARN' ? 'warning' : 'info',
+            extra: context,
+          })
+        }
+      })
+      .catch(() => {
+        // SDK not installed — silently skip.
+      })
   }
 }
 
