@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
-  try {
-    const { userId, orderId, reason } = await request.json()
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
 
-    if (!userId || !orderId || !reason) {
+  try {
+    const { orderId, reason } = await request.json()
+    // Always use the authenticated user as the claimant — never trust body userId.
+    const userId = auth.user.uid
+
+    if (!orderId || !reason) {
       return NextResponse.json(
-        { error: 'userId, orderId and reason are required' },
+        { error: 'orderId and reason are required' },
         { status: 400 }
       )
     }

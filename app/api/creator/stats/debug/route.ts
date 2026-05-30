@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+import { devOnlyGuard } from "@/lib/api-auth"
 
-// Temporary debug endpoint to check what's happening
+// Temporary debug endpoint — dev-only, never reaches production.
 export async function GET(request: NextRequest) {
+  const blocked = devOnlyGuard()
+  if (blocked) return blocked
   try {
     const { searchParams } = new URL(request.url)
     const creatorId = searchParams.get("creatorId")

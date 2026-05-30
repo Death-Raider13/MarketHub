@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase/admin'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { conversationId: string } }
 ) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const conversationId = params.conversationId
-    const { userId } = await request.json()
+    // Derive userId from the token — ignore any userId in the body.
+    const userId = auth.user.uid
 
-    if (!conversationId || !userId) {
+    if (!conversationId) {
       return NextResponse.json(
-        { error: 'Conversation ID and User ID are required' },
+        { error: 'Conversation ID is required' },
         { status: 400 }
       )
     }

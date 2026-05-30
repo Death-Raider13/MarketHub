@@ -1,35 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin'
 import { notificationService } from '@/lib/notifications/service'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const {
       conversationId,
-      senderId,
       senderName,
       senderRole,
       content
     } = await request.json()
 
-    console.log('Sending message with data:', {
-      conversationId,
-      senderId,
-      senderName,
-      senderRole,
-      content: content?.substring(0, 50) + '...'
-    })
+    // Always derive senderId from the authenticated token.
+    const senderId = auth.user.uid
 
-    if (!conversationId || !senderId || !senderName || !senderRole || !content) {
-      console.error('Missing required fields for message:', {
-        conversationId: !!conversationId,
-        senderId: !!senderId,
-        senderName: !!senderName,
-        senderRole: !!senderRole,
-        content: !!content
-      })
+    if (!conversationId || !senderName || !senderRole || !content) {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: 'conversationId, senderName, senderRole and content are required' },
         { status: 400 }
       )
     }
@@ -48,6 +39,19 @@ export async function POST(request: NextRequest) {
         { error: "Server configuration error" },
         { status: 500 }
       )
+    }
+
+    // Verify the caller is a participant in this conversation.
+    const convDoc = await adminDb.collection('conversations').doc(conversationId).get()
+    if (!convDoc.exists) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+    }
+    const convData = convDoc.data() as any
+    const isParticipant =
+      convData?.creatorId === senderId || convData?.customerId === senderId
+    const isAdmin = auth.user.role === 'admin' || auth.user.role === 'super_admin'
+    if (!isParticipant && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Create the message

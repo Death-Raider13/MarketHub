@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { createAdminRoleNotification } from '@/lib/notifications/admin-service'
 import { sendPayoutRequestSubmittedEmail, sendPayoutRequestAdminEmail } from '@/lib/email/service'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 export async function GET(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
+
   try {
     const adminDb = getAdminFirestore()
 
@@ -16,16 +20,25 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const creatorId = searchParams.get('creatorId')
+    const requestedCreatorId = searchParams.get('creatorId')
     const status = searchParams.get('status')
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
+    const isAdmin = auth.user.role === 'admin' || auth.user.role === 'super_admin'
+
+    // Creators can only see their own payouts; admins see all.
+    const creatorId = isAdmin
+      ? (requestedCreatorId ?? null)
+      : auth.user.uid
+
     let query = adminDb.collection('payoutRequests').orderBy('requestedAt', 'desc')
 
-    // Apply filters
     if (creatorId) {
       query = query.where('creatorId', '==', creatorId)
+    } else if (!isAdmin) {
+      // Non-admin with no uid — shouldn't happen, but safe fallback.
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     if (status && status !== 'all') {
       query = query.where('status', '==', status)
@@ -77,6 +90,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authPost = await verifyAuthToken(request)
+  if ('error' in authPost) return authPost.error
+
   try {
     const adminDb = getAdminFirestore()
 
@@ -88,8 +104,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const body = await request.json()
     const {
-      creatorId,
       creatorName,
       creatorEmail,
       amount,
@@ -97,10 +113,13 @@ export async function POST(request: NextRequest) {
       bankDetails,
       mobileMoneyDetails,
       paypalEmail
-    } = await request.json()
+    } = body
+
+    // Always use the authenticated uid — ignore any creatorId in the body.
+    const creatorId = authPost.user.uid
 
     // Validate required fields
-    if (!creatorId || !creatorName || !creatorEmail || !amount || !paymentMethod) {
+    if (!creatorName || !creatorEmail || !amount || !paymentMethod) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
