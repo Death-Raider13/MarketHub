@@ -99,15 +99,15 @@ export default function SignupPage() {
             <div className="relative h-10 w-10">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="text-3xl font-bold tracking-tight">Fero<span className="text-primary text-gradient">Library</span></span>
+            <span className="text-3xl font-bold tracking-tight">Fero<span className="text-primary text-gradient">E-Library</span></span>
           </Link>
           
           <h1 className="text-5xl font-black mb-6 tracking-tighter leading-[1.1]">
-            Join the Engine of <br />
-            <span className="text-muted-foreground/50">Academic Trust.</span>
+            Join Fero E-Library <br />
+            <span className="text-muted-foreground/50">Digital Learning Engine.</span>
           </h1>
           <p className="text-lg text-muted-foreground mb-12">
-            Create an account to gain access to tens of thousands of verified past questions, exam guides, and institutional resources.
+            Create your account to access topic summaries, enroll in live webinars, or monetize your educational materials.
           </p>
 
           <div className="space-y-6">
@@ -116,8 +116,8 @@ export default function SignupPage() {
                 <ShieldCheck className="h-6 w-6" />
               </div>
               <div>
-                <h4 className="font-bold text-sm">3-Tier Verification</h4>
-                <p className="text-xs text-muted-foreground mt-1">Every resource is academically audited.</p>
+                <h4 className="font-bold text-sm">Customer Refund Guarantee</h4>
+                <p className="text-xs text-muted-foreground mt-1">Full protection on all digital library purchases.</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -126,7 +126,7 @@ export default function SignupPage() {
               </div>
               <div>
                 <h4 className="font-bold text-sm">Instant Fulfillment</h4>
-                <p className="text-xs text-muted-foreground mt-1">Zero wait times on digital deliveries.</p>
+                <p className="text-xs text-muted-foreground mt-1">Zero wait times on summary downloads & live class links.</p>
               </div>
             </div>
           </div>
@@ -136,32 +136,31 @@ export default function SignupPage() {
         <div className="glass-card rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden w-full max-w-xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-black mb-2">Create your account</h2>
-            <p className="text-sm text-muted-foreground">Choose how you want to join the network.</p>
+            <p className="text-sm text-muted-foreground">Choose your portal to get started.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20 text-center font-medium">{error}</div>}
 
             <div className="space-y-3">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">1. Select Identity</Label>
-              <RadioGroup value={role} onValueChange={(value: any) => setRole(value)} className="grid grid-cols-2 gap-3">
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">1. Select Role</Label>
+              <RadioGroup value={role} onValueChange={(value: any) => setRole(value)} className="grid grid-cols-3 gap-3">
                 
                 {/* Student */}
                 <Label htmlFor="customer" className={`cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'customer' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
                   <RadioGroupItem value="customer" id="customer" className="sr-only" />
                   <GraduationCap className={`h-6 w-6 ${role === 'customer' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div>
-                    <div className={`text-sm font-bold ${role === 'customer' ? 'text-foreground' : 'text-muted-foreground'}`}>Student</div>
+                    <div className={`text-xs font-bold ${role === 'customer' ? 'text-foreground' : 'text-muted-foreground'}`}>Student</div>
                   </div>
                 </Label>
 
                 {/* Creator */}
                 <Label htmlFor="creator" className={`relative overflow-hidden cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'creator' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
-                  <div className="absolute top-0 right-0 bg-primary/20 text-primary text-[8px] font-black uppercase px-2 py-0.5 rounded-bl-lg">Hot</div>
                   <RadioGroupItem value="creator" id="creator" className="sr-only" />
                   <Zap className={`h-6 w-6 ${role === 'creator' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div>
-                    <div className={`text-sm font-bold ${role === 'creator' ? 'text-foreground' : 'text-muted-foreground'}`}>Educator</div>
+                    <div className={`text-xs font-bold ${role === 'creator' ? 'text-foreground' : 'text-muted-foreground'}`}>Creator</div>
                   </div>
                 </Label>
 
@@ -170,19 +169,9 @@ export default function SignupPage() {
                   <RadioGroupItem value="promoter" id="promoter" className="sr-only" />
                   <Megaphone className={`h-6 w-6 ${role === 'promoter' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div>
-                    <div className={`text-sm font-bold ${role === 'promoter' ? 'text-foreground' : 'text-muted-foreground'}`}>Affiliate</div>
+                    <div className={`text-xs font-bold ${role === 'promoter' ? 'text-foreground' : 'text-muted-foreground'}`}>Affiliate</div>
                   </div>
                 </Label>
-
-                {/* Verifier */}
-                <Label htmlFor="verifier" className={`cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'verifier' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
-                  <RadioGroupItem value="verifier" id="verifier" className="sr-only" />
-                  <ShieldCheck className={`h-6 w-6 ${role === 'verifier' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <div>
-                    <div className={`text-sm font-bold ${role === 'verifier' ? 'text-foreground' : 'text-muted-foreground'}`}>Verifier</div>
-                  </div>
-                </Label>
-
               </RadioGroup>
             </div>
 

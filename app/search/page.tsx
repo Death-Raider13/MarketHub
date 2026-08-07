@@ -17,6 +17,20 @@ import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { collection, getDocs, query as firestoreQuery, where, limit as firestoreLimit } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
+import { EmptySearchState } from "@/components/books/EmptySearchState"
+
+const ACADEMIC_CATEGORIES = [
+  "Mathematics",
+  "Biology",
+  "Chemistry",
+  "English",
+  "Physics",
+  "Special Needs Summaries",
+  "Interactive Courses",
+  "Past Questions",
+  "Project Templates",
+  "Textbooks"
+]
 
 function SearchContent() {
   const searchParams = useSearchParams()
@@ -176,14 +190,14 @@ function SearchContent() {
             </p>
           </div>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="mb-6">
-            <div className="relative">
+          {/* Search Bar with Category Selector */}
+          <form onSubmit={handleSearch} className="mb-6 flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search for products, brands, or categories..."
-                className="pl-10 pr-4 h-12 text-lg"
+                placeholder="Search books, topic summaries, authors..."
+                className="pl-10 pr-4 h-12 text-base md:text-lg bg-card border-border"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -191,6 +205,27 @@ function SearchContent() {
                 <Loader2 className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 animate-spin text-muted-foreground" />
               )}
             </div>
+
+            <Select 
+              value={selectedCategories[0] || "all"} 
+              onValueChange={(val) => setSelectedCategories(val === "all" ? [] : [val])}
+            >
+              <SelectTrigger className="w-full md:w-[220px] h-12 bg-card border-border">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {ACADEMIC_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button type="submit" className="h-12 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
+              Search
+            </Button>
           </form>
 
           <div className="flex gap-8">
@@ -230,17 +265,17 @@ function SearchContent() {
 
                 {/* Categories */}
                 <div className="space-y-4 rounded-lg border border-border p-4 bg-card">
-                  <Label>Categories</Label>
+                  <Label>Academic Subject</Label>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {["electronics", "computers", "phones", "gaming", "fashion-men", "fashion-women", "shoes", "bags", "beauty", "home", "furniture", "appliances", "sports", "books", "food", "health", "toys", "baby", "digital-courses", "digital-ebooks", "digital-software"].map((cat) => (
+                    {ACADEMIC_CATEGORIES.map((cat) => (
                       <div key={cat} className="flex items-center space-x-2">
                         <Checkbox
                           id={cat}
                           checked={selectedCategories.includes(cat)}
                           onCheckedChange={() => handleCategoryToggle(cat)}
                         />
-                        <label htmlFor={cat} className="text-sm cursor-pointer flex-1 capitalize">
-                          {cat.replace(/-/g, ' ')}
+                        <label htmlFor={cat} className="text-sm cursor-pointer flex-1">
+                          {cat}
                         </label>
                       </div>
                     ))}
@@ -274,8 +309,8 @@ function SearchContent() {
               {activeFiltersCount > 0 && (
                 <div className="mb-6 flex flex-wrap gap-2">
                   {selectedCategories.map((cat) => (
-                    <Badge key={cat} variant="secondary" className="gap-1 capitalize">
-                      {cat.replace(/-/g, ' ')}
+                    <Badge key={cat} variant="secondary" className="gap-1">
+                      {cat}
                       <button
                         onClick={() => handleCategoryToggle(cat)}
                         className="ml-1 hover:text-destructive"
@@ -349,7 +384,7 @@ function SearchContent() {
                 <div className="flex items-center justify-center py-20">
                   <div className="text-center">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-                    <p className="text-muted-foreground">Searching products...</p>
+                    <p className="text-muted-foreground">Searching library...</p>
                   </div>
                 </div>
               )}
@@ -363,18 +398,9 @@ function SearchContent() {
                 </div>
               )}
 
-              {/* Empty State */}
+              {/* Empathetic Empty State */}
               {!loading && filteredProducts.length === 0 && (
-                <div className="text-center py-16">
-                  <Search className="h-16 w-16 mx-auto text-muted-foreground" />
-                  <h3 className="mt-4 text-xl font-semibold">No products found</h3>
-                  <p className="mt-2 text-muted-foreground">
-                    {query ? `No results for "${query}". Try different keywords or adjust your filters.` : 'Try adjusting your filters or search terms'}
-                  </p>
-                  <Button onClick={clearFilters} className="mt-6">
-                    Clear All Filters
-                  </Button>
-                </div>
+                <EmptySearchState query={searchQuery} category={selectedCategories.join(', ')} />
               )}
             </div>
           </div>

@@ -34,8 +34,9 @@ interface RequiredEnvVars {
  * Validate that all required environment variables are present
  */
 export function validateEnvironmentVariables(): void {
+  const warnings: string[] = []
   const errors: string[] = []
-  
+
   // Required client-side variables
   const clientVars = [
     'NEXT_PUBLIC_FIREBASE_API_KEY',
@@ -48,28 +49,28 @@ export function validateEnvironmentVariables(): void {
     'NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET',
     'NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY'
   ]
-  
+
   // Required server-side variables
   const serverVars = [
     'PAYSTACK_SECRET_KEY',
     'RESEND_API_KEY'
   ]
-  
+
   // Check client-side variables
   clientVars.forEach(varName => {
     if (!process.env[varName]) {
-      errors.push(`Missing required environment variable: ${varName}`)
+      warnings.push(`Missing required environment variable: ${varName}`)
     }
   })
-  
-  // Check server-side variables (only on server)
+
   if (typeof window === 'undefined') {
+    // Check server-side variables
     serverVars.forEach(varName => {
       if (!process.env[varName]) {
         errors.push(`Missing required server environment variable: ${varName}`)
       }
     })
-    
+
     // Check Firebase Admin credentials
     const hasServiceAccountJson = !!process.env.FIREBASE_SERVICE_ACCOUNT_JSON
     const hasIndividualVars = !!(
@@ -77,26 +78,29 @@ export function validateEnvironmentVariables(): void {
       process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
       process.env.FIREBASE_ADMIN_PRIVATE_KEY
     )
-    
+
     if (!hasServiceAccountJson && !hasIndividualVars) {
       errors.push(
         'Missing Firebase Admin credentials. Provide either FIREBASE_SERVICE_ACCOUNT_JSON or all of: FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, FIREBASE_ADMIN_PRIVATE_KEY'
       )
     }
   }
-  
+
+  if (warnings.length > 0) {
+    console.warn('⚠️ Environment Variable Validation Warnings:')
+    warnings.forEach(warning => console.warn(`  - ${warning}`))
+    console.warn('⚠️ These are client-side variables and will be required at runtime in the browser.')
+  }
+
   if (errors.length > 0) {
     console.error('❌ Environment Variable Validation Failed:')
     errors.forEach(error => console.error(`  - ${error}`))
-    
     if (typeof window === 'undefined') {
-      // Only exit on server-side
       process.exit(1)
-    } else {
-      // On client-side, just log the errors
-      console.error('⚠️ Some environment variables are missing. App may not function correctly.')
     }
-  } else {
+  }
+
+  if (errors.length === 0 && warnings.length === 0) {
     console.log('✅ All required environment variables are present')
   }
 }

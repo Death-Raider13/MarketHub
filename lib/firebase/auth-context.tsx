@@ -62,9 +62,13 @@ export interface UserProfile {
   commission?: number
   businessName?: string
   hubName?: string
+  creatorPaid?: boolean
   // promoter fields
   referralCode?: string
   earnings?: number
+  promoterPaid?: boolean
+  // active role switcher
+  activeRole?: "customer" | "creator" | "promoter"
   // verifier fields
   verificationStatus?: 'pending' | 'approved' | 'rejected'
 }
@@ -82,6 +86,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>
   resendVerificationEmail: () => Promise<void>
   refreshUserProfile: () => Promise<void>
+  switchRole: (newRole: "customer" | "creator" | "promoter") => Promise<void>
   getCurrentToken: () => Promise<string | null>
   refreshToken: () => Promise<string | null>
 }
@@ -418,6 +423,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const switchRole = async (newRole: "customer" | "creator" | "promoter") => {
+    if (!user || !userProfile) return
+    try {
+      const updatedProfile = {
+        ...userProfile,
+        activeRole: newRole,
+        updatedAt: new Date()
+      }
+      await setDoc(doc(db, "users", user.uid), { activeRole: newRole, updatedAt: new Date() }, { merge: true })
+      setUserProfile(updatedProfile)
+    } catch (error) {
+      console.error("Error switching active role:", error)
+    }
+  }
+
   const value = {
     user,
     userProfile,
@@ -431,6 +451,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     resendVerificationEmail,
     refreshUserProfile,
+    switchRole,
     getCurrentToken: getCurrentUserToken,
     refreshToken,
   }

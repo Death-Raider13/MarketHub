@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/sheet"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { ModeToggle } from "@/components/mode-toggle"
+import { RoleSwitcher } from "@/components/navigation/RoleSwitcher"
 
 export function Header() {
   const router = useRouter()
@@ -79,7 +80,7 @@ export function Header() {
             <Image src="/logo.png" alt="FeroLibrary Logo" fill className="object-contain" />
           </div>
           <span className="text-xl font-bold tracking-tight hidden sm:inline-block">
-            Fero<span className="text-primary text-gradient">Library</span>
+            Fero<span className="text-primary text-gradient">E-Library</span>
           </span>
         </Link>
 
@@ -91,7 +92,7 @@ export function Header() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search resources, past questions..."
+              placeholder="Search books, topic summaries, live classes..."
               className="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50"
             />
           </div>
@@ -99,6 +100,7 @@ export function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 lg:gap-4 relative z-50 shrink-0">
+          {user && <RoleSwitcher />}
           <ModeToggle />
           {/* Cart */}
           <Link href="/cart" className="relative p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer group">
@@ -252,13 +254,13 @@ export function Header() {
                   )}
 
                   <nav className="space-y-2 pt-4">
-                    <Link href="/products" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href="/search" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
                       <GraduationCap className="h-5 w-5 text-primary" />
-                      Browse Resources
+                      Browse Library Books
                     </Link>
-                    <Link href="/creators" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href="/classes" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
                       <Store className="h-5 w-5 text-primary" />
-                      Find Educators
+                      Online Live Classes
                     </Link>
                     {userProfile?.role === 'creator' && (
                       <Link href="/creator/dashboard" className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl transition-colors font-bold text-primary" onClick={() => setIsMobileMenuOpen(false)}>

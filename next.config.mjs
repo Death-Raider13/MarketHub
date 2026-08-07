@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  staticPageGenerationTimeout: 180,
   eslint: {
     // Enable ESLint checks during builds for production safety
     ignoreDuringBuilds: false,

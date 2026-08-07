@@ -3,6 +3,8 @@ import { adminDb } from '@/lib/firebase/admin'
 import { verifyAdminAuth } from '@/lib/firebase/admin-auth'
 import { sendEmail } from '@/lib/email/send-email'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET: Fetch a specific support ticket (Admin Only)
  */

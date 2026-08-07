@@ -27,25 +27,25 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 224 59% 10%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 18%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 18%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 174 44% 55%;
+    --primary-foreground: 224 59% 10%;
+    --secondary: 220 30% 25%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 220 30% 25%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 174 44% 55%;
+    --accent-foreground: 224 59% 10%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 220 30% 25%;
+    --input: 220 30% 25%;
+    --ring: 174 44% 55%;
   }
 }
 
@@ -60,15 +60,25 @@
 
 /* Glassmorphism Classes (Dynamic for both modes) */
 .glass {
-  @apply bg-background/30 backdrop-blur-md border border-foreground/10;
+  background-color: rgba(28, 37, 65, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-card {
-  @apply bg-card/60 backdrop-blur-xl border border-foreground/10 shadow-lg;
+  background-color: rgba(28, 37, 65, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 font-black;
+  background: linear-gradient(135deg, #5BC0BE 0%, #3A506B 50%, #9B5DE5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
 }
 
 .animate-pulse-slow {
