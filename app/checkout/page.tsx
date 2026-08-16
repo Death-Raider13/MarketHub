@@ -42,10 +42,14 @@ function CheckoutContent() {
     if (step === 3 && completedOrderId && user) {
       const fetchDownloads = async () => {
         try {
+          const idToken = await user.getIdToken()
           const response = await fetch('/api/digital-delivery', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: completedOrderId, userId: user.uid })
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ orderId: completedOrderId })
           })
           if (response.ok) {
             const data = await response.json()
@@ -206,10 +210,14 @@ function CheckoutContent() {
           },
           async (reference) => {
             try {
+              const idToken = await user!.getIdToken()
               const response = await fetch('/api/payments/verify', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reference })
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${idToken}`,
+                },
+                body: JSON.stringify({ reference, orderId })
               })
 
               if (response.ok) {
