@@ -250,6 +250,18 @@ export default function CreatorRegisterNewPage() {
     setStep(prev => Math.max(prev - 1, minStep))
   }
 
+  const getReferralCode = () => {
+    if (typeof window === 'undefined') return undefined
+    try {
+      const raw = window.localStorage.getItem('markethub_affiliate_attribution')
+      const parsed = raw ? JSON.parse(raw) : null
+      if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
+        return String(parsed.code).trim().toUpperCase()
+      }
+    } catch {}
+    return undefined
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -263,6 +275,10 @@ export default function CreatorRegisterNewPage() {
     try {
       if (isGoogleUser && user) {
         // Google-authenticated creator: just create the hub document
+        const referralCode = getReferralCode()
+        if (referralCode) {
+          await setDoc(doc(db, 'users', user.uid), { referredByCode: referralCode }, { merge: true })
+        }
         const hubData = {
           storeName: formData.storeName,
           storeUrl: formData.storeUrl,
@@ -321,7 +337,7 @@ export default function CreatorRegisterNewPage() {
       }
 
       // Email/password path: create account then proceed
-      await signUp(formData.email, formData.password, "creator", formData.fullName)
+      await signUp(formData.email, formData.password, "creator", formData.fullName, getReferralCode())
       
       // Wait a moment for auth state to propagate if needed (optional)
       // Actually, signUp returns when user is created and profile set.

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCoinbaseCharge, getChargeStatus } from '@/lib/payment/coinbase'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
+import { recordAffiliateConversion } from '@/lib/affiliate'
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,16 +48,25 @@ export async function POST(request: NextRequest) {
       const orderRef = adminDb.collection('orders').doc(orderId)
       const orderDoc = await orderRef.get()
       
-      if (orderDoc.exists && orderDoc.data()?.paymentStatus !== 'completed') {
-        await orderRef.update({
-          status: 'paid',
-          paymentStatus: 'completed',
-          paymentMethod: 'coinbase',
-          paymentReference: charge.code,
-          paidAt: confirmedAt ? new Date(confirmedAt) : new Date(),
-          updatedAt: new Date()
-        })
-        console.log('✅ Order updated via verification:', orderId)
+      if (orderDoc.exists) {
+        const orderData = orderDoc.data() || {}
+        if (orderData.paymentStatus !== 'completed') {
+          await orderRef.update({
+            status: 'paid',
+            paymentStatus: 'completed',
+            paymentMethod: 'coinbase',
+            paymentReference: charge.code,
+            paidAt: confirmedAt ? new Date(confirmedAt) : new Date(),
+            updatedAt: new Date()
+          })
+          console.log('✅ Order updated via verification:', orderId)
+        }
+
+        try {
+          await recordAffiliateConversion(orderId, orderData)
+        } catch (affiliateError) {
+          console.error('Failed to record affiliate conversion:', affiliateError)
+        }
       }
     }
 

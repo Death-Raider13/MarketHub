@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { createApiLogger, logBusinessEvent, logSecurityEvent } from '@/lib/logger'
+import { verifyAuthToken } from '@/lib/api-auth'
+import { recordAffiliateConversion } from '@/lib/affiliate'
 
 // Get admin database instance
 const adminDb = getAdminFirestore()
@@ -10,12 +12,15 @@ export async function POST(request: NextRequest) {
   const logger = createApiLogger(request, '/api/payments/verify')
 
   try {
-    const { reference } = await request.json()
-    logger.info('Payment verification requested', { reference })
+    const auth = await verifyAuthToken(request)
+    if ('error' in auth) return auth.error
 
-    if (!reference) {
+    const { reference, orderId } = await request.json()
+    logger.info('Payment verification requested', { reference, orderId })
+
+    if (!reference || !orderId) {
       return NextResponse.json(
-        { error: 'Payment reference is required' },
+        { error: 'Payment reference and order ID are required' },
         { status: 400 }
       )
     }
@@ -46,8 +51,8 @@ export async function POST(request: NextRequest) {
     const { data } = response.data
 
     if (data.status === 'success') {
-      // Payment successful - update order in database using Admin SDK
-      const orderId = reference
+      // Payment successful - update the explicitly identified order.
+      // Never infer ownership or order identity from a caller-controlled reference.
       const adminDb = getAdminFirestore()
 
       if (!adminDb) {
@@ -71,6 +76,56 @@ export async function POST(request: NextRequest) {
         }
 
         let orderData = orderDoc.data()
+
+        if (orderData?.userId !== auth.user.uid && orderData?.customerId !== auth.user.uid) {
+          logSecurityEvent('payment_verification_order_owner_mismatch', 'high', {
+            orderId,
+            authenticatedUserId: auth.user.uid,
+          })
+          return NextResponse.json({ error: 'Unauthorized access to order' }, { status: 403 })
+        }
+
+        const expectedAmount = Number(orderData?.total ?? orderData?.totalAmount)
+        const receivedAmount = Number(data.amount)
+        const receivedCurrency = String(data.currency || '').toUpperCase()
+        if (!Number.isFinite(expectedAmount) || expectedAmount <= 0 ||
+            !Number.isFinite(receivedAmount) ||
+            Math.round(expectedAmount * 100) !== Math.round(receivedAmount) ||
+            receivedCurrency !== 'NGN') {
+          logSecurityEvent('payment_verification_amount_mismatch', 'critical', {
+            orderId,
+            expectedAmount,
+            receivedAmount,
+            receivedCurrency,
+          })
+          return NextResponse.json({ error: 'Payment amount or currency does not match the order' }, { status: 400 })
+        }
+
+        const existingReference = orderData?.paymentReference || orderData?.paystackReference
+        const alreadyPaid = ['paid', 'completed'].includes(String(orderData?.paymentStatus)) ||
+          ['paid', 'completed'].includes(String(orderData?.status))
+        if (alreadyPaid && existingReference === reference) {
+          try {
+            await recordAffiliateConversion(orderId, orderData || {})
+          } catch (affiliateError) {
+            logger.error('Affiliate conversion retry failed', undefined, affiliateError as Error)
+          }
+          return NextResponse.json({
+            success: true,
+            message: 'Payment was already verified',
+            order: { id: orderId, ...orderData },
+          })
+        }
+
+        if (alreadyPaid && existingReference && existingReference !== reference) {
+          logSecurityEvent('payment_verification_paid_order_reference_conflict', 'critical', {
+            orderId,
+            authenticatedUserId: auth.user.uid,
+            existingReference,
+            receivedReference: reference,
+          })
+          return NextResponse.json({ error: 'Order has already been paid with a different reference' }, { status: 409 })
+        }
 
         // Note: Physical inventory reduction removed as per digital-first pivot
 
@@ -97,6 +152,20 @@ export async function POST(request: NextRequest) {
         orderData = updatedOrderDoc.data()
 
         logger.info('Payment verified successfully', { orderId })
+
+        try {
+          const affiliateResult = await recordAffiliateConversion(orderId, orderData || {})
+          if (affiliateResult.created) {
+            logger.info('Affiliate conversion recorded', {
+              orderId,
+              affiliateId: affiliateResult.affiliateId,
+              commissionAmount: affiliateResult.commissionAmount,
+            })
+          }
+        } catch (affiliateError) {
+          // Payment must remain successful if affiliate bookkeeping needs retry.
+          logger.error('Affiliate conversion recording failed', undefined, affiliateError as Error)
+        }
 
         // Create purchased products records for digital products
         try {

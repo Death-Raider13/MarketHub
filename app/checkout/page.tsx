@@ -38,14 +38,38 @@ function CheckoutContent() {
   const tax = totalPrice * 0.1
   const total = totalPrice + tax
 
+  const getAffiliateAttribution = () => {
+    if (typeof window === 'undefined') return null
+    try {
+      const raw = window.localStorage.getItem('markethub_affiliate_attribution')
+      if (!raw) return null
+      const attribution = JSON.parse(raw)
+      if (!attribution?.code || !attribution?.expiresAt || Number(attribution.expiresAt) <= Date.now()) {
+        window.localStorage.removeItem('markethub_affiliate_attribution')
+        return null
+      }
+      return {
+        code: String(attribution.code),
+        productId: attribution.productId ? String(attribution.productId) : null,
+      }
+    } catch {
+      window.localStorage.removeItem('markethub_affiliate_attribution')
+      return null
+    }
+  }
+
   useEffect(() => {
     if (step === 3 && completedOrderId && user) {
       const fetchDownloads = async () => {
         try {
+          const idToken = await user.getIdToken()
           const response = await fetch('/api/digital-delivery', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: completedOrderId, userId: user.uid })
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ orderId: completedOrderId })
           })
           if (response.ok) {
             const data = await response.json()
@@ -80,6 +104,7 @@ function CheckoutContent() {
 
     try {
       const shippingMethodValue = "digital_fulfillment"
+      const affiliateAttribution = getAffiliateAttribution()
 
       const orderData = {
         customerId: user!.uid,
@@ -103,6 +128,8 @@ function CheckoutContent() {
         paymentStatus: 'pending',
         shippingMethod: shippingMethodValue,
         paymentMethod: paymentMethod === 'crypto' ? 'coinbase' : 'paystack',
+        affiliateCode: affiliateAttribution?.code || null,
+        affiliateProductId: affiliateAttribution?.productId || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }
@@ -206,10 +233,14 @@ function CheckoutContent() {
           },
           async (reference) => {
             try {
+              const idToken = await user!.getIdToken()
               const response = await fetch('/api/payments/verify', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reference })
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${idToken}`,
+                },
+                body: JSON.stringify({ reference, orderId })
               })
 
               if (response.ok) {

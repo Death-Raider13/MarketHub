@@ -39,7 +39,8 @@ import {
   MessageCircle,
   Loader2,
   AlertCircle,
-  Flag
+  Flag,
+  Copy
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -59,7 +60,7 @@ export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const { user } = useAuth()
+  const { user, userProfile } = useAuth()
   const { addToCart } = useCart()
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
 
@@ -71,6 +72,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [hasPurchased, setHasPurchased] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
+  const [affiliateCopied, setAffiliateCopied] = useState(false)
   const [creatorstats, setcreatorstats] = useState<{ rating: number, reviewCount: number, productCount: number } | null>(null)
   const [creatorInfo, setcreatorInfo] = useState<{ description: string, verified: boolean, name: string } | null>(null)
 
@@ -237,6 +239,41 @@ export default function ProductDetailPage() {
     }
   }, [id, user])
 
+  // Capture a product-specific affiliate referral for 30 days and record the click once per browser/product/code.
+  useEffect(() => {
+    if (!id || typeof window === 'undefined') return
+
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('ref')
+    if (!code) return
+
+    const affiliateProductId = params.get('aff_product') || id
+    const expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000)
+    window.localStorage.setItem('markethub_affiliate_attribution', JSON.stringify({
+      code,
+      productId: affiliateProductId,
+      expiresAt,
+    }))
+
+    const clickStorageKey = `markethub_affiliate_click_${code}_${id}`
+    let clickId = window.localStorage.getItem(clickStorageKey)
+    if (!clickId) {
+      clickId = crypto.randomUUID()
+      window.localStorage.setItem(clickStorageKey, clickId)
+    }
+
+    fetch('/api/affiliate/click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        productId: id,
+        clickId,
+        landingPath: window.location.pathname,
+      }),
+    }).catch(error => console.error('Failed to record affiliate click:', error))
+  }, [id])
+
   // Track product view for analytics (counts toward creator dashboard total views)
   useEffect(() => {
     if (!id) return
@@ -258,6 +295,16 @@ export default function ProductDetailPage() {
       addToCart(product, quantity)
       toast.success('Added to cart!')
     }
+  }
+
+  const handleAffiliateLink = async () => {
+    if (!product || userProfile?.role !== 'promoter' || !userProfile.referralCode) return
+
+    const link = `${window.location.origin}/products/${product.id}?ref=${encodeURIComponent(userProfile.referralCode)}&aff_product=${encodeURIComponent(product.id)}`
+    await navigator.clipboard.writeText(link)
+    setAffiliateCopied(true)
+    toast.success('Product affiliate link copied')
+    window.setTimeout(() => setAffiliateCopied(false), 2000)
   }
 
   const handleShare = async () => {
@@ -548,6 +595,13 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                     }
                   />
                 </div>
+
+                {userProfile?.role === 'promoter' && userProfile.referralCode && (
+                  <Button variant="secondary" size="lg" className="w-full" onClick={handleAffiliateLink}>
+                    <Copy className="mr-2 h-5 w-5" />
+                    {affiliateCopied ? 'Affiliate Link Copied' : 'Advertise This Product'}
+                  </Button>
+                )}
 
                 {/* Contact Creator Button */}
                 <ContactCreator

@@ -95,7 +95,12 @@ export function validateEnvironmentVariables(): void {
   if (errors.length > 0) {
     console.error('❌ Environment Variable Validation Failed:')
     errors.forEach(error => console.error(`  - ${error}`))
-    if (typeof window === 'undefined') {
+
+    // Next.js evaluates route modules during its production build. Do not
+    // terminate every static worker at build time; integration endpoints still
+    // validate their own credentials when they are actually invoked.
+    const isNextBuild = process.env.NEXT_PHASE === 'phase-production-build'
+    if (typeof window === 'undefined' && !isNextBuild) {
       process.exit(1)
     }
   }

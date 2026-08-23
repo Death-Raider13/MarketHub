@@ -5,104 +5,40 @@ export default function TermsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 max-w-4xl">
-          <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
+          <h1 className="text-4xl font-bold mb-8">Terms and Conditions</h1>
+          <div className="prose prose-gray max-w-none dark:prose-invert">
+            <p className="text-muted-foreground mb-8">Last updated: August 23, 2026</p>
 
-          <div className="prose prose-gray max-w-none">
-            <p className="text-muted-foreground mb-8">
-              Last updated: January 20, 2025
-            </p>
+            <section className="mb-8"><h2>1. Acceptance and eligibility</h2><p>These Terms and Conditions govern access to and use of Fero E-Library, including its marketplace, digital products, creator tools, affiliate programme, payment services, and delivery systems. By creating an account, accessing the platform, purchasing a product, uploading content, or participating as an affiliate, you confirm that you have read, understood, and accepted these Terms. If you do not agree, you must not use the platform.</p><p>You must provide accurate account information, keep your credentials secure, and comply with applicable Nigerian law and any other law applicable to your use of the platform. We may suspend or terminate accounts that are fraudulent, abusive, unlawful, or materially in breach of these Terms.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
-              <p className="text-muted-foreground mb-4">
-                By accessing and using FeroLibrary, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
-              </p>
-            </section>
+            <section className="mb-8"><h2>2. Marketplace roles</h2><p>Fero E-Library may provide customer, creator, and affiliate roles. Each role has separate permissions and obligations. A person may not use another person&apos;s account, impersonate a creator or affiliate, manipulate platform records, or bypass role-based restrictions.</p><p>Creator and affiliate approval is not automatic. We may review identity, academic, business, payment, content, and conduct information before granting or continuing access to role-specific features.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">2. Use License</h2>
-              <p className="text-muted-foreground mb-4">
-                Permission is granted to temporarily access the materials (information or software) on FeroLibrary for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title.
-              </p>
-              <p className="text-muted-foreground mb-4">
-                Under this license you may not:
-              </p>
-              <ul className="list-disc pl-6 text-muted-foreground mb-4">
-                <li>Modify or copy the materials</li>
-                <li>Use the materials for any commercial purpose</li>
-                <li>Attempt to decompile or reverse engineer any software</li>
-                <li>Remove any copyright or other proprietary notations</li>
-              </ul>
-            </section>
+            <section className="mb-8"><h2>3. Creator uploads, fees, verification, and featuring</h2><p>A new creator may upload up to three eligible books without paying an upload fee. After those three free uploads have been used, additional book uploads require the applicable fee before the upload is accepted: <strong>₦4,000 for ordinary eligible creators</strong> and <strong>₦3,000 for qualifying waitlist creators</strong>, subject to verification of waitlist eligibility.</p><p>A creator who wants a verification badge and consideration for featured placement must pay the applicable <strong>₦10,000 verification and featuring fee</strong> and complete the required review. Payment does not guarantee approval, a badge, ranking, sales, or featured placement. The platform may reject content or decline a badge where the creator, documents, or content do not meet our standards.</p><p>Fees are charged for access to the relevant review, upload, or platform service. Except where required by law or expressly stated at checkout, fees are non-refundable once the relevant review or upload service has begun. We may change fees prospectively with notice, but the price displayed and accepted at checkout governs that transaction.</p><p>Creators must own or control all rights required to upload, sell, license, and distribute their books. Creators must not upload pirated books, leaked examinations, stolen notes, confidential institutional material, content containing unlawful personal data, or material that infringes another person&apos;s copyright, trademark, privacy, publicity, or other rights.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">3. creator Terms</h2>
-              <p className="text-muted-foreground mb-4">
-                creators using FeroLibrary agree to:
-              </p>
-              <ul className="list-disc pl-6 text-muted-foreground mb-4">
-                <li>Provide accurate product information</li>
-                <li>Honor all sales and commitments</li>
-                <li>Comply with all applicable laws and regulations</li>
-                <li>Maintain professional conduct</li>
-                <li>Pay applicable fees and commissions</li>
-              </ul>
-            </section>
+            <section className="mb-8"><h2>4. Affiliate programme and advertising permission</h2><p>Affiliate registration may require payment of the applicable registration fee displayed at signup, currently intended to be <strong>₦8,000</strong>. Waitlist promotions, including any 25% discount, apply only where the customer has joined the waitlist, satisfies the stated eligibility requirements, and successfully verifies the promotion at checkout.</p><p>Registration alone does not give an affiliate permission to advertise. An affiliate must complete the required educational course, pass or complete the simple task assigned after the course, and receive an active approval status from Fero E-Library. The course material and task requirements may be supplied or updated by the platform. Until approval is active, the affiliate must not advertise products, generate or distribute promotional links, claim to represent Fero E-Library, or make earnings promises.</p><p>Approved affiliates may select eligible products from the marketplace and generate product-specific referral links. Affiliate attribution, commissions, prohibited advertising methods, validation rules, reversals, and payout eligibility are governed by the programme rules shown in the affiliate dashboard and may be withheld for fraud, self-referrals, misleading claims, spam, or chargebacks.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">4. Customer Terms</h2>
-              <p className="text-muted-foreground mb-4">
-                Customers using FeroLibrary agree to:
-              </p>
-              <ul className="list-disc pl-6 text-muted-foreground mb-4">
-                <li>Provide accurate information</li>
-                <li>Make legitimate purchases</li>
-                <li>Respect creator policies</li>
-                <li>Not engage in fraudulent activities</li>
-              </ul>
-            </section>
+            <section className="mb-8"><h2>5. Revenue sharing and platform fees</h2><p>For a direct product sale with no valid affiliate attribution, the intended allocation of the product sale amount is <strong>90% to the creator and 10% to Fero E-Library</strong>. For a sale attributed to an approved affiliate, the intended allocation is <strong>75% to the creator, 15% to the affiliate, and 10% to Fero E-Library</strong>. The applicable calculation, eligible amount, taxes, refunds, chargebacks, payment-provider deductions, and settlement status are determined by the authoritative transaction record.</p><p>Commissions are not earned from cancelled, refunded, fraudulent, disputed, test, or otherwise invalid transactions. We may delay, reverse, suspend, or recover earnings where a transaction is later reversed or where activity violates these Terms. No statement of projected earnings is a guarantee of income.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">5. Payment Terms</h2>
-              <p className="text-muted-foreground mb-4">
-                All payments are processed securely through our payment partners. FeroLibrary does not store credit card information. creators receive payouts according to the payout schedule minus applicable fees.
-              </p>
-            </section>
+            <section className="mb-8"><h2>6. Customer purchases and digital delivery</h2><p>Customers receive a limited, personal, non-exclusive, non-transferable licence to use purchased digital material for lawful personal study unless the product description expressly grants broader rights. A purchase is not a sale or transfer of copyright. Customers must use the email address and account information necessary for secure delivery and must not share access credentials or download links.</p><p>Digital books are delivered to the purchaser&apos;s registered or checkout email address and may also be made available inside the purchaser&apos;s account. Delivery links may be time-limited, access-controlled, revoked after refund or fraud, and subject to download limits. Customers must report delivery problems through support rather than attempting to bypass controls.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">6. Disclaimer</h2>
-              <p className="text-muted-foreground mb-4">
-                The materials on FeroLibrary are provided on an 'as is' basis. FeroLibrary makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
-              </p>
-            </section>
+            <section className="mb-8"><h2>7. Invisible watermarking and digital rights protection</h2><p>Fero E-Library and its creators may apply invisible or embedded watermarks, purchaser identifiers, transaction references, hashes, metadata, access tokens, and other technical measures to digital books and related files. These measures may be used to identify the authorised purchaser, investigate leakage, enforce licence restrictions, and support evidence preservation. A watermark is not a reduction of the purchaser&apos;s lawful licence and must not be removed, obscured, altered, or defeated.</p><p>No digital protection system can guarantee that unauthorised copying will never occur. Customers agree not to test, defeat, reverse engineer, scrape, extract, decrypt, mass-download, or otherwise circumvent any watermark, access-control, signed-link, download-limit, or other protection mechanism.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">7. Limitations</h2>
-              <p className="text-muted-foreground mb-4">
-                In no event shall FeroLibrary or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on FeroLibrary.
-              </p>
-            </section>
+            <section className="mb-8"><h2>8. Strict anti-piracy and intellectual-property enforcement</h2><p>Strictly prohibited conduct includes copying, recording, photographing, scanning, retyping, uploading, emailing, forwarding, selling, renting, licensing, posting, torrenting, storing in a shared drive, or distributing a purchased book or any substantial part of it to another person or service without written permission from the rights holder.</p><p>If we reasonably determine that a person has sold, leaked, distributed, reproduced, or facilitated access to another person&apos;s book, we may immediately suspend or terminate the account, revoke access, cancel links, preserve technical and payment evidence, withhold or reverse earnings, remove listings, notify affected rights holders, issue takedown notices, cooperate with payment providers and law-enforcement agencies, and pursue civil or criminal remedies available under applicable law. This includes claims for injunctive relief, damages, account of profits, costs, and reasonable legal expenses where recoverable.</p><p>Nothing in these Terms limits a rights holder&apos;s independent legal rights. We do not promise that every suspected infringer will be sued, and any enforcement decision remains subject to evidence, applicable law, and legal advice.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">8. Governing Law</h2>
-              <p className="text-muted-foreground mb-4">
-                These terms and conditions are governed by and construed in accordance with the laws of Nigeria and you irrevocably submit to the exclusive jurisdiction of the courts in that location.
-              </p>
-            </section>
+            <section className="mb-8"><h2>9. Copyright complaints and takedowns</h2><p>Rights holders may contact us with a good-faith infringement notice identifying the protected work, the allegedly infringing material or location, evidence of ownership or authority, contact details, and a declaration that the information is accurate. We may remove or restrict access while investigating and may request additional information from the complainant, creator, customer, or affiliate.</p><p>Knowingly false complaints, fraudulent counter-notices, intimidation, or abuse of the reporting process may result in account action and legal consequences.</p></section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">9. Contact Information</h2>
-              <p className="text-muted-foreground mb-4">
-                If you have any questions about these Terms, please contact us at support@FeroLibrary.ng
-              </p>
-            </section>
+            <section className="mb-8"><h2>10. Prohibited conduct and account enforcement</h2><p>You must not engage in fraud, payment manipulation, fake reviews, referral self-dealing, click manipulation, spam, phishing, harassment, unlawful advertising, scraping, credential sharing, malware distribution, attempts to access another user&apos;s data, or interference with platform security. We may investigate activity, request verification, restrict features, and retain relevant records as described in the Privacy Policy.</p></section>
+
+            <section className="mb-8"><h2>11. Disclaimer and limitation</h2><p>The platform and its materials are provided subject to availability. We do not guarantee uninterrupted access, specific sales, earnings, rankings, verification outcomes, featured placement, or that every digital file will be free from defects. To the maximum extent permitted by law, Fero E-Library is not liable for indirect, consequential, incidental, or loss-of-profit damages arising from use of the platform. Nothing excludes liability that cannot lawfully be excluded.</p></section>
+
+            <section className="mb-8"><h2>12. Indemnity</h2><p>To the extent permitted by law, creators, customers, and affiliates agree to indemnify and hold harmless Fero E-Library, its operators, service providers, and representatives from claims, losses, liabilities, costs, and expenses arising from their content, unlawful conduct, breach of these Terms, infringement of third-party rights, misuse of digital material, or misuse of referral and payment systems.</p></section>
+
+            <section className="mb-8"><h2>13. Governing law and contact</h2><p>These Terms are governed by the laws of Nigeria, subject to any mandatory consumer or statutory rights. Disputes should first be reported to support@FeroLibrary.ng so the parties can attempt good-faith resolution before formal proceedings where appropriate.</p><p>Questions, infringement notices, and legal correspondence may be sent to <strong>support@FeroLibrary.ng</strong>.</p></section>
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   )

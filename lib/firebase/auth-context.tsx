@@ -67,6 +67,15 @@ export interface UserProfile {
   referralCode?: string
   earnings?: number
   promoterPaid?: boolean
+  affiliateStatus?: 'pending_payment' | 'course_pending' | 'task_pending' | 'approved' | 'suspended'
+  affiliateCourseCompleted?: boolean
+  affiliateTaskCompleted?: boolean
+  affiliateReferredByCode?: string
+  // cross-role referral fields
+  referredByCode?: string
+  referralRewardEarnings?: number
+  referralRewardAvailableBalance?: number
+  referralRewardCount?: number
   // active role switcher
   activeRole?: "customer" | "creator" | "promoter"
   // verifier fields
@@ -78,7 +87,7 @@ interface AuthContextType {
   userProfile: UserProfile | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, role: UserRole, displayName?: string) => Promise<void>
+  signUp: (email: string, password: string, role: UserRole, displayName?: string, referralCode?: string) => Promise<void>
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   signInWithGoogle: () => Promise<void>
   logout: () => Promise<void>
@@ -154,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe
   }, [])
 
-  const signUp = async (email: string, password: string, role: UserRole, displayName?: string) => {
+  const signUp = async (email: string, password: string, role: UserRole, displayName?: string, referralCode?: string) => {
     // Rate limiting is handled by middleware, but we can add client-side checks
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -187,11 +196,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailVerified: false, // Track email verification status
         lastLoginAt: new Date(),
         updatedAt: new Date(),
-        ...(role === "creator" && { verified: false, commission: 80 }),
-        ...(role === "promoter" && { 
+        ...(role === "creator" && { verified: false, commission: 90 }),
+        ...(role === "promoter" && {
           referralCode: displayName ? generateReferralCode(displayName) : `PRO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-          commission: 20,
-          earnings: 0
+          commission: 15,
+          earnings: 0,
+          affiliateStatus: 'pending_payment',
+          affiliateCourseCompleted: false,
+          affiliateTaskCompleted: false,
+        }),
+        ...(typeof referralCode === 'string' && /^[A-Z0-9_-]{3,50}$/i.test(referralCode) && {
+          referredByCode: referralCode.trim().toUpperCase(),
+          affiliateReferredByCode: role === 'promoter' ? referralCode.trim().toUpperCase() : undefined,
         }),
         ...(role === "verifier" && { verificationStatus: 'pending' }),
       }

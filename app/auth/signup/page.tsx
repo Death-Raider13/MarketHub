@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,13 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const { signUp, signInWithGoogle } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    const requestedRole = new URLSearchParams(window.location.search).get('role')
+    if (requestedRole === 'promoter' || requestedRole === 'customer') {
+      setRole(requestedRole)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,9 +62,19 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
+      // Preserve an existing affiliate referral attribution for role-referral rewards.
+      let referralCode: string | undefined
+      try {
+        const raw = window.localStorage.getItem('markethub_affiliate_attribution')
+        const parsed = raw ? JSON.parse(raw) : null
+        if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
+          referralCode = String(parsed.code).trim().toUpperCase()
+        }
+      } catch {}
+
       // Combine first and last name for display name
       const fullName = `${firstName} ${lastName}`.trim()
-      await signUp(email, password, role as UserRole, fullName)
+      await signUp(email, password, role as UserRole, fullName, referralCode)
       
       if (role === "promoter") {
         router.push("/dashboard/promoter") 

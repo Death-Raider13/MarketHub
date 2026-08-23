@@ -1,5 +1,6 @@
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { FieldValue } from 'firebase-admin/firestore'
+import { saleSplit } from '@/lib/business-fees'
 
 /**
  * Updates creator balances for an order using Firestore transactions
@@ -26,9 +27,10 @@ export async function updateCreatorBalances(orderData: any, orderId: string): Pr
     const quantity = item.quantity || 1
     const itemTotal = price * quantity
 
-    // Platform commission is 10% by default for digital/services
-    const PLATFORM_COMMISSION_RATE = Number(process.env.PLATFORM_COMMISSION_RATE) || 0.10
-    const creatorEarning = itemTotal * (1 - PLATFORM_COMMISSION_RATE)
+    // Direct sales pay creators 90%; sales with valid affiliate attribution
+    // pay creators 75%, affiliates 15%, and the platform 10%.
+    const split = saleSplit(Boolean(orderData.affiliateCode))
+    const creatorEarning = itemTotal * (split.creatorPercent / 100)
 
     creatorUpdates.set(
       creatorId,

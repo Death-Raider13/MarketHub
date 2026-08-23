@@ -28,7 +28,7 @@ const nextConfig = {
             value: 'on'
           },
           {
-            key: 'StrictMode',
+            key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload'
           },
           {
@@ -47,16 +47,6 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
           }
-        ]
-      },
-      {
-        // CORS headers for API routes
-        source: '/api/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' }, // Replace with specific domains in production
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
-          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
         ]
       }
     ]

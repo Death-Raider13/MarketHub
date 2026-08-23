@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import crypto from 'crypto'
 import { logger } from '@/lib/logger'
+import { recordAffiliateConversion } from '@/lib/affiliate'
 
 /**
  * Paystack Webhook Handler
@@ -87,7 +88,12 @@ async function handleChargeSuccess(data: any) {
 
     // 2. Prevent duplicate fulfillment
     if (orderData?.status === 'completed' || orderData?.paymentStatus === 'paid') {
-      logger.info(`Order ${orderId} already fulfilled. Skipping.`)
+      logger.info(`Order ${orderId} already fulfilled. Ensuring affiliate conversion is recorded.`)
+      try {
+        await recordAffiliateConversion(orderId, orderData || {})
+      } catch (affiliateError) {
+        logger.error(`Failed to record affiliate conversion for ${orderId}`, undefined, affiliateError as Error)
+      }
       return
     }
 
@@ -99,6 +105,12 @@ async function handleChargeSuccess(data: any) {
       paidAt: new Date(),
       updatedAt: new Date()
     })
+
+    try {
+      await recordAffiliateConversion(orderId, orderData || {})
+    } catch (affiliateError) {
+      logger.error(`Failed to record affiliate conversion for ${orderId}`, undefined, affiliateError as Error)
+    }
 
     // 4. Update creator Balances (Safe transaction)
     try {

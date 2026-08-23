@@ -116,6 +116,12 @@ const navItems: NavItem[] = [
     permission: 'finance.view',
   },
   {
+    title: 'Affiliate Payouts',
+    href: '/admin/affiliate-payouts',
+    icon: Megaphone,
+    permission: 'finance.view',
+  },
+  {
     title: 'Analytics',
     href: '/admin/analytics',
     icon: BarChart3,

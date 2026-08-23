@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { FieldValue } from 'firebase-admin/firestore'
 import { generateCloudinaryDownloadUrl, validateCloudinaryUrl } from '@/lib/digital-products/cloudinary-download'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 // Mark this route as dynamic since it handles download requests with query params
 export const dynamic = 'force-dynamic'
@@ -11,11 +12,13 @@ const MAX_PROXY_BYTES = 100 * 1024 * 1024
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await verifyAuthToken(request)
+    if ('error' in auth) return auth.error
 
     const { searchParams } = new URL(request.url)
     const fileId = searchParams.get('fileId')
     const purchaseId = searchParams.get('purchaseId')
-    const userId = searchParams.get('userId')
+    const userId = auth.user.uid
 
     if (!fileId || !purchaseId) {
       return NextResponse.json(
@@ -44,8 +47,8 @@ export async function GET(request: NextRequest) {
 
     const purchaseData = purchaseDoc.data()
     
-    // Verify user ownership if userId is provided
-    if (userId && purchaseData?.userId !== userId) {
+    // Ownership is always checked against the verified Firebase token.
+    if (purchaseData?.userId !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized access' },
         { status: 403 }

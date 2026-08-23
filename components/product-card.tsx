@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Star, ShoppingCart, Heart } from "lucide-react"
+import { Star, ShoppingCart, Heart, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -10,6 +10,8 @@ import type { Product } from "@/lib/types"
 import { useState, useEffect } from "react"
 import { getCreatorName } from "@/lib/creator-utils"
 import { useWishlist } from "@/lib/wishlist-context"
+import { useAuth } from "@/lib/firebase/auth-context"
+import { toast } from "sonner"
 
 interface ProductCardProps {
   product: Product
@@ -18,7 +20,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [creatorName, setCreatorName] = useState<string>(product.creatorName || 'Creator')
+  const [affiliateCopied, setAffiliateCopied] = useState(false)
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
+  const { userProfile } = useAuth()
 
   // Ensure price is a number
   const price = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0
@@ -47,6 +51,21 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   }, [product.creatorId, product.creatorName])
 
   const inWishlist = isInWishlist(product.id)
+  const affiliateCode = userProfile?.role === 'promoter' ? userProfile.referralCode : undefined
+  const isPromoter = Boolean(affiliateCode)
+
+  const copyAffiliateLink = async (event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!affiliateCode) return
+
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const link = `${baseUrl}/products/${product.id}?ref=${encodeURIComponent(affiliateCode)}&aff_product=${encodeURIComponent(product.id)}`
+    await navigator.clipboard.writeText(link)
+    setAffiliateCopied(true)
+    toast.success('Product affiliate link copied')
+    window.setTimeout(() => setAffiliateCopied(false), 2000)
+  }
 
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
@@ -101,17 +120,25 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between p-4 pt-0">
+      <CardFooter className="flex items-center justify-between gap-3 p-4 pt-0">
         <div>
           <div className="text-2xl font-bold">₦{price.toLocaleString()}</div>
           {comparePrice > 0 && (
             <div className="text-sm text-muted-foreground line-through">₦{comparePrice.toLocaleString()}</div>
           )}
         </div>
-        <Button size="sm" onClick={() => onAddToCart?.(product)} disabled={product.stock === 0}>
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          {product.stock === 0 ? "Out of Stock" : "Add"}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isPromoter && (
+            <Button size="sm" variant="outline" onClick={copyAffiliateLink} aria-label="Copy product affiliate link">
+              {affiliateCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <span className="hidden sm:inline ml-1">Advertise</span>
+            </Button>
+          )}
+          <Button size="sm" onClick={() => onAddToCart?.(product)} disabled={product.stock === 0}>
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            {product.stock === 0 ? "Out of Stock" : "Add"}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   )

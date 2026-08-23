@@ -145,6 +145,8 @@ export interface Order {
   paymentStatus: "pending" | "completed" | "paid" | "refunded" | "failed"
   shippingAddress: Address
   paymentMethod: string
+  affiliateCode?: string
+  affiliateProductId?: string
   trackingNumber?: string
   createdAt: Date
   updatedAt: Date

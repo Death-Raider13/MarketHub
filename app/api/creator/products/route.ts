@@ -69,6 +69,32 @@ export async function POST(request: NextRequest) {
 
     // Always use the authenticated user as creatorId — body value is ignored.
     const creatorId = auth.user.uid
+    const userDoc = await adminDb.collection('users').doc(creatorId).get()
+    const userData = userDoc.data() || {}
+    if (userData.role !== 'creator') {
+      return NextResponse.json({ error: 'Only creator accounts can upload products' }, { status: 403 })
+    }
+
+    // The first three book uploads are free. Additional uploads require a
+    // server-managed paid entitlement; clients cannot unlock this themselves.
+    const existingProducts = await adminDb.collection('products').where('creatorId', '==', creatorId).get()
+    const uploadCount = existingProducts.size
+    const freeBookLimit = 3
+    const access = userData.creatorUploadAccess || {}
+    const accessExpiry = access.expiresAt?.toDate?.() || (access.expiresAt ? new Date(access.expiresAt) : null)
+    const paidUploadAccess = access.status === 'active' && (!accessExpiry || accessExpiry > new Date())
+    if (uploadCount >= freeBookLimit && !paidUploadAccess) {
+      const waitlistEligible = userData.waitlistEligible === true || userData.waitlistMember === true
+      return NextResponse.json({
+        error: 'Your three free book uploads have been used. Purchase creator upload access to add more books.',
+        code: 'CREATOR_UPLOAD_ACCESS_REQUIRED',
+        uploadCount,
+        freeBookLimit,
+        feeAmount: waitlistEligible ? 3000 : 4000,
+        feeType: waitlistEligible ? 'creator_waitlist_additional_upload' : 'creator_additional_upload',
+        waitlistEligible,
+      }, { status: 402 })
+    }
 
     const {
       creatorId: _bodyCreatorId,
@@ -109,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get creator information to ensure proper creator name
-    let finalcreatorName = creatorName || "creator"
+    let finalcreatorName = creatorName || userData.storeName || userData.businessName || userData.displayName || "creator"
 
     // If no creator name provided, try to fetch from user profile
     if (!creatorName || creatorName === "creator") {

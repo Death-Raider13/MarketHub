@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 // Generate secure download links for purchased digital products
 export async function POST(request: NextRequest) {
   try {
-    const { orderId, userId } = await request.json()
+    const auth = await verifyAuthToken(request)
+    if ('error' in auth) return auth.error
 
-    if (!orderId || !userId) {
+    const { orderId } = await request.json()
+    const userId = auth.user.uid
+
+    if (!orderId) {
       return NextResponse.json(
         { error: 'Order ID and User ID are required' },
         { status: 400 }
@@ -292,9 +297,13 @@ export async function POST(request: NextRequest) {
 // Track download when user clicks download link
 export async function PUT(request: NextRequest) {
   try {
-    const { purchaseId, fileId, userId } = await request.json()
+    const auth = await verifyAuthToken(request)
+    if ('error' in auth) return auth.error
 
-    if (!purchaseId || !fileId || !userId) {
+    const { purchaseId, fileId } = await request.json()
+    const userId = auth.user.uid
+
+    if (!purchaseId || !fileId) {
       return NextResponse.json(
         { error: 'Purchase ID, File ID, and User ID are required' },
         { status: 400 }
