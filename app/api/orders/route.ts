@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { rateLimitMiddleware, getRateLimitIdentifier, getClientIP } from '@/lib/rate-limit';
 import { orderSchema } from '@/lib/validation';
 import { verifyAuthToken } from '@/lib/api-auth';

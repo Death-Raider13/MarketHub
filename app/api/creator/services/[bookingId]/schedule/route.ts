@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { scheduleServiceBooking } from '@/lib/services/booking'
 import { verifyAuthToken } from '@/lib/api-auth'
 

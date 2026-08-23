@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { verifyAuthToken } from '@/lib/api-auth'
 import { getAffiliateByUid } from '@/lib/affiliate'
 
-export const runtime = 'nodejs'
 
 type AffiliateRecord = {
   id: string

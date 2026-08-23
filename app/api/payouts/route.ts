@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { createAdminRoleNotification } from '@/lib/notifications/admin-service'
 import { sendPayoutRequestSubmittedEmail, sendPayoutRequestAdminEmail } from '@/lib/email/service'

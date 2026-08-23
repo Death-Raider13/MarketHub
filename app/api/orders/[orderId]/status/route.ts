@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { getAdminFirestore } from '@/lib/firebase/admin'
 import { verifyAdminAuth } from '@/lib/firebase/admin-auth'
 import { hasPermission } from '@/lib/admin/permissions'

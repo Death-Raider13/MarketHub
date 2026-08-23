@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { verifyAuthToken } from '@/lib/api-auth'
 import { NotificationTriggers } from '@/lib/notifications/triggers'
 

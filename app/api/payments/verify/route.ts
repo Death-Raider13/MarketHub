@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import axios from 'axios'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { createApiLogger, logBusinessEvent, logSecurityEvent } from '@/lib/logger'

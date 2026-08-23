@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { verifyAuthToken } from '@/lib/api-auth'
 import { getAffiliateByUid } from '@/lib/affiliate'
 
-export const runtime = 'nodejs'
 const MINIMUM_PAYOUT = 1000
 
 function serialize(doc: any) {
