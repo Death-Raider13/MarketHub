@@ -19,6 +19,9 @@ export function RoleSwitcher() {
 
   if (!userProfile) return null;
 
+  const eligibleForRoleSwitch = ['creator', 'promoter', 'admin', 'super_admin'].includes(userProfile.role || '')
+  if (!eligibleForRoleSwitch) return null
+
   const currentRole = userProfile.activeRole || userProfile.role || "customer";
 
   const handleRoleChange = async (role: "customer" | "creator" | "promoter") => {
@@ -48,23 +51,23 @@ export function RoleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2 border-indigo-500/30 bg-slate-900/60 hover:bg-slate-800 text-white rounded-xl px-3 py-2 text-xs font-semibold shadow-sm">
+        <Button variant="outline" className="gap-2 border-border bg-background/80 hover:bg-muted text-foreground rounded-xl px-3 py-2 text-xs font-semibold shadow-sm">
           {activeBadge.icon}
           <span>{activeBadge.label}</span>
           <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-800 text-white p-2 rounded-xl">
-        <DropdownMenuLabel className="text-xs text-slate-400 font-semibold px-2 py-1.5">
+      <DropdownMenuContent align="end" className="w-56 bg-popover border-border text-popover-foreground p-2 rounded-xl">
+        <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold px-2 py-1.5">
           Switch Dashboard Mode
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-slate-800" />
+        <DropdownMenuSeparator className="bg-border" />
         
         <DropdownMenuItem 
           onClick={() => handleRoleChange("customer")}
-          className="flex items-center justify-between p-2.5 rounded-lg cursor-pointer hover:bg-slate-800 focus:bg-slate-800"
+          className="flex items-center justify-between p-2.5 rounded-lg cursor-pointer hover:bg-muted focus:bg-muted"
         >
-          <div className="flex items-center gap-2.5 text-xs font-medium">
+          <div className="flex items-center gap-2.5 text-xs font-medium text-foreground">
             <GraduationCap className="w-4 h-4 text-cyan-400" />
             <span>Student / Reader</span>
           </div>
@@ -73,9 +76,9 @@ export function RoleSwitcher() {
 
         <DropdownMenuItem 
           onClick={() => handleRoleChange("creator")}
-          className="flex items-center justify-between p-2.5 rounded-lg cursor-pointer hover:bg-slate-800 focus:bg-slate-800"
+          className="flex items-center justify-between p-2.5 rounded-lg cursor-pointer hover:bg-muted focus:bg-muted"
         >
-          <div className="flex items-center gap-2.5 text-xs font-medium">
+          <div className="flex items-center gap-2.5 text-xs font-medium text-foreground">
             <BookOpen className="w-4 h-4 text-purple-400" />
             <span>Creator / Seller</span>
           </div>
@@ -84,9 +87,9 @@ export function RoleSwitcher() {
 
         <DropdownMenuItem 
           onClick={() => handleRoleChange("promoter")}
-          className="flex items-center justify-between p-2.5 rounded-lg cursor-pointer hover:bg-slate-800 focus:bg-slate-800"
+          className="flex items-center justify-between p-2.5 rounded-lg cursor-pointer hover:bg-muted focus:bg-muted"
         >
-          <div className="flex items-center gap-2.5 text-xs font-medium">
+          <div className="flex items-center gap-2.5 text-xs font-medium text-foreground">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
             <span>Affiliate Promoter</span>
           </div>

@@ -20,6 +20,7 @@ import { onUserRegistration } from '@/lib/notifications/client-triggers'
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { auth, db } from "./config"
 import { handleAuthError, handleFirestoreError } from '@/lib/production-error-handler'
+import { validatePassword } from '@/lib/auth/password-policy'
 import {
   createSession,
   validateSession,
@@ -164,6 +165,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signUp = async (email: string, password: string, role: UserRole, displayName?: string, referralCode?: string) => {
+    const passwordCheck = validatePassword(password)
+    if (!passwordCheck.valid) throw new Error(passwordCheck.message)
+
     // Rate limiting is handled by middleware, but we can add client-side checks
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -452,6 +456,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const switchRole = async (newRole: "customer" | "creator" | "promoter") => {
     if (!user || !userProfile) return
+    const baseRole = userProfile.role
+    const canUseRole = baseRole === 'super_admin' || baseRole === 'admin' || baseRole === 'creator' || baseRole === 'promoter'
+    if (!canUseRole && newRole !== 'customer') {
+      throw new Error('This account is not enabled for creator or affiliate mode.')
+    }
     try {
       const updatedProfile = {
         ...userProfile,

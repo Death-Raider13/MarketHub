@@ -3,6 +3,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
+import { PASSWORD_REQUIREMENTS } from "@/lib/auth/password-policy"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -219,13 +220,16 @@ export default function SignupPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="password" className="text-xs text-muted-foreground font-bold uppercase">Password</Label>
-                    <Input id="password" type="password" required minLength={8} className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={password} onChange={e => setPassword(e.target.value)} />
+                    <Input id="password" type="password" required minLength={12} className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={password} onChange={e => setPassword(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="confirmPassword" className="text-xs text-muted-foreground font-bold uppercase">Confirm Password</Label>
-                    <Input id="confirmPassword" type="password" required minLength={8} className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                    <Input id="confirmPassword" type="password" required minLength={12} className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
                   </div>
                 </div>
+                <ul className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2" aria-label="Password requirements">
+                  {PASSWORD_REQUIREMENTS.map((requirement) => <li key={requirement}>• {requirement}</li>)}
+                </ul>
 
                 <div className="flex items-start space-x-3 pt-2">
                   <input

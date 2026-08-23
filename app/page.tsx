@@ -70,7 +70,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B132B] text-white selection:bg-cyan-500/30">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-cyan-500/30">
       <Header />
 
       {/* Early Bird Discount Banner */}
@@ -97,19 +97,19 @@ export default async function HomePage() {
             <span className="text-gradient">Quality eBooks, Course Guides & Past Questions</span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-base md:text-xl text-slate-300 mb-10 leading-relaxed">
+          <p className="max-w-2xl mx-auto text-base md:text-xl text-muted-foreground mb-10 leading-relaxed">
             Your one-stop platform for university students, creators, and affiliate marketers to excel, publish, and earn from day one.
           </p>
 
           {/* Quick Search Form */}
           <form action="/search" method="GET" className="max-w-xl mx-auto mb-10 flex gap-2 p-2 rounded-2xl glass-card border border-indigo-500/30 shadow-2xl">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
                 name="q"
                 placeholder="Search eBooks, course guides, past questions..."
-                className="w-full bg-transparent pl-10 pr-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none"
+                className="w-full bg-transparent pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
             </div>
             <Button type="submit" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl px-6 py-3 text-sm shadow-lg shadow-indigo-600/30">
@@ -120,14 +120,14 @@ export default async function HomePage() {
           {/* Subject & Resource Pills */}
           <div className="flex flex-wrap justify-center items-center gap-2 max-w-3xl mx-auto text-xs">
             {["Quality eBooks", "Course Guides", "Past Questions", "Mathematics", "Biology", "Chemistry", "Law", "Engineering"].map((cat) => (
-              <Link key={cat} href={`/search?q=${encodeURIComponent(cat)}`} className="px-3.5 py-1.5 rounded-full bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500 transition-all">
+              <Link key={cat} href={`/search?q=${encodeURIComponent(cat)}`} className="px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-muted-foreground hover:text-white hover:border-indigo-500 transition-all">
                 {cat}
               </Link>
             ))}
           </div>
 
           {/* Real Stats Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-16 pt-12 border-t border-slate-800/80">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-16 pt-12 border-t border-border/80">
             {[
               { label: "Quality eBooks & Guides", value: realStats.products, icon: BookOpen },
               { label: "University Students", value: realStats.students, icon: GraduationCap },
@@ -135,8 +135,8 @@ export default async function HomePage() {
               { label: "Satisfaction Rating", value: realStats.rating, icon: Star },
             ].map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="text-2xl md:text-3xl font-extrabold text-white mb-1">{stat.value}</div>
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</div>
+                <div className="text-2xl md:text-3xl font-extrabold text-foreground mb-1">{stat.value}</div>
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -144,13 +144,13 @@ export default async function HomePage() {
       </section>
 
       {/* Role Picker Portal Section */}
-      <section className="py-20 px-6 bg-slate-950/40 border-y border-slate-800/60">
+      <section className="py-20 px-6 bg-muted/40 border-y border-border/60">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">
               Explore Your Opportunity
             </h2>
-            <p className="text-slate-400 text-sm md:text-base">
+            <p className="text-muted-foreground text-sm md:text-base">
               Whether you want to excel in your studies, sell your educational resources, or earn as an affiliate marketer.
             </p>
           </div>
@@ -162,11 +162,11 @@ export default async function HomePage() {
                 <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-6">
                   <GraduationCap className="w-7 h-7 text-cyan-400" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-white">University Student</h3>
-                <p className="text-slate-300 text-xs md:text-sm leading-relaxed mb-6">
+                <h3 className="text-2xl font-bold mb-3 text-foreground">University Student</h3>
+                <p className="text-muted-foreground text-xs md:text-sm leading-relaxed mb-6">
                   Access verified eBooks, course guides, past questions, and educational resources to excel in your academic journey.
                 </p>
-                <ul className="space-y-2 mb-8 text-xs text-slate-300">
+                <ul className="space-y-2 mb-8 text-xs text-muted-foreground">
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" /> Quality eBooks & course guides</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" /> Verified past questions & answers</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" /> Immediate digital access</li>
@@ -188,11 +188,11 @@ export default async function HomePage() {
                 <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mb-6">
                   <BookOpen className="w-7 h-7 text-purple-400" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-white">Creator / Seller</h3>
-                <p className="text-slate-300 text-xs md:text-sm leading-relaxed mb-6">
+                <h3 className="text-2xl font-bold mb-3 text-foreground">Creator / Seller</h3>
+                <p className="text-muted-foreground text-xs md:text-sm leading-relaxed mb-6">
                   Publish educational summaries, course guides, and past questions to monetize your knowledge.
                 </p>
-                <ul className="space-y-2 mb-8 text-xs text-slate-300">
+                <ul className="space-y-2 mb-8 text-xs text-muted-foreground">
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" /> Sell eBooks & study guides</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" /> 25% OFF registration fee benefit</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" /> Real-time creator sales analytics</li>
@@ -214,11 +214,11 @@ export default async function HomePage() {
                 <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-6">
                   <TrendingUp className="w-7 h-7 text-emerald-400" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-white">Affiliate Marketer</h3>
-                <p className="text-slate-300 text-xs md:text-sm leading-relaxed mb-6">
+                <h3 className="text-2xl font-bold mb-3 text-foreground">Affiliate Marketer</h3>
+                <p className="text-muted-foreground text-xs md:text-sm leading-relaxed mb-6">
                   Promote quality eBooks, course guides, and past questions to university students and earn commissions.
                 </p>
-                <ul className="space-y-2 mb-8 text-xs text-slate-300">
+                <ul className="space-y-2 mb-8 text-xs text-muted-foreground">
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> High-margin commission payouts</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> 25% OFF registration fee benefit</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Earn from day one</li>

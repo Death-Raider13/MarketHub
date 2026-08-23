@@ -71,7 +71,7 @@ export function Header() {
   const isAdminRole = ['admin', 'super_admin', 'moderator', 'support'].includes(userProfile?.role || '')
 
   return (
-    <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-white/10 glass shadow-2xl" : "bg-transparent border-b border-transparent"
+    <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-border glass shadow-2xl" : "bg-transparent border-b border-transparent"
       }`}>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
@@ -93,17 +93,17 @@ export function Header() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search books, topic summaries, live classes..."
-              className="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50"
+              className="w-full bg-muted/50 border border-border rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50"
             />
           </div>
         </form>
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 lg:gap-4 relative z-50 shrink-0">
-          {user && <RoleSwitcher />}
+          {user && ['creator', 'promoter', 'admin', 'super_admin'].includes(userProfile?.role || '') && <RoleSwitcher />}
           <ModeToggle />
           {/* Cart */}
-          <Link href="/cart" className="relative p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer group">
+          <Link href="/cart" className="relative p-2 hover:bg-muted/50 rounded-full transition-colors cursor-pointer group">
             <ShoppingCart className="h-5 w-5 text-foreground/80 group-hover:text-primary transition-colors" />
             {totalItems > 0 && (
               <Badge className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-primary text-[10px] flex items-center justify-center rounded-full text-white border-0 p-0 font-bold">
@@ -121,11 +121,11 @@ export function Header() {
 
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full bg-white/5 border border-white/10">
+                  <Button variant="ghost" size="icon" className="rounded-full bg-muted/50 border border-border">
                     <User className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 glass-card border-white/10 z-[9999] p-2 mt-2">
+                <DropdownMenuContent align="end" className="w-64 glass-card border-border z-[9999] p-2 mt-2">
                   <div className="px-3 py-3 mb-2">
                     <p className="text-sm font-bold truncate">{userProfile?.displayName || "Member"}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
@@ -133,7 +133,7 @@ export function Header() {
                       {userProfile?.role || 'user'}
                     </Badge>
                   </div>
-                  <DropdownMenuSeparator className="bg-white/5" />
+                  <DropdownMenuSeparator className="bg-muted/50" />
 
                   {userProfile?.role === "creator" ? (
                     <>
@@ -184,7 +184,7 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
 
-                  <DropdownMenuSeparator className="bg-white/5" />
+                  <DropdownMenuSeparator className="bg-muted/50" />
                   <DropdownMenuItem
                     onClick={async () => {
                       await logout()
@@ -209,13 +209,13 @@ export function Header() {
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <button
-                className="md:hidden p-2 hover:bg-white/10 rounded-full transition-colors"
+                className="md:hidden p-2 hover:bg-muted rounded-full transition-colors"
                 aria-label="Open menu"
               >
                 <Menu className="h-6 w-6 text-foreground/80" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] glass-card border-white/10 p-6 z-[10000]">
+            <SheetContent side="right" className="w-[300px] glass-card border-border p-6 z-[10000]">
               <SheetHeader className="mb-8">
                 <SheetTitle className="text-left flex items-center gap-2">
                   <div className="relative h-6 w-6">
@@ -233,11 +233,11 @@ export function Header() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search resources..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm"
+                    className="w-full bg-muted/50 border border-border rounded-xl py-3 pl-10 pr-4 text-sm"
                   />
                 </form>
 
-                <div className="flex items-center justify-between p-2 glass rounded-xl border border-white/10">
+                <div className="flex items-center justify-between p-2 glass rounded-xl border border-border">
                   <span className="text-sm font-medium ml-2">Theme Preference</span>
                   <ModeToggle />
                 </div>
@@ -248,17 +248,17 @@ export function Header() {
                       <Link href="/auth/login">Sign In / Register</Link>
                     </Button>
                   ) : (
-                    <Button asChild variant="outline" className="w-full border-white/10 bg-white/5 rounded-xl h-12" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button asChild variant="outline" className="w-full border-border bg-muted/50 rounded-xl h-12" onClick={() => setIsMobileMenuOpen(false)}>
                       <Link href="/account">My Profile</Link>
                     </Button>
                   )}
 
                   <nav className="space-y-2 pt-4">
-                    <Link href="/search" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href="/search" className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
                       <GraduationCap className="h-5 w-5 text-primary" />
                       Browse Library Books
                     </Link>
-                    <Link href="/classes" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href="/classes" className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
                       <Store className="h-5 w-5 text-primary" />
                       Online Live Classes
                     </Link>

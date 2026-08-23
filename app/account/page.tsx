@@ -41,7 +41,8 @@ import { useCart } from "@/lib/cart-context"
 import { ProductCard } from "@/components/product-card"
 import type { Product } from "@/lib/types"
 import { toast } from "sonner"
-import { onPasswordChanged } from "@/lib/notifications/client-triggers"
+import { onPasswordChanged } from '@/lib/notifications/client-triggers'
+import { validatePassword } from '@/lib/auth/password-policy'
 
 // Mock data - replace with real data from Firebase
 const mockOrders = [
@@ -488,8 +489,9 @@ function AccountPageContent() {
       return
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters')
+    const passwordCheck = validatePassword(passwordForm.newPassword)
+    if (!passwordCheck.valid) {
+      toast.error(passwordCheck.message)
       return
     }
 
