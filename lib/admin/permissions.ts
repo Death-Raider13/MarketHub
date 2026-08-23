@@ -66,6 +66,9 @@ export type Permission =
   | 'settings.shipping'
   | 'settings.payment'
 
+  // Support
+  | 'support.view'
+
   // Analytics
   | 'analytics.view'
   | 'analytics.export'
@@ -93,6 +96,7 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     'orders.view', 'orders.edit', 'orders.cancel', 'orders.refund', 'orders.export',
     'ads.view', 'ads.approve', 'ads.reject', 'ads.pause', 'ads.delete',
     'reviews.view', 'reviews.approve', 'reviews.reject', 'reviews.delete',
+    'support.view',
     'finance.view', 'finance.payouts', 'finance.refunds', 'finance.reports', 'finance.settings',
     'settings.view', 'settings.edit', 'settings.categories', 'settings.shipping', 'settings.payment',
     'analytics.view', 'analytics.export',
@@ -108,6 +112,7 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     'orders.view', 'orders.edit', 'orders.cancel', 'orders.refund', 'orders.export',
     'ads.view', 'ads.approve', 'ads.reject', 'ads.pause', 'ads.delete',
     'reviews.view', 'reviews.approve', 'reviews.reject', 'reviews.delete',
+    'support.view',
     'finance.view', 'finance.payouts', 'finance.refunds', 'finance.reports',
     'settings.view', 'settings.edit', 'settings.categories', 'settings.shipping',
     'analytics.view', 'analytics.export',
@@ -122,11 +127,13 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     'orders.view',
     'ads.view', 'ads.approve', 'ads.reject',
     'reviews.view', 'reviews.approve', 'reviews.reject', 'reviews.delete',
+    'support.view',
     'analytics.view',
   ],
 
   support: [
     // Customer support focused
+    'support.view',
     'users.view',
     'creators.view',
     'products.view',
@@ -274,6 +281,8 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'orders.cancel': 'Cancel orders',
   'orders.refund': 'Process refunds',
   'orders.export': 'Export order data',
+
+  'support.view': 'Manage customer support tickets',
 
   'ads.view': 'View advertisements',
   'ads.approve': 'Approve ad campaigns',

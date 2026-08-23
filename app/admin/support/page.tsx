@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
+import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,7 +37,7 @@ interface Ticket {
   updatedAt: any
 }
 
-export default function AdminSupportDashboard() {
+function AdminSupportDashboardContent() {
   const { getCurrentToken, user, loading: authLoading } = useAuth()
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [stats, setStats] = useState<any>(null)
@@ -295,4 +296,8 @@ export default function AdminSupportDashboard() {
       </div>
     </div>
   )
+}
+
+export default function AdminSupportDashboard() {
+  return <ProtectedRoute requiredPermission="support.view"><AdminSupportDashboardContent /></ProtectedRoute>
 }

@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyAdminAuth } from '@/lib/firebase/admin-auth'
 import { paystackTransferService } from '@/lib/payment/paystack-transfers'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await verifyAdminAuth(request)
+  if (!auth.success || !auth.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     console.log('Testing Paystack configuration...')
     
@@ -61,8 +64,7 @@ export async function GET() {
     return NextResponse.json({
       success: false,
       error: 'Paystack test failed',
-      details: error.message,
-      stack: error.stack
+      details: 'Paystack diagnostic failed'
     }, { status: 500 })
   }
 }

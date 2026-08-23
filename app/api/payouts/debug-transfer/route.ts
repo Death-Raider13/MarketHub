@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyAdminAuth } from '@/lib/firebase/admin-auth'
 import { paystackTransferService } from '@/lib/payment/paystack-transfers'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const auth = await verifyAdminAuth(request)
+  if (!auth.success || !auth.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     console.log('=== DEBUG TRANSFER TEST ===')
     
@@ -60,8 +63,7 @@ export async function POST() {
     
     return NextResponse.json({
       success: false,
-      error: error.message,
-      stack: error.stack
+      error: 'Payout diagnostic failed'
     }, { status: 500 })
   }
 }

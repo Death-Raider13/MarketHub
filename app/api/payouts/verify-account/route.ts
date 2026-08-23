@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
+import { verifyAuthToken } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuthToken(request)
+  if ('error' in auth) return auth.error
   try {
     const paystackKey = process.env.PAYSTACK_SECRET_KEY
     

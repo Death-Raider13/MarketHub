@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/lib/firebase/auth-context"
+import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -56,7 +57,7 @@ interface Ticket {
   userId?: string
 }
 
-export default function AdminTicketDetail() {
+function AdminTicketDetailContent() {
   const { id } = useParams()
   const router = useRouter()
   const { getCurrentToken, user, loading: authLoading } = useAuth()
@@ -521,4 +522,9 @@ export default function AdminTicketDetail() {
       </div>
     </div>
   )
+}
+
+
+export default function AdminTicketDetail() {
+  return <ProtectedRoute requiredPermission="support.view"><AdminTicketDetailContent /></ProtectedRoute>
 }

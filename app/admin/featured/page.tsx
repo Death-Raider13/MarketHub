@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { ProtectedRoute } from '@/lib/firebase/protected-route'
 import { Star, StarOff } from 'lucide-react'
 
 interface Product {
@@ -29,7 +30,7 @@ interface creator {
   verified?: boolean
 }
 
-export default function FeaturedContentPage() {
+function FeaturedContentPageContent() {
   const [products, setProducts] = useState<Product[]>([])
   const [creators, setcreators] = useState<creator[]>([])
   const [loading, setLoading] = useState(true)
@@ -296,4 +297,9 @@ export default function FeaturedContentPage() {
       </Card>
     </div>
   )
+}
+
+
+export default function FeaturedContentPage() {
+  return <ProtectedRoute requiredPermission="products.feature"><FeaturedContentPageContent /></ProtectedRoute>
 }

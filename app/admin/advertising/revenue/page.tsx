@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -79,7 +80,7 @@ interface AdRevenueData {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
-export default function AdvertisingRevenuePage() {
+function AdvertisingRevenuePageContent() {
   const [data, setData] = useState<AdRevenueData | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState("month")
@@ -452,4 +453,9 @@ export default function AdvertisingRevenuePage() {
       </Tabs>
     </div>
   )
+}
+
+
+export default function AdvertisingRevenuePage() {
+  return <ProtectedRoute requiredPermission="finance.view"><AdvertisingRevenuePageContent /></ProtectedRoute>
 }
