@@ -131,6 +131,10 @@ PAYSTACK_SECRET_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_APP_NAME=FEROMARKETHUB
 
+# Protected digital delivery (Required in production)
+# Use a long random secret and keep it private; never commit the value.
+MARKETHUB_WATERMARK_SECRET=
+
 # Optional: Platform commission rate (default: 0.10 = 10%)
 PLATFORM_COMMISSION_RATE=0.10
 ```
@@ -162,6 +166,7 @@ npm run lint
 - **Rate Limiting**: Per-route rate limiting with configurable thresholds
 - **Session Management**: Idle timeout, concurrent session limits, suspicious activity detection
 - **API Authentication**: Firebase token verification middleware on all protected endpoints
+- **Protected Downloads**: Purchaser-specific watermarking for PDF, ZIP/EPUB/Office Open XML, MP3, MP4, TXT, and legacy DOC/XLS/PPT/MOBI delivery formats
 - **Environment Validation**: Zod-based validation of all environment variables at startup
 
 ### Digital Fulfillment Flow

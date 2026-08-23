@@ -3,7 +3,7 @@ import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { FieldValue } from 'firebase-admin/firestore'
 import { generateCloudinaryDownloadUrl, validateCloudinaryUrl } from '@/lib/digital-products/cloudinary-download'
 import { verifyAuthToken } from '@/lib/api-auth'
-import { isPdf, watermarkPdf } from '@/lib/watermark'
+import { isWatermarkSupported, watermarkFile } from '@/lib/watermark'
 
 // Mark this route as dynamic since it handles download requests with query params
 export const dynamic = 'force-dynamic'
@@ -154,27 +154,33 @@ export async function GET(request: NextRequest) {
     let responseBytes = originalBytes
     let watermarkApplied = false
 
-    if (isPdf(fileName, contentType)) {
-      try {
-        const watermarked = await watermarkPdf(originalBytes, {
-          userId,
-          orderId: purchaseId,
-          productId: String(purchaseData?.productId || product?.id || ''),
-          fileId,
-        })
-        responseBytes = Buffer.from(watermarked.bytes)
-        watermarkApplied = true
-        await adminDb.collection('purchasedProducts').doc(purchaseId).update({
-          watermarkId: watermarked.watermarkId,
-          watermarkSourceHash: watermarked.sourceHash,
-          watermarkOutputHash: watermarked.outputHash,
-          watermarkVersion: 1,
-          watermarkAppliedAt: FieldValue.serverTimestamp(),
-        })
-      } catch (watermarkError) {
-        console.error('PDF watermarking failed:', watermarkError)
-        return NextResponse.json({ error: 'Protected delivery is temporarily unavailable. Please try again later.' }, { status: 503 })
-      }
+    if (!isWatermarkSupported(fileName, contentType)) {
+      return NextResponse.json(
+        { error: 'Protected delivery is not yet available for this file type. Please contact support.' },
+        { status: 415 }
+      )
+    }
+
+    try {
+      const watermarked = await watermarkFile(originalBytes, fileName, contentType, {
+        userId,
+        orderId: purchaseId,
+        productId: String(purchaseData?.productId || product?.id || ''),
+        fileId,
+      })
+      responseBytes = Buffer.from(watermarked.bytes)
+      watermarkApplied = true
+      await adminDb.collection('purchasedProducts').doc(purchaseId).update({
+        watermarkId: watermarked.watermarkId,
+        watermarkSourceHash: watermarked.sourceHash,
+        watermarkOutputHash: watermarked.outputHash,
+        watermarkFormat: watermarked.format,
+        watermarkVersion: 2,
+        watermarkAppliedAt: FieldValue.serverTimestamp(),
+      })
+    } catch (watermarkError) {
+      console.error('Protected file watermarking failed:', watermarkError)
+      return NextResponse.json({ error: 'Protected delivery is temporarily unavailable. Please try again later.' }, { status: 503 })
     }
 
     // Update download count (best effort)
@@ -193,7 +199,7 @@ export async function GET(request: NextRequest) {
         'Content-Type': contentType,
         'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
         'Cache-Control': 'no-store',
-        'X-Fero-Watermark': watermarkApplied ? 'embedded-pdf' : 'not-supported-for-file-type',
+        'X-Fero-Watermark': watermarkApplied ? 'embedded' : 'not-supported-for-file-type',
       }
     })
 

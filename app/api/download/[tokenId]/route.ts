@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateAndUseToken, generateSignedUrl } from '@/lib/drm-utils'
+import { validateAndUseToken } from '@/lib/drm-utils'
 import { getAdminFirestore } from '@/lib/firebase/admin'
 import { FieldValue } from 'firebase-admin/firestore'
+import { isWatermarkSupported, watermarkFile } from '@/lib/watermark'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024
 
 /**
- * Secure Download Endpoint
- * Validates DRM tokens and provides time-limited signed URLs for digital assets
+ * Legacy token download endpoint. It remains available for links already sent by
+ * email, but no longer redirects directly to the storage provider: it applies
+ * the same purchaser-specific watermarking pipeline as the newer bearer route.
  */
 export async function GET(
   request: NextRequest,
@@ -14,49 +21,72 @@ export async function GET(
   const { tokenId } = params
   const { searchParams } = new URL(request.url)
   const fileId = searchParams.get('fileId')
-  
-  // Get IP for anomaly logging
-  const ip = request.headers.get('x-forwarded-for') || request.ip || 'unknown'
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
 
   try {
-    // 1. Validate token
     const { isValid, token, error } = await validateAndUseToken(tokenId)
-    
     if (!isValid || !token) {
       return NextResponse.json(
         { error: error || 'Invalid or expired download token' },
-        { status: 410 } // Gone/Expired
+        { status: 410 }
       )
     }
 
-    // 2. Fetch product to get file metadata
     const db = getAdminFirestore()
     if (!db) throw new Error('Database connection failed')
 
     const productDoc = await db.collection('products').doc(token.productId).get()
-    
-    if (!productDoc.exists) {
-      return NextResponse.json({ error: 'Product no longer exists' }, { status: 404 })
-    }
+    if (!productDoc.exists) return NextResponse.json({ error: 'Product no longer exists' }, { status: 404 })
 
     const product = productDoc.data()
     const digitalFiles = product?.digitalFiles || []
+    if (digitalFiles.length === 0) return NextResponse.json({ error: 'No digital files associated with this product' }, { status: 404 })
 
-    if (digitalFiles.length === 0) {
-      return NextResponse.json({ error: 'No digital files associated with this product' }, { status: 404 })
+    const selectedFile = fileId
+      ? digitalFiles.find((file: any) => file.id === fileId)
+      : digitalFiles[0]
+    if (!selectedFile) return NextResponse.json({ error: 'Digital file not found' }, { status: 404 })
+    if (!selectedFile.fileUrl || !selectedFile.fileName) return NextResponse.json({ error: 'Digital file is unavailable' }, { status: 404 })
+
+    const upstream = await fetch(selectedFile.fileUrl)
+    if (!upstream.ok) return NextResponse.json({ error: 'Digital file is currently unavailable' }, { status: 502 })
+    const source = Buffer.from(await upstream.arrayBuffer())
+    if (source.byteLength > MAX_DOWNLOAD_BYTES) {
+      return NextResponse.json({ error: 'File too large to process securely' }, { status: 413 })
     }
 
-    // 3. Find requested file or default to first
-    let selectedFile = digitalFiles[0]
-    if (fileId) {
-      const found = digitalFiles.find((f: any) => f.id === fileId)
-      if (found) selectedFile = found
+    const contentType = upstream.headers.get('content-type') || selectedFile.fileType || 'application/octet-stream'
+    if (!isWatermarkSupported(selectedFile.fileName, contentType)) {
+      return NextResponse.json({ error: 'Protected delivery is not yet available for this file type' }, { status: 415 })
     }
 
-    // 4. Generate signed URL (30-120s expiry)
-    const signedUrl = await generateSignedUrl(selectedFile.fileUrl, 60)
+    const watermarked = await watermarkFile(source, selectedFile.fileName, contentType, {
+      userId: token.userId,
+      orderId: token.orderId,
+      productId: token.productId,
+      fileId: selectedFile.id,
+    })
 
-    // 5. Log download attempt (Security/Audit)
+    const purchasesQuery = await db.collection('purchasedProducts')
+      .where('userId', '==', token.userId)
+      .where('productId', '==', token.productId)
+      .where('orderId', '==', token.orderId)
+      .limit(1)
+      .get()
+
+    if (!purchasesQuery.empty) {
+      await purchasesQuery.docs[0].ref.update({
+        downloadCount: FieldValue.increment(1),
+        lastDownloadedAt: FieldValue.serverTimestamp(),
+        watermarkId: watermarked.watermarkId,
+        watermarkSourceHash: watermarked.sourceHash,
+        watermarkOutputHash: watermarked.outputHash,
+        watermarkFormat: watermarked.format,
+        watermarkVersion: 2,
+        watermarkAppliedAt: FieldValue.serverTimestamp(),
+      })
+    }
+
     const { logEvent } = await import('@/lib/analytics')
     await logEvent('download', {
       tokenId,
@@ -65,7 +95,9 @@ export async function GET(
       orderId: token.orderId,
       fileId: selectedFile.id,
       fileName: selectedFile.fileName,
-      ip
+      ip,
+      watermarkId: watermarked.watermarkId,
+      watermarkFormat: watermarked.format,
     })
 
     await db.collection('downloadLogs').add({
@@ -77,37 +109,22 @@ export async function GET(
       fileName: selectedFile.fileName,
       ip,
       userAgent: request.headers.get('user-agent'),
-      timestamp: new Date(),
+      watermarkId: watermarked.watermarkId,
+      watermarkFormat: watermarked.format,
+      timestamp: FieldValue.serverTimestamp(),
     })
 
-    // 6. Update download count on purchase record (Synchronize with UI)
-    try {
-      const purchasesQuery = await db.collection('purchasedProducts')
-        .where('userId', '==', token.userId)
-        .where('productId', '==', token.productId)
-        .where('orderId', '==', token.orderId)
-        .get()
-
-      if (!purchasesQuery.empty) {
-        const purchaseDoc = purchasesQuery.docs[0]
-        await purchaseDoc.ref.update({
-          downloadCount: FieldValue.increment(1),
-          lastDownloadedAt: FieldValue.serverTimestamp()
-        })
-        console.log(`✅ Incremented download count for purchase: ${purchaseDoc.id}`)
-      }
-    } catch (trackError) {
-      console.error('Failed to sync download count:', trackError)
-    }
-
-    // 7. Redirect to signed URL
-    return NextResponse.redirect(signedUrl)
-
-  } catch (error: any) {
-    console.error('Download Error:', error)
-    return NextResponse.json(
-      { error: 'An internal error occurred during download' },
-      { status: 500 }
-    )
+    return new NextResponse(Buffer.from(watermarked.bytes), {
+      status: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(selectedFile.fileName)}"`,
+        'Cache-Control': 'no-store',
+        'X-Fero-Watermark': 'embedded',
+      },
+    })
+  } catch (error) {
+    console.error('Protected legacy download error:', error)
+    return NextResponse.json({ error: 'Protected delivery is temporarily unavailable' }, { status: 503 })
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProtectedRoute } from '@/lib/firebase/protected-route';
 import { AdminHeader } from '@/components/admin/admin-header';
@@ -47,11 +47,12 @@ import {
   Upload,
   RefreshCw,
 } from 'lucide-react';
-import { collection, getDocs, query, where, addDoc, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { getRecentAdminActivity } from '@/lib/admin/audit-log';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface AdminUser {
   id: string;
@@ -64,7 +65,10 @@ interface AdminUser {
 }
 
 function SuperAdminDashboard() {
-  const { userProfile } = useAuth();
+  const { userProfile, getCurrentToken } = useAuth();
+  const [actionLoading, setActionLoading] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const restoreInputRef = useRef<HTMLInputElement>(null);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,63 +132,153 @@ function SuperAdminDashboard() {
     }
   };
 
+  const callSuperAdmin = async (payload: Record<string, unknown>) => {
+    const token = await getCurrentToken();
+    if (!token) throw new Error('Your session has expired. Please sign in again.');
+    const response = await fetch('/api/admin/super-admin', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Admin operation failed');
+    }
+    return response;
+  };
+
   const handleCreateAdmin = async () => {
+    setActionLoading(true);
     try {
-      // In a real implementation, this would:
-      // 1. Create Firebase Auth user
-      // 2. Send invitation email
-      // 3. Create user document in Firestore
-      
-      console.log('Creating admin:', newAdmin);
-      
-      // For now, just show success message
-      alert(`Admin invitation sent to ${newAdmin.email}`);
+      const response = await callSuperAdmin({ action: 'create-admin', ...newAdmin });
+      const data = await response.json();
       setShowCreateAdmin(false);
       setNewAdmin({ email: '', displayName: '', role: 'support' });
-      loadSuperAdminData();
+      if (data.inviteLink) {
+        await navigator.clipboard?.writeText(data.inviteLink).catch(() => undefined);
+        toast.success('Admin created. The password-reset invitation link was copied to your clipboard.');
+      } else {
+        toast.success('Admin created successfully.');
+      }
+      await loadSuperAdminData();
     } catch (error) {
       console.error('Failed to create admin:', error);
-      alert('Failed to create admin. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to create admin.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const handleSuspendAdmin = async (adminId: string) => {
-    if (!confirm('Are you sure you want to suspend this admin?')) return;
-    
+  const handleSetAdminStatus = async (adminId: string, status: 'active' | 'suspended') => {
+    if (status === 'suspended' && !confirm('Are you sure you want to suspend this admin?')) return;
+    setActionLoading(true);
     try {
-      await updateDoc(doc(db, 'users', adminId), {
-        status: 'suspended',
-      });
-      alert('Admin suspended successfully');
-      loadSuperAdminData();
+      await callSuperAdmin({ action: 'update-status', targetId: adminId, status });
+      toast.success(`Admin ${status === 'suspended' ? 'suspended' : 'activated'} successfully.`);
+      await loadSuperAdminData();
     } catch (error) {
-      console.error('Failed to suspend admin:', error);
-      alert('Failed to suspend admin');
+      console.error('Failed to update admin status:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update admin status.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const handleActivateAdmin = async (adminId: string) => {
+  const handleBackupDatabase = async () => {
+    setActionLoading(true);
     try {
-      await updateDoc(doc(db, 'users', adminId), {
-        status: 'active',
-      });
-      alert('Admin activated successfully');
-      loadSuperAdminData();
+      const response = await callSuperAdmin({ action: 'backup' });
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] || 'markethub-backup.json';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      toast.success(`Backup downloaded (${response.headers.get('x-markethub-backup-documents') || '0'} documents).`);
     } catch (error) {
-      console.error('Failed to activate admin:', error);
-      alert('Failed to activate admin');
+      console.error('Failed to create backup:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create backup.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const handleBackupDatabase = () => {
-    alert('Database backup initiated. You will receive an email when complete.');
+  const handleRestoreBackup = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('Backup files must be 50 MB or smaller.');
+      return;
+    }
+    if (!confirm('Restore this backup by merging its records into Firestore? Audit logs are intentionally skipped.')) return;
+    setActionLoading(true);
+    try {
+      const backup = JSON.parse(await file.text());
+      const response = await callSuperAdmin({ action: 'restore', backup });
+      const data = await response.json();
+      toast.success(`Backup restored: ${data.documentCount || 0} documents merged.`);
+    } catch (error) {
+      console.error('Failed to restore backup:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to restore backup.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleUpdateCommission = () => {
-    const newRate = prompt('Enter new commission rate (%):', String(stats.platformCommission));
-    if (newRate) {
-      setStats(prev => ({ ...prev, platformCommission: parseFloat(newRate) }));
-      alert('Commission rate updated successfully');
+  const handleToggleMaintenance = async () => {
+    const enabled = !maintenanceMode;
+    if (enabled && !confirm('Enable maintenance mode? Customers will be unable to use affected areas while you work.')) return;
+    setActionLoading(true);
+    try {
+      await callSuperAdmin({ action: 'maintenance', enabled });
+      setMaintenanceMode(enabled);
+      toast.success(`Maintenance mode ${enabled ? 'enabled' : 'disabled'}.`);
+    } catch (error) {
+      console.error('Failed to update maintenance mode:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update maintenance mode.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    setActionLoading(true);
+    try {
+      await callSuperAdmin({ action: 'clear-cache' });
+      toast.success('Cache invalidation recorded. New requests will use fresh settings.');
+    } catch (error) {
+      console.error('Failed to clear cache:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to clear cache.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUpdateCommission = async () => {
+    const enteredRate = prompt('Enter new commission rate (%):', String(stats.platformCommission));
+    if (enteredRate === null) return;
+    const rate = Number(enteredRate);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      toast.error('Enter a commission rate between 0 and 100.');
+      return;
+    }
+    setActionLoading(true);
+    try {
+      await callSuperAdmin({ action: 'update-commission', rate });
+      setStats(prev => ({ ...prev, platformCommission: rate }));
+      toast.success('Commission rate updated successfully.');
+    } catch (error) {
+      console.error('Failed to update commission:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update commission.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -351,7 +445,7 @@ function SuperAdminDashboard() {
                       <Button variant="outline" onClick={() => setShowCreateAdmin(false)}>
                         Cancel
                       </Button>
-                      <Button onClick={handleCreateAdmin}>Create Admin</Button>
+                      <Button onClick={handleCreateAdmin} disabled={actionLoading}>Create Admin</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -397,22 +491,46 @@ function SuperAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Button variant="outline" className="w-full justify-start" onClick={handleBackupDatabase}>
+                  <Button variant="outline" className="w-full justify-start" onClick={handleBackupDatabase} disabled={actionLoading}>
                     <Download className="mr-2 h-4 w-4" />
                     Backup Database
                   </Button>
 
-                  <Button variant="outline" className="w-full justify-start">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Restore Backup
-                  </Button>
+                  <>
+                    <input
+                      ref={restoreInputRef}
+                      type="file"
+                      accept="application/json,.json"
+                      className="hidden"
+                      onChange={handleRestoreBackup}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => restoreInputRef.current?.click()}
+                      disabled={actionLoading}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Restore Backup
+                    </Button>
+                  </>
 
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant={maintenanceMode ? "destructive" : "outline"}
+                    className="w-full justify-start"
+                    onClick={handleToggleMaintenance}
+                    disabled={actionLoading}
+                  >
                     <AlertTriangle className="mr-2 h-4 w-4" />
-                    Maintenance Mode
+                    {maintenanceMode ? 'Disable Maintenance' : 'Maintenance Mode'}
                   </Button>
 
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={handleClearCache}
+                    disabled={actionLoading}
+                  >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Clear Cache
                   </Button>
@@ -476,7 +594,7 @@ function SuperAdminDashboard() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleSuspendAdmin(admin.id)}
+                                    onClick={() => handleSetAdminStatus(admin.id, 'suspended')}
                                   >
                                     Suspend
                                   </Button>
@@ -484,7 +602,7 @@ function SuperAdminDashboard() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleActivateAdmin(admin.id)}
+                                    onClick={() => handleSetAdminStatus(admin.id, 'active')}
                                   >
                                     Activate
                                   </Button>
