@@ -12,6 +12,7 @@ import { validateEnvironmentVariables } from "@/lib/env-validation"
 import { initializeProductionErrorHandling } from "@/lib/production-error-handler"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "sonner"
+import { AffiliateAttributionCapture } from "@/components/affiliate-attribution-capture"
 
 // Validate environment variables on app startup
 validateEnvironmentVariables()
@@ -84,6 +85,7 @@ export default function RootLayout({
                 <CartProvider>
                   <WishlistProvider>
                     <FirebaseErrorHandler />
+                    <AffiliateAttributionCapture />
                     {children}
                   </WishlistProvider>
                 </CartProvider>

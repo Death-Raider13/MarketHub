@@ -3,6 +3,7 @@ import axios from 'axios'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { createApiLogger, logBusinessEvent, logSecurityEvent } from '@/lib/logger'
 import { verifyAuthToken } from '@/lib/api-auth'
+import { recordAffiliateConversion } from '@/lib/affiliate'
 
 // Get admin database instance
 const adminDb = getAdminFirestore()
@@ -104,6 +105,11 @@ export async function POST(request: NextRequest) {
         const alreadyPaid = ['paid', 'completed'].includes(String(orderData?.paymentStatus)) ||
           ['paid', 'completed'].includes(String(orderData?.status))
         if (alreadyPaid && existingReference === reference) {
+          try {
+            await recordAffiliateConversion(orderId, orderData || {})
+          } catch (affiliateError) {
+            logger.error('Affiliate conversion retry failed', undefined, affiliateError as Error)
+          }
           return NextResponse.json({
             success: true,
             message: 'Payment was already verified',
@@ -146,6 +152,20 @@ export async function POST(request: NextRequest) {
         orderData = updatedOrderDoc.data()
 
         logger.info('Payment verified successfully', { orderId })
+
+        try {
+          const affiliateResult = await recordAffiliateConversion(orderId, orderData || {})
+          if (affiliateResult.created) {
+            logger.info('Affiliate conversion recorded', {
+              orderId,
+              affiliateId: affiliateResult.affiliateId,
+              commissionAmount: affiliateResult.commissionAmount,
+            })
+          }
+        } catch (affiliateError) {
+          // Payment must remain successful if affiliate bookkeeping needs retry.
+          logger.error('Affiliate conversion recording failed', undefined, affiliateError as Error)
+        }
 
         // Create purchased products records for digital products
         try {

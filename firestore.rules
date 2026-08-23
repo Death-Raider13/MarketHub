@@ -79,7 +79,7 @@ service cloud.firestore {
                       (
                         // Email signup: must have role
                         (request.resource.data.keys().hasAll(['role']) &&
-                         request.resource.data.role in ['customer', 'creator']) ||
+                         request.resource.data.role in ['customer', 'creator', 'promoter']) ||
                         // Google signup: role not required initially
                         (!request.resource.data.keys().hasAny(['role']))
                       );
@@ -94,10 +94,10 @@ service cloud.firestore {
       // Allow adding role during onboarding (if not already set)
       // Allow setting verified: false for new creators during onboarding
       allow update: if isOwner(userId) && 
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid']) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'referralCode', 'commission', 'earnings', 'affiliateTotalEarnings', 'affiliateAvailableBalance', 'affiliatePendingBalance', 'affiliateConversionCount']) &&
                       (
                         // Can't change role if already set
-                        (!resource.data.keys().hasAny(['role']) && request.resource.data.keys().hasAll(['role']) && request.resource.data.role in ['customer', 'creator']) ||
+                        (!resource.data.keys().hasAny(['role']) && request.resource.data.keys().hasAll(['role']) && request.resource.data.role in ['customer', 'creator', 'promoter']) ||
                         // Can't change role if already set
                         (resource.data.keys().hasAll(['role']) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||
                         // Allow setting verified: false for new creators
@@ -566,6 +566,30 @@ service cloud.firestore {
       allow delete: if false;
     }
     
+    // ============================================
+    // AFFILIATE CLICKS (server-created attribution events)
+    // ============================================
+    match /affiliateClicks/{clickId} {
+      allow create, update, delete: if false;
+      allow read: if isSignedIn() && resource.data.affiliateId == request.auth.uid;
+      allow read: if isAdmin();
+    }
+    // ============================================
+    // AFFILIATE CONVERSIONS (server-created commission records)
+    // ============================================
+    match /affiliateConversions/{conversionId} {
+      allow create, update, delete: if false;
+      allow read: if isSignedIn() && resource.data.affiliateId == request.auth.uid;
+      allow read: if isAdmin();
+    }
+    // ============================================
+    // AFFILIATE PAYOUT REQUESTS (server-created balance reservations)
+    // ============================================
+    match /affiliatePayoutRequests/{payoutRequestId} {
+      allow create, update, delete: if false;
+      allow read: if isSignedIn() && resource.data.affiliateId == request.auth.uid;
+      allow read, update: if isAdmin();
+    }
     // ============================================
     // PLATFORM SETTINGS COLLECTION
     // ============================================

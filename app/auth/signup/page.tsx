@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,13 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const { signUp, signInWithGoogle } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    const requestedRole = new URLSearchParams(window.location.search).get('role')
+    if (requestedRole === 'promoter' || requestedRole === 'customer') {
+      setRole(requestedRole)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
