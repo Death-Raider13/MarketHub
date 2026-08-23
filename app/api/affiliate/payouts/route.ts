@@ -73,8 +73,12 @@ export async function POST(request: NextRequest) {
       const userDoc = await transaction.get(userRef)
       if (!userDoc.exists) throw new Error('Affiliate profile not found')
       const user = userDoc.data() || {}
-      const available = Number(user.affiliateAvailableBalance ?? user.earnings ?? 0)
-      if (amount > available) throw new Error('Requested amount exceeds your available affiliate balance')
+      const affiliateAvailable = Number(user.affiliateAvailableBalance ?? user.earnings ?? 0)
+      const referralAvailable = Number(user.referralRewardAvailableBalance ?? 0)
+      const available = affiliateAvailable + referralAvailable
+      if (amount > available) throw new Error('Requested amount exceeds your available affiliate and referral balance')
+      const referralPortion = Math.min(amount, referralAvailable)
+      const affiliatePortion = amount - referralPortion
 
       const now = FieldValue.serverTimestamp()
       payout = {
@@ -89,11 +93,13 @@ export async function POST(request: NextRequest) {
         updatedAt: now,
       }
       transaction.create(payoutRef, payout)
-      transaction.set(userRef, {
-        affiliateAvailableBalance: FieldValue.increment(-amount),
+      const balanceUpdate: Record<string, unknown> = {
         affiliatePendingBalance: FieldValue.increment(amount),
         updatedAt: now,
-      }, { merge: true })
+      }
+      if (affiliatePortion > 0) balanceUpdate.affiliateAvailableBalance = FieldValue.increment(-affiliatePortion)
+      if (referralPortion > 0) balanceUpdate.referralRewardAvailableBalance = FieldValue.increment(-referralPortion)
+      transaction.set(userRef, balanceUpdate, { merge: true })
     })
 
     return NextResponse.json({ success: true, payout: { id: payoutRef.id, ...payout } }, { status: 201 })

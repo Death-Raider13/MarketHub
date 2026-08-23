@@ -62,9 +62,19 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
+      // Preserve an existing affiliate referral attribution for role-referral rewards.
+      let referralCode: string | undefined
+      try {
+        const raw = window.localStorage.getItem('markethub_affiliate_attribution')
+        const parsed = raw ? JSON.parse(raw) : null
+        if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
+          referralCode = String(parsed.code).trim().toUpperCase()
+        }
+      } catch {}
+
       // Combine first and last name for display name
       const fullName = `${firstName} ${lastName}`.trim()
-      await signUp(email, password, role as UserRole, fullName)
+      await signUp(email, password, role as UserRole, fullName, referralCode)
       
       if (role === "promoter") {
         router.push("/dashboard/promoter") 

@@ -2,7 +2,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { randomUUID } from 'node:crypto'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple'
 
-export const DEFAULT_AFFILIATE_RATE = 20
+export const DEFAULT_AFFILIATE_RATE = 15
 export const AFFILIATE_ATTRIBUTION_DAYS = 30
 
 export interface AffiliateProfile {
@@ -46,7 +46,10 @@ export async function getAffiliateByCode(codeValue: unknown): Promise<AffiliateP
     .get()
 
   if (snapshot.empty) return null
-  const doc = snapshot.docs.find((candidate: any) => candidate.data()?.role === 'promoter')
+  const doc = snapshot.docs.find((candidate: any) => {
+    const data = candidate.data() || {}
+    return data.role === 'promoter' && (!data.affiliateStatus || data.affiliateStatus === 'approved')
+  })
   if (!doc) return null
   const data = doc.data()
   return {

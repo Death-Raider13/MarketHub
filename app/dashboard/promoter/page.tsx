@@ -35,6 +35,9 @@ type AffiliateDashboard = {
     pendingBalance: number
     conversionCount: number
     clickCount: number
+    affiliateStatus?: 'pending_payment' | 'course_pending' | 'task_pending' | 'approved' | 'suspended'
+    referralRewardEarnings?: number
+    referralRewardAvailableBalance?: number
   }
   clicks: Array<{ id: string; productName?: string; productId?: string; createdAt?: string }>
   conversions: Array<{
@@ -162,6 +165,7 @@ export default function PromoterDashboard() {
   }
 
   const { affiliate, conversions, payouts } = dashboard
+  const advertisingApproved = affiliate.affiliateStatus === 'approved'
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -178,9 +182,15 @@ export default function PromoterDashboard() {
               </h1>
               <p className="text-muted-foreground">Choose products from the marketplace, generate their links, and follow your verified commissions here.</p>
             </div>
-            <Button asChild className="font-bold rounded-xl">
-              <Link href="/products"><Search className="mr-2 h-4 w-4" /> Browse products to advertise</Link>
-            </Button>
+            {advertisingApproved ? (
+              <Button asChild className="font-bold rounded-xl">
+                <Link href="/products"><Search className="mr-2 h-4 w-4" /> Browse products to advertise</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" className="font-bold rounded-xl" disabled>
+                Advertising access pending
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -196,9 +206,15 @@ export default function PromoterDashboard() {
               <CardContent className="space-y-5">
                 <p className="text-sm text-muted-foreground">To advertise a product, open <strong>Browse products to advertise</strong>, find the product, and click the copy-link icon on its card or <strong>Advertise This Product</strong> on its detail page. Every link includes this promoter code and the selected product ID.</p>
                 <div className="rounded-xl border bg-muted/40 p-4 font-mono text-sm break-all">{referralCode}</div>
+                {!advertisingApproved && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                    <strong>Advertising is not active yet.</strong> Complete the registration payment, affiliate course, and qualification task. An administrator must then approve your account before product links can be advertised.
+                    <span className="block mt-1 text-xs uppercase tracking-wide">Current status: {affiliate.affiliateStatus || 'pending approval'}</span>
+                  </div>
+                )}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button variant="outline" onClick={() => copyLink(referralLink, 'General affiliate link copied')}><Copy className="mr-2 h-4 w-4" />{copied ? 'Copied' : 'Copy general link'}</Button>
-                  <Button asChild variant="secondary"><Link href="/products"><Search className="mr-2 h-4 w-4" /> Select a product</Link></Button>
+                  <Button variant="outline" onClick={() => copyLink(referralLink, 'General affiliate link copied')} disabled={!advertisingApproved}><Copy className="mr-2 h-4 w-4" />{copied ? 'Copied' : 'Copy general link'}</Button>
+                  {advertisingApproved ? <Button asChild variant="secondary"><Link href="/products"><Search className="mr-2 h-4 w-4" /> Select a product</Link></Button> : <Button variant="secondary" disabled><Search className="mr-2 h-4 w-4" /> Select a product</Button>}
                 </div>
                 <p className="text-xs text-muted-foreground">A product link looks like: <code>/products/PRODUCT_ID?ref={referralCode}&amp;aff_product=PRODUCT_ID</code>. Attribution lasts 30 days in the visitor&apos;s browser.</p>
               </CardContent>
@@ -244,8 +260,8 @@ export default function PromoterDashboard() {
 
           <Card className="bg-primary/5 border-primary/10">
             <CardContent className="p-5 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-              <div><p className="font-bold">Want to promote another product?</p><p className="text-sm text-muted-foreground">Browse the live catalog and generate a product-specific link directly from the product card.</p></div>
-              <Button asChild variant="outline"><Link href="/products">Open catalog <ExternalLink className="ml-2 h-4 w-4" /></Link></Button>
+              <div><p className="font-bold">{advertisingApproved ? 'Want to promote another product?' : 'Finish affiliate onboarding first'}</p><p className="text-sm text-muted-foreground">{advertisingApproved ? 'Browse the live catalog and generate a product-specific link directly from the product card.' : 'Product advertising unlocks after the registration payment, course, task, and approval are complete.'}</p></div>
+              {advertisingApproved && <Button asChild variant="outline"><Link href="/products">Open catalog <ExternalLink className="ml-2 h-4 w-4" /></Link></Button>}
             </CardContent>
           </Card>
         </div>
