@@ -6,7 +6,7 @@ import { verifyAdminAuth } from '@/lib/firebase/admin-auth'
 import { paystackTransferService } from '@/lib/payment/paystack-transfers'
 
 export async function GET(request: NextRequest) {
-  const auth = await verifyAdminAuth(request)
+  const auth = await verifyAdminAuth(request, 'finance.payouts')
   if (!auth.success || !auth.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     console.log('Testing Paystack configuration...')

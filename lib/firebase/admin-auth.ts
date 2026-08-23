@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
 import { getAdminAuth, getAdminFirestore } from "@/lib/firebase/admin"
-import { AdminRole } from "@/lib/admin/permissions"
+import { AdminRole, hasPermission, type Permission } from "@/lib/admin/permissions"
 
 export interface AdminUser {
   uid: string
@@ -17,59 +17,39 @@ export interface AuthResult {
 }
 
 /**
- * Verify admin authentication from request headers
+ * Verify admin authentication from request headers. When supplied, the
+ * permission is checked against the canonical role matrix on the server.
  */
-export async function verifyAdminAuth(request: NextRequest): Promise<AuthResult> {
+export async function verifyAdminAuth(request: NextRequest, requiredPermission?: Permission): Promise<AuthResult> {
   try {
     const adminAuth = getAdminAuth()
     const adminDb = getAdminFirestore()
-    
+
     if (!adminAuth || !adminDb) {
-      return {
-        success: false,
-        error: "Server configuration error"
-      }
+      return { success: false, error: "Server configuration error" }
     }
 
-    // Get authorization header
     const authHeader = request.headers.get("authorization")
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return {
-        success: false,
-        error: "Missing or invalid authorization header"
-      }
+      return { success: false, error: "Missing or invalid authorization header" }
     }
 
-    const idToken = authHeader.substring(7) // Remove "Bearer " prefix
-
-    // Verify the ID token
+    const idToken = authHeader.substring(7)
     const decodedToken = await adminAuth.verifyIdToken(idToken)
-    
-    if (!decodedToken.uid) {
-      return {
-        success: false,
-        error: "Invalid token"
-      }
-    }
+    if (!decodedToken.uid) return { success: false, error: "Invalid token" }
 
-    // Get user data from the 'users' collection (this is the source of truth for roles)
     const userDoc = await adminDb.collection("users").doc(decodedToken.uid).get()
-    
-    if (!userDoc.exists) {
-      return {
-        success: false,
-        error: "User not found"
-      }
-    }
+    if (!userDoc.exists) return { success: false, error: "User not found" }
 
     const userData = userDoc.data()
     const adminRoles = ['admin', 'super_admin', 'moderator', 'support']
-    
     if (!userData?.role || !adminRoles.includes(userData.role)) {
-      return {
-        success: false,
-        error: "Insufficient permissions - admin role required"
-      }
+      return { success: false, error: "Insufficient permissions - admin role required" }
+    }
+
+    const role = userData.role as AdminRole
+    if (requiredPermission && !hasPermission(role, requiredPermission)) {
+      return { success: false, error: `Insufficient permissions - ${requiredPermission} required` }
     }
 
     return {
@@ -77,63 +57,35 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AuthResult>
       user: {
         uid: decodedToken.uid,
         email: decodedToken.email || userData.email,
-        role: userData.role as AdminRole,
+        role,
         permissions: userData.permissions || [],
         displayName: userData.displayName || decodedToken.name
       }
     }
   } catch (error) {
     console.error("Error verifying admin auth:", error)
-    return {
-      success: false,
-      error: "Authentication failed"
-    }
+    return { success: false, error: "Authentication failed" }
   }
 }
 
-/**
- * Verify admin authentication for client-side requests
- */
+/** Verify admin authentication for client-side requests. */
 export async function verifyClientAdminAuth(idToken: string): Promise<AuthResult> {
   try {
     const adminAuth = getAdminAuth()
     const adminDb = getAdminFirestore()
-    
-    if (!adminAuth || !adminDb) {
-      return {
-        success: false,
-        error: "Server configuration error"
-      }
-    }
 
-    // Verify the ID token
+    if (!adminAuth || !adminDb) return { success: false, error: "Server configuration error" }
+
     const decodedToken = await adminAuth.verifyIdToken(idToken)
-    
-    if (!decodedToken.uid) {
-      return {
-        success: false,
-        error: "Invalid token"
-      }
-    }
+    if (!decodedToken.uid) return { success: false, error: "Invalid token" }
 
-    // Get user data from the 'users' collection (source of truth for roles)
     const userDoc = await adminDb.collection("users").doc(decodedToken.uid).get()
-    
-    if (!userDoc.exists) {
-      return {
-        success: false,
-        error: "User not found"
-      }
-    }
+    if (!userDoc.exists) return { success: false, error: "User not found" }
 
     const userData = userDoc.data()
     const adminRoles = ['admin', 'super_admin', 'moderator', 'support']
-    
     if (!userData?.role || !adminRoles.includes(userData.role)) {
-      return {
-        success: false,
-        error: "Insufficient permissions - admin role required"
-      }
+      return { success: false, error: "Insufficient permissions - admin role required" }
     }
 
     return {
@@ -148,9 +100,6 @@ export async function verifyClientAdminAuth(idToken: string): Promise<AuthResult
     }
   } catch (error) {
     console.error("Error verifying client admin auth:", error)
-    return {
-      success: false,
-      error: "Authentication failed"
-    }
+    return { success: false, error: "Authentication failed" }
   }
 }

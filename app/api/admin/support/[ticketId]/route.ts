@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: { ticketId: string } }
 ) {
   try {
-    const auth = await verifyAdminAuth(request)
+    const auth = await verifyAdminAuth(request, 'support.view')
     if (!auth.success || !auth.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -65,7 +65,7 @@ export async function PATCH(
   { params }: { params: { ticketId: string } }
 ) {
   try {
-    const auth = await verifyAdminAuth(request)
+    const auth = await verifyAdminAuth(request, 'support.view')
     if (!auth.success || !auth.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
