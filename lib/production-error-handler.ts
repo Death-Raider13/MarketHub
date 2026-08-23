@@ -146,9 +146,24 @@ export function handleAuthError(error: any): string {
   // Return user-friendly error messages (same for dev and production)
   switch (error?.code) {
     case 'auth/user-not-found':
+      return 'No account was found for this email address.'
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
       return 'Invalid email or password. Please try again.'
+    case 'auth/email-already-in-use':
+      return 'An account already exists for this email. Try signing in instead.'
+    case 'auth/weak-password':
+      return 'Choose a stronger password with at least 6 characters.'
+    case 'auth/operation-not-allowed':
+      return 'Email/password accounts are disabled in Firebase Authentication. Enable the Email/Password provider in the Firebase Console.'
+    case 'auth/invalid-api-key':
+      return 'Firebase configuration is invalid. Check the deployed Firebase API key and project settings.'
+    case 'auth/unauthorized-continue-uri':
+    case 'auth/invalid-continue-uri':
+    case 'auth/missing-continue-uri':
+      return 'Firebase rejected the verification link domain. Add this deployed domain to Firebase Authentication Authorized domains.'
+    case 'auth/quota-exceeded':
+      return 'Firebase email quota has been exceeded. Please try again later or contact support.'
     case 'auth/too-many-requests':
       return 'Too many failed attempts. Please try again later.'
     case 'auth/network-request-failed':
@@ -158,7 +173,7 @@ export function handleAuthError(error: any): string {
     case 'auth/invalid-email':
       return 'Please enter a valid email address.'
     default:
-      return 'Sign in failed. Please try again.'
+      return 'Authentication was rejected by Firebase. Check your email, password, and Firebase Authentication provider settings.'
   }
 }
 

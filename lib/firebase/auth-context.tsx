@@ -172,15 +172,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await updateProfile(userCredential.user, { displayName })
       }
 
-      // Send email verification with custom action handler
-      // Automatically uses correct URL for dev/production
+      // Send verification after the account is created, but do not turn a
+      // successful account creation into a failed signup if Firebase rejects
+      // the action URL or email operation. The verify-email page can retry.
       const actionCodeSettings = {
         url: typeof window !== 'undefined'
           ? `${window.location.origin}/auth/action`
           : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
         handleCodeInApp: false
       }
-      await sendEmailVerification(userCredential.user, actionCodeSettings)
+      let verificationEmailError: unknown = null
+      try {
+        await sendEmailVerification(userCredential.user, actionCodeSettings)
+      } catch (error) {
+        verificationEmailError = error
+        console.error('Account created, but verification email could not be sent:', error)
+      }
 
       const generateReferralCode = (name: string) => {
         return `${name.split(' ')[0].toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
@@ -214,6 +221,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       await setDoc(doc(db, "users", userCredential.user.uid), userProfile)
       setUserProfile(userProfile)
+      if (verificationEmailError) {
+        const authError = verificationEmailError as { code?: string; message?: string }
+        console.warn('Verification email requires configuration or retry:', authError.code || authError.message)
+      }
       // Trigger notifications for new registration (fire-and-forget)
       try {
         onUserRegistration(userCredential.user.uid, displayName || email, role).catch(err => console.error('notify onUserRegistration failed', err))
