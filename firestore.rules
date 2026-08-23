@@ -238,7 +238,7 @@ service cloud.firestore {
       // Creators can update order status for their items (but NOT cancelled orders)
       // Digital products: paid -> delivered
       // Services: paid -> processing -> delivered
-      allow update: if isVerifiedCreator() && 
+      allow update: if isVerifiedCreator() &&
                       request.auth.uid in resource.data.creatorIds &&
                       resource.data.status != 'cancelled' &&
                       resource.data.status in ['paid', 'processing'] &&
@@ -777,7 +777,7 @@ service cloud.firestore {
       allow create: if false;
       
       // creators can read their own analytics
-      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all analytics
       allow read: if isAdmin();
@@ -822,7 +822,7 @@ service cloud.firestore {
       allow read: if isOwner(resource.data.userId);
       
       // creators can read transactions for their orders
-      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all transactions
       allow read: if isAdmin();
@@ -917,7 +917,7 @@ service cloud.firestore {
       allow read: if isOwner(resource.data.userId);
       
       // creators can read refunds for their products
-      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all refunds
       allow read: if isAdmin();
@@ -1056,13 +1056,13 @@ service cloud.firestore {
       allow read: if isOwner(resource.data.userId);
       
       // creators can read shipping for their orders
-      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all shipping records
       allow read: if isAdmin();
       
       // creators can update tracking info
-      allow update: if isVerifiedcreator() && 
+      allow update: if isVerifiedCreator() &&
                       resource.data.creatorId == request.auth.uid &&
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['trackingNumber', 'carrier', 'status', 'updatedAt']);
       
@@ -1183,7 +1183,7 @@ service cloud.firestore {
     // ============================================
     match /adSlots/{slotId} {
       // creators can create ad slots for their stores
-      allow create: if isVerifiedcreator() &&
+      allow create: if isVerifiedCreator() &&
                       request.resource.data.creatorId == request.auth.uid &&
                       request.resource.data.keys().hasAll(['creatorId', 'creatorName', 'storeName', 'placement', 'availability', 'pricing', 'isActive', 'createdAt']);
       
@@ -1194,13 +1194,13 @@ service cloud.firestore {
       allow read: if true;
       
       // creators can read their own slots
-      allow read: if iscreatorOwner(resource.data.creatorId);
+      allow read: if isCreatorOwner(resource.data.creatorId);
       
       // Admins can read all slots
       allow read: if isAdmin();
       
       // creators can update their own slots (except stats)
-      allow update: if iscreatorOwner(resource.data.creatorId) &&
+      allow update: if isCreatorOwner(resource.data.creatorId) &&
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['creatorId', 'stats']);
       
       // System can update stats and rotation queue
@@ -1208,7 +1208,7 @@ service cloud.firestore {
       allow update: if isAdmin();
       
       // creators can delete their own slots
-      allow delete: if iscreatorOwner(resource.data.creatorId);
+      allow delete: if isCreatorOwner(resource.data.creatorId);
       
       // Admins can delete any slot
       allow delete: if isAdmin();
@@ -1227,7 +1227,7 @@ service cloud.firestore {
                     resource.data.campaignId in get(/databases/$(database)/documents/advertisers/$(request.auth.uid)).data.campaigns;
       
       // creators can read impressions for their slots
-      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all impressions
       allow read: if isAdmin();
@@ -1251,7 +1251,7 @@ service cloud.firestore {
                     exists(/databases/$(database)/documents/advertisers/$(request.auth.uid));
       
       // creators can read clicks for their slots
-      allow read: if isVerifiedcreator() && resource.data.creatorId == request.auth.uid;
+      allow read: if isVerifiedCreator() && resource.data.creatorId == request.auth.uid;
       
       // Admins can read all clicks
       allow read: if isAdmin();
