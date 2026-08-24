@@ -5,6 +5,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/firebase/auth-context"
+import { doc, getDoc, setDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase/config"
+import { affiliateCourseModules, affiliateQuiz, AFFILIATE_QUIZ_PASS_PERCENT } from "@/lib/affiliate-course"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -68,6 +71,10 @@ export default function PromoterDashboard() {
   const [bankName, setBankName] = useState("")
   const [bankCode, setBankCode] = useState("")
   const [submittingPayout, setSubmittingPayout] = useState(false)
+  const [completedModules, setCompletedModules] = useState<number[]>([])
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({})
+  const [quizScore, setQuizScore] = useState<number | null>(null)
+  const [savingCourse, setSavingCourse] = useState(false)
 
   useEffect(() => {
     if (!authLoading && (!user || userProfile?.role !== "promoter")) {
@@ -97,6 +104,43 @@ export default function PromoterDashboard() {
 
     loadDashboard()
   }, [user, userProfile])
+
+  useEffect(() => {
+    if (!user?.uid || userProfile?.role !== 'promoter') return
+    getDoc(doc(db, 'users', user.uid)).then(snapshot => {
+      const progress = snapshot.data()?.affiliateCourseProgress
+      if (progress) {
+        setCompletedModules(Array.isArray(progress.completedModules) ? progress.completedModules : [])
+        setQuizScore(typeof progress.quizScore === 'number' ? progress.quizScore : null)
+      }
+    }).catch(() => toast.error('Unable to load affiliate course progress'))
+  }, [user, userProfile])
+
+  const markModuleComplete = async (moduleId: number) => {
+    if (!user) return
+    const nextModules = Array.from(new Set([...completedModules, moduleId])).sort((a, b) => a - b)
+    setSavingCourse(true)
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        affiliateCourseProgress: { completedModules: nextModules, quizScore, quizPassed: quizScore !== null && quizScore >= AFFILIATE_QUIZ_PASS_PERCENT, updatedAt: new Date() }
+      }, { merge: true })
+      setCompletedModules(nextModules)
+    } catch { toast.error('Unable to save course progress') } finally { setSavingCourse(false) }
+  }
+
+  const submitCourseQuiz = async () => {
+    if (!user || completedModules.length < affiliateCourseModules.length) return
+    const correct = affiliateQuiz.filter(question => quizAnswers[question.id] === question.answer).length
+    const score = Math.round((correct / affiliateQuiz.length) * 100)
+    setSavingCourse(true)
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        affiliateCourseProgress: { completedModules, quizScore: score, quizPassed: score >= AFFILIATE_QUIZ_PASS_PERCENT, updatedAt: new Date() }
+      }, { merge: true })
+      setQuizScore(score)
+      toast[score >= AFFILIATE_QUIZ_PASS_PERCENT ? 'success' : 'error'](score >= AFFILIATE_QUIZ_PASS_PERCENT ? 'Course quiz passed. Your submission is ready for review.' : `You scored ${score}%. Review the lessons and try again.`)
+    } catch { toast.error('Unable to save quiz result') } finally { setSavingCourse(false) }
+  }
 
   const referralCode = dashboard?.affiliate.referralCode || userProfile?.referralCode || ''
   const referralLink = useMemo(() => {
@@ -165,7 +209,8 @@ export default function PromoterDashboard() {
   }
 
   const { affiliate, conversions, payouts } = dashboard
-  const advertisingApproved = affiliate.affiliateStatus === 'approved'
+  const courseCompleted = completedModules.length === affiliateCourseModules.length && quizScore !== null && quizScore >= AFFILIATE_QUIZ_PASS_PERCENT
+  const advertisingApproved = affiliate.affiliateStatus === 'approved' && courseCompleted
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -192,6 +237,19 @@ export default function PromoterDashboard() {
               </Button>
             )}
           </div>
+
+          <Card className="border-primary/20">
+            <CardHeader><CardTitle className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /> Affiliate Masterclass</CardTitle><p className="text-sm text-muted-foreground">Complete all ten lessons and pass the short quiz with at least {AFFILIATE_QUIZ_PASS_PERCENT}% before advertising access can be activated.</p></CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid gap-2 md:grid-cols-2">
+                {affiliateCourseModules.map(module => {
+                  const complete = completedModules.includes(module.id)
+                  return <button type="button" key={module.id} disabled={complete || savingCourse} onClick={() => markModuleComplete(module.id)} className={`text-left rounded-xl border p-3 transition-colors ${complete ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-border hover:border-primary/50'}`}><div className="flex items-start gap-2"><CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${complete ? 'text-emerald-500' : 'text-muted-foreground'}`} /><span><strong className="text-sm">Module {module.id}: {module.title}</strong><span className="block text-xs text-muted-foreground mt-1">{module.summary}</span></span></div></button>
+                })}
+              </div>
+              {completedModules.length === affiliateCourseModules.length && <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4"><div><p className="font-bold">Knowledge check</p><p className="text-sm text-muted-foreground">Answer all {affiliateQuiz.length} questions. You need {AFFILIATE_QUIZ_PASS_PERCENT}% to pass.</p></div>{affiliateQuiz.map((question, index) => <fieldset key={question.id} className="space-y-2"><legend className="text-sm font-medium">{index + 1}. {question.question}</legend><div className="grid gap-2 sm:grid-cols-2">{question.options.map((option, optionIndex) => <label key={option} className="flex items-center gap-2 rounded-lg border border-border p-2 text-sm cursor-pointer hover:bg-muted"><input type="radio" name={question.id} checked={quizAnswers[question.id] === optionIndex} onChange={() => setQuizAnswers(previous => ({ ...previous, [question.id]: optionIndex }))} />{option}</label>)}</div></fieldset>)}<Button type="button" onClick={submitCourseQuiz} disabled={savingCourse || Object.keys(quizAnswers).length !== affiliateQuiz.length}>{savingCourse ? 'Saving...' : quizScore !== null ? `Retake quiz (${quizScore}%)` : 'Submit quiz'}</Button>{quizScore !== null && <p className={`text-sm font-medium ${courseCompleted ? 'text-emerald-600' : 'text-destructive'}`}>{courseCompleted ? 'Course completed. Await administrator approval.' : `Latest score: ${quizScore}%. Please review the modules and retake the quiz.`}</p>}</div>}
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Total earnings</CardTitle></CardHeader><CardContent><div className="text-3xl font-black">{formatNGN(affiliate.totalEarnings)}</div><p className="text-xs text-muted-foreground mt-1">Approved commissions</p></CardContent></Card>
