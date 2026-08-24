@@ -16,7 +16,7 @@ export const affiliateCourseModules = [
   { id: 7, title: 'Affiliate marketing mistakes to avoid', summary: 'Avoid spam, false promises, guaranteed-income claims, fake testimonials, and misleading content.' },
   { id: 8, title: 'Building your personal brand', summary: 'Build a recognizable, trustworthy identity around a clear student-resource niche.' },
   { id: 9, title: 'Community access', summary: 'Join the official affiliate community using the link provided by the MarketHub team.' },
-  { id: 10, title: 'Assignment', summary: 'Explain affiliate marketing and describe ethical ways to promote products.' },
+  { id: 10, title: 'Assignment', summary: 'Answer the two final questions in the quiz: define affiliate marketing and explain ways to promote products ethically.' },
 ] as const
 
 export const affiliateQuiz: AffiliateQuizQuestion[] = [
@@ -28,6 +28,8 @@ export const affiliateQuiz: AffiliateQuizQuestion[] = [
   { id: 'q6', question: 'Which practice is prohibited?', options: ['Explaining product benefits clearly', 'Following up politely', 'Claiming guaranteed income', 'Teaching something useful'], answer: 2, explanation: 'Never make false promises or claim guaranteed income.' },
   { id: 'q7', question: 'Why build a personal brand?', options: ['People buy from people they trust', 'It removes the need to understand products', 'It guarantees every post becomes viral', 'It allows you to hide your identity'], answer: 0, explanation: 'A clear, trustworthy identity helps the right audience understand what you do.' },
   { id: 'q8', question: 'What should you do after a customer shows interest?', options: ['Pressure them until they buy', 'Listen, understand, recommend, explain, and let them decide', 'Send unrelated links', 'Pretend to be another customer'], answer: 1, explanation: 'Respectful selling focuses on the customer’s need and leaves the decision to them.' },
+  { id: 'q9', question: 'What is affiliate marketing?', options: ['Promoting another person’s or company’s product and earning from a qualifying sale or action', 'Creating fake testimonials for any product', 'Sending random links without understanding the product', 'Guaranteeing income to every customer'], answer: 0, explanation: 'Affiliate marketing connects a suitable customer to another person’s or company’s product for a qualifying commission.' },
+  { id: 'q10', question: 'Which is an ethical way to promote products?', options: ['Spam the same link to everyone', 'Make false promises about income', 'Create useful content for the right audience and explain the genuine benefits', 'Pretend to be a customer'], answer: 2, explanation: 'Ethical promotion provides value, targets the right audience, and communicates honestly.' },
 ]
 
 export const AFFILIATE_QUIZ_PASS_PERCENT = 75
