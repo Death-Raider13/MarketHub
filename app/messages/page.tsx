@@ -77,7 +77,10 @@ function CustomerMessagesContent() {
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/customer/messages?customerId=${user.uid}`)
+      const token = await user.getIdToken()
+      const response = await fetch(`/api/customer/messages?customerId=${user.uid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       const data = await response.json()
 
       if (data.success) {
@@ -98,7 +101,10 @@ function CustomerMessagesContent() {
       setLoadingMessages(true)
       setSelectedConversation(conversation)
       
-      const response = await fetch(`/api/customer/messages/${conversation.id}?customerId=${user?.uid}`)
+      const token = user ? await user.getIdToken() : null
+      const response = await fetch(`/api/customer/messages/${conversation.id}?customerId=${user?.uid}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })
       const data = await response.json()
 
       if (data.success) {
@@ -130,7 +136,10 @@ function CustomerMessagesContent() {
 
       const response = await fetch('/api/creator/messages/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await user.getIdToken()}`,
+        },
         body: JSON.stringify({
           conversationId: selectedConversation.id,
           senderId: user.uid,

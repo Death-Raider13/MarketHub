@@ -227,7 +227,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(userProfile)
       if (verificationEmailError) {
         const authError = verificationEmailError as { code?: string; message?: string }
-        console.warn('Verification email requires configuration or retry:', authError.code || authError.message)
+        const actionHost = typeof window !== 'undefined' ? window.location.hostname : 'the deployed website domain'
+        console.warn('Verification email requires configuration or retry:', authError.code || authError.message, `Firebase Authorized Domains must include: ${actionHost}`)
       }
       // Trigger notifications for new registration (fire-and-forget)
       try {
@@ -417,6 +418,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await sendEmailVerification(user, actionCodeSettings)
     } catch (error: any) {
+      const authError = error as { code?: string; message?: string }
+      if (authError.code === 'auth/unauthorized-continue-uri') {
+        const actionHost = typeof window !== 'undefined' ? window.location.hostname : 'the deployed website domain'
+        throw new Error(`Firebase rejected the verification link domain. Add ${actionHost} under Authentication > Settings > Authorized domains, then try again.`)
+      }
       const userFriendlyMessage = handleAuthError(error)
       throw new Error(userFriendlyMessage)
     }
