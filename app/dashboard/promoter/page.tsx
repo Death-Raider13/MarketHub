@@ -74,6 +74,7 @@ export default function PromoterDashboard() {
   const [completedModules, setCompletedModules] = useState<number[]>([])
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({})
   const [quizScore, setQuizScore] = useState<number | null>(null)
+  const [quizSubmitted, setQuizSubmitted] = useState(false)
   const [savingCourse, setSavingCourse] = useState(false)
 
   useEffect(() => {
@@ -112,6 +113,7 @@ export default function PromoterDashboard() {
       if (progress) {
         setCompletedModules(Array.isArray(progress.completedModules) ? progress.completedModules : [])
         setQuizScore(typeof progress.quizScore === 'number' ? progress.quizScore : null)
+        setQuizSubmitted(typeof progress.quizScore === 'number')
       }
     }).catch(() => toast.error('Unable to load affiliate course progress'))
   }, [user, userProfile])
@@ -140,6 +142,7 @@ export default function PromoterDashboard() {
         ...(passed ? { affiliateStatus: 'approved' } : {})
       }, { merge: true })
       setQuizScore(score)
+      setQuizSubmitted(true)
       toast[score >= AFFILIATE_QUIZ_PASS_PERCENT ? 'success' : 'error'](score >= AFFILIATE_QUIZ_PASS_PERCENT ? 'Course quiz passed. Advertising access is now unlocked automatically.' : `You scored ${score}%. Review the lessons and try again.`)
     } catch { toast.error('Unable to save quiz result') } finally { setSavingCourse(false) }
   }
@@ -249,7 +252,7 @@ export default function PromoterDashboard() {
                   return <button type="button" key={module.id} disabled={complete || savingCourse} onClick={() => markModuleComplete(module.id)} className={`text-left rounded-xl border p-3 transition-colors ${complete ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-border hover:border-primary/50'}`}><div className="flex items-start gap-2"><CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${complete ? 'text-emerald-500' : 'text-muted-foreground'}`} /><span><strong className="text-sm">Module {module.id}: {module.title}</strong><span className="block text-xs text-muted-foreground mt-1">{module.summary}</span></span></div></button>
                 })}
               </div>
-              {completedModules.length === affiliateCourseModules.length && <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4"><div><p className="font-bold">Knowledge check</p><p className="text-sm text-muted-foreground">Answer all {affiliateQuiz.length} questions. You need {AFFILIATE_QUIZ_PASS_PERCENT}% to pass.</p></div>{affiliateQuiz.map((question, index) => <fieldset key={question.id} className="space-y-2"><legend className="text-sm font-medium">{index + 1}. {question.question}</legend><div className="grid gap-2 sm:grid-cols-2">{question.options.map((option, optionIndex) => <label key={option} className="flex items-center gap-2 rounded-lg border border-border p-2 text-sm cursor-pointer hover:bg-muted"><input type="radio" name={question.id} checked={quizAnswers[question.id] === optionIndex} onChange={() => setQuizAnswers(previous => ({ ...previous, [question.id]: optionIndex }))} />{option}</label>)}</div></fieldset>)}<Button type="button" onClick={submitCourseQuiz} disabled={savingCourse || Object.keys(quizAnswers).length !== affiliateQuiz.length}>{savingCourse ? 'Saving...' : quizScore !== null ? `Retake quiz (${quizScore}%)` : 'Submit quiz'}</Button>{quizScore !== null && <p className={`text-sm font-medium ${courseCompleted ? 'text-emerald-600' : 'text-destructive'}`}>{courseCompleted ? 'Course completed. Advertising access is now unlocked automatically.' : `Latest score: ${quizScore}%. Please review the modules and retake the quiz.`}</p>}</div>}
+              {completedModules.length === affiliateCourseModules.length && <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4"><div><p className="font-bold">Knowledge check</p><p className="text-sm text-muted-foreground">Answer all {affiliateQuiz.length} questions. You need {AFFILIATE_QUIZ_PASS_PERCENT}% to pass.</p></div>{affiliateQuiz.map((question, index) => <fieldset key={question.id} className="space-y-2"><legend className="text-sm font-medium">{index + 1}. {question.question}</legend><div className="grid gap-2 sm:grid-cols-2">{question.options.map((option, optionIndex) => <label key={option} className="flex items-center gap-2 rounded-lg border border-border p-2 text-sm cursor-pointer hover:bg-muted"><input type="radio" name={question.id} checked={quizAnswers[question.id] === optionIndex} onChange={() => { setQuizSubmitted(false); setQuizAnswers(previous => ({ ...previous, [question.id]: optionIndex })) }} />{option}</label>)}</div></fieldset>)}<Button type="button" onClick={submitCourseQuiz} disabled={savingCourse || Object.keys(quizAnswers).length !== affiliateQuiz.length}>{savingCourse ? 'Saving...' : quizScore !== null ? 'Retake quiz' : 'Submit quiz'}</Button>{quizSubmitted && quizScore !== null && <p className={`text-sm font-medium ${courseCompleted ? 'text-emerald-600' : 'text-destructive'}`}>{courseCompleted ? `Final grade: ${quizScore}%. Course completed and advertising access is now unlocked automatically.` : `Final grade: ${quizScore}%. Please review the modules and retake the quiz.`}</p>}</div>}
             </CardContent>
           </Card>
 
