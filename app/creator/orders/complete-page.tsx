@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -59,7 +60,7 @@ function CreatorOrdersContent() {
   const loadOrders = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/creator/orders?creatorId=${user?.uid}`)
+      const response = await authenticatedFetch(`/api/creator/orders?creatorId=${user?.uid}`)
 
       if (response.ok) {
         const data = await response.json()
@@ -83,7 +84,7 @@ function CreatorOrdersContent() {
     try {
       setUpdateLoading(true)
 
-      const response = await fetch(`/api/orders/${orderId}/status`, {
+      const response = await authenticatedFetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

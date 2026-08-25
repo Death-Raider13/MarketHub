@@ -19,6 +19,7 @@ import {
   Percent
 } from "lucide-react"
 import { getAdminFirestore } from "@/lib/firebase/admin-simple"
+import { FeaturedCreatorsCarousel, type FeaturedCreator } from "@/components/creator/featured-creators-carousel"
 
 interface Product {
   id: string
@@ -41,6 +42,7 @@ export default async function HomePage() {
   const adminDb = getAdminFirestore()
 
   let featuredProducts: Product[] = []
+  let featuredCreators: FeaturedCreator[] = []
   let realStats = { products: "10K+", students: "150K+", creators: "5K+", rating: "4.9/5" }
 
   if (adminDb) {
@@ -54,6 +56,12 @@ export default async function HomePage() {
         .where("status", "in", ["active", "approved"])
         .limit(8)
         .get()
+
+      const creatorQuery = await adminDb.collection("users").where("featured", "==", true).limit(24).get()
+      featuredCreators = creatorQuery.docs.map((doc: any) => {
+        const data = doc.data()
+        return { id: doc.id, name: data.displayName || data.email?.split("@")[0] || "Featured Creator", storeName: data.storeName || data.hubName, description: data.hubDescription || data.storeDescription, logoUrl: data.logoUrl, storeUrl: data.storeUrl, role: data.role }
+      }).filter((creator: FeaturedCreator & { role?: string }) => creator.role === "creator")
 
       featuredProducts = productsQuery.docs.map((doc: any) => {
         const data = doc.data()
@@ -233,6 +241,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <FeaturedCreatorsCarousel creators={featuredCreators} />
 
       <Footer />
     </div>

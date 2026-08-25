@@ -9,11 +9,16 @@ import { logger } from '@/lib/logger';
 // GET - Fetch verification status for a creator
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await verifyAuthToken(request);
+    if ('error' in authResult) return authResult.error;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
+    const requestedUserId = searchParams.get('userId');
+    const userId = requestedUserId || authResult.user.uid;
     if (!userId) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    }
+    if (userId !== authResult.user.uid && !['admin', 'super_admin'].includes(authResult.user.role || '')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const adminDb = getAdminFirestore();
@@ -23,10 +28,21 @@ export async function GET(request: NextRequest) {
     const creatorDoc = await adminDb.collection('creators').doc(userId).get();
     
     if (!creatorDoc.exists) {
-      return NextResponse.json({ status: 'none', documents: [] });
+      const userDoc = await adminDb.collection('users').doc(userId).get();
+      const userData = userDoc.data() || {};
+      return NextResponse.json({
+        status: 'none',
+        verificationPaymentStatus: userData.verificationPaymentStatus || 'none',
+        featured: userData.featured === true,
+        waitlistEligible: userData.waitlistEligible === true || userData.waitlistMember === true,
+        creatorUploadAccess: userData.creatorUploadAccess || null,
+        documents: [],
+      });
     }
 
     const creatorData = creatorDoc.data();
+    const userDoc = await adminDb.collection('users').doc(userId).get();
+    const userData = userDoc.data() || {};
     
     // Fetch associated verification documents
     const docsSnapshot = await adminDb
@@ -42,6 +58,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       status: creatorData?.verificationStatus || 'none',
+      verificationPaymentStatus: userData.verificationPaymentStatus || 'none',
+      featured: userData.featured === true,
+      waitlistEligible: userData.waitlistEligible === true || userData.waitlistMember === true,
+      creatorUploadAccess: userData.creatorUploadAccess || null,
       academicTier: creatorData?.academicTier || null,
       institutionAffiliation: creatorData?.institutionAffiliation || null,
       documents,

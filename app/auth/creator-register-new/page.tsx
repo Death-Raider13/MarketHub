@@ -58,21 +58,15 @@ interface CreatorFormData {
 }
 
 const STORE_CATEGORIES = [
-  "Digital Products",
-  "Courses & Education",
-  "Design & Creative",
-  "Software & Apps",
-  "Music & Audio",
-  "Video & Animation",
-  "Writing & Content",
-  "Business Services",
-  "Consulting",
-  "Photography",
-  "Art & Crafts",
-  "Fashion & Accessories",
-  "Health & Wellness",
-  "Food & Beverages",
-  "Other"
+  "Books & E-books",
+  "Academic Resources",
+  "Study Guides",
+  "Past Questions & CBT",
+  "Online Courses",
+  "Educational Videos",
+  "Audiobooks",
+  "Professional Development",
+  "Other Educational Content"
 ]
 
 const THEME_COLORS = [

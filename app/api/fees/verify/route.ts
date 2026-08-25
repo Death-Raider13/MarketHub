@@ -63,9 +63,22 @@ export async function POST(request: NextRequest) {
       if (payment.feeType === 'creator_verification_featuring') {
         userUpdate.verificationPaymentStatus = 'paid'
         userUpdate.verificationFeaturingEligible = true
+        userUpdate.verified = true
+        userUpdate.featured = true
+        userUpdate.featuredAt = now
       }
       transactionWriter.set(userRef, userUpdate, { merge: true })
     })
+
+    if (payment.feeType === 'creator_verification_featuring') {
+      await db.collection('creators').doc(auth.user.uid).set({
+        verificationStatus: 'verified',
+        verified: true,
+        featured: true,
+        featuredAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true })
+    }
 
     const reward = await recordRoleReferralReward({
       feePaymentId: paymentId,

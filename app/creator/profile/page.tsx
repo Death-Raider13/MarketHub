@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -38,7 +39,7 @@ function CreatorProfileContent() {
 
       try {
         const token = await user.getIdToken()
-        const response = await fetch(`/api/creator/profile?creatorId=${user.uid}`, {
+        const response = await authenticatedFetch(`/api/creator/profile?creatorId=${user.uid}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -81,7 +82,7 @@ function CreatorProfileContent() {
     setLoading(true)
     try {
       const token = await user.getIdToken()
-      const response = await fetch("/api/creator/profile", {
+      const response = await authenticatedFetch("/api/creator/profile", {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",

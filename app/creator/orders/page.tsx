@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -61,7 +62,7 @@ function CreatorOrdersContent() {
       if (!user) return
 
       try {
-        const response = await fetch(`/api/creator/orders?creatorId=${user.uid}`)
+        const response = await authenticatedFetch(`/api/creator/orders?creatorId=${user.uid}`)
         const data = await response.json()
 
         if (data.orders) {
@@ -85,7 +86,7 @@ function CreatorOrdersContent() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/creator/orders/${orderId}`, {
+      const response = await authenticatedFetch(`/api/creator/orders/${orderId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -154,12 +155,6 @@ function CreatorOrdersContent() {
                 <Button variant="default" className="w-full justify-start">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Orders
-                </Button>
-              </Link>
-              <Link href="/creator/services">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Services
                 </Button>
               </Link>
               <Link href="/creator/messages">

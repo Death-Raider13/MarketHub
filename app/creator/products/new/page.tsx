@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import React, { useState } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -76,7 +77,7 @@ export default function NewResourcePage() {
     const finalDescription = advancedContent ? `${description}\n\n[FeroData:${advancedContent}]` : description
 
     try {
-      const response = await fetch("/api/creator/products", {
+      const response = await authenticatedFetch("/api/creator/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
