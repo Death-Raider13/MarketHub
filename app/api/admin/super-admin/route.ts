@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue, Timestamp } from 'firebase-admin/firestore'
+import type { UserRecord as FirebaseUserRecord } from 'firebase-admin/auth'
 import { getAdminAuth, getAdminFirestore } from '@/lib/firebase/admin-simple'
 import { requireAdmin } from '@/lib/api-auth'
 
@@ -113,6 +114,51 @@ async function createAdminInvite(
     console.error('Failed to create admin invite:', error)
     return jsonError('Failed to create admin invitation', 500)
   }
+}
+
+async function promoteExistingUser(
+  db: FirebaseFirestore.Firestore,
+  auth: NonNullable<ReturnType<typeof getAdminAuth>>,
+  admin: { uid: string; email?: string; role: string },
+  request: NextRequest,
+  body: Record<string, unknown>,
+) {
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) return jsonError('A valid user email is required', 400)
+
+  let target: FirebaseUserRecord
+  try {
+    target = await auth.getUserByEmail(email)
+  } catch {
+    return jsonError('Firebase Authentication user not found', 404)
+  }
+  if (target.uid === admin.uid) return jsonError('You cannot promote your own account through this action', 400)
+
+  const existingClaims = target.customClaims && typeof target.customClaims === 'object' ? target.customClaims : {}
+  await auth.setCustomUserClaims(target.uid, { ...existingClaims, role: 'admin' })
+  await db.collection('users').doc(target.uid).set({
+    uid: target.uid,
+    email: target.email || email,
+    displayName: target.displayName || '',
+    role: 'admin',
+    status: 'active',
+    emailVerified: target.emailVerified,
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true })
+  await audit(db, admin, 'admin.promote', target.uid, {
+    email: target.email || email,
+    role: 'admin',
+    emailVerified: target.emailVerified,
+  }, request)
+
+  return NextResponse.json({
+    success: true,
+    uid: target.uid,
+    email: target.email || email,
+    role: 'admin',
+    emailVerified: target.emailVerified,
+    message: 'User promoted to admin. The user must refresh or sign in again to receive the new token claims.',
+  })
 }
 
 async function updateAdminStatus(
@@ -287,6 +333,7 @@ export async function POST(request: NextRequest) {
 
   const action = body.action
   if (action === 'create-admin') return createAdminInvite(db, auth, authResult.user, request, body)
+  if (action === 'promote-existing-user') return promoteExistingUser(db, auth, authResult.user, request, body)
   if (action === 'update-status') return updateAdminStatus(db, auth, authResult.user, request, body)
   if (action === 'update-commission') return updateCommission(db, authResult.user, request, body)
   if (action === 'backup') return createBackup(db, authResult.user, request)

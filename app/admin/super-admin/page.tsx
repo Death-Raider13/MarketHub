@@ -172,6 +172,24 @@ function SuperAdminDashboard() {
     }
   };
 
+  const handlePromoteExistingUser = async () => {
+    const email = prompt('Enter the existing user email to promote to admin:')?.trim().toLowerCase()
+    if (!email) return
+    if (!confirm(`Promote ${email} to full admin access? This grants access to the admin dashboard and protected administrative operations.`)) return
+    setActionLoading(true)
+    try {
+      const response = await callSuperAdmin({ action: 'promote-existing-user', email })
+      const data = await response.json()
+      toast.success(`${data.email || email} is now an admin. They must sign out and sign in again.`)
+      await loadSuperAdminData()
+    } catch (error) {
+      console.error('Failed to promote existing user:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to promote existing user.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const handleSetAdminStatus = async (adminId: string, status: 'active' | 'suspended') => {
     if (status === 'suspended' && !confirm('Are you sure you want to suspend this admin?')) return;
     setActionLoading(true);
@@ -449,6 +467,10 @@ function SuperAdminDashboard() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+                <Button variant="outline" className="mt-3 w-full" onClick={handlePromoteExistingUser} disabled={actionLoading}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Promote Existing User to Admin
+                </Button>
               </CardContent>
             </Card>
 
