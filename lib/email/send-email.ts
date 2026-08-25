@@ -4,6 +4,7 @@ interface EmailOptions {
   to: string
   subject: string
   html: string
+  text?: string
   from?: string
 }
 
@@ -11,7 +12,26 @@ export async function sendEmail(options: EmailOptions) {
   const from = options.from || process.env.FROM_EMAIL || 'noreply@FEROMARKETHUB.com'
   const isProd = process.env.NODE_ENV === 'production'
 
-  // 1) Prefer SMTP via Nodemailer if configured
+  // Prefer Resend for serverless branded email when configured.
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const result = await resend.emails.send({
+        from,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        ...(options.text ? { text: options.text } : {}),
+      })
+      if (result.error) throw new Error(result.error.message)
+      return result.data
+    } catch (error) {
+      console.error('Failed to send email via Resend, trying SMTP fallback:', error)
+    }
+  }
+
+  // SMTP fallback for installations that already have a mail server configured.
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
       const nodemailer = await import('nodemailer')
@@ -44,31 +64,15 @@ export async function sendEmail(options: EmailOptions) {
         from,
         to: options.to,
         subject: options.subject,
-        html: options.html,
-      })
+          html: options.html,
+          ...(options.text ? { text: options.text } : {}),
+        })
     } catch (error) {
       console.error('Failed to send email via SMTP, falling back to other providers:', error)
     }
   }
 
-  // 2) Fallback to Resend if API key is available
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const { Resend } = await import('resend')
-      const resend = new Resend(process.env.RESEND_API_KEY)
-
-      return await resend.emails.send({
-        from,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-      })
-    } catch (error) {
-      console.error('Failed to send email via Resend, falling back to console log:', error)
-    }
-  }
-
-  // 3) Final fallback: just log the email so nothing explodes in development
+  // Final fallback: just log the email in development; production fails closed.
   if (isProd) {
     const configured = {
       smtp: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),

@@ -195,6 +195,25 @@ vercel --prod
 
 Ensure all environment variables are configured in the Vercel dashboard.
 
+### Branded authentication emails
+
+Verification and password-reset messages are now sent through the backend instead of Firebase Client SDK email templates. The server generates short-lived Firebase Admin action links and Resend delivers responsive Fero E-Library branded HTML with a plain-text fallback. Both link types return to `/auth/action` on the configured production domain; that handler verifies email actions and forwards password resets to the existing reset form.
+
+Configure these values in Vercel for **Production, Preview, and Development** as appropriate:
+
+| Variable | Required | Purpose |
+|---|---:|---|
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Yes | Firebase Admin service-account JSON used to generate secure action links. Keep server-only and never expose it as `NEXT_PUBLIC_*`. |
+| `RESEND_API_KEY` | Yes for Resend | Resend API key with permission to send from the verified domain. |
+| `EMAIL_FROM` | Yes for Resend | Sender such as `Fero E-Library <no-reply@your-verified-domain>`. The domain must be verified in Resend. |
+| `NEXT_PUBLIC_APP_URL` | Yes | Canonical site URL, for example `https://www.fero-elibrary.shop`, without a trailing slash. |
+| `EMAIL_LOGO_URL` | Recommended | Public HTTPS URL for the brand logo. If omitted, the app uses `${NEXT_PUBLIC_APP_URL}/logo.png`. |
+| `SUPPORT_EMAIL` | Recommended | Support address shown in the branded email footer. |
+
+After deployment, add the production hostname to **Firebase Authentication → Settings → Authorized domains** and verify the sender domain in Resend. Do not use a personal Gmail address as `EMAIL_FROM`; use an address on a domain verified by Resend. Existing SMTP variables remain supported as a fallback when Resend is not configured.
+
+The public password-reset endpoint deliberately returns the same success message whether or not the account exists, reducing account-enumeration risk. Verification resend remains authenticated with the Firebase ID token.
+
 ---
 
 ## License
