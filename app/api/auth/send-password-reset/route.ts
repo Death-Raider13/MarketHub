@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminAuth } from '@/lib/firebase/admin-simple'
 import { sendEmail } from '@/lib/email/send-email'
 import { passwordResetEmail } from '@/lib/email/auth-templates'
-import { getCanonicalAppUrl } from '@/lib/app-url'
+import { getCanonicalAppUrl, toBrandedActionLink } from '@/lib/app-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       url: `${getCanonicalAppUrl()}/auth/action`,
       handleCodeInApp: false,
     })
-    const emailContent = passwordResetEmail(user.displayName || undefined, link)
+    const emailContent = passwordResetEmail(user.displayName || undefined, toBrandedActionLink(link))
     await sendEmail({
       to: email,
       subject: emailContent.subject,

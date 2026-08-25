@@ -3,7 +3,7 @@ import { getAdminAuth } from '@/lib/firebase/admin-simple'
 import { verifyAuthToken } from '@/lib/api-auth'
 import { sendEmail } from '@/lib/email/send-email'
 import { verificationEmail } from '@/lib/email/auth-templates'
-import { getCanonicalAppUrl } from '@/lib/app-url'
+import { getCanonicalAppUrl, toBrandedActionLink } from '@/lib/app-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       url: `${getCanonicalAppUrl()}/auth/action`,
       handleCodeInApp: false,
     })
-    const email = verificationEmail(user.displayName || undefined, link)
+    const email = verificationEmail(user.displayName || undefined, toBrandedActionLink(link))
     await sendEmail({
       to: user.email,
       subject: email.subject,
