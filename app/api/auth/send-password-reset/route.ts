@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminAuth } from '@/lib/firebase/admin-simple'
 import { sendEmail } from '@/lib/email/send-email'
 import { passwordResetEmail } from '@/lib/email/auth-templates'
+import { getCanonicalAppUrl } from '@/lib/app-url'
 
 export const dynamic = 'force-dynamic'
-
-function appUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
-}
 
 export async function POST(request: NextRequest) {
   let email = ''
@@ -28,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const user = await adminAuth.getUserByEmail(email)
     const link = await adminAuth.generatePasswordResetLink(email, {
-      url: `${appUrl()}/auth/action`,
+      url: `${getCanonicalAppUrl()}/auth/action`,
       handleCodeInApp: false,
     })
     const emailContent = passwordResetEmail(user.displayName || undefined, link)

@@ -3,12 +3,9 @@ import { getAdminAuth } from '@/lib/firebase/admin-simple'
 import { verifyAuthToken } from '@/lib/api-auth'
 import { sendEmail } from '@/lib/email/send-email'
 import { verificationEmail } from '@/lib/email/auth-templates'
+import { getCanonicalAppUrl } from '@/lib/app-url'
 
 export const dynamic = 'force-dynamic'
-
-function appUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
-}
 
 export async function POST(request: NextRequest) {
   const authResult = await verifyAuthToken(request)
@@ -23,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (user.emailVerified) return NextResponse.json({ success: true, alreadyVerified: true })
 
     const link = await adminAuth.generateEmailVerificationLink(user.email, {
-      url: `${appUrl()}/auth/action`,
+      url: `${getCanonicalAppUrl()}/auth/action`,
       handleCodeInApp: false,
     })
     const email = verificationEmail(user.displayName || undefined, link)

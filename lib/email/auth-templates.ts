@@ -1,4 +1,6 @@
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.fero-elibrary.shop').replace(/\/$/, '')
+import { getCanonicalAppUrl } from '@/lib/app-url'
+
+const APP_URL = getCanonicalAppUrl()
 const BRAND_NAME = 'Fero E-Library'
 const BRAND_EMAIL = process.env.SUPPORT_EMAIL || 'support@fero-elibrary.shop'
 const LOGO_URL = process.env.EMAIL_LOGO_URL || `${APP_URL}/logo.png`
