@@ -12,9 +12,9 @@ export async function POST(request: NextRequest) {
   try {
     const { orderId, customerId, creatorId, amount } = await request.json()
 
-    if (!orderId || !customerId || !creatorId || typeof amount !== 'number') {
+    if (!orderId || !customerId || typeof amount !== 'number' || amount <= 0) {
       return NextResponse.json(
-        { error: 'orderId, customerId, creatorId, and amount are required' },
+        { error: 'orderId, customerId, and a positive amount are required' },
         { status: 400 }
       )
     }

@@ -220,7 +220,7 @@ function CheckoutContent() {
       } else {
         // Paystack Path: Identify subaccount if single-creator order
         let subaccountCode: string | undefined = undefined
-        const creatorIds = [...new Set(items.map(item => item.product.creatorId))]
+        const creatorIds = [...new Set(items.map(item => item.product.creatorId).filter(Boolean))]
         
         if (creatorIds.length === 1) {
           try {
@@ -229,7 +229,7 @@ function CheckoutContent() {
               subaccountCode = creatorDoc.data().paystackSubaccountCode
             }
           } catch (err) {
-            console.error('Failed to fetch subaccount code:', err)
+            console.warn('Creator Paystack subaccount unavailable; continuing without split:', err)
             // Continue without subaccount (manual payout fallback)
           }
         }

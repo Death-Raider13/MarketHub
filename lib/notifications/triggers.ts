@@ -69,7 +69,7 @@ export class NotificationTriggers {
   /**
    * Trigger when a new order is placed
    */
-  static async onOrderPlaced(orderId: string, customerId: string, creatorId: string, amount: number) {
+  static async onOrderPlaced(orderId: string, customerId: string, creatorId: string | undefined, amount: number) {
     try {
       // Notify customer about order confirmation
       await notificationService.createNotification(customerId, 'order_placed', {
@@ -80,14 +80,16 @@ export class NotificationTriggers {
         }
       });
 
-      // Notify creator about new order
-      await notificationService.createNotification(creatorId, 'new_order_received', {
-        metadata: {
-          orderId: orderId,
-          amount: amount,
-          actionUrl: `/creator/orders/${orderId}`
-        }
-      });
+      // Creator notification is optional for customer-only order events.
+      if (creatorId) {
+        await notificationService.createNotification(creatorId, 'new_order_received', {
+          metadata: {
+            orderId: orderId,
+            amount: amount,
+            actionUrl: `/creator/orders/${orderId}`
+          }
+        });
+      }
     } catch (error) {
       console.error('Error triggering order placement notifications:', error);
     }

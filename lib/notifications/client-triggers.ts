@@ -33,7 +33,7 @@ async function authFetch(url: string, body: Record<string, any>) {
 export async function onOrderPlaced(
   orderId: string,
   customerId: string,
-  creatorId: string,
+  creatorId: string | undefined,
   amount: number
 ): Promise<void> {
   await authFetch('/api/notifications/order-placed', {
