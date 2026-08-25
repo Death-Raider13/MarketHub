@@ -306,16 +306,6 @@ export default function CreatorRegisterNewPage() {
         // Creators collection doc id must match auth uid for rules
         await setDoc(doc(db, "creators", user.uid), hubData, { merge: true })
 
-        // Initialize creator balance
-        await setDoc(doc(db, "creatorBalances", user.uid), {
-          creatorId: user.uid,
-          availableBalance: 0,
-          pendingBalance: 0,
-          totalEarnings: 0,
-          totalWithdrawn: 0,
-          updatedAt: new Date()
-        }, { merge: true })
-
         // Notify applicant and admins (best-effort)
         try {
           await fetch('/api/notifications/creator-application', {
@@ -374,15 +364,6 @@ export default function CreatorRegisterNewPage() {
 
         await setDoc(doc(db, "creators", currentUser.uid), hubData, { merge: true })
         
-        // Also initialize creator balance
-        await setDoc(doc(db, "creatorBalances", currentUser.uid), {
-          creatorId: currentUser.uid,
-          availableBalance: 0,
-          pendingBalance: 0,
-          totalEarnings: 0,
-          totalWithdrawn: 0,
-          updatedAt: new Date()
-        }, { merge: true })
       }
 
       // Notify applicant and admins (best-effort)

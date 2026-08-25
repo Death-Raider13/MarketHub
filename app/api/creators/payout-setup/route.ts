@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
     }
 
     const userData = userDoc.data()
+    if (userData?.role !== 'creator') {
+      return NextResponse.json({ error: 'Only creator accounts can configure payouts' }, { status: 403 })
+    }
     const payoutDetails = userData?.payoutDetails
 
     if (!payoutDetails?.bankName || !payoutDetails?.accountNumber) {
@@ -55,6 +58,19 @@ export async function POST(req: NextRequest) {
       payoutStatus: 'configured',
       updatedAt: new Date(),
     })
+
+    const balanceRef = adminDb.collection('creatorBalances').doc(userId)
+    const balanceDoc = await balanceRef.get()
+    if (!balanceDoc.exists) {
+      await balanceRef.set({
+        creatorId: userId,
+        availableBalance: 0,
+        pendingBalance: 0,
+        totalEarnings: 0,
+        totalWithdrawn: 0,
+        updatedAt: new Date(),
+      })
+    }
 
     return NextResponse.json({ 
       success: true, 
