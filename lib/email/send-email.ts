@@ -9,7 +9,7 @@ interface EmailOptions {
 }
 
 export async function sendEmail(options: EmailOptions) {
-  const from = options.from || process.env.FROM_EMAIL || 'noreply@FEROMARKETHUB.com'
+  const from = options.from || process.env.EMAIL_FROM || process.env.FROM_EMAIL || 'Fero E-Library <no-reply@fero-elibrary.shop>'
   const isProd = process.env.NODE_ENV === 'production'
 
   // Prefer Resend for serverless branded email when configured.
@@ -64,9 +64,9 @@ export async function sendEmail(options: EmailOptions) {
         from,
         to: options.to,
         subject: options.subject,
-          html: options.html,
-          ...(options.text ? { text: options.text } : {}),
-        })
+        html: options.html,
+        ...(options.text ? { text: options.text } : {}),
+      })
     } catch (error) {
       console.error('Failed to send email via SMTP, falling back to other providers:', error)
     }
