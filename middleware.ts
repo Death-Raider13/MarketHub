@@ -118,6 +118,19 @@ function buildSecurityHeaders(response: NextResponse, pathname: string, method: 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Firebase may still have the legacy Vercel URL saved as the project's
+  // custom email action handler. Redirect that host to the canonical site
+  // before the client handler runs, preserving every Firebase query parameter.
+  const host = request.headers.get('host')?.split(':')[0].toLowerCase();
+  if (
+    host === 'marketplace-ecommerce-one.vercel.app' &&
+    pathname === '/auth/action'
+  ) {
+    const canonicalUrl = new URL('https://www.fero-elibrary.shop/auth/action');
+    request.nextUrl.searchParams.forEach((value, key) => canonicalUrl.searchParams.set(key, value));
+    return NextResponse.redirect(canonicalUrl, 308);
+  }
+
   // Static assets & internals bypass everything
   if (
     pathname.startsWith('/_next') ||
