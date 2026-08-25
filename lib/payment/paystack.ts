@@ -18,14 +18,25 @@ export function initiatePaystackPayment(
     return
   }
 
+  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
+  if (!publicKey) {
+    throw new Error('Paystack is not configured. Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in the deployment environment.')
+  }
+  if (!/^pk_(test|live)_/.test(publicKey)) {
+    throw new Error('Paystack public key is invalid. It must start with pk_test_ or pk_live_.')
+  }
+  if (!Number.isFinite(data.amount) || data.amount <= 0) {
+    throw new Error('The payment amount is invalid. Please refresh your cart and try again.')
+  }
+
   // Dynamic import to avoid SSR issues
   const PaystackPop = require('@paystack/inline-js').default || require('@paystack/inline-js')
   const paystack = new PaystackPop()
   
   paystack.newTransaction({
-    key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+    key: publicKey,
     email: data.email,
-    amount: data.amount * 100, // Convert to kobo (Naira cents)
+    amount: Math.round(data.amount * 100), // Convert to kobo (Naira cents)
     currency: 'NGN',
     ref: data.orderId,
     subaccount: data.subaccount, // Automated split

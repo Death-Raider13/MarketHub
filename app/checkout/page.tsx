@@ -265,7 +265,8 @@ function CheckoutContent() {
         )
       }
     } catch (error) {
-      toast.error('Failed to initiate payment')
+      const message = error instanceof Error ? error.message : 'Failed to initiate payment'
+      toast.error(message)
       setLoading(false)
     }
   }
