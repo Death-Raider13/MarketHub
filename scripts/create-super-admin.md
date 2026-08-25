@@ -1,210 +1,75 @@
-# 🔐 Create Super Admin - Step by Step Guide
+# Secure First Super-Admin Bootstrap
 
-## Method 1: Firebase Console (Easiest - Recommended)
+MarketHub requires both a Firestore profile role and a Firebase Authentication custom claim. **Do not edit only `users/{uid}.role`**, because protected API requests may still reject the account until the custom claim is synchronized.
 
-### Step 1: Create User Account
-1. Go to your app: `http://localhost:3000/auth/signup`
-2. Sign up with your email and password
-3. Choose role: **Customer** (we'll change this)
-4. Complete signup
+## Prerequisites
 
-### Step 2: Set Super Admin Role in Firestore
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Select your project
-3. Click **Firestore Database** in left menu
-4. Find the `users` collection
-5. Click on your user document (find by email)
-6. Click the **pencil icon** to edit
-7. Find the `role` field
-8. Change value from `customer` to `super_admin`
-9. Click **Update**
+Create or confirm the target account through the website and confirm that it appears in Firebase Authentication. The current first-super-admin target is:
 
-### Step 3: Verify
-1. Logout from your app
-2. Login again
-3. Go to: `http://localhost:3000/admin/super-admin`
-4. You should see the Super Admin Dashboard! 🎉
+```text
+lateefedidi526@gmail.com
+```
 
----
+You need a Firebase service-account credential for the correct project. Never paste that credential into chat, browser code, GitHub, or a `NEXT_PUBLIC_*` environment variable.
 
-## Method 2: Firebase Admin SDK (For Developers)
+## One-time bootstrap
 
-### Step 1: Install Firebase Admin SDK
+From a trusted local machine, set the service-account JSON only for the current shell and run the repository script:
 
 ```bash
-npm install firebase-admin
+export FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account", ...}'
+node scripts/bootstrap-super-admin.mjs lateefedidi526@gmail.com
+unset FIREBASE_SERVICE_ACCOUNT_JSON
 ```
 
-### Step 2: Create Script
+The script is located at:
 
-Create file: `scripts/create-super-admin.js`
-
-```javascript
-const admin = require('firebase-admin');
-
-// Initialize Firebase Admin
-const serviceAccount = require('../path/to/serviceAccountKey.json');
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = admin.firestore();
-
-async function createSuperAdmin(email) {
-  try {
-    // Find user by email
-    const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('email', '==', email).get();
-    
-    if (snapshot.empty) {
-      console.log('User not found. Please sign up first.');
-      return;
-    }
-    
-    // Update user role
-    const userDoc = snapshot.docs[0];
-    await userDoc.ref.update({
-      role: 'super_admin'
-    });
-    
-    console.log(`✅ Successfully made ${email} a Super Admin!`);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-// Replace with your email
-createSuperAdmin('your-email@example.com');
+```text
+scripts/bootstrap-super-admin.mjs
 ```
 
-### Step 3: Run Script
+It performs these operations atomically as far as Firebase permits:
 
-```bash
-node scripts/create-super-admin.js
+1. Finds the existing Firebase Authentication account by email.
+2. Refuses to run if a `super_admin` already exists.
+3. Sets the Firebase Authentication custom claim `role: super_admin`.
+4. Synchronizes `users/{uid}` with `role: super_admin`, `status: active`, and the current Firebase `emailVerified` value.
+5. Prints no password and does not create a password.
+
+After successful use, unset the environment variable and rotate or revoke any temporary credential used for the operation.
+
+## Refresh the account
+
+The account owner must sign out and sign in again, or force an ID-token refresh, because custom claims are loaded into a new Firebase ID token. Then open:
+
+```text
+https://www.fero-elibrary.shop/admin/super-admin
 ```
 
----
+## Verify the result
 
-## Method 3: Firestore REST API (Advanced)
+Confirm all of the following:
 
-### Using cURL:
-
-```bash
-curl -X PATCH \
-  'https://firestore.googleapis.com/v1/projects/YOUR_PROJECT_ID/databases/(default)/documents/users/USER_ID?updateMask.fieldPaths=role' \
-  -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "fields": {
-      "role": {
-        "stringValue": "super_admin"
-      }
-    }
-  }'
+```text
+Firebase Authentication → Users → lateefedidi526@gmail.com
+Custom claims: role = super_admin
 ```
 
----
-
-## ✅ Verification Checklist
-
-After creating Super Admin, verify:
-
-- [ ] Can login successfully
-- [ ] Can access `/admin/dashboard`
-- [ ] Can access `/admin/super-admin`
-- [ ] See "Super Admin" badge in header
-- [ ] Can create new admins
-- [ ] Can view all admin activity
-- [ ] Can access system settings
-
----
-
-## 🚨 Security Reminders
-
-1. **Only create 1-2 Super Admins** (platform owner + backup)
-2. **Use strong password** (20+ characters)
-3. **Enable 2FA** immediately
-4. **Never share credentials**
-5. **Use work email** (not personal)
-6. **Document who has Super Admin access**
-7. **Review access quarterly**
-
----
-
-## 🆘 Troubleshooting
-
-### Issue: Can't access Super Admin page
-
-**Check:**
-1. Role is exactly `super_admin` (lowercase, underscore)
-2. Logged out and back in after role change
-3. No typos in Firestore
-
-**Solution:**
-```javascript
-// In Firebase Console, verify exact value:
-role: "super_admin"  // ✅ Correct
-role: "Super Admin"  // ❌ Wrong
-role: "superadmin"   // ❌ Wrong
-role: "super-admin"  // ❌ Wrong
+```text
+Firestore → users → [the account UID]
+role: super_admin
+status: active
+emailVerified: matches Firebase Authentication
 ```
 
-### Issue: "Insufficient permissions" error
+The account should be able to access `/admin/super-admin`, create administrators, manage platform settings, and perform the protected super-admin operations.
 
-**Solution:**
-1. Check Firestore rules allow admin access
-2. Verify user document exists in `users` collection
-3. Clear browser cache and cookies
-4. Try incognito/private window
+## Ongoing administration
 
-### Issue: Can't find user in Firestore
+After the first super-admin exists, use the protected Super Admin dashboard to promote ordinary users to `admin`, `moderator`, or `support`. Do not run the bootstrap script again. Keep the number of super-admin accounts very small, enable multi-factor authentication where available, and review access regularly.
 
-**Solution:**
-1. Make sure you completed signup
-2. Check Firebase Authentication for user
-3. User document should auto-create on signup
-4. If missing, create manually with required fields:
-   ```json
-   {
-     "uid": "user-id-from-auth",
-     "email": "your-email@example.com",
-     "role": "super_admin",
-     "displayName": "Your Name",
-     "createdAt": "2025-09-30T10:00:00Z"
-   }
-   ```
+## Troubleshooting
 
----
+If the dashboard still denies access after promotion, sign out completely, clear the old session, sign in again, and verify that the Firebase ID token was refreshed. If the Firestore role is correct but the custom claim is missing, rerun the protected synchronization process—not a Firestore-only edit.
 
-## 📞 Need Help?
-
-If you're stuck:
-1. Check browser console for errors
-2. Check Firebase Console for authentication
-3. Verify Firestore rules are deployed
-4. Check environment variables are set
-
----
-
-## 🎯 Quick Reference
-
-**Super Admin Role Value:** `super_admin`
-
-**Super Admin Dashboard URL:** `/admin/super-admin`
-
-**Required Firestore Fields:**
-- `uid` - User ID from Firebase Auth
-- `email` - User email
-- `role` - Must be `super_admin`
-- `displayName` - User's name
-- `createdAt` - Timestamp
-
-**Firestore Path:**
-```
-users/{userId}/role = "super_admin"
-```
-
----
-
-**You're all set! Welcome to Super Admin! 👑**
+If the email verification field is stale, sign in after the email is verified. MarketHub synchronizes Firebase Authentication’s `emailVerified` value into the Firestore profile during authentication-state refresh.
