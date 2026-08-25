@@ -58,6 +58,23 @@ import { collection, query, orderBy, limit, getDocs, where } from "firebase/fire
 import { db } from "@/lib/firebase/config"
 import { startOfMonth, endOfMonth, subMonths, format, startOfDay, endOfDay } from "date-fns"
 
+function toDateValue(value: unknown): Date {
+  if (value && typeof value === 'object' && typeof (value as { toDate?: unknown }).toDate === 'function') {
+    return (value as { toDate: () => Date }).toDate()
+  }
+  if (value instanceof Date) return value
+  if (typeof value === 'number' || typeof value === 'string') {
+    const parsed = new Date(value)
+    if (!Number.isNaN(parsed.getTime())) return parsed
+  }
+  return new Date(0)
+}
+
+function numericValue(value: unknown): number {
+  const number = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(number) ? number : 0
+}
+
 interface FinanceData {
   totalRevenue: number
   totalPayouts: number
@@ -110,7 +127,7 @@ function FinanceDashboardContent() {
       const orders = ordersSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date()
+        createdAt: toDateValue(doc.data().createdAt)
       }))
 
       // Get payouts data
@@ -123,7 +140,7 @@ function FinanceDashboardContent() {
       const payouts = payoutsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date()
+        createdAt: toDateValue(doc.data().createdAt)
       }))
 
       // Calculate totals
@@ -135,7 +152,7 @@ function FinanceDashboardContent() {
         sum + (payout.amount || 0), 0
       )
 
-      const platformFeeRate = 0.05 // 5% platform fee
+      const platformFeeRate = 0.10 // 10% platform fee
       const platformFees = totalRevenue * platformFeeRate
 
       const pendingPayouts = payouts
@@ -175,71 +192,87 @@ function FinanceDashboardContent() {
         }))
         .reverse()
 
-      // Revenue by category (mock data for now)
-      const revenueByCategory = [
-        { category: "Electronics", revenue: totalRevenue * 0.35, color: "#3b82f6" },
-        { category: "Clothing", revenue: totalRevenue * 0.25, color: "#10b981" },
-        { category: "Home & Garden", revenue: totalRevenue * 0.20, color: "#f59e0b" },
-        { category: "Books", revenue: totalRevenue * 0.10, color: "#8b5cf6" },
-        { category: "Sports", revenue: totalRevenue * 0.10, color: "#ef4444" }
-      ]
+      const creatorIds = Array.from(new Set(orders.flatMap((order: any) => {
+        const directCreatorId = typeof order.creatorId === 'string' ? [order.creatorId] : []
+        const itemCreatorIds = Array.isArray(order.items)
+          ? order.items.map((item: any) => item.creatorId || item.product?.creatorId).filter((id: unknown): id is string => typeof id === 'string')
+          : []
+        return [...directCreatorId, ...itemCreatorIds]
+      })))
+      const creatorNames = new Map<string, string>()
+      if (creatorIds.length > 0) {
+        const creatorSnapshot = await getDocs(query(collection(db, 'users'), where('__name__', 'in', creatorIds.slice(0, 10))))
+        creatorSnapshot.docs.forEach((creatorDoc) => {
+          const creator = creatorDoc.data()
+          creatorNames.set(creatorDoc.id, creator.storeName || creator.displayName || creator.email || 'Unknown creator')
+        })
+      }
 
-      // Top creators by revenue (mock data)
-      const topcreatorsByRevenue = [
-        { name: "TechStore Pro", revenue: totalRevenue * 0.15, orders: 234 },
-        { name: "Fashion Hub", revenue: totalRevenue * 0.12, orders: 198 },
-        { name: "Electronics Plus", revenue: totalRevenue * 0.10, orders: 167 },
-        { name: "Home Essentials", revenue: totalRevenue * 0.08, orders: 145 },
-        { name: "Sports World", revenue: totalRevenue * 0.07, orders: 123 }
-      ]
+      const creatorTotals = new Map<string, { revenue: number; orders: number }>()
+      const categoryTotals = new Map<string, number>()
+      orders.forEach((order: any) => {
+        const orderAmount = numericValue(order.totalAmount)
+        const items = Array.isArray(order.items) && order.items.length > 0 ? order.items : [{ product: order.product, creatorId: order.creatorId, quantity: 1, price: orderAmount }]
+        const itemTotal = items.reduce((sum: number, item: any) => sum + numericValue(item.price || item.product?.price) * Math.max(1, numericValue(item.quantity) || 1), 0)
+        const scale = itemTotal > 0 ? orderAmount / itemTotal : 1
+        items.forEach((item: any) => {
+          const creatorId = item.creatorId || item.product?.creatorId || order.creatorId
+          const itemRevenue = numericValue(item.price || item.product?.price) * Math.max(1, numericValue(item.quantity) || 1) * scale
+          if (creatorId) {
+            const current = creatorTotals.get(creatorId) || { revenue: 0, orders: 0 }
+            current.revenue += itemRevenue
+            current.orders += 1
+            creatorTotals.set(creatorId, current)
+          }
+          const category = item.product?.category || item.category || 'Uncategorized'
+          categoryTotals.set(category, (categoryTotals.get(category) || 0) + itemRevenue)
+        })
+      })
 
-      // Recent transactions (mix of real and mock data)
-      const recentTransactions = [
-        {
-          id: "txn1",
-          type: "payment" as const,
-          amount: 250000,
-          customer: "John Doe",
-          status: "completed",
-          date: new Date(Date.now() - 2 * 60 * 60 * 1000)
-        },
-        {
-          id: "txn2",
-          type: "payout" as const,
-          amount: 180000,
-          creator: "TechStore Pro",
-          status: "completed",
-          date: new Date(Date.now() - 4 * 60 * 60 * 1000)
-        },
-        {
-          id: "txn3",
-          type: "fee" as const,
-          amount: 12500,
-          creator: "Fashion Hub",
-          status: "collected",
-          date: new Date(Date.now() - 6 * 60 * 60 * 1000)
-        },
-        {
-          id: "txn4",
-          type: "refund" as const,
-          amount: 75000,
-          customer: "Jane Smith",
-          status: "processed",
-          date: new Date(Date.now() - 8 * 60 * 60 * 1000)
-        }
-      ]
+      const topcreatorsByRevenue = Array.from(creatorTotals.entries())
+        .map(([creatorId, data]) => ({ name: creatorNames.get(creatorId) || `Creator ${creatorId.slice(0, 8)}`, ...data }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5)
+      const categoryColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4']
+      const revenueByCategory = Array.from(categoryTotals.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([category, revenue], index) => ({ category, revenue, color: categoryColors[index % categoryColors.length] }))
 
-      // Payment methods distribution
-      const paymentMethods = [
-        { method: "Card Payment", count: Math.floor(orders.length * 0.6), revenue: totalRevenue * 0.6 },
-        { method: "Bank Transfer", count: Math.floor(orders.length * 0.25), revenue: totalRevenue * 0.25 },
-        { method: "USSD", count: Math.floor(orders.length * 0.10), revenue: totalRevenue * 0.10 },
-        { method: "QR Code", count: Math.floor(orders.length * 0.05), revenue: totalRevenue * 0.05 }
-      ]
+      const customerNames = new Map<string, string>()
+      orders.forEach((order: any) => {
+        if (order.customerId && (order.customerName || order.customerEmail)) customerNames.set(order.customerId, order.customerName || order.customerEmail)
+      })
+      const recentPayments = orders.slice().sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 10).map((order: any) => ({
+        id: order.id,
+        type: 'payment' as const,
+        amount: numericValue(order.totalAmount),
+        customer: order.customerName || customerNames.get(order.customerId) || order.customerEmail,
+        status: order.paymentStatus || 'unknown',
+        date: order.createdAt,
+      }))
+      const recentPayouts = payouts.slice().sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 10).map((payout: any) => ({
+        id: payout.id,
+        type: 'payout' as const,
+        amount: numericValue(payout.amount),
+        creator: creatorNames.get(payout.creatorId) || payout.creatorName,
+        status: payout.status || 'unknown',
+        date: payout.createdAt,
+      }))
+      const recentTransactions = [...recentPayments, ...recentPayouts].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 10)
 
-      // Calculate growth rates (mock for now)
-      const revenueGrowth = 15.2
-      const payoutGrowth = 12.8
+      const paymentMethodTotals = new Map<string, { count: number; revenue: number }>()
+      orders.forEach((order: any) => {
+        const method = String(order.paymentMethod || order.channel || 'Unknown')
+        const current = paymentMethodTotals.get(method) || { count: 0, revenue: 0 }
+        current.count += 1
+        current.revenue += numericValue(order.totalAmount)
+        paymentMethodTotals.set(method, current)
+      })
+      const paymentMethods = Array.from(paymentMethodTotals.entries()).map(([method, data]) => ({ method, ...data }))
+
+      // Growth requires a prior-period query; show zero until that comparison is available.
+      const revenueGrowth = 0
+      const payoutGrowth = 0
 
       setFinanceData({
         totalRevenue,
@@ -502,7 +535,7 @@ function FinanceDashboardContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {financeData?.topcreatorsByRevenue?.map((creator, index) => (
+                      {financeData?.topcreatorsByRevenue?.length ? financeData.topcreatorsByRevenue.map((creator, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">{creator.name}</p>
@@ -510,7 +543,7 @@ function FinanceDashboardContent() {
                           </div>
                           <p className="font-medium">{formatCurrency(creator.revenue)}</p>
                         </div>
-                      ))}
+                      )) : <p className="py-8 text-center text-sm text-muted-foreground">No completed creator revenue is available for this period.</p>}
                     </div>
                   </CardContent>
                 </Card>

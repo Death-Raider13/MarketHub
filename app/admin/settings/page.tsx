@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { db } from "@/lib/firebase/config"
-import { doc, setDoc, getDoc } from "firebase/firestore"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { toast } from "sonner"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
@@ -41,6 +40,7 @@ import { useRouter } from "next/navigation"
 
 function AdminSettingsContent() {
   const router = useRouter()
+  const { getCurrentToken } = useAuth()
   const [loading, setLoading] = useState(false)
 
   // Platform Settings
@@ -89,9 +89,12 @@ function AdminSettingsContent() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const settingsDoc = await getDoc(doc(db, "platform_settings", "config"))
-        if (settingsDoc.exists()) {
-          const s = settingsDoc.data()
+        const token = await getCurrentToken()
+        if (!token) throw new Error('Admin authentication required')
+        const response = await fetch('/api/admin/settings', { headers: { Authorization: `Bearer ${token}` } })
+        if (!response.ok) throw new Error('Failed to load settings')
+        const { settings: s } = await response.json()
+        if (s) {
           if (s.platformName) setPlatformName(s.platformName)
           if (s.platformEmail) setPlatformEmail(s.platformEmail)
           if (s.platformPhone) setPlatformPhone(s.platformPhone)
@@ -124,21 +127,27 @@ function AdminSettingsContent() {
       }
     }
     loadSettings()
-  }, [])
+  }, [getCurrentToken])
 
   const handleSave = async () => {
     setLoading(true)
     try {
-      await setDoc(doc(db, "platform_settings", "config"), {
-        platformName, platformEmail, platformPhone, platformDescription,
-        creatorCommission, transactionFee, minimumPayout, payoutSchedule,
-        smtpHost, smtpPort, smtpUsername,
-        twoFactorAuth, passwordMinLength, sessionTimeout, maxLoginAttempts,
-        creatorRegistration, customerReviews, guestCheckout, socialLogin, wishlist,
-        maintenanceMode, maintenanceMessage,
-        adminEmailNotifications, newcreatorAlerts, newOrderAlerts, reportedContentAlerts,
-        updatedAt: new Date()
-      }, { merge: true })
+      const token = await getCurrentToken()
+      if (!token) throw new Error('Admin authentication required')
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platformName, platformEmail, platformPhone, platformDescription, platformLogo, platformFavicon,
+          creatorCommission, transactionFee, minimumPayout, payoutSchedule,
+          smtpHost, smtpPort, smtpUsername,
+          twoFactorAuth, passwordMinLength, sessionTimeout, maxLoginAttempts,
+          creatorRegistration, customerReviews, guestCheckout, socialLogin, wishlist,
+          maintenanceMode, maintenanceMessage,
+          adminEmailNotifications, newcreatorAlerts, newOrderAlerts, reportedContentAlerts,
+        }),
+      })
+      if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || 'Failed to save settings')
       toast.success("Settings saved successfully!")
     } catch (err) {
       toast.error("Failed to save settings")

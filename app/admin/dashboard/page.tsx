@@ -37,6 +37,23 @@ import { db } from "@/lib/firebase/config"
 import { useAuth } from "@/lib/firebase/auth-context"
 import { formatDistanceToNow, startOfMonth, subMonths, format } from "date-fns"
 
+function toDateValue(value: unknown): Date {
+  if (value && typeof value === 'object' && typeof (value as { toDate?: unknown }).toDate === 'function') {
+    return (value as { toDate: () => Date }).toDate()
+  }
+  if (value instanceof Date) return value
+  if (typeof value === 'number' || typeof value === 'string') {
+    const parsed = new Date(value)
+    if (!Number.isNaN(parsed.getTime())) return parsed
+  }
+  return new Date(0)
+}
+
+function numericValue(value: unknown): number {
+  const parsed = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
 interface DashboardActivity {
   id: string
   type: string
@@ -191,13 +208,13 @@ function UnifiedAdminDashboard() {
         orders = ordersSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate() || new Date()
+          createdAt: toDateValue(doc.data().createdAt)
         }))
 
         totalOrders = orders.length
         totalRevenue = orders
           .filter((order: any) => order.paymentStatus === 'completed' || order.paymentStatus === 'paid')
-          .reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0)
+          .reduce((sum: number, order: any) => sum + numericValue(order.totalAmount), 0)
       } catch (error) {
         console.warn("Could not fetch orders data:", error)
       }
@@ -214,7 +231,7 @@ function UnifiedAdminDashboard() {
       orders.forEach((order: any) => {
         const monthKey = format(order.createdAt, 'MMM yyyy')
         if (monthlyData[monthKey]) {
-          monthlyData[monthKey].revenue += order.totalAmount || 0
+          monthlyData[monthKey].revenue += numericValue(order.totalAmount)
           monthlyData[monthKey].orders += 1
         }
       })
@@ -242,7 +259,7 @@ function UnifiedAdminDashboard() {
           description: `New order placed - Order #${order.id.slice(-6)}`,
           timestamp: order.createdAt,
           priority: 'medium',
-          value: order.totalAmount
+          value: numericValue(order.totalAmount)
         })
       })
 
@@ -250,14 +267,14 @@ function UnifiedAdminDashboard() {
       const recentUsers = users
         .filter((user: any) => user.createdAt)
         .sort((a: any, b: any) => {
-          const aDate = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-          const bDate = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+          const aDate = toDateValue(a.createdAt)
+          const bDate = toDateValue(b.createdAt)
           return bDate.getTime() - aDate.getTime()
         })
         .slice(0, 2)
 
       recentUsers.forEach((user: any) => {
-        const createdAt = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt)
+        const createdAt = toDateValue(user.createdAt)
         recentActivities.push({
           id: `user-${user.id}`,
           type: 'user',
@@ -271,14 +288,14 @@ function UnifiedAdminDashboard() {
       const recentProducts = products
         .filter((product: any) => product.createdAt)
         .sort((a: any, b: any) => {
-          const aDate = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-          const bDate = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+          const aDate = toDateValue(a.createdAt)
+          const bDate = toDateValue(b.createdAt)
           return bDate.getTime() - aDate.getTime()
         })
         .slice(0, 2)
 
       recentProducts.forEach((product: any) => {
-        const createdAt = product.createdAt?.toDate ? product.createdAt.toDate() : new Date(product.createdAt)
+        const createdAt = toDateValue(product.createdAt)
         recentActivities.push({
           id: `product-${product.id}`,
           type: 'product',
@@ -305,46 +322,14 @@ function UnifiedAdminDashboard() {
 
     } catch (error) {
       console.error("Error loading dashboard data:", error)
-      // Fallback to mock data
-      setStats({
-        totalUsers: 1247,
-        totalcreators: 89,
-        totalProducts: 2156,
-        totalOrders: 3421,
-        totalRevenue: 15420000,
-        pendingApprovals: 23,
-        recentActivities: [
-          {
-            id: "1",
-            type: "creator",
-            description: "New creator registration: TechStore Pro",
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-            priority: "medium"
-          }
-        ],
-        monthlyRevenue: [
-          { month: "Jan", revenue: 2400000, orders: 156 },
-          { month: "Feb", revenue: 2800000, orders: 198 },
-          { month: "Mar", revenue: 3200000, orders: 234 },
-          { month: "Apr", revenue: 2900000, orders: 201 },
-          { month: "May", revenue: 3500000, orders: 267 },
-          { month: "Jun", revenue: 4100000, orders: 312 }
-        ]
-      })
+      // Keep the dashboard honest when a collection is unavailable; do not show fabricated business data.
+      setStats(prev => ({ ...prev, recentActivities: [], monthlyRevenue: [] }))
     }
   }
 
   const loadModeratorData = async () => {
     try {
-      // Mock moderator data - replace with real queries
-      setModeratorStats({
-        pendingProducts: 28,
-        pendingReviews: 15,
-        pendingAds: 8,
-        reportedItems: 3,
-        approvedToday: 15,
-        rejectedToday: 2
-      })
+      setModeratorStats(prev => ({ ...prev }))
     } catch (error) {
       console.error("Error loading moderator data:", error)
     }
@@ -352,15 +337,7 @@ function UnifiedAdminDashboard() {
 
   const loadSupportData = async () => {
     try {
-      // Mock support data - replace with real queries
-      setSupportStats({
-        openTickets: 23,
-        resolvedToday: 15,
-        avgResponseTime: "2.5 hours",
-        customerSatisfaction: 4.8,
-        pendingRefunds: 5,
-        escalatedIssues: 2
-      })
+      setSupportStats(prev => ({ ...prev }))
     } catch (error) {
       console.error("Error loading support data:", error)
     }
@@ -368,15 +345,7 @@ function UnifiedAdminDashboard() {
 
   const loadFinanceData = async () => {
     try {
-      // Mock finance data - replace with real queries
-      setFinanceData({
-        totalRevenue: 15420000,
-        totalPayouts: 12336000,
-        platformFees: 771000,
-        pendingPayouts: 450000,
-        revenueGrowth: 15.2,
-        payoutGrowth: 12.8
-      })
+      setFinanceData(prev => ({ ...prev }))
     } catch (error) {
       console.error("Error loading finance data:", error)
     }
