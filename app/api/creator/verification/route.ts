@@ -5,6 +5,7 @@ export const runtime = 'nodejs'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple';
 import { verifyAuthToken } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
+import type { QuerySnapshot } from 'firebase-admin/firestore';
 
 // GET - Fetch verification status for a creator
 export async function GET(request: NextRequest) {
@@ -44,17 +45,26 @@ export async function GET(request: NextRequest) {
     const userDoc = await adminDb.collection('users').doc(userId).get();
     const userData = userDoc.data() || {};
     
-    // Fetch associated verification documents
-    const docsSnapshot = await adminDb
-      .collection('verification_documents')
-      .where('userId', '==', userId)
-      .orderBy('uploadedAt', 'desc')
-      .get();
+    // Fetch documents with an index-free fallback. Older projects may not have
+    // the composite where(userId)+orderBy(uploadedAt) index yet.
+    let docsSnapshot: QuerySnapshot;
+    try {
+      docsSnapshot = await adminDb
+        .collection('verification_documents')
+        .where('userId', '==', userId)
+        .orderBy('uploadedAt', 'desc')
+        .get();
+    } catch (queryError) {
+      logger.warn('Verification document ordering index unavailable; using fallback query');
+      docsSnapshot = await adminDb
+        .collection('verification_documents')
+        .where('userId', '==', userId)
+        .get();
+    }
 
-    const documents = docsSnapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const documents = docsSnapshot.docs
+      .map((doc: any) => ({ id: doc.id, ...doc.data() }))
+      .sort((a: any, b: any) => String(b.uploadedAt || '').localeCompare(String(a.uploadedAt || '')));
 
     return NextResponse.json({
       status: creatorData?.verificationStatus || 'none',
