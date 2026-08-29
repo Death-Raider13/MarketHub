@@ -18,7 +18,8 @@ import {
   MessageSquare,
   HelpCircle,
   Store,
-  Bell
+  Bell,
+  TrendingUp
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
@@ -92,7 +93,7 @@ export function Header() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search books, topic summaries, live classes..."
+              placeholder="Search books, course guides, past questions..."
               className="w-full bg-muted/50 border border-border rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50"
             />
           </div>
@@ -139,11 +140,33 @@ export function Header() {
                   </div>
                   <DropdownMenuSeparator className="bg-muted/50" />
 
-                  {userProfile?.role === "creator" ? (
+                  {userProfile?.role === "promoter" || userProfile?.activeRole === "promoter" ? (
                     <>
+                      <DropdownMenuItem asChild className="focus:bg-emerald-500/10 cursor-pointer rounded-lg mb-1 bg-emerald-500/5 border border-emerald-500/20">
+                        <Link href="/dashboard/promoter" className="flex items-center w-full py-2 font-bold text-emerald-600 dark:text-emerald-400">
+                          <TrendingUp className="mr-3 h-4 w-4 text-emerald-500" />
+                          Affiliate Workspace
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1">
-                        <Link href="/creator/dashboard" className="flex items-center w-full py-2">
-                          <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
+                        <Link href="/my-purchases" className="flex items-center w-full py-2">
+                          <Package className="mr-3 h-4 w-4" />
+                          My Library
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1">
+                        <Link href="/messages" className="flex items-center w-full py-2">
+                          <MessageSquare className="mr-3 h-4 w-4" />
+                          Messages
+                          {unreadCount > 0 && <Badge className="ml-auto bg-destructive">{unreadCount}</Badge>}
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  ) : userProfile?.role === "creator" || userProfile?.activeRole === "creator" ? (
+                    <>
+                      <DropdownMenuItem asChild className="focus:bg-primary/10 cursor-pointer rounded-lg mb-1 bg-purple-500/5 border border-purple-500/20">
+                        <Link href="/creator/dashboard" className="flex items-center w-full py-2 font-bold text-purple-600 dark:text-purple-400">
+                          <LayoutDashboard className="mr-3 h-4 w-4 text-purple-500" />
                           Educator Dashboard
                         </Link>
                       </DropdownMenuItem>
@@ -241,6 +264,12 @@ export function Header() {
                   />
                 </form>
 
+                {user && ['creator', 'promoter', 'admin', 'super_admin'].includes(userProfile?.role || '') && (
+                  <div className="p-2 glass rounded-xl border border-border">
+                    <RoleSwitcher />
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between p-2 glass rounded-xl border border-border">
                   <span className="text-sm font-medium ml-2">Theme Preference</span>
                   <ModeToggle />
@@ -262,10 +291,12 @@ export function Header() {
                       <GraduationCap className="h-5 w-5 text-primary" />
                       Browse Library Books
                     </Link>
-                    <Link href="/classes" className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Store className="h-5 w-5 text-primary" />
-                      Online Live Classes
-                    </Link>
+                    {userProfile?.role === 'promoter' && (
+                      <Link href="/dashboard/promoter" className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl transition-colors font-bold text-emerald-600 dark:text-emerald-400" onClick={() => setIsMobileMenuOpen(false)}>
+                        <TrendingUp className="h-5 w-5 text-emerald-500" />
+                        Affiliate Workspace
+                      </Link>
+                    )}
                     {userProfile?.role === 'creator' && (
                       <Link href="/creator/dashboard" className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl transition-colors font-bold text-primary" onClick={() => setIsMobileMenuOpen(false)}>
                         <LayoutDashboard className="h-5 w-5" />
