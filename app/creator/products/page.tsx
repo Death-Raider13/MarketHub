@@ -267,7 +267,7 @@ function CreatorProductsContent() {
 
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h1 className="text-3xl font-bold">My Products</h1>
             <Button asChild>
               <Link href="/creator/products/new">
@@ -279,65 +279,65 @@ function CreatorProductsContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
+            <aside className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 space-y-0 lg:space-y-2">
               <Link href="/creator/dashboard">
-                <Button variant="default" className="w-full justify-start">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
+                <Button variant="default" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <LayoutDashboard className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Dashboard</span>
                 </Button>
               </Link>
               <Link href="/creator/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="mr-2 h-4 w-4" />
-                  Products
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Package className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Products</span>
                 </Button>
               </Link>
               <Link href="/creator/orders">
-                <Button variant="ghost" className="w-full justify-start">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Orders
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Orders</span>
                 </Button>
               </Link>
               <Link href="/creator/services">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Services
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Calendar className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Services</span>
                 </Button>
               </Link>
               <Link href="/creator/messages">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Mail className="mr-2 h-4 w-4" />
-                  Messages
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Mail className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Messages</span>
                 </Button>
               </Link>
               <Link href="/creator/questions">
-                <Button variant="ghost" className="w-full justify-start">
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  Q&A
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <HelpCircle className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Q&A</span>
                 </Button>
               </Link>
               <Link href="/creator/analytics">
-                <Button variant="ghost" className="w-full justify-start">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Analytics
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <TrendingUp className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Analytics</span>
                 </Button>
               </Link>
               <Link href="/creator/hub">
-                <Button variant="ghost" className="w-full justify-start" id="sidebar-hub-settings">
-                  <Palette className="mr-2 h-4 w-4" />
-                  Hub Settings
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate" id="sidebar-hub-settings">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Hub Settings</span>
                 </Button>
               </Link>
               <Link href="/creator/hub-customize">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Palette className="mr-2 h-4 w-4" />
-                  Customize Hub
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Customize Hub</span>
                 </Button>
               </Link>
               <Link href="/creator/payouts">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Payouts
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Wallet className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Payouts</span>
                 </Button>
               </Link>
             </aside>
@@ -352,7 +352,7 @@ function CreatorProductsContent() {
               ) : (
                 <>
               {/* Stats Overview */}
-              <div className="grid gap-4 sm:grid-cols-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
@@ -408,7 +408,7 @@ function CreatorProductsContent() {
               {/* Search and Filters */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
@@ -418,9 +418,11 @@ function CreatorProductsContent() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
                     </div>
-                    <Button variant="outline">All Products</Button>
-                    <Button variant="outline">Low Stock</Button>
-                    <Button variant="outline">Inactive</Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline">All Products</Button>
+                      <Button variant="outline">Low Stock</Button>
+                      <Button variant="outline">Inactive</Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -444,7 +446,7 @@ function CreatorProductsContent() {
                         {products.map((product) => (
                           <tr key={`${product.id}-${product.status}`} className="border-b border-border">
                             <td className="p-4">
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
                                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                                   <Image
                                     src={product.images[0] || "/placeholder.svg"}
@@ -453,13 +455,13 @@ function CreatorProductsContent() {
                                     className="object-cover"
                                   />
                                 </div>
-                                <div>
-                                  <p className="font-medium">{product.name}</p>
-                                  <p className="text-sm text-muted-foreground">{product.category}</p>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium truncate max-w-[140px] sm:max-w-[240px]" title={product.name}>{product.name}</p>
+                                  <p className="text-sm text-muted-foreground truncate max-w-[140px] sm:max-w-[240px]">{product.category}</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="p-4 text-sm">{product.sku}</td>
+                            <td className="p-4 text-sm font-mono truncate max-w-[100px]">{product.sku}</td>
                             <td className="p-4 text-sm font-medium">
                               ₦{typeof product.price === 'number' ? product.price.toLocaleString() : parseFloat(product.price || '0').toLocaleString()}
                             </td>

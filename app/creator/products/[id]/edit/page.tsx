@@ -281,7 +281,7 @@ function EditProductContent() {
 
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Button variant="ghost" size="icon" asChild>
@@ -291,13 +291,13 @@ function EditProductContent() {
                 </Button>
                 <h1 className="text-3xl font-bold">Edit Product</h1>
               </div>
-              <p className="text-muted-foreground ml-12">Update product details, variants, and inventory</p>
+              <p className="text-muted-foreground sm:ml-12">Update product details, variants, and inventory</p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => router.back()}>
+            <div className="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
+              <Button variant="outline" onClick={() => router.back()} className="flex-1 sm:flex-initial">
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={loading || uploadingImages}>
+              <Button onClick={handleSubmit} disabled={loading || uploadingImages} className="flex-1 sm:flex-initial">
                 <Save className="mr-2 h-4 w-4" />
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
@@ -464,7 +464,7 @@ function EditProductContent() {
                     <CardTitle>Pricing & Inventory</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="price">Price (₦) *</Label>
                         <Input
@@ -515,7 +515,7 @@ function EditProductContent() {
                     <p className="text-sm text-muted-foreground">
                       Upload up to 10 images. First image will be the main product image.
                     </p>
-                    <div className="grid gap-4 sm:grid-cols-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {images.map((image, index) => (
                         <div
                           key={index}

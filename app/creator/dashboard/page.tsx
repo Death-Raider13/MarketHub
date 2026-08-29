@@ -196,12 +196,12 @@ function CreatorDashboardContent() {
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
                 <h1 className="text-3xl font-bold">Educator Dashboard</h1>
                 <p className="text-muted-foreground">Welcome back! Here&apos;s what&apos;s happening with your library</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" asChild className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200">
                   <Link href={`/hub/${userProfile?.uid}`} target="_blank">
                     <Eye className="mr-2 h-4 w-4" />
@@ -237,7 +237,7 @@ function CreatorDashboardContent() {
               </div>
             ) : (
               <>
-                <div className="grid gap-4 sm:grid-cols-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200">
                     <CardContent className="pt-4 pb-4">
                       <div className="flex items-center justify-between">
@@ -293,9 +293,9 @@ function CreatorDashboardContent() {
                 {/* Payout Quick Access Card */}
                 <Card className="mb-6 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
                   <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="rounded-full bg-green-500/10 p-3">
+                        <div className="rounded-full bg-green-500/10 p-3 shrink-0">
                           <Wallet className="h-8 w-8 text-green-600" />
                         </div>
                         <div>
@@ -303,7 +303,7 @@ function CreatorDashboardContent() {
                           <p className="text-sm text-green-700 dark:text-green-300">Manage your withdrawals and view earning history</p>
                         </div>
                       </div>
-                      <Button asChild className="bg-green-600 hover:bg-green-700">
+                      <Button asChild className="bg-green-600 hover:bg-green-700 shrink-0">
                         <Link href="/creator/payouts">
                           <Wallet className="mr-2 h-4 w-4" />
                           View Payouts
@@ -318,75 +318,75 @@ function CreatorDashboardContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
-              <Link href="/creator/dashboard">
-                <Button variant="default" className="w-full justify-start">
+            <aside className="flex flex-row overflow-x-auto lg:flex-col gap-2 shrink-0 pb-2 lg:pb-0 scrollbar-none">
+              <Link href="/creator/dashboard" className="shrink-0">
+                <Button variant="default" className="w-full justify-start text-xs sm:text-sm">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>
               </Link>
-              <Link href="/creator/products">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/products" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <Package className="mr-2 h-4 w-4" />
                   Products
                 </Button>
               </Link>
-              <Link href="/creator/orders">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/orders" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Orders
                 </Button>
               </Link>
-              <Link href="/creator/services">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/services" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <Calendar className="mr-2 h-4 w-4" />
                   Services
                 </Button>
               </Link>
-              <Link href="/creator/messages">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/messages" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <Mail className="mr-2 h-4 w-4" />
                   Messages
                 </Button>
               </Link>
-              <Link href="/creator/questions">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/questions" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <HelpCircle className="mr-2 h-4 w-4" />
                   Q&A
                 </Button>
               </Link>
-              <Link href="/creator/analytics">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/analytics" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <TrendingUp className="mr-2 h-4 w-4" />
                   Analytics
                 </Button>
               </Link>
-              <Link href="/creator/hub">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/hub" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <Palette className="mr-2 h-4 w-4" />
                   Hub Settings
                 </Button>
               </Link>
-              <Link href="/creator/hub-customize">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/hub-customize" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <Palette className="mr-2 h-4 w-4" />
                   Customize Hub
                 </Button>
               </Link>
-              <Link href="/creator/payouts">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/creator/payouts" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm">
                   <Wallet className="mr-2 h-4 w-4" />
                   Payouts
                 </Button>
               </Link>
-              <Link href="/creator/verification">
-                <Button variant="ghost" className="w-full justify-start text-green-600 hover:text-green-700 hover:bg-green-50">
+              <Link href="/creator/verification" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm text-green-600 hover:text-green-700 hover:bg-green-50">
                   <Shield className="mr-2 h-4 w-4" />
                   Verification
                 </Button>
               </Link>
-              <Link href="/help">
-                <Button variant="ghost" className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+              <Link href="/help" className="shrink-0">
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50">
                   <HelpCircle className="mr-2 h-4 w-4" />
                   Platform Support
                 </Button>
@@ -396,7 +396,7 @@ function CreatorDashboardContent() {
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">
               {/* Stats Cards */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
@@ -482,7 +482,7 @@ function CreatorDashboardContent() {
               </Card>
 
               {/* Action Items & Alerts */}
-              <div className="grid gap-6 lg:grid-cols-3 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
@@ -657,17 +657,17 @@ function CreatorDashboardContent() {
                   <CardContent className="space-y-4">
                     {recentOrders.map((order) => (
                       <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full ${order.status === 'pending' ? 'bg-orange-500' :
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${order.status === 'pending' ? 'bg-orange-500' :
                               order.status === 'processing' ? 'bg-blue-500' :
                                 'bg-green-500'
                             }`} />
-                          <div>
-                            <p className="font-medium">{order.id}</p>
-                            <p className="text-sm text-muted-foreground">{order.customer}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium truncate">{order.id}</p>
+                            <p className="text-sm text-muted-foreground truncate">{order.customer}</p>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0 ml-2">
                           <p className="font-medium">₦{order.total.toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground capitalize">{order.status}</p>
                         </div>
@@ -687,21 +687,21 @@ function CreatorDashboardContent() {
                   <CardContent className="space-y-4">
                     {topProducts.length > 0 ? (
                       topProducts.map((product, index) => (
-                        <div key={product.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden">
+                        <div key={product.id} className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
                               {product.image ? (
                                 <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                               ) : (
                                 <Package className="h-5 w-5 text-muted-foreground" />
                               )}
                             </div>
-                            <div>
-                              <p className="font-medium">{product.name}</p>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium truncate">{product.name}</p>
                               <p className="text-sm text-muted-foreground">{product.sold} sold</p>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             <p className="font-medium">₦{product.revenue.toLocaleString()}</p>
                             <p className={`text-xs flex items-center justify-end ${index === 0 ? 'text-green-600' : index === 1 ? 'text-blue-600' : 'text-orange-600'
                               }`}>

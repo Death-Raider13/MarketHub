@@ -139,10 +139,10 @@ export default function NewResourcePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-card rounded-[2.5rem] p-8 md:p-10 border-border"
+              className="glass-card rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 border-border"
             >
               <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1 block mb-4">Select Content Type</label>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                   { id: "past_question", label: "Past Questions", icon: FileText },
                   { id: "course", label: "Full Course", icon: UploadCloud },
@@ -153,7 +153,7 @@ export default function NewResourcePage() {
                     key={t.id}
                     type="button"
                     onClick={() => setResourceType(t.id as any)}
-                    className={`p-6 rounded-[1.5rem] border flex flex-col items-center gap-4 transition-all duration-300 ${resourceType === t.id
+                    className={`p-4 sm:p-6 rounded-[1.5rem] border flex flex-col items-center gap-3 sm:gap-4 transition-all duration-300 ${resourceType === t.id
                       ? "bg-primary border-primary shadow-[0_0_25px_rgba(79,70,229,0.3)] text-white transform -translate-y-1"
                       : "bg-muted/50 border-border hover:border-primary/20 text-muted-foreground hover:text-foreground"
                       }`}
@@ -190,7 +190,7 @@ export default function NewResourcePage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="glass-card rounded-[2.5rem] p-8 md:p-10 border-white/10 space-y-8 relative overflow-hidden"
+                className="glass-card rounded-[2.5rem] p-6 sm:p-8 md:p-10 border-white/10 space-y-8 relative overflow-hidden"
               >
                 <h3 className="text-xl font-black flex items-center gap-3">
                   <BookOpen className="h-6 w-6 text-primary" />
@@ -215,7 +215,7 @@ export default function NewResourcePage() {
                 {/* CBT Builder */}
                 {resourceType === "exam_prep" && (
                   <div className="space-y-6 relative z-10">
-                    <div className="flex items-center justify-between p-4 bg-primary/10 rounded-2xl border border-primary/20">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-primary/10 rounded-2xl border border-primary/20">
                       <span className="text-xs font-bold text-primary">CBT Engine Active. Simulating Real Environment.</span>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-primary" />
@@ -230,7 +230,7 @@ export default function NewResourcePage() {
                     </div>
 
                     {questions.map((q, i) => (
-                      <div key={i} className="p-6 bg-muted/20 border border-border rounded-[1.5rem] space-y-4 relative group">
+                      <div key={i} className="p-4 sm:p-6 bg-muted/20 border border-border rounded-[1.5rem] space-y-4 relative group">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Question {i + 1}</span>
                         </div>
@@ -242,7 +242,7 @@ export default function NewResourcePage() {
                             const n = [...questions]; n[i].q = e.target.value; setQuestions(n);
                           }}
                         />
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {['a','b','c','d'].map((opt) => (
                             <div key={opt} className={`relative flex items-center border rounded-xl overflow-hidden ${q.correct === opt ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
                               <button 
@@ -280,19 +280,19 @@ export default function NewResourcePage() {
                     </div>
                     <div className="space-y-4">
                       {modules.map((m, i) => (
-                        <div key={i} className="flex gap-4 p-4 bg-muted/20 border border-border rounded-2xl items-center flex-wrap sm:flex-nowrap">
-                          <div className="bg-muted h-10 w-10 rounded-xl flex items-center justify-center font-black text-xs text-muted-foreground">{i + 1}</div>
+                        <div key={i} className="flex gap-3 p-4 bg-muted/20 border border-border rounded-2xl items-center flex-wrap sm:flex-nowrap">
+                          <div className="bg-muted h-10 w-10 rounded-xl flex items-center justify-center font-black text-xs text-muted-foreground shrink-0">{i + 1}</div>
                           <input 
                             type="text" 
                             placeholder="Module Title (e.g. Advanced Calculus Intro)" 
-                            className="flex-1 min-w-[200px] bg-transparent border-none outline-none text-sm font-bold placeholder:text-muted-foreground/50" 
+                            className="flex-1 min-w-0 w-full sm:w-auto bg-transparent border-none outline-none text-sm font-bold placeholder:text-muted-foreground/50" 
                             value={m.title}
                             onChange={(e) => { const n = [...modules]; n[i].title = e.target.value; setModules(n); }}
                           />
                           <input 
                             type="text" 
                             placeholder="Mins (e.g. 45)" 
-                            className="w-24 bg-muted/30 border border-border/50 rounded-lg px-3 py-2 text-xs font-mono text-center" 
+                            className="w-24 bg-muted/30 border border-border/50 rounded-lg px-3 py-2 text-xs font-mono text-center shrink-0" 
                             value={m.duration}
                             onChange={(e) => { const n = [...modules]; n[i].duration = e.target.value; setModules(n); }}
                           />
@@ -308,7 +308,7 @@ export default function NewResourcePage() {
             </AnimatePresence>
 
             {/* Price & Target Institution */}
-            <div className="glass-card rounded-[2.5rem] p-8 md:p-10 border-white/10 space-y-8">
+            <div className="glass-card rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 border-white/10 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Target Institution</label>
@@ -358,7 +358,7 @@ export default function NewResourcePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="p-8 bg-indigo-500/10 border border-indigo-500/20 rounded-[2.5rem] flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left"
+              className="p-4 sm:p-8 bg-indigo-500/10 border border-indigo-500/20 rounded-[1.5rem] sm:rounded-[2.5rem] flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left"
             >
               <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
                 <ShieldCheck className="h-8 w-8 text-primary" />

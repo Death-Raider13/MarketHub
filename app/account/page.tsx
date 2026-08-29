@@ -664,92 +664,96 @@ function AccountPageContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
+            <aside className="space-y-4">
               <Card>
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center">
-                    <Avatar className="h-24 w-24 mb-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-row sm:flex-col items-center gap-4 text-left sm:text-center">
+                    <Avatar className="h-14 w-14 sm:h-24 sm:w-24 shrink-0">
                       <AvatarImage src={userProfile?.photoURL} />
-                      <AvatarFallback className="text-2xl">
+                      <AvatarFallback className="text-lg sm:text-2xl">
                         {userProfile?.displayName?.charAt(0) || user?.email?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <h3 className="font-semibold text-lg">{userProfile?.displayName || "User"}</h3>
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
-                    <Badge variant="secondary" className="mt-2">
-                      {userProfile?.role}
-                    </Badge>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-base sm:text-lg truncate">{userProfile?.displayName || "User"}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{user?.email}</p>
+                      <Badge variant="secondary" className="mt-1 sm:mt-2">
+                        {userProfile?.role}
+                      </Badge>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Button
-                variant={activeTab === "profile" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab("profile")}
-              >
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </Button>
-              <Link href="/my-orders">
+              <div className="flex flex-row overflow-x-auto lg:flex-col gap-2 pb-2 lg:pb-0 max-w-full -mx-4 px-4 sm:mx-0 sm:px-0">
                 <Button
-                  variant="ghost"
-                  className="w-full justify-start"
+                  variant={activeTab === "profile" ? "default" : "ghost"}
+                  className="justify-start shrink-0"
+                  onClick={() => setActiveTab("profile")}
                 >
-                  <Package className="mr-2 h-4 w-4" />
-                  Orders
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
                 </Button>
-              </Link>
-              <Link href="/my-purchases">
+                <Link href="/my-orders" className="shrink-0">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start shrink-0"
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    Orders
+                  </Button>
+                </Link>
+                <Link href="/my-purchases" className="shrink-0">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start shrink-0"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    My Purchases
+                  </Button>
+                </Link>
                 <Button
-                  variant="ghost"
-                  className="w-full justify-start"
+                  variant={activeTab === "addresses" ? "default" : "ghost"}
+                  className="justify-start shrink-0"
+                  onClick={() => setActiveTab("addresses")}
                 >
-                  <Download className="mr-2 h-4 w-4" />
-                  My Purchases
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Addresses
                 </Button>
-              </Link>
-              <Button
-                variant={activeTab === "addresses" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab("addresses")}
-              >
-                <MapPin className="mr-2 h-4 w-4" />
-                Addresses
-              </Button>
-              <Button
-                variant={activeTab === "wishlist" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab("wishlist")}
-              >
-                <Heart className="mr-2 h-4 w-4" />
-                Wishlist
-              </Button>
-              <Button
-                variant={activeTab === "notifications" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab("notifications")}
-              >
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
-              </Button>
-              <Button
-                variant={activeTab === "security" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab("security")}
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                Security
-              </Button>
-              <Link href="/account/reports">
                 <Button
-                  variant="ghost"
-                  className="w-full justify-start"
+                  variant={activeTab === "wishlist" ? "default" : "ghost"}
+                  className="justify-start shrink-0"
+                  onClick={() => setActiveTab("wishlist")}
                 >
-                  <Flag className="mr-2 h-4 w-4" />
-                  My Reports
+                  <Heart className="mr-2 h-4 w-4" />
+                  Wishlist
                 </Button>
-              </Link>
+                <Button
+                  variant={activeTab === "notifications" ? "default" : "ghost"}
+                  className="justify-start shrink-0"
+                  onClick={() => setActiveTab("notifications")}
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  Notifications
+                </Button>
+                <Button
+                  variant={activeTab === "security" ? "default" : "ghost"}
+                  className="justify-start shrink-0"
+                  onClick={() => setActiveTab("security")}
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  Security
+                </Button>
+                <Link href="/account/reports" className="shrink-0">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start shrink-0"
+                  >
+                    <Flag className="mr-2 h-4 w-4" />
+                    My Reports
+                  </Button>
+                </Link>
+              </div>
             </aside>
 
             {/* Main Content */}
@@ -757,7 +761,7 @@ function AccountPageContent() {
               {/* Profile Tab */}
               {activeTab === "profile" && (
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <CardTitle>Personal Information</CardTitle>
                       <CardDescription>Update your personal details</CardDescription>
@@ -765,6 +769,7 @@ function AccountPageContent() {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="w-full sm:w-auto"
                       onClick={() => setIsEditing(!isEditing)}
                     >
                       <Edit className="mr-2 h-4 w-4" />
@@ -818,9 +823,10 @@ function AccountPageContent() {
                     </div>
 
                     {isEditing && (
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-col sm:flex-row justify-end gap-2">
                         <Button
                           variant="outline"
+                          className="w-full sm:w-auto"
                           onClick={() => {
                             setIsEditing(false)
                             // Reset to original values
@@ -834,7 +840,7 @@ function AccountPageContent() {
                         >
                           Cancel
                         </Button>
-                        <Button onClick={handleSaveProfile} disabled={saving}>
+                        <Button onClick={handleSaveProfile} className="w-full sm:w-auto" disabled={saving}>
                           {saving ? 'Saving...' : 'Save Changes'}
                         </Button>
                       </div>
@@ -847,12 +853,12 @@ function AccountPageContent() {
               {activeTab === "addresses" && (
                 <div className="space-y-6">
                   <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <CardTitle>Saved Addresses</CardTitle>
                         <CardDescription>Manage your delivery addresses ({addresses.length})</CardDescription>
                       </div>
-                      <Button onClick={handleAddAddress}>
+                      <Button onClick={handleAddAddress} className="w-full sm:w-auto">
                         <Plus className="mr-2 h-4 w-4" />
                         Add Address
                       </Button>
@@ -954,9 +960,10 @@ function AccountPageContent() {
                               />
                               <Label htmlFor="isDefault" className="cursor-pointer">Set as default address</Label>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2">
                               <Button
                                 variant="outline"
+                                className="w-full sm:w-auto"
                                 onClick={() => {
                                   setShowAddressForm(false)
                                   setEditingAddress(null)
@@ -965,7 +972,7 @@ function AccountPageContent() {
                               >
                                 Cancel
                               </Button>
-                              <Button onClick={handleSaveAddress} disabled={saving}>
+                              <Button onClick={handleSaveAddress} className="w-full sm:w-auto" disabled={saving}>
                                 {saving ? 'Saving...' : 'Save Address'}
                               </Button>
                             </div>
@@ -988,8 +995,8 @@ function AccountPageContent() {
                       ) : (
                         addresses.map((address) => (
                           <Card key={address.id}>
-                            <CardContent className="p-6">
-                              <div className="flex items-start justify-between">
+                            <CardContent className="p-4 sm:p-6">
+                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
                                     <h3 className="font-semibold">{address.type}</h3>
@@ -1008,7 +1015,7 @@ function AccountPageContent() {
                                   <p className="text-sm text-muted-foreground">{address.country}</p>
                                   <p className="text-sm text-muted-foreground mt-1">{address.phone}</p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                   {!address.isDefault && (
                                     <Button
                                       variant="outline"
@@ -1175,7 +1182,7 @@ function AccountPageContent() {
                           onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                         />
                       </div>
-                      <Button onClick={handleChangePassword} disabled={changingPassword}>
+                      <Button onClick={handleChangePassword} className="w-full sm:w-auto" disabled={changingPassword}>
                         {changingPassword ? 'Updating...' : 'Update Password'}
                       </Button>
                     </CardContent>
@@ -1194,6 +1201,7 @@ function AccountPageContent() {
                           </p>
                           <Button
                             variant="destructive"
+                            className="w-full sm:w-auto"
                             onClick={() => setShowDeleteConfirm(true)}
                           >
                             Delete Account
@@ -1213,9 +1221,10 @@ function AccountPageContent() {
                               <li>Permanently delete your account</li>
                             </ul>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <Button
                               variant="outline"
+                              className="w-full sm:w-auto"
                               onClick={() => setShowDeleteConfirm(false)}
                               disabled={saving}
                             >
@@ -1223,6 +1232,7 @@ function AccountPageContent() {
                             </Button>
                             <Button
                               variant="destructive"
+                              className="w-full sm:w-auto"
                               onClick={handleDeleteAccount}
                               disabled={saving}
                             >

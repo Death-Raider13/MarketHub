@@ -125,23 +125,25 @@ export default function PurchasesPage() {
             </Card>
           ) : (
             <Tabs defaultValue="all" className="space-y-6">
-              <TabsList>
-                <TabsTrigger value="all">
-                  All Orders ({orders.length})
-                </TabsTrigger>
-                <TabsTrigger value="digital">
-                  Digital Products
-                </TabsTrigger>
-                <TabsTrigger value="physical">
-                  Physical Products
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto max-w-full pb-1">
+                <TabsList className="w-full min-w-max justify-start h-auto p-1 gap-1">
+                  <TabsTrigger value="all" className="shrink-0">
+                    All Orders ({orders.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="digital" className="shrink-0">
+                    Digital Products
+                  </TabsTrigger>
+                  <TabsTrigger value="physical" className="shrink-0">
+                    Physical Products
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="all" className="space-y-4">
                 {orders.map((order) => (
                   <Card key={order.id}>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                         <div>
                           <CardTitle className="text-lg">
                             Order #{order.id.substring(0, 8).toUpperCase()}
@@ -154,7 +156,7 @@ export default function PurchasesPage() {
                             })}
                           </p>
                         </div>
-                        <Badge variant="default" className="bg-green-500">
+                        <Badge variant="default" className="bg-green-500 self-start sm:self-auto">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Paid
                         </Badge>
@@ -170,7 +172,7 @@ export default function PurchasesPage() {
                           </h4>
                           {getDigitalItems(order).map((item: any, idx: number) => (
                             <div key={idx} className="border rounded-lg p-4 space-y-3">
-                              <div className="flex items-start justify-between">
+                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                                 <div>
                                   <p className="font-medium">{item.productName}</p>
                                   <p className="text-sm text-muted-foreground">
@@ -187,13 +189,14 @@ export default function PurchasesPage() {
                                 <div className="space-y-2 pt-2 border-t">
                                   <p className="text-sm font-medium">Download Files:</p>
                                   {item.product.digitalFiles.map((file: any) => (
-                                    <div key={file.id} className="flex items-center justify-between bg-muted p-3 rounded">
-                                      <div className="flex items-center gap-2">
-                                        <FileText className="h-4 w-4 text-primary" />
-                                        <span className="text-sm">{file.fileName}</span>
+                                    <div key={file.id} className="flex flex-col sm:flex-row sm:items-center justify-between bg-muted p-3 rounded gap-2">
+                                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <FileText className="h-4 w-4 text-primary shrink-0" />
+                                        <span className="text-sm truncate">{file.fileName}</span>
                                       </div>
                                       <Button
                                         size="sm"
+                                        className="w-full sm:w-auto shrink-0"
                                         onClick={() => handleDownload(file.fileUrl, file.fileName)}
                                       >
                                         <Download className="h-4 w-4 mr-1" />
@@ -221,7 +224,7 @@ export default function PurchasesPage() {
                           </h4>
                           {getPhysicalItems(order).map((item: any, idx: number) => (
                             <div key={idx} className="border rounded-lg p-4">
-                              <div className="flex items-start justify-between">
+                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                                 <div>
                                   <p className="font-medium">{item.productName}</p>
                                   <p className="text-sm text-muted-foreground">

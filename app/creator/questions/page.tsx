@@ -254,16 +254,16 @@ function CreatorQuestionsContent() {
           </div>
 
           <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="all">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto p-1 gap-1">
+              <TabsTrigger value="all" className="justify-center">
                 All Questions ({questions.length})
               </TabsTrigger>
-              <TabsTrigger value="pending">
-                <Clock className="h-4 w-4 mr-2" />
+              <TabsTrigger value="pending" className="justify-center">
+                <Clock className="h-4 w-4 mr-2 shrink-0" />
                 Pending ({pendingCount})
               </TabsTrigger>
-              <TabsTrigger value="answered">
-                <CheckCircle className="h-4 w-4 mr-2" />
+              <TabsTrigger value="answered" className="justify-center">
+                <CheckCircle className="h-4 w-4 mr-2 shrink-0" />
                 Answered ({answeredCount})
               </TabsTrigger>
             </TabsList>
@@ -294,16 +294,16 @@ function CreatorQuestionsContent() {
                   <Card key={question.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                          <Avatar>
+                        <div className="flex items-start gap-4 min-w-0">
+                          <Avatar className="shrink-0">
                             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
                               {question.userName.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-semibold">{question.userName}</span>
-                              <Badge variant={question.answer ? "default" : "secondary"}>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="font-semibold truncate">{question.userName}</span>
+                              <Badge variant={question.answer ? "default" : "secondary"} className="shrink-0">
                                 {question.answer ? 'Answered' : 'Pending'}
                               </Badge>
                             </div>
@@ -311,7 +311,7 @@ function CreatorQuestionsContent() {
                               Asked {formatDate(question.createdAt?.toString())}
                             </p>
                             {question.productName && (
-                              <p className="text-sm text-muted-foreground mt-1">
+                              <p className="text-sm text-muted-foreground mt-1 truncate">
                                 Product: <span className="font-medium">{question.productName}</span>
                               </p>
                             )}
@@ -323,14 +323,14 @@ function CreatorQuestionsContent() {
                       {/* Question */}
                       <div className="bg-muted p-4 rounded-lg">
                         <p className="font-medium mb-1">Question:</p>
-                        <p>{question.question}</p>
+                        <p className="break-words">{question.question}</p>
                       </div>
 
                       {/* Answer */}
                       {question.answer ? (
                         <div className="bg-primary/5 p-4 rounded-lg border-l-4 border-primary">
                           <p className="font-medium mb-1 text-primary">Your Answer:</p>
-                          <p>{question.answer}</p>
+                          <p className="break-words">{question.answer}</p>
                           {question.answeredAt && (
                             <p className="text-sm text-muted-foreground mt-2">
                               Answered {formatDate(question.answeredAt?.toString())}
@@ -372,11 +372,11 @@ function CreatorQuestionsContent() {
                           </div>
                           {question.replies.map((reply) => (
                             <div key={reply.id} className="pl-4 border-l-2 border-muted bg-muted/30 p-3 rounded-r-lg">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`font-medium ${reply.isCreator ? 'text-primary' : ''}`}>
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className={`font-medium truncate ${reply.isCreator ? 'text-primary' : ''}`}>
                                   {reply.userName}
                                   {reply.isCreator && (
-                                    <span className="ml-1 text-xs bg-primary text-primary-foreground px-1 rounded">
+                                    <span className="ml-1 text-xs bg-primary text-primary-foreground px-1 rounded shrink-0">
                                       Creator
                                     </span>
                                   )}
@@ -385,7 +385,7 @@ function CreatorQuestionsContent() {
                                   {formatDate(reply.createdAt)}
                                 </span>
                               </div>
-                              <p className="text-foreground">{reply.message}</p>
+                              <p className="text-foreground break-words">{reply.message}</p>
                             </div>
                           ))}
                         </div>

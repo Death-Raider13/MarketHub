@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuth, type UserRole } from '@/lib/firebase/auth-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,12 +13,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Settings, User, Shield, LayoutDashboard, Crown, Briefcase, Flag, Headphones } from 'lucide-react';
+import { LogOut, Settings, User, Shield, LayoutDashboard, Crown, Briefcase, Flag, Headphones, Menu } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import Link from 'next/link';
 
 export function AdminHeader() {
   const { user, userProfile, logout } = useAuth();
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const getInitials = (name?: string) => {
     if (!name) return 'AD';
@@ -75,7 +79,21 @@ export function AdminHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Admin Navigation</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Admin Navigation</SheetTitle>
+              </SheetHeader>
+              <AdminSidebar className="flex w-full border-r-0" onNavigate={() => setSheetOpen(false)} />
+            </SheetContent>
+          </Sheet>
           <Link href="/admin/dashboard" className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">Admin Panel</span>

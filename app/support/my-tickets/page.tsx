@@ -101,11 +101,11 @@ function MyTicketsContent() {
                   Back to Help Center
                 </Link>
               </div>
-              <h1 className="text-3xl font-bold">My Support Tickets</h1>
-              <p className="text-muted-foreground">Track and manage your requests to our support team</p>
+              <h1 className="text-2xl sm:text-3xl font-bold">My Support Tickets</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Track and manage your requests to our support team</p>
             </div>
             
-            <Button asChild>
+            <Button asChild className="w-full md:w-auto">
               <Link href="/contact">
                 <Plus className="mr-2 h-4 w-4" />
                 Submit New Ticket
@@ -138,8 +138,8 @@ function MyTicketsContent() {
               {tickets.map((ticket) => (
                 <Card key={ticket.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-0">
-                    <div className="flex items-center p-6 gap-4">
-                      <div className={`hidden sm:flex h-12 w-12 items-center justify-center rounded-full ${
+                    <div className="flex flex-col sm:flex-row sm:items-center p-4 sm:p-6 gap-4">
+                      <div className={`hidden sm:flex h-12 w-12 items-center justify-center rounded-full shrink-0 ${
                         ticket.status === 'open' ? 'bg-red-50 text-red-600' :
                         ticket.status === 'in_progress' ? 'bg-blue-50 text-blue-600' :
                         'bg-green-50 text-green-600'
@@ -149,15 +149,15 @@ function MyTicketsContent() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+                          <span className="text-xs font-semibold text-muted-foreground tracking-wider uppercase truncate">
                             {ticket.ticketNumber}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground shrink-0">
                             {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold truncate mb-2">{ticket.subject}</h3>
-                        <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-base sm:text-lg font-semibold truncate mb-2">{ticket.subject}</h3>
+                        <div className="flex flex-wrap items-center gap-2">
                           <Badge className={getStatusColor(ticket.status)} variant="outline">
                             <span className="flex items-center gap-1">
                               <span className="sm:hidden">{getStatusIcon(ticket.status)}</span>
@@ -173,11 +173,13 @@ function MyTicketsContent() {
                         </div>
                       </div>
                       
-                      <Button variant="ghost" size="icon" className="shrink-0" asChild>
-                        <Link href={`/support/my-tickets/${ticket.id}`}>
-                          <ChevronRight className="h-5 w-5" />
-                        </Link>
-                      </Button>
+                      <div className="flex justify-end sm:justify-start">
+                        <Button variant="ghost" size="icon" className="shrink-0" asChild>
+                          <Link href={`/support/my-tickets/${ticket.id}`}>
+                            <ChevronRight className="h-5 w-5" />
+                          </Link>
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -186,9 +188,9 @@ function MyTicketsContent() {
           )}
           
           <Card className="mt-12 border-blue-100 bg-blue-50/50">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="rounded-full bg-blue-100 p-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <div className="rounded-full bg-blue-100 p-2 shrink-0">
                   <AlertTriangle className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
@@ -197,7 +199,7 @@ function MyTicketsContent() {
                     If you haven't received a response within 48 hours for a critical issue, 
                     please contact our priority support on WhatsApp.
                   </p>
-                  <Button variant="link" className="px-0 h-auto text-blue-700 font-bold" asChild>
+                  <Button variant="link" className="px-0 h-auto text-blue-700 font-bold mt-2 sm:mt-0" asChild>
                     <a href="https://wa.me/234XXXXXXXXXX" target="_blank" rel="noopener noreferrer">
                       WhatsApp Priority Support →
                     </a>

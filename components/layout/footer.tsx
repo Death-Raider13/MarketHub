@@ -4,9 +4,9 @@ import { Facebook, Instagram, Youtube, Send, Store, GraduationCap, ShieldCheck, 
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-background pt-20 pb-10 text-foreground">
+    <footer className="border-t border-border bg-background pt-12 sm:pt-20 pb-8 sm:pb-10 text-foreground">
       <div className="container mx-auto px-4">
-        <div className="grid gap-12 md:px-6 lg:grid-cols-4">
+        <div className="grid gap-8 sm:gap-12 md:px-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand & Mission */}
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-2 mb-4 group">
@@ -119,7 +119,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-20 pt-10 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6 px-6">
+        <div className="mt-12 sm:mt-20 pt-8 sm:pt-10 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 px-2 sm:px-6 text-center md:text-left">
           <div className="flex flex-col items-center md:items-start gap-1">
             <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Fero E-Library. All rights reserved.</p>
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
@@ -128,7 +128,7 @@ export function Footer() {
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
             <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
             <Link href="/help" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Support</Link>

@@ -358,17 +358,17 @@ function CheckoutContent() {
       <Header />
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold">Checkout</h1>
-            <div className="mt-4 flex items-center gap-4">
-              <div className={`flex items-center gap-2 ${step >= 1 ? "text-primary" : "text-muted-foreground"}`}>
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full ${step >= 1 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>1</div>
-                <span className="text-sm font-medium">Payment</span>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold">Checkout</h1>
+            <div className="mt-3 sm:mt-4 flex items-center gap-2 sm:gap-4">
+              <div className={`flex items-center gap-1.5 sm:gap-2 ${step >= 1 ? "text-primary" : "text-muted-foreground"}`}>
+                <div className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs sm:text-sm ${step >= 1 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>1</div>
+                <span className="text-xs sm:text-sm font-medium">Payment</span>
               </div>
               <div className="h-px flex-1 bg-border" />
-              <div className={`flex items-center gap-2 ${step >= 3 ? "text-primary" : "text-muted-foreground"}`}>
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full ${step >= 3 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>2</div>
-                <span className="text-sm font-medium">Confirmation</span>
+              <div className={`flex items-center gap-1.5 sm:gap-2 ${step >= 3 ? "text-primary" : "text-muted-foreground"}`}>
+                <div className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs sm:text-sm ${step >= 3 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>2</div>
+                <span className="text-xs sm:text-sm font-medium">Confirmation</span>
               </div>
             </div>
           </div>
@@ -499,9 +499,9 @@ function CheckoutContent() {
                 <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
                 <CardContent className="space-y-4 text-sm">
                   {items.map(item => (
-                    <div key={item.product.id} className="flex justify-between">
-                      <span className="line-clamp-1">{item.product.name} (x{item.quantity})</span>
-                      <span className="font-medium">₦{(item.product.price * item.quantity).toLocaleString()}</span>
+                    <div key={item.product.id} className="flex items-center justify-between gap-3">
+                      <span className="line-clamp-1 flex-1 pr-2">{item.product.name} (x{item.quantity})</span>
+                      <span className="font-medium shrink-0">₦{(item.product.price * item.quantity).toLocaleString()}</span>
                     </div>
                   ))}
                   <div className="border-t pt-2 space-y-1">

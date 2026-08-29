@@ -166,10 +166,10 @@ function CreatorAnalyticsContent() {
                 <h1 className="text-3xl font-bold">Sales Analytics</h1>
                 <p className="text-muted-foreground">Track your hub performance and insights</p>
               </div>
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex gap-3 flex-wrap w-full sm:w-auto">
                 <Select value={period} onValueChange={setPeriod}>
-                  <SelectTrigger className="w-[180px]">
-                    <Calendar className="mr-2 h-4 w-4" />
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <Calendar className="mr-2 h-4 w-4 shrink-0" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -179,11 +179,11 @@ function CreatorAnalyticsContent() {
                     <SelectItem value="365">Last year</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" onClick={exportReport} disabled={exporting}>
+                <Button variant="outline" onClick={exportReport} disabled={exporting} className="w-full sm:w-auto">
                   {exporting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin shrink-0" />
                   ) : (
-                    <Download className="mr-2 h-4 w-4" />
+                    <Download className="mr-2 h-4 w-4 shrink-0" />
                   )}
                   Export Report
                 </Button>
@@ -193,65 +193,65 @@ function CreatorAnalyticsContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
+            <aside className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 space-y-0 lg:space-y-2">
               <Link href="/creator/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <LayoutDashboard className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Dashboard</span>
                 </Button>
               </Link>
               <Link href="/creator/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="mr-2 h-4 w-4" />
-                  Products
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Package className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Products</span>
                 </Button>
               </Link>
               <Link href="/creator/orders">
-                <Button variant="ghost" className="w-full justify-start">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Orders
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Orders</span>
                 </Button>
               </Link>
               <Link href="/creator/services">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Services
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Calendar className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Services</span>
                 </Button>
               </Link>
               <Link href="/creator/messages">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Mail className="mr-2 h-4 w-4" />
-                  Messages
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Mail className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Messages</span>
                 </Button>
               </Link>
               <Link href="/creator/questions">
-                <Button variant="ghost" className="w-full justify-start">
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  Q&A
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <HelpCircle className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Q&A</span>
                 </Button>
               </Link>
               <Link href="/creator/analytics">
-                <Button variant="default" className="w-full justify-start">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Analytics
+                <Button variant="default" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <TrendingUp className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Analytics</span>
                 </Button>
               </Link>
               <Link href="/creator/hub">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Palette className="mr-2 h-4 w-4" />
-                  Hub Settings
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Hub Settings</span>
                 </Button>
               </Link>
               <Link href="/creator/hub-customize">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Palette className="mr-2 h-4 w-4" />
-                  Customize Hub
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Customize Hub</span>
                 </Button>
               </Link>
               <Link href="/creator/payouts">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Payouts
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Wallet className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Payouts</span>
                 </Button>
               </Link>
             </aside>
@@ -259,7 +259,7 @@ function CreatorAnalyticsContent() {
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">
               {/* Key Metrics */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
@@ -418,24 +418,24 @@ function CreatorAnalyticsContent() {
                   {analytics?.topProducts && analytics.topProducts.length > 0 ? (
                     <div className="space-y-4">
                       {analytics.topProducts.map((product, index) => (
-                        <div key={product.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                        <div key={product.id} className="flex items-center justify-between gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
                               {index + 1}
                             </div>
                             {product.image && (
                               <img
                                 src={product.image}
                                 alt={product.name}
-                                className="h-12 w-12 rounded object-cover"
+                                className="h-12 w-12 shrink-0 rounded object-cover"
                               />
                             )}
-                            <div>
-                              <p className="font-medium">{product.name}</p>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium truncate">{product.name}</p>
                               <p className="text-sm text-muted-foreground">{product.sales} units sold</p>
                             </div>
                           </div>
-                          <p className="font-bold">₦{product.revenue.toLocaleString()}</p>
+                          <p className="font-bold shrink-0">₦{product.revenue.toLocaleString()}</p>
                         </div>
                       ))}
                     </div>

@@ -439,22 +439,22 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
       <main className="flex-1">
         {/* Breadcrumb */}
         <div className="border-b border-border bg-muted/30">
-          <div className="container mx-auto px-4 py-3">
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
-              <Link href="/" className="hover:text-foreground">Home</Link>
-              <ChevronRight className="h-4 w-4" />
-              <Link href="/products" className="hover:text-foreground">Products</Link>
-              <ChevronRight className="h-4 w-4" />
-              <Link href={`/products?category=${product.category}`} className="hover:text-foreground capitalize">
+          <div className="container mx-auto px-4 py-3 overflow-x-auto scrollbar-none">
+            <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground whitespace-nowrap" aria-label="Breadcrumb">
+              <Link href="/" className="hover:text-foreground shrink-0">Home</Link>
+              <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <Link href="/products" className="hover:text-foreground shrink-0">Products</Link>
+              <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <Link href={`/products?category=${product.category}`} className="hover:text-foreground capitalize shrink-0">
                 {product.category}
               </Link>
-              <ChevronRight className="h-4 w-4" />
-              <span className="text-foreground line-clamp-1">{product.name}</span>
+              <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="text-foreground line-clamp-1 truncate max-w-[180px] sm:max-w-none">{product.name}</span>
             </nav>
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-6 sm:py-8">
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Product Images */}
             <div className="space-y-4">
@@ -472,7 +472,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                   </Badge>
                 )}
               </div>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 gap-2 sm:gap-4">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
@@ -556,48 +556,51 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <div className="flex gap-3">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3">
                   <Button
                     size="lg"
-                    className="flex-1"
+                    className="w-full sm:flex-1 font-bold min-w-[140px]"
                     onClick={handleAddToCart}
                   >
                     {product.type === 'digital' ? 'Buy Now' : 'Book Service'}
                   </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => {
-                      if (product) {
-                        if (isInWishlist(product.id)) {
-                          removeFromWishlist(product.id)
-                        } else {
-                          addToWishlist(product)
+                  <div className="flex gap-2 w-full sm:w-auto justify-stretch sm:justify-start">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="flex-1 sm:flex-none px-3"
+                      onClick={() => {
+                        if (product) {
+                          if (isInWishlist(product.id)) {
+                            removeFromWishlist(product.id)
+                          } else {
+                            addToWishlist(product)
+                          }
                         }
+                      }}
+                      aria-label={product && isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart className={`h-5 w-5 ${product && isInWishlist(product.id) ? "fill-red-500 text-red-500" : ""}`} />
+                    </Button>
+                    <Button size="lg" variant="outline" className="flex-1 sm:flex-none px-3" onClick={handleShare} disabled={isSharing} aria-label="Share product">
+                      {isSharing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Share2 className="h-5 w-5" />}
+                    </Button>
+                    <ReportContent
+                      type="product"
+                      itemId={product.id}
+                      itemTitle={product.name}
+                      itemUrl={`/products/${product.id}`}
+                      trigger={
+                        <Button size="lg" variant="outline" className="flex-1 sm:flex-none px-3" aria-label="Report product">
+                          <Flag className="h-5 w-5" />
+                        </Button>
                       }
-                    }}
-                    aria-label={product && isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
-                  >
-                    <Heart className={`h-5 w-5 ${product && isInWishlist(product.id) ? "fill-red-500 text-red-500" : ""}`} />
-                  </Button>
-                  <Button size="lg" variant="outline" onClick={handleShare} disabled={isSharing} aria-label="Share product">
-                    {isSharing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Share2 className="h-5 w-5" />}
-                  </Button>
-                  <ReportContent
-                    type="product"
-                    itemId={product.id}
-                    itemTitle={product.name}
-                    itemUrl={`/products/${product.id}`}
-                    trigger={
-                      <Button size="lg" variant="outline" aria-label="Report product">
-                        <Flag className="h-5 w-5" />
-                      </Button>
-                    }
-                  />
+                    />
+                  </div>
                 </div>
 
                 {userProfile?.role === 'promoter' && userProfile.referralCode && (
-                  <Button variant="secondary" size="lg" className="w-full" onClick={handleAffiliateLink}>
+                  <Button variant="secondary" size="lg" className="w-full font-bold" onClick={handleAffiliateLink}>
                     <Copy className="mr-2 h-5 w-5" />
                     {affiliateCopied ? 'Affiliate Link Copied' : 'Advertise This Product'}
                   </Button>
@@ -610,7 +613,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                   productId={product.id}
                   productName={product.name}
                   trigger={
-                    <Button variant="outline" size="lg" className="w-full">
+                    <Button variant="outline" size="lg" className="w-full font-medium">
                       <MessageCircle className="mr-2 h-5 w-5" />
                       Contact Creator
                     </Button>
@@ -620,22 +623,22 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
 
               {/* Features */}
               <Card>
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="p-4 sm:p-6 space-y-4">
                   <div className="flex items-start gap-3">
-                    <Shield className="h-5 w-5 text-primary mt-0.5" />
+                    <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-medium">Secure Payment</p>
-                      <p className="text-sm text-muted-foreground">100% secure encrypted transactions</p>
+                      <p className="font-medium text-sm sm:text-base">Secure Payment</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">100% secure encrypted transactions</p>
                     </div>
                   </div>
                   <Separator />
                   <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
+                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-medium">
+                      <p className="font-medium text-sm sm:text-base">
                         {product.type === 'digital' ? 'Instant Access' : 'Verified Service'}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {product.type === 'digital' ? 'Download immediately after payment' : 'Professional quality guaranteed'}
                       </p>
                     </div>
@@ -644,10 +647,10 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                     <>
                       <Separator />
                       <div className="flex items-start gap-3">
-                        <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
+                        <RotateCcw className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                         <div>
-                          <p className="font-medium">Instant Access</p>
-                          <p className="text-sm text-muted-foreground">Download immediately after purchase</p>
+                          <p className="font-medium text-sm sm:text-base">Instant Access</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Download immediately after purchase</p>
                         </div>
                       </div>
                     </>
@@ -658,22 +661,22 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
           </div>
 
           {/* creator Information Section */}
-          <div className="mt-12">
+          <div className="mt-8 sm:mt-12">
             <Card className="border-2">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-6">
-                  <Avatar className="h-20 w-20">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left">
+                  <Avatar className="h-16 w-16 sm:h-20 sm:w-20 shrink-0">
                     <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${creatorInfo?.name}`} />
                     <AvatarFallback className="text-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
                       {creatorInfo?.name?.charAt(0) || 'V'}
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-xl font-bold mb-1">{creatorInfo?.name || 'Creator'}</h3>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <h3 className="text-lg sm:text-xl font-bold mb-1">{creatorInfo?.name || 'Creator'}</h3>
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
                           {creatorstats && (
                             <>
                               <div className="flex items-center gap-1">
@@ -681,9 +684,9 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                                 <span className="font-medium">{creatorstats.rating}</span>
                                 <span>({creatorstats.reviewCount} reviews)</span>
                               </div>
-                              <span>•</span>
+                              <span className="hidden sm:inline">•</span>
                               <span>{creatorstats.productCount}+ creations</span>
-                              <span>•</span>
+                              <span className="hidden sm:inline">•</span>
                             </>
                           )}
                           {creatorInfo?.verified && (
@@ -693,14 +696,14 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground max-w-2xl">
+                        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
                           {creatorInfo?.description || 'Quality creations with excellent service.'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex gap-3 mt-4">
-                      <Button asChild variant="default">
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4 w-full sm:w-auto">
+                      <Button asChild variant="default" className="w-full sm:w-auto">
                         <Link href={`/hub/${product.creatorId}`}>
                           <Store className="mr-2 h-4 w-4" />
                           Visit Store
@@ -712,7 +715,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                         productId={product.id}
                         productName={product.name}
                         trigger={
-                          <Button variant="outline">
+                          <Button variant="outline" className="w-full sm:w-auto">
                             <MessageCircle className="mr-2 h-4 w-4" />
                             Contact Creator
                           </Button>
@@ -726,22 +729,24 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
           </div>
 
           {/* Product Details Tabs */}
-          <div className="mt-16">
+          <div className="mt-10 sm:mt-16">
             <Tabs defaultValue="description" className="w-full">
-              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-                <TabsTrigger value="description" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-                  Description
-                </TabsTrigger>
-                <TabsTrigger value="specifications" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-                  Specifications
-                </TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-                  Reviews ({product.reviewCount})
-                </TabsTrigger>
-                <TabsTrigger value="qa" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
-                  Q&A
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto scrollbar-none border-b">
+                <TabsList className="w-full justify-start border-none rounded-none h-auto p-0 bg-transparent flex-nowrap min-w-max">
+                  <TabsTrigger value="description" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-2.5 px-4 text-xs sm:text-sm">
+                    Description
+                  </TabsTrigger>
+                  <TabsTrigger value="specifications" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-2.5 px-4 text-xs sm:text-sm">
+                    Specifications
+                  </TabsTrigger>
+                  <TabsTrigger value="reviews" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-2.5 px-4 text-xs sm:text-sm">
+                    Reviews ({product.reviewCount || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="qa" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-2.5 px-4 text-xs sm:text-sm">
+                    Q&A
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="description" className="mt-6">
                 <div className="prose max-w-none">

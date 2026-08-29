@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/lib/cart-context"
 import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import type { Product } from "@/lib/types"
 import { collection, getDocs, query as firestoreQuery, where, limit as firestoreLimit } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
@@ -46,6 +47,7 @@ function SearchContent() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   // Fetch products from Firestore
   useEffect(() => {
@@ -303,8 +305,80 @@ function SearchContent() {
               </div>
             </aside>
 
+            {/* Mobile Filters Sheet */}
+            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <SheetContent side="left" className="w-[85vw] max-w-sm sm:w-[400px] overflow-y-auto z-[10000]">
+                <SheetHeader className="flex flex-row items-center justify-between">
+                  <SheetTitle className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4" /> Filters
+                  </SheetTitle>
+                  {activeFiltersCount > 0 && (
+                    <Button variant="ghost" size="sm" onClick={clearFilters}>
+                      Clear All
+                    </Button>
+                  )}
+                </SheetHeader>
+
+                <div className="mt-6 space-y-6">
+                  {/* Price Range */}
+                  <div className="space-y-4 rounded-lg border border-border p-4 bg-card">
+                    <Label>Price Range</Label>
+                    <Slider
+                      value={priceRange}
+                      onValueChange={setPriceRange}
+                      max={1000000}
+                      step={10000}
+                      className="mt-2"
+                    />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">₦{priceRange[0].toLocaleString()}</span>
+                      <span className="font-medium">₦{priceRange[1].toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Categories */}
+                  <div className="space-y-4 rounded-lg border border-border p-4 bg-card">
+                    <Label>Academic Subject</Label>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {ACADEMIC_CATEGORIES.map((cat) => (
+                        <div key={cat} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`mobile-${cat}`}
+                            checked={selectedCategories.includes(cat)}
+                            onCheckedChange={() => handleCategoryToggle(cat)}
+                          />
+                          <label htmlFor={`mobile-${cat}`} className="text-sm cursor-pointer flex-1">
+                            {cat}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Rating */}
+                  <div className="space-y-4 rounded-lg border border-border p-4 bg-card">
+                    <Label>Minimum Rating</Label>
+                    <div className="space-y-2">
+                      {[4, 3, 2, 1].map((rating) => (
+                        <div key={rating} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`mobile-rating-${rating}`}
+                            checked={minRating === rating}
+                            onCheckedChange={() => handleRatingToggle(rating)}
+                          />
+                          <label htmlFor={`mobile-rating-${rating}`} className="text-sm cursor-pointer">
+                            {rating}+ Stars
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
             {/* Products Grid */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               {/* Active Filters */}
               {activeFiltersCount > 0 && (
                 <div className="mb-6 flex flex-wrap gap-2">
@@ -353,9 +427,9 @@ function SearchContent() {
                   Showing {filteredProducts.length} results
                 </p>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[200px] flex-1 sm:flex-none">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -369,7 +443,7 @@ function SearchContent() {
                   </Select>
 
                   {/* Mobile Filter Button */}
-                  <Button variant="outline" className="lg:hidden">
+                  <Button variant="outline" className="lg:hidden shrink-0" onClick={() => setMobileFiltersOpen(true)}>
                     <SlidersHorizontal className="h-4 w-4 mr-2" />
                     Filters
                     {activeFiltersCount > 0 && (

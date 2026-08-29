@@ -409,29 +409,29 @@ function UnifiedAdminDashboard() {
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <AdminHeader />
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-6">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Admin Control Center
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Unified platform management dashboard
               </p>
             </div>
 
-            <Button onClick={loadAllAdminData} variant="outline">
+            <Button onClick={loadAllAdminData} variant="outline" className="w-full sm:w-auto">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh All
             </Button>
           </div>
 
           {/* Quick Actions */}
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/products'}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -490,7 +490,7 @@ function UnifiedAdminDashboard() {
           </div>
 
           {/* Key Metrics */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -499,14 +499,14 @@ function UnifiedAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xl sm:text-2xl font-bold truncate">{stats.totalUsers.toLocaleString()}</div>
                     <div className="flex items-center text-sm text-green-600">
-                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <TrendingUp className="h-3 w-3 mr-1 shrink-0" />
                       +12.5%
                     </div>
                   </div>
-                  <Users className="h-5 w-5 text-blue-500" />
+                  <Users className="h-5 w-5 text-blue-500 shrink-0" />
                 </div>
               </CardContent>
             </Card>
@@ -519,14 +519,14 @@ function UnifiedAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{stats.totalcreators.toLocaleString()}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xl sm:text-2xl font-bold truncate">{stats.totalcreators.toLocaleString()}</div>
                     <div className="flex items-center text-sm text-green-600">
-                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <TrendingUp className="h-3 w-3 mr-1 shrink-0" />
                       +8.2%
                     </div>
                   </div>
-                  <Store className="h-5 w-5 text-green-500" />
+                  <Store className="h-5 w-5 text-green-500 shrink-0" />
                 </div>
               </CardContent>
             </Card>
@@ -539,14 +539,14 @@ function UnifiedAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{stats.totalProducts.toLocaleString()}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xl sm:text-2xl font-bold truncate">{stats.totalProducts.toLocaleString()}</div>
                     <div className="flex items-center text-sm text-green-600">
-                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <TrendingUp className="h-3 w-3 mr-1 shrink-0" />
                       +15.3%
                     </div>
                   </div>
-                  <Package className="h-5 w-5 text-purple-500" />
+                  <Package className="h-5 w-5 text-purple-500 shrink-0" />
                 </div>
               </CardContent>
             </Card>
@@ -559,14 +559,14 @@ function UnifiedAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xl sm:text-2xl font-bold truncate">{formatCurrency(stats.totalRevenue)}</div>
                     <div className="flex items-center text-sm text-green-600">
-                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <TrendingUp className="h-3 w-3 mr-1 shrink-0" />
                       +18.7%
                     </div>
                   </div>
-                  <DollarSign className="h-5 w-5 text-orange-500" />
+                  <DollarSign className="h-5 w-5 text-orange-500 shrink-0" />
                 </div>
               </CardContent>
             </Card>
@@ -575,7 +575,7 @@ function UnifiedAdminDashboard() {
           {/* Charts and Activities */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Revenue Chart */}
-            <Card className="lg:col-span-2">
+            <Card className="lg:col-span-2 min-w-0">
               <CardHeader>
                 <CardTitle>Revenue Trend</CardTitle>
               </CardHeader>

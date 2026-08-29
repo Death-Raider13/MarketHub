@@ -131,34 +131,34 @@ export default function PayoutSettingsPage() {
       <div className="flex flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
           <div className="grid gap-6 lg:grid-cols-4">
-            <aside className="space-y-2">
+            <aside className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-1 gap-2 space-y-0 lg:space-y-2">
               <Link href="/creator/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <LayoutDashboard className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Dashboard</span>
                 </Button>
               </Link>
               <Link href="/creator/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="mr-2 h-4 w-4" />
-                  Products
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Package className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Products</span>
                 </Button>
               </Link>
               <Link href="/creator/orders">
-                <Button variant="ghost" className="w-full justify-start">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Orders
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Orders</span>
                 </Button>
               </Link>
               <Link href="/creator/payouts">
-                <Button variant="default" className="w-full justify-start">
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Payouts
+                <Button variant="default" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Wallet className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Payouts</span>
                 </Button>
               </Link>
             </aside>
 
-            <main className="lg:col-span-3 space-y-8">
+            <main className="lg:col-span-3 space-y-8 min-w-0">
           <div className="mx-auto max-w-4xl space-y-8">
             <div>
               <h1 className="text-3xl font-bold">Payout Settings</h1>
@@ -166,7 +166,7 @@ export default function PayoutSettingsPage() {
             </div>
 
             {/* Balances Overview */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="bg-primary/5 border-primary/20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Available Balance (Fiat)</CardTitle>
@@ -192,8 +192,8 @@ export default function PayoutSettingsPage() {
             {!creatorData?.paystackSubaccountCode ? (
               <Card className="border-yellow-200 bg-yellow-50">
                 <CardContent className="pt-6">
-                  <div className="flex items-start gap-4">
-                    <AlertCircle className="h-6 w-6 text-yellow-600 mt-1" />
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <AlertCircle className="h-6 w-6 text-yellow-600 shrink-0 mt-1" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-yellow-900">Automated Payouts Not Configured</h3>
                       <p className="text-sm text-yellow-800 mt-1">
@@ -213,13 +213,13 @@ export default function PayoutSettingsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="flex items-center gap-2 text-green-600 bg-green-50 p-4 rounded-lg border border-green-100">
-                <CheckCircle2 className="h-5 w-5" />
-                <span className="text-sm font-medium">Automated Payouts Active (Subaccount: {creatorData.paystackSubaccountCode})</span>
+              <div className="flex items-center gap-2 text-green-600 bg-green-50 p-4 rounded-lg border border-green-100 min-w-0">
+                <CheckCircle2 className="h-5 w-5 shrink-0" />
+                <span className="text-sm font-medium break-all">Automated Payouts Active (Subaccount: {creatorData.paystackSubaccountCode})</span>
               </div>
             )}
 
-            <div className="grid gap-8 md:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Bank Details Card */}
               <Card>
                 <CardHeader>

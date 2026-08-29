@@ -433,7 +433,7 @@ function HubCustomizeContent() {
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
                 Customize Your Hub
@@ -442,28 +442,28 @@ function HubCustomizeContent() {
                 Design your hub exactly how you want it - just like Selar, but better!
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" asChild>
+            <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
+              <Button variant="outline" asChild className="flex-1 sm:flex-initial">
                 <Link href={`/hub/${userProfile?.uid}`} target="_blank">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View My Hub
+                  <Eye className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">View My Hub</span>
                 </Link>
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? "Saving..." : "Save Changes"}
+              <Button onClick={handleSave} disabled={saving} className="flex-1 sm:flex-initial">
+                <Save className="mr-2 h-4 w-4 shrink-0" />
+                <span>{saving ? "Saving..." : "Save Changes"}</span>
               </Button>
             </div>
           </div>
 
           {/* Info Banner */}
           <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-start gap-4">
-                <div className="rounded-full bg-primary/10 p-3">
+                <div className="rounded-full bg-primary/10 p-3 shrink-0">
                   <Sparkles className="h-6 w-6 text-primary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-semibold mb-2">Complete Control Over Your Hub Design</h3>
                   <p className="text-sm text-muted-foreground">
                     Customize colors, fonts, layout, branding, and more. Changes are saved automatically and applied to your live hub.
@@ -475,36 +475,36 @@ function HubCustomizeContent() {
 
           {/* Main Content */}
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <Tabs defaultValue="design" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-7">
-                  <TabsTrigger value="design">
-                    <Palette className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Design</span>
+                <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 h-auto p-1 gap-1">
+                  <TabsTrigger value="design" className="text-[11px] sm:text-xs py-2 px-1">
+                    <Palette className="h-4 w-4 sm:mr-2 shrink-0" />
+                    <span className="truncate">Design</span>
                   </TabsTrigger>
-                  <TabsTrigger value="branding">
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Branding</span>
+                  <TabsTrigger value="branding" className="text-[11px] sm:text-xs py-2 px-1">
+                    <ImageIcon className="h-4 w-4 sm:mr-2 shrink-0" />
+                    <span className="truncate">Branding</span>
                   </TabsTrigger>
-                  <TabsTrigger value="layout">
-                    <Layout className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Layout</span>
+                  <TabsTrigger value="layout" className="text-[11px] sm:text-xs py-2 px-1">
+                    <Layout className="h-4 w-4 sm:mr-2 shrink-0" />
+                    <span className="truncate">Layout</span>
                   </TabsTrigger>
-                  <TabsTrigger value="content">
-                    <Type className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Content</span>
+                  <TabsTrigger value="content" className="text-[11px] sm:text-xs py-2 px-1">
+                    <Type className="h-4 w-4 sm:mr-2 shrink-0" />
+                    <span className="truncate">Content</span>
                   </TabsTrigger>
-                  <TabsTrigger value="social">
-                    <Globe className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Social</span>
+                  <TabsTrigger value="social" className="text-[11px] sm:text-xs py-2 px-1">
+                    <Globe className="h-4 w-4 sm:mr-2 shrink-0" />
+                    <span className="truncate">Social</span>
                   </TabsTrigger>
-                  <TabsTrigger value="advertising">
-                    <Megaphone className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Ads</span>
+                  <TabsTrigger value="advertising" className="text-[11px] sm:text-xs py-2 px-1">
+                    <Megaphone className="h-4 w-4 sm:mr-2 shrink-0" />
+                    <span className="truncate">Ads</span>
                   </TabsTrigger>
-                  <TabsTrigger value="features">
-                    <Settings className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Features</span>
+                  <TabsTrigger value="features" className="text-[11px] sm:text-xs py-2 px-1">
+                    <Settings className="h-4 w-4 sm:mr-2 shrink-0" />
+                    <span className="truncate">Features</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -1084,7 +1084,7 @@ function HubCustomizeContent() {
                       {/* Header Style */}
                       <div className="space-y-3">
                         <Label>Header Style</Label>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           {(['minimal', 'centered', 'full'] as const).map((style) => (
                             <button
                               key={style}
@@ -1107,7 +1107,7 @@ function HubCustomizeContent() {
                       {/* Product Grid */}
                       <div className="space-y-3">
                         <Label>Product Grid Columns</Label>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           {(['2', '3', '4'] as const).map((cols) => (
                             <button
                               key={cols}

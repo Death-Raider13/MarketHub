@@ -86,21 +86,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4 text-primary">
-            <Sparkles className="h-12 w-12" />
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-8">
+      <Card className="w-full max-w-md shadow-xl border-border">
+        <CardHeader className="space-y-1 text-center p-5 sm:p-6">
+          <div className="flex justify-center mb-3 sm:mb-4 text-primary">
+            <Sparkles className="h-10 w-10 sm:h-12 sm:w-12" />
           </div>
-          <CardTitle className="text-2xl font-bold">Creator Portal</CardTitle>
-          <CardDescription>Enter your credentials to manage your digital hub</CardDescription>
+          <CardTitle className="text-xl sm:text-2xl font-bold">Creator Portal</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Enter your credentials to manage your digital hub</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+            {error && <div className="rounded-lg bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">{error}</div>}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs font-semibold">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -108,13 +108,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-11 sm:h-10 text-sm"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/auth/reset-password" className="text-sm text-muted-foreground hover:text-foreground">
+                <Label htmlFor="password" className="text-xs font-semibold">Password</Label>
+                <Link href="/auth/reset-password" className="text-xs text-muted-foreground hover:text-primary transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -124,30 +125,31 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-11 sm:h-10 text-sm"
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 font-bold text-sm" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>
 
-            <div className="relative">
+            <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
                 <Separator className="w-full" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-wider font-semibold">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
 
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full h-11 font-semibold text-sm"
               disabled={loading}
               onClick={handleGoogleSignIn}
             >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+              <svg className="mr-2 h-4 w-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -169,9 +171,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-6 text-center text-xs sm:text-sm">
             <span className="text-muted-foreground">Don't have an account? </span>
-            <Link href="/auth/signup" className="font-medium hover:underline">
+            <Link href="/auth/signup" className="font-semibold text-primary hover:underline">
               Sign up
             </Link>
           </div>

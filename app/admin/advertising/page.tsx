@@ -229,17 +229,17 @@ function AdminAdvertisingContent() {
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <AdminHeader />
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-6">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Advertising Management
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Manage and monitor advertising campaigns across the platform
               </p>
             </div>
@@ -250,12 +250,12 @@ function AdminAdvertisingContent() {
             {/* Search and Filters */}
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       placeholder="Search campaigns..."
-                      className="pl-10"
+                      className="pl-10 w-full"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -263,7 +263,7 @@ function AdminAdvertisingContent() {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+                    className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full sm:w-auto"
                   >
                     <option value="all">All Status</option>
                     <option value="pending_review">Pending Review</option>
@@ -272,7 +272,7 @@ function AdminAdvertisingContent() {
                     <option value="rejected">Rejected</option>
                     <option value="completed">Completed</option>
                   </select>
-                  <Button onClick={loadAdvertisements} variant="outline">
+                  <Button onClick={loadAdvertisements} variant="outline" className="w-full sm:w-auto">
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh
                   </Button>
@@ -281,17 +281,17 @@ function AdminAdvertisingContent() {
             </Card>
 
             {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-5">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Total Campaigns</p>
-                  <p className="text-2xl font-bold">{ads.length}</p>
+                  <p className="text-2xl font-bold truncate">{ads.length}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Pending Review</p>
-                  <p className="text-2xl font-bold text-orange-600">
+                  <p className="text-2xl font-bold text-orange-600 truncate">
                     {ads.filter(ad => ad.status === 'pending_review').length}
                   </p>
                 </CardContent>
@@ -299,7 +299,7 @@ function AdminAdvertisingContent() {
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Active Campaigns</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-2xl font-bold text-green-600 truncate">
                     {ads.filter(ad => ad.status === 'active').length}
                   </p>
                 </CardContent>
@@ -307,7 +307,7 @@ function AdminAdvertisingContent() {
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Paused Campaigns</p>
-                  <p className="text-2xl font-bold text-yellow-600">
+                  <p className="text-2xl font-bold text-yellow-600 truncate">
                     {ads.filter(ad => ad.status === 'paused').length}
                   </p>
                 </CardContent>
@@ -315,7 +315,7 @@ function AdminAdvertisingContent() {
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold truncate">
                     ₦{ads.reduce((sum, ad) => sum + (ad.budget?.spent || 0), 0).toLocaleString()}
                   </p>
                 </CardContent>
@@ -326,7 +326,7 @@ function AdminAdvertisingContent() {
             <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[680px]">
                     <thead className="border-b border-border bg-muted/50">
                       <tr>
                         <th className="p-4 text-left text-sm font-medium">Campaign</th>
@@ -483,8 +483,8 @@ function AdminAdvertisingContent() {
 
       {/* Review Modal */}
       {showReviewModal && selectedCampaign && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-4">
               {reviewAction === 'approve' ? 'Approve' : 'Reject'} Campaign
             </h3>
@@ -523,9 +523,10 @@ function AdminAdvertisingContent() {
               />
             </div>
 
-            <div className="flex gap-3 justify-end">
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
               <Button
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => setShowReviewModal(false)}
                 disabled={submittingReview}
               >
@@ -534,7 +535,7 @@ function AdminAdvertisingContent() {
               <Button
                 onClick={submitReview}
                 disabled={submittingReview || (reviewAction === 'reject' && !reviewReason.trim())}
-                className={reviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+                className={reviewAction === 'approve' ? 'w-full sm:w-auto bg-green-600 hover:bg-green-700' : 'w-full sm:w-auto bg-red-600 hover:bg-red-700'}
               >
                 {submittingReview ? 'Processing...' : (reviewAction === 'approve' ? 'Approve' : 'Reject')}
               </Button>

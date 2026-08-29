@@ -245,7 +245,7 @@ function SupportDashboardContent() {
           </div>
 
           {/* Stats Overview */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             <Card className="border-l-4 border-l-blue-500">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -312,7 +312,7 @@ function SupportDashboardContent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {quickActions.map((action) => (
                   <Link key={action.href} href={action.href}>
                     <Card className={`cursor-pointer transition-all hover:shadow-md ${
@@ -320,10 +320,10 @@ function SupportDashboardContent() {
                     }`}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${action.color} text-white`}>
+                          <div className={`p-2 rounded-lg ${action.color} text-white shrink-0`}>
                             <action.icon className="h-4 w-4" />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-sm">{action.title}</h3>
                             <p className="text-xs text-muted-foreground mt-1">
                               {action.description}
@@ -360,16 +360,16 @@ function SupportDashboardContent() {
                     </p>
                   ) : (
                     recentTickets.map((ticket) => (
-                      <div key={ticket.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="flex flex-col">
-                            <p className="font-medium text-sm">{ticket.subject}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {ticket.customer} • {ticket.createdAt.toLocaleDateString()}
+                      <div key={ticket.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-2">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <p className="font-medium text-sm truncate">{ticket.subject}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {ticket.customer} • {ticket.createdAt?.toLocaleDateString ? ticket.createdAt.toLocaleDateString() : 'Recently'}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
                           <Badge className={getPriorityColor(ticket.priority)}>
                             {ticket.priority}
                           </Badge>
@@ -401,7 +401,7 @@ function SupportDashboardContent() {
                     <p className="text-xs text-blue-600 mt-1">
                       Handle real-time customer inquiries
                     </p>
-                    <Button size="sm" className="mt-2" variant="outline">
+                    <Button size="sm" className="mt-2 w-full sm:w-auto" variant="outline">
                       Start Chat Session
                     </Button>
                   </div>
@@ -414,7 +414,7 @@ function SupportDashboardContent() {
                     <p className="text-xs text-green-600 mt-1">
                       Quick response templates for common issues
                     </p>
-                    <Button size="sm" className="mt-2" variant="outline">
+                    <Button size="sm" className="mt-2 w-full sm:w-auto" variant="outline">
                       View Templates
                     </Button>
                   </div>
@@ -427,7 +427,7 @@ function SupportDashboardContent() {
                     <p className="text-xs text-purple-600 mt-1">
                       Search customer accounts and order history
                     </p>
-                    <Button size="sm" className="mt-2" variant="outline">
+                    <Button size="sm" className="mt-2 w-full sm:w-auto" variant="outline">
                       Search Customers
                     </Button>
                   </div>

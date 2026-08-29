@@ -101,23 +101,23 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <Store className="h-12 w-12" />
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-8">
+      <Card className="w-full max-w-md shadow-xl border-border">
+        <CardHeader className="space-y-1 text-center p-5 sm:p-6">
+          <div className="flex justify-center mb-3 sm:mb-4 text-primary">
+            <Store className="h-10 w-10 sm:h-12 sm:w-12" />
           </div>
-          <CardTitle className="text-2xl font-bold">Complete your profile</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl font-bold">Complete your profile</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
             Tell us a bit more about yourself to get started
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+            {error && <div className="rounded-lg bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">{error}</div>}
 
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Full Name</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="displayName" className="text-xs font-semibold">Full Name</Label>
               <Input
                 id="displayName"
                 type="text"
@@ -125,31 +125,36 @@ export default function OnboardingPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
+                className="h-11 sm:h-10 text-sm"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Account type</Label>
-              <RadioGroup value={role} onValueChange={(value: "customer" | "creator") => setRole(value)}>
-                <div className="flex items-center space-x-2">
+              <Label className="text-xs font-semibold">Account type</Label>
+              <RadioGroup value={role} onValueChange={(value: "customer" | "creator") => setRole(value)} className="space-y-2">
+                <div className={`flex items-center space-x-3 rounded-xl border p-3.5 transition-all cursor-pointer ${role === 'customer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}>
                   <RadioGroupItem value="customer" id="customer" />
-                  <Label htmlFor="customer">Customer - I want to buy products</Label>
+                  <Label htmlFor="customer" className="cursor-pointer text-xs sm:text-sm font-medium flex-1">
+                    Student / Customer <span className="block text-[10px] text-muted-foreground font-normal">I want to browse & buy products</span>
+                  </Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className={`flex items-center space-x-3 rounded-xl border p-3.5 transition-all cursor-pointer ${role === 'creator' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}>
                   <RadioGroupItem value="creator" id="creator" />
-                  <Label htmlFor="creator">Creator - I want to build a digital hub</Label>
+                  <Label htmlFor="creator" className="cursor-pointer text-xs sm:text-sm font-medium flex-1">
+                    Creator / Educator <span className="block text-[10px] text-muted-foreground font-normal">I want to sell materials & build a hub</span>
+                  </Label>
                 </div>
               </RadioGroup>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 font-bold text-sm" disabled={loading}>
               {loading ? "Completing..." : "Complete Setup"}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-6 text-center text-xs sm:text-sm">
             <span className="text-muted-foreground">Already have an account? </span>
-            <Button variant="link" className="p-0 h-auto font-medium" onClick={() => router.push("/auth/login")}>
+            <Button variant="link" className="p-0 h-auto font-semibold text-primary" onClick={() => router.push("/auth/login")}>
               Sign in
             </Button>
           </div>

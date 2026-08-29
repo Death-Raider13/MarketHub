@@ -205,15 +205,15 @@ function VerificationContent() {
                   Your verification documents are being reviewed by our audit team. This typically takes 24-48 hours.
                 </p>
                 {verificationDocs.length > 0 && (
-                  <div className="mt-6 space-y-3">
+                  <div className="mt-6 space-y-3 text-left">
                     <h3 className="font-semibold text-sm">Submitted Documents:</h3>
                     {verificationDocs.map((doc, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg text-sm">
-                        <span className="flex items-center gap-2">
-                          <FileCheck className="h-4 w-4" />
-                          {doc.type}
+                      <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted rounded-lg text-sm min-w-0">
+                        <span className="flex items-center gap-2 min-w-0 truncate">
+                          <FileCheck className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{doc.type}</span>
                         </span>
-                        {getStatusBadge(doc.status)}
+                        <div className="shrink-0">{getStatusBadge(doc.status)}</div>
                       </div>
                     ))}
                   </div>
@@ -229,7 +229,7 @@ function VerificationContent() {
                       ⚠️ Your previous submission was not approved. Please review the feedback below and resubmit with clearer documents.
                     </p>
                     {verificationDocs.filter(d => d.status === 'rejected').map((doc, i) => (
-                      <div key={i} className="mt-2 p-2 bg-white rounded text-sm">
+                      <div key={i} className="mt-2 p-2 bg-white rounded text-sm break-words">
                         <strong>{doc.type}:</strong> {doc.reviewNote || 'Document could not be verified. Please resubmit.'}
                       </div>
                     ))}
@@ -286,7 +286,7 @@ function VerificationContent() {
 
                   <div className="space-y-2">
                     <Label>Upload Document *</Label>
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                    <div className="border-2 border-dashed rounded-lg p-4 sm:p-6 text-center">
                       {selectedFile ? (
                         <div className="space-y-2">
                           <FileCheck className="h-8 w-8 mx-auto text-green-500" />

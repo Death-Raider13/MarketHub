@@ -99,8 +99,12 @@ export function Header() {
         </form>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2 lg:gap-4 relative z-50 shrink-0">
-          {user && ['creator', 'promoter', 'admin', 'super_admin'].includes(userProfile?.role || '') && <RoleSwitcher />}
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-4 relative z-50 shrink-0">
+          {user && ['creator', 'promoter', 'admin', 'super_admin'].includes(userProfile?.role || '') && (
+            <div className="hidden sm:block">
+              <RoleSwitcher />
+            </div>
+          )}
           <ModeToggle />
           {/* Cart */}
           <Link href="/cart" className="relative p-2 hover:bg-muted/50 rounded-full transition-colors cursor-pointer group">
@@ -215,8 +219,8 @@ export function Header() {
                 <Menu className="h-6 w-6 text-foreground/80" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] glass-card border-border p-6 z-[10000]">
-              <SheetHeader className="mb-8">
+            <SheetContent side="right" className="w-[300px] max-w-[85vw] glass-card border-border p-5 sm:p-6 z-[10000]">
+              <SheetHeader className="mb-6 sm:mb-8">
                 <SheetTitle className="text-left flex items-center gap-2">
                   <div className="relative h-6 w-6">
                     <Image src="/logo.png" alt="Logo" fill className="object-contain" />

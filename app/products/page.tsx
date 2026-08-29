@@ -350,11 +350,11 @@ export default function ProductsPage() {
                   {loading ? "Loading..." : `${filteredProducts.length} products found`}
                 </p>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 justify-between sm:justify-end w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 sm:hidden"
+                    className="flex items-center gap-2 lg:hidden shrink-0"
                     onClick={() => setMobileFiltersOpen(true)}
                   >
                     <SlidersHorizontal className="h-4 w-4" />
@@ -362,7 +362,7 @@ export default function ProductsPage() {
                   </Button>
 
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[150px] sm:w-[180px]">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -374,7 +374,7 @@ export default function ProductsPage() {
                     </SelectContent>
                   </Select>
 
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     <Button
                       variant={viewMode === "grid" ? "default" : "ghost"}
                       size="icon"

@@ -153,7 +153,12 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  className?: string;
+  onNavigate?: () => void;
+}
+
+export function AdminSidebar({ className, onNavigate }: AdminSidebarProps = {}) {
   const pathname = usePathname();
   const { userProfile } = useAuth();
 
@@ -173,8 +178,13 @@ export function AdminSidebar() {
     item.title === 'Dashboard' ? { ...item, href: dashboardHref } : item
   );
 
+  const defaultClasses = "h-full w-64 flex-col border-r bg-muted/10 shrink-0";
+  const finalClassName = className
+    ? cn(defaultClasses, className)
+    : cn("hidden md:flex", defaultClasses);
+
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-muted/10">
+    <aside className={finalClassName}>
       <ScrollArea className="flex-1 px-3 py-4">
         <div className="space-y-1">
           {updatedNavItems.map((item) => {
@@ -184,7 +194,7 @@ export function AdminSidebar() {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} onClick={onNavigate}>
                 <Button
                   variant={isActive ? 'secondary' : 'ghost'}
                   className={cn(
@@ -237,6 +247,6 @@ export function AdminSidebar() {
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

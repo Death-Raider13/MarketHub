@@ -21,7 +21,8 @@ import {
   Filter,
   Loader2,
   Star,
-  Package
+  Package,
+  ArrowLeft
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
@@ -238,7 +239,7 @@ function CreatorMessagesContent() {
       <main className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h1 className="text-3xl font-bold">Customer Messages</h1>
                 <p className="text-muted-foreground">
@@ -255,13 +256,13 @@ function CreatorMessagesContent() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3 h-[600px]">
+          <div className="grid gap-6 lg:grid-cols-3 h-auto lg:h-[600px]">
             {/* Conversations List */}
-            <div className="lg:col-span-1">
+            <div className={`lg:col-span-1 ${selectedConversation ? 'hidden lg:block' : 'block'}`}>
               <Card className="h-full">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
+                    <MessageSquare className="h-5 w-5 shrink-0" />
                     Conversations ({filteredConversations.length})
                   </CardTitle>
                   
@@ -312,7 +313,7 @@ function CreatorMessagesContent() {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium truncate">{conversation.customerName}</h4>
                                 {conversation.unreadCount > 0 && (
-                                  <Badge variant="destructive" className="text-xs">
+                                  <Badge variant="destructive" className="text-xs shrink-0">
                                     {conversation.unreadCount}
                                   </Badge>
                                 )}
@@ -326,16 +327,16 @@ function CreatorMessagesContent() {
                                 conversation.status === 'open' ? 'default' :
                                 conversation.status === 'pending' ? 'secondary' : 'outline'
                               }
-                              className="text-xs"
+                              className="text-xs shrink-0 ml-2"
                             >
                               {conversation.status}
                             </Badge>
                           </div>
                           
                           {conversation.productName && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                              <Package className="h-3 w-3" />
-                              {conversation.productName}
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2 truncate">
+                              <Package className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{conversation.productName}</span>
                             </div>
                           )}
                           
@@ -356,21 +357,32 @@ function CreatorMessagesContent() {
             </div>
 
             {/* Message Thread */}
-            <div className="lg:col-span-2">
+            <div className={`lg:col-span-2 ${selectedConversation ? 'block' : 'hidden lg:block'}`}>
               {selectedConversation ? (
                 <Card className="h-full flex flex-col">
                   <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <User className="h-5 w-5" />
-                          {selectedConversation.customerName}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedConversation.subject}
-                        </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="lg:hidden shrink-0"
+                          onClick={() => setSelectedConversation(null)}
+                          title="Back to conversations"
+                        >
+                          <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                        <div className="min-w-0">
+                          <CardTitle className="flex items-center gap-2 truncate">
+                            <User className="h-5 w-5 shrink-0" />
+                            <span className="truncate">{selectedConversation.customerName}</span>
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {selectedConversation.subject}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 shrink-0">
                         <select
                           value={selectedConversation.status}
                           onChange={(e) => updateConversationStatus(selectedConversation.id, e.target.value)}
@@ -385,8 +397,8 @@ function CreatorMessagesContent() {
                   </CardHeader>
                   
                   {/* Messages */}
-                  <CardContent className="flex-1 flex flex-col p-0">
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[300px]">
+                  <CardContent className="flex-1 flex flex-col p-0 min-w-0">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[350px]">
                       {loadingMessages ? (
                         <div className="flex items-center justify-center py-8">
                           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -404,21 +416,21 @@ function CreatorMessagesContent() {
                             className={`flex ${message.senderRole === 'creator' ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
-                              className={`max-w-[70%] rounded-lg p-3 ${
+                              className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${
                                 message.senderRole === 'creator'
                                   ? 'bg-primary text-primary-foreground'
                                   : 'bg-muted'
                               }`}
                             >
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-medium">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="text-sm font-medium truncate">
                                   {message.senderName}
                                 </span>
                                 <span className="text-xs opacity-70">
                                   {formatDistanceToNow(new Date(message.timestamp))} ago
                                 </span>
                               </div>
-                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                              <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                             </div>
                           </div>
                         ))

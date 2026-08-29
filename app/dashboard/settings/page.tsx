@@ -34,39 +34,39 @@ function SettingsContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
-              <Link href="/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
+            <aside className="flex flex-row overflow-x-auto lg:flex-col gap-2 pb-2 lg:pb-0 shrink-0 max-w-full -mx-4 px-4 sm:mx-0 sm:px-0">
+              <Link href="/dashboard" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <Package className="mr-2 h-4 w-4" />
                   My Orders
                 </Button>
               </Link>
-              <Link href="/dashboard/wishlist">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/wishlist" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <Heart className="mr-2 h-4 w-4" />
                   Wishlist
                 </Button>
               </Link>
-              <Link href="/dashboard/addresses">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/addresses" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <MapPin className="mr-2 h-4 w-4" />
                   Addresses
                 </Button>
               </Link>
-              <Link href="/dashboard/payment-methods">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/payment-methods" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Payment Methods
                 </Button>
               </Link>
-              <Link href="/dashboard/reviews">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/reviews" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <Star className="mr-2 h-4 w-4" />
                   My Reviews
                 </Button>
               </Link>
-              <Link href="/dashboard/settings">
-                <Button variant="default" className="w-full justify-start">
+              <Link href="/dashboard/settings" className="shrink-0">
+                <Button variant="default" className="justify-start shrink-0">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </Button>
@@ -91,7 +91,7 @@ function SettingsContent() {
                       <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
 
-                    <Button type="submit">Save Changes</Button>
+                    <Button type="submit" className="w-full sm:w-auto">Save Changes</Button>
                   </form>
                 </CardContent>
               </Card>
@@ -117,7 +117,7 @@ function SettingsContent() {
                       <Input id="confirmPassword" type="password" />
                     </div>
 
-                    <Button type="submit">Update Password</Button>
+                    <Button type="submit" className="w-full sm:w-auto">Update Password</Button>
                   </form>
                 </CardContent>
               </Card>

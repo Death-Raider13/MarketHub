@@ -137,65 +137,65 @@ function CreatorOrdersContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
+            <aside className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 space-y-0 lg:space-y-2">
               <Link href="/creator/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <LayoutDashboard className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Dashboard</span>
                 </Button>
               </Link>
               <Link href="/creator/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="mr-2 h-4 w-4" />
-                  Products
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Package className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Products</span>
                 </Button>
               </Link>
               <Link href="/creator/orders">
-                <Button variant="default" className="w-full justify-start">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Orders
+                <Button variant="default" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Orders</span>
                 </Button>
               </Link>
               <Link href="/creator/services">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Services
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Calendar className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Services</span>
                 </Button>
               </Link>
               <Link href="/creator/messages">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Mail className="mr-2 h-4 w-4" />
-                  Messages
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Mail className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Messages</span>
                 </Button>
               </Link>
               <Link href="/creator/questions">
-                <Button variant="ghost" className="w-full justify-start">
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  Q&A
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <HelpCircle className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Q&A</span>
                 </Button>
               </Link>
               <Link href="/creator/analytics">
-                <Button variant="ghost" className="w-full justify-start">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Analytics
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <TrendingUp className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Analytics</span>
                 </Button>
               </Link>
               <Link href="/creator/hub">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Palette className="mr-2 h-4 w-4" />
-                  Hub Settings
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Hub Settings</span>
                 </Button>
               </Link>
               <Link href="/creator/hub-customize">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Palette className="mr-2 h-4 w-4" />
-                  Customize Hub
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Customize Hub</span>
                 </Button>
               </Link>
               <Link href="/creator/payouts">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Payouts
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Wallet className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Payouts</span>
                 </Button>
               </Link>
             </aside>
@@ -214,7 +214,7 @@ function CreatorOrdersContent() {
                 <CardContent className="pt-6">
                   <div className="flex gap-4">
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -238,7 +238,6 @@ function CreatorOrdersContent() {
                         <tr>
                           <th className="p-4 text-left text-sm font-medium">Order ID</th>
                           <th className="p-4 text-left text-sm font-medium">Customer</th>
-                          <th className="p-4 text-left text-sm font-medium">Date</th>
                           <th className="p-4 text-left text-sm font-medium">Total</th>
                           <th className="p-4 text-left text-sm font-medium">Status</th>
                           <th className="p-4 text-left text-sm font-medium">Date</th>
@@ -255,11 +254,11 @@ function CreatorOrdersContent() {
                         ) : (
                           filteredOrders.map((order) => (
                             <tr key={order.id} className="border-b border-border">
-                              <td className="p-4 font-medium">{order.id}</td>
-                              <td className="p-4">
+                              <td className="p-4 font-medium truncate max-w-[110px]" title={order.id}>{order.id}</td>
+                              <td className="p-4 truncate max-w-[150px]" title={order.billingInfo?.fullName || "N/A"}>
                                 {order.billingInfo?.fullName || "N/A"}
                               </td>
-                              <td className="p-4">
+                              <td className="p-4 whitespace-nowrap font-medium">
                                 ₦{typeof order.total === 'number' ? order.total.toLocaleString() : parseFloat(order.total || '0').toLocaleString()}
                               </td>
                               <td className="p-4">
@@ -291,7 +290,7 @@ function CreatorOrdersContent() {
                                       View
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent className="max-w-lg">
+                                  <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                       <DialogTitle>Order Details</DialogTitle>
                                       <DialogDescription>

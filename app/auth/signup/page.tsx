@@ -151,43 +151,43 @@ export default function SignupPage() {
         </div>
 
         {/* Right column - Form */}
-        <div className="glass-card rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden w-full max-w-xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-black mb-2">Create your account</h2>
-            <p className="text-sm text-muted-foreground">Choose your portal to get started.</p>
+        <div className="glass-card rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-10 shadow-2xl relative overflow-hidden w-full max-w-xl mx-auto">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl font-black mb-1.5 sm:mb-2">Create your account</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Choose your portal to get started.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {error && <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20 text-center font-medium">{error}</div>}
 
-            <div className="space-y-3">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">1. Select Role</Label>
-              <RadioGroup value={role} onValueChange={(value: any) => setRole(value)} className="grid grid-cols-3 gap-3">
+            <div className="space-y-2.5 sm:space-y-3">
+              <Label className="text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground font-bold">1. Select Role</Label>
+              <RadioGroup value={role} onValueChange={(value: any) => setRole(value)} className="grid grid-cols-3 gap-1.5 sm:gap-3">
                 
                 {/* Student */}
-                <Label htmlFor="customer" className={`cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'customer' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
+                <Label htmlFor="customer" className={`cursor-pointer border rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition-all flex flex-col items-center text-center gap-1.5 sm:gap-2 ${role === 'customer' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
                   <RadioGroupItem value="customer" id="customer" className="sr-only" />
-                  <GraduationCap className={`h-6 w-6 ${role === 'customer' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <GraduationCap className={`h-5 w-5 sm:h-6 sm:w-6 ${role === 'customer' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div>
-                    <div className={`text-xs font-bold ${role === 'customer' ? 'text-foreground' : 'text-muted-foreground'}`}>Student</div>
+                    <div className={`text-[11px] sm:text-xs font-bold ${role === 'customer' ? 'text-foreground' : 'text-muted-foreground'}`}>Student</div>
                   </div>
                 </Label>
 
                 {/* Creator */}
-                <Label htmlFor="creator" className={`relative overflow-hidden cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'creator' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
+                <Label htmlFor="creator" className={`relative overflow-hidden cursor-pointer border rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition-all flex flex-col items-center text-center gap-1.5 sm:gap-2 ${role === 'creator' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
                   <RadioGroupItem value="creator" id="creator" className="sr-only" />
-                  <Zap className={`h-6 w-6 ${role === 'creator' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <Zap className={`h-5 w-5 sm:h-6 sm:w-6 ${role === 'creator' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div>
-                    <div className={`text-xs font-bold ${role === 'creator' ? 'text-foreground' : 'text-muted-foreground'}`}>Creator</div>
+                    <div className={`text-[11px] sm:text-xs font-bold ${role === 'creator' ? 'text-foreground' : 'text-muted-foreground'}`}>Creator</div>
                   </div>
                 </Label>
 
                 {/* Promoter */}
-                <Label htmlFor="promoter" className={`cursor-pointer border rounded-2xl p-4 transition-all flex flex-col items-center text-center gap-2 ${role === 'promoter' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
+                <Label htmlFor="promoter" className={`cursor-pointer border rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition-all flex flex-col items-center text-center gap-1.5 sm:gap-2 ${role === 'promoter' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
                   <RadioGroupItem value="promoter" id="promoter" className="sr-only" />
-                  <Megaphone className={`h-6 w-6 ${role === 'promoter' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <Megaphone className={`h-5 w-5 sm:h-6 sm:w-6 ${role === 'promoter' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div>
-                    <div className={`text-xs font-bold ${role === 'promoter' ? 'text-foreground' : 'text-muted-foreground'}`}>Affiliate</div>
+                    <div className={`text-[11px] sm:text-xs font-bold ${role === 'promoter' ? 'text-foreground' : 'text-muted-foreground'}`}>Affiliate</div>
                   </div>
                 </Label>
               </RadioGroup>

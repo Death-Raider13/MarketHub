@@ -92,45 +92,45 @@ function DashboardContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
-              <Link href="/dashboard">
-                <Button variant="default" className="w-full justify-start">
+            <aside className="flex flex-row overflow-x-auto lg:flex-col gap-2 pb-2 lg:pb-0 shrink-0 max-w-full -mx-4 px-4 sm:mx-0 sm:px-0">
+              <Link href="/dashboard" className="shrink-0">
+                <Button variant="default" className="justify-start shrink-0">
                   <Package className="mr-2 h-4 w-4" />
                   My Orders
                 </Button>
               </Link>
-              <Link href="/my-purchases">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/my-purchases" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <Download className="mr-2 h-4 w-4" />
                   My Purchases
                 </Button>
               </Link>
-              <Link href="/dashboard/wishlist">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/wishlist" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <Heart className="mr-2 h-4 w-4" />
                   Wishlist
                 </Button>
               </Link>
-              <Link href="/dashboard/addresses">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/addresses" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <MapPin className="mr-2 h-4 w-4" />
                   Addresses
                 </Button>
               </Link>
-              <Link href="/dashboard/payment-methods">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/payment-methods" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Payment Methods
                 </Button>
               </Link>
-              <Link href="/dashboard/reviews">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/reviews" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <Star className="mr-2 h-4 w-4" />
                   My Reviews
                 </Button>
               </Link>
-              <Link href="/dashboard/settings">
-                <Button variant="ghost" className="w-full justify-start">
+              <Link href="/dashboard/settings" className="shrink-0">
+                <Button variant="ghost" className="justify-start shrink-0">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </Button>
@@ -140,7 +140,7 @@ function DashboardContent() {
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">
               {/* Stats */}
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-2xl font-bold">12</div>
@@ -169,9 +169,9 @@ function DashboardContent() {
                 <CardContent className="space-y-4">
                   {mockOrders.map((order) => (
                     <div key={order.id} className="rounded-lg border border-border p-4">
-                      <div className="flex items-start justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <p className="font-semibold">{order.id}</p>
                             <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
                           </div>
@@ -182,9 +182,9 @@ function DashboardContent() {
                             <p className="text-sm text-muted-foreground">Tracking: {order.trackingNumber}</p>
                           )}
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
                           <p className="font-bold">₦{order.total.toLocaleString()}</p>
-                          <Button variant="outline" size="sm" className="mt-2 bg-transparent">
+                          <Button variant="outline" size="sm" className="bg-transparent">
                             View Details
                           </Button>
                         </div>

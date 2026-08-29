@@ -246,7 +246,7 @@ export default function PromoterDashboard() {
           <Card className="border-primary/20">
             <CardHeader><CardTitle className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /> Affiliate Masterclass</CardTitle><p className="text-sm text-muted-foreground">Complete all ten lessons and pass the short quiz with at least {AFFILIATE_QUIZ_PASS_PERCENT}% before advertising access can be activated.</p></CardHeader>
             <CardContent className="space-y-5">
-              <div className="grid gap-2 md:grid-cols-2">
+              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
                 {affiliateCourseModules.map(module => {
                   const complete = completedModules.includes(module.id)
                   return <button type="button" key={module.id} disabled={complete || savingCourse} onClick={() => markModuleComplete(module.id)} className={`text-left rounded-xl border p-3 transition-colors ${complete ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-border hover:border-primary/50'}`}><div className="flex items-start gap-2"><CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${complete ? 'text-emerald-500' : 'text-muted-foreground'}`} /><span><strong className="text-sm">Module {module.id}: {module.title}</strong><span className="block text-xs text-muted-foreground mt-1">{module.summary}</span></span></div></button>
@@ -256,11 +256,11 @@ export default function PromoterDashboard() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Total earnings</CardTitle></CardHeader><CardContent><div className="text-3xl font-black">{formatNGN(affiliate.totalEarnings)}</div><p className="text-xs text-muted-foreground mt-1">Approved commissions</p></CardContent></Card>
-            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Available to withdraw</CardTitle></CardHeader><CardContent><div className="text-3xl font-black">{formatNGN(affiliate.availableBalance)}</div><p className="text-xs text-muted-foreground mt-1">Minimum request: ₦1,000</p></CardContent></Card>
-            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Tracked clicks</CardTitle></CardHeader><CardContent><div className="text-3xl font-black">{affiliate.clickCount}</div><p className="text-xs text-muted-foreground mt-1">Unique browser/product clicks</p></CardContent></Card>
-            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Conversions</CardTitle></CardHeader><CardContent><div className="text-3xl font-black">{affiliate.conversionCount}</div><p className="text-xs text-muted-foreground mt-1">Commissioned purchases</p></CardContent></Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Total earnings</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{formatNGN(affiliate.totalEarnings)}</div><p className="text-xs text-muted-foreground mt-1">Approved commissions</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Available to withdraw</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{formatNGN(affiliate.availableBalance)}</div><p className="text-xs text-muted-foreground mt-1">Minimum request: ₦1,000</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Tracked clicks</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{affiliate.clickCount}</div><p className="text-xs text-muted-foreground mt-1">Unique browser/product clicks</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Conversions</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{affiliate.conversionCount}</div><p className="text-xs text-muted-foreground mt-1">Commissioned purchases</p></CardContent></Card>
           </div>
 
           <div className="grid lg:grid-cols-[1.25fr_0.75fr] gap-6">
@@ -276,10 +276,10 @@ export default function PromoterDashboard() {
                   </div>
                 )}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button variant="outline" onClick={() => copyLink(referralLink, 'General affiliate link copied')} disabled={!advertisingApproved}><Copy className="mr-2 h-4 w-4" />{copied ? 'Copied' : 'Copy general link'}</Button>
-                  {advertisingApproved ? <Button asChild variant="secondary"><Link href="/products"><Search className="mr-2 h-4 w-4" /> Select a product</Link></Button> : <Button variant="secondary" disabled><Search className="mr-2 h-4 w-4" /> Select a product</Button>}
+                  <Button variant="outline" className="w-full sm:w-auto" onClick={() => copyLink(referralLink, 'General affiliate link copied')} disabled={!advertisingApproved}><Copy className="mr-2 h-4 w-4" />{copied ? 'Copied' : 'Copy general link'}</Button>
+                  {advertisingApproved ? <Button asChild variant="secondary" className="w-full sm:w-auto"><Link href="/products"><Search className="mr-2 h-4 w-4" /> Select a product</Link></Button> : <Button variant="secondary" className="w-full sm:w-auto" disabled><Search className="mr-2 h-4 w-4" /> Select a product</Button>}
                 </div>
-                <p className="text-xs text-muted-foreground">A product link looks like: <code>/products/PRODUCT_ID?ref={referralCode}&amp;aff_product=PRODUCT_ID</code>. Attribution lasts 30 days in the visitor&apos;s browser.</p>
+                <p className="text-xs text-muted-foreground break-words">A product link looks like: <code className="break-all">/products/PRODUCT_ID?ref={referralCode}&amp;aff_product=PRODUCT_ID</code>. Attribution lasts 30 days in the visitor&apos;s browser.</p>
               </CardContent>
             </Card>
 
@@ -297,7 +297,7 @@ export default function PromoterDashboard() {
                     <div><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" inputMode="numeric" value={accountNumber} onChange={event => setAccountNumber(event.target.value)} required /></div>
                     <div><Label htmlFor="bankName">Bank name</Label><Input id="bankName" value={bankName} onChange={event => setBankName(event.target.value)} required /></div>
                     <div><Label htmlFor="bankCode">Bank code</Label><Input id="bankCode" inputMode="numeric" value={bankCode} onChange={event => setBankCode(event.target.value)} placeholder="e.g. 058" required /></div>
-                    <div className="flex gap-2"><Button type="submit" disabled={submittingPayout}>{submittingPayout ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit request'}</Button><Button type="button" variant="outline" onClick={() => setShowPayoutForm(false)}>Cancel</Button></div>
+                    <div className="flex flex-col sm:flex-row gap-2"><Button type="submit" className="w-full sm:flex-1" disabled={submittingPayout}>{submittingPayout ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit request'}</Button><Button type="button" variant="outline" className="w-full sm:flex-1" onClick={() => setShowPayoutForm(false)}>Cancel</Button></div>
                   </form>
                 )}
                 <p className="text-xs text-muted-foreground">Requests are reviewed before transfer. Bank details are stored with the payout request for processing.</p>
@@ -309,14 +309,14 @@ export default function PromoterDashboard() {
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-primary" /> Recent conversions</CardTitle></CardHeader>
               <CardContent>
-                {conversions.length === 0 ? <div className="py-10 text-center text-sm text-muted-foreground">No conversions yet. Select a product and share its link to get started.</div> : <div className="space-y-3">{conversions.slice(0, 8).map(conversion => <div key={conversion.id} className="flex items-center justify-between rounded-lg border p-3"><div><p className="font-medium">Order {conversion.orderId.slice(0, 10)}...</p><p className="text-xs text-muted-foreground">{conversion.status} · {conversion.createdAt ? new Date(conversion.createdAt).toLocaleDateString() : 'Recently'}</p></div><strong className="text-emerald-600">+{formatNGN(conversion.commissionAmount)}</strong></div>)}</div>}
+                {conversions.length === 0 ? <div className="py-10 text-center text-sm text-muted-foreground">No conversions yet. Select a product and share its link to get started.</div> : <div className="space-y-3">{conversions.slice(0, 8).map(conversion => <div key={conversion.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border p-3"><div><p className="font-medium">Order {conversion.orderId.slice(0, 10)}...</p><p className="text-xs text-muted-foreground">{conversion.status} · {conversion.createdAt ? new Date(conversion.createdAt).toLocaleDateString() : 'Recently'}</p></div><strong className="text-emerald-600">+{formatNGN(conversion.commissionAmount)}</strong></div>)}</div>}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2"><MousePointerClick className="h-5 w-5 text-primary" /> Payout history</CardTitle></CardHeader>
               <CardContent>
-                {payouts.length === 0 ? <div className="py-10 text-center text-sm text-muted-foreground">No payout requests yet.</div> : <div className="space-y-3">{payouts.slice(0, 8).map(payout => <div key={payout.id} className="flex items-center justify-between rounded-lg border p-3"><div><p className="font-medium">{formatNGN(payout.amount)}</p><p className="text-xs text-muted-foreground">{payout.createdAt ? new Date(payout.createdAt).toLocaleDateString() : 'Recently'}</p></div><span className="text-xs capitalize rounded-full bg-muted px-2 py-1">{payout.status}</span></div>)}</div>}
+                {payouts.length === 0 ? <div className="py-10 text-center text-sm text-muted-foreground">No payout requests yet.</div> : <div className="space-y-3">{payouts.slice(0, 8).map(payout => <div key={payout.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border p-3"><div><p className="font-medium">{formatNGN(payout.amount)}</p><p className="text-xs text-muted-foreground">{payout.createdAt ? new Date(payout.createdAt).toLocaleDateString() : 'Recently'}</p></div><span className="text-xs capitalize rounded-full bg-muted px-2 py-1 self-start sm:self-auto">{payout.status}</span></div>)}</div>}
               </CardContent>
             </Card>
           </div>
@@ -324,7 +324,7 @@ export default function PromoterDashboard() {
           <Card className="bg-primary/5 border-primary/10">
             <CardContent className="p-5 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
               <div><p className="font-bold">{advertisingApproved ? 'Want to promote another product?' : 'Finish affiliate onboarding first'}</p><p className="text-sm text-muted-foreground">{advertisingApproved ? 'Browse the live catalog and generate a product-specific link directly from the product card.' : 'Product advertising unlocks after the registration payment, course, task, and approval are complete.'}</p></div>
-              {advertisingApproved && <Button asChild variant="outline"><Link href="/products">Open catalog <ExternalLink className="ml-2 h-4 w-4" /></Link></Button>}
+              {advertisingApproved && <Button asChild variant="outline" className="w-full sm:w-auto shrink-0"><Link href="/products">Open catalog <ExternalLink className="ml-2 h-4 w-4" /></Link></Button>}
             </CardContent>
           </Card>
         </div>

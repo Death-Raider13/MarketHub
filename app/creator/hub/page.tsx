@@ -202,55 +202,55 @@ function CreatorHubSettingsContent() {
 
           <div className="grid gap-6 lg:grid-cols-4">
             {/* Sidebar */}
-            <aside className="space-y-2">
+            <aside className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-1 gap-2 space-y-0 lg:space-y-2">
               <Link href="/creator/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <LayoutDashboard className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Dashboard</span>
                 </Button>
               </Link>
               <Link href="/creator/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="mr-2 h-4 w-4" />
-                  Products
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Package className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Products</span>
                 </Button>
               </Link>
               <Link href="/creator/orders">
-                <Button variant="ghost" className="w-full justify-start">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Orders
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Orders</span>
                 </Button>
               </Link>
               <Link href="/creator/analytics">
-                <Button variant="ghost" className="w-full justify-start">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Analytics
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <TrendingUp className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Analytics</span>
                 </Button>
               </Link>
               <Link href="/creator/hub">
-                <Button variant="default" className="w-full justify-start">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Hub Settings
+                <Button variant="default" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Settings className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Hub Settings</span>
                 </Button>
               </Link>
               <Link href="/creator/hub-customize">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Palette className="mr-2 h-4 w-4" />
-                  Customize Hub
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Customize Hub</span>
                 </Button>
               </Link>
               <Link href="/creator/payouts">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Payouts
+                <Button variant="ghost" className="w-full justify-start text-xs sm:text-sm truncate">
+                  <Wallet className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Payouts</span>
                 </Button>
               </Link>
             </aside>
 
             {/* Main Content */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 min-w-0">
               <Tabs defaultValue="general" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto p-1 gap-1">
                   <TabsTrigger value="general">General</TabsTrigger>
                   <TabsTrigger value="business">Business</TabsTrigger>
                   <TabsTrigger value="payment">Payment</TabsTrigger>
@@ -269,8 +269,8 @@ function CreatorHubSettingsContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {/* Read-only Hub Info from Profile */}
-                      <div className="bg-muted/50 p-6 rounded-lg space-y-4 border">
-                        <div className="flex items-center justify-between mb-4">
+                      <div className="bg-muted/50 p-4 sm:p-6 rounded-lg space-y-4 border">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                           <h3 className="font-semibold text-lg">Contact Information (from Profile)</h3>
                           <Button asChild variant="outline" size="sm">
                             <Link href="/creator/profile">
@@ -283,14 +283,14 @@ function CreatorHubSettingsContent() {
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Hub Name</Label>
-                            <p className="font-semibold text-lg">{userProfile?.storeName || "Not set"}</p>
+                            <p className="font-semibold text-lg truncate">{userProfile?.storeName || "Not set"}</p>
                           </div>
                           <div>
                             <Label className="text-xs text-muted-foreground flex items-center gap-1">
                               <Mail className="h-3 w-3" />
                               Email
                             </Label>
-                            <p className="font-medium">{userProfile?.email || user?.email || "Not set"}</p>
+                            <p className="font-medium break-all">{userProfile?.email || user?.email || "Not set"}</p>
                           </div>
                           <div>
                             <Label className="text-xs text-muted-foreground flex items-center gap-1">
@@ -304,7 +304,7 @@ function CreatorHubSettingsContent() {
                               <MapPin className="h-3 w-3" />
                               Address
                             </Label>
-                            <p className="font-medium">
+                            <p className="font-medium break-words">
                               {userProfile?.address?.addressLine1 ? (
                                 <>
                                   {userProfile.address.addressLine1}

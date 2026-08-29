@@ -106,59 +106,61 @@ export default function CartPage() {
                     <CardContent className="p-0">
                       {creatorGroup.items.map((item, index) => (
                         <div key={item.product.id}>
-                          <div className="p-6">
-                            <div className="flex gap-4">
-                              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
-                                <Image
-                                  src={item.product.images[0] || "/placeholder.svg"}
-                                  alt={item.product.name}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-
-                              <div className="flex flex-1 flex-col justify-between">
-                                <div>
-                                  <Link href={`/products/${item.product.id}`} className="font-semibold hover:underline">
-                                    {item.product.name}
-                                  </Link>
-                                  {item.product.stock < 10 && item.product.stock > 0 && (
-                                    <Badge variant="destructive" className="ml-2 text-xs">
-                                      Only {item.product.stock} left
-                                    </Badge>
-                                  )}
+                          <div className="p-4 sm:p-6">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                              <div className="flex gap-4 items-start flex-1">
+                                <div className="relative h-20 w-20 sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+                                  <Image
+                                    src={item.product.images[0] || "/placeholder.svg"}
+                                    alt={item.product.name}
+                                    fill
+                                    className="object-cover"
+                                  />
                                 </div>
 
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      className="h-8 w-8 bg-transparent"
-                                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                                    >
-                                      <Minus className="h-4 w-4" />
-                                    </Button>
-                                    <span className="w-12 text-center">{item.quantity}</span>
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      className="h-8 w-8 bg-transparent"
-                                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                      disabled={item.quantity >= item.product.stock}
-                                    >
-                                      <Plus className="h-4 w-4" />
-                                    </Button>
+                                <div className="flex flex-1 flex-col justify-between min-w-0">
+                                  <div>
+                                    <Link href={`/products/${item.product.id}`} className="font-semibold hover:underline text-sm sm:text-base line-clamp-2">
+                                      {item.product.name}
+                                    </Link>
+                                    {item.product.stock < 10 && item.product.stock > 0 && (
+                                      <Badge variant="destructive" className="mt-1 text-[10px]">
+                                        Only {item.product.stock} left
+                                      </Badge>
+                                    )}
                                   </div>
+                                </div>
+                              </div>
 
-                                  <div className="flex items-center gap-4">
-                                    <span className="text-lg font-bold">
-                                      ₦{(item.product.price * item.quantity).toLocaleString()}
-                                    </span>
-                                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.product.id)}>
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
+                              <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 bg-transparent"
+                                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 bg-transparent"
+                                    onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                    disabled={item.quantity >= item.product.stock}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                  <span className="text-base sm:text-lg font-bold">
+                                    ₦{(item.product.price * item.quantity).toLocaleString()}
+                                  </span>
+                                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.product.id)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
                                 </div>
                               </div>
                             </div>
