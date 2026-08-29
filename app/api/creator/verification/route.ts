@@ -5,15 +5,21 @@ export const runtime = 'nodejs'
 import { getAdminFirestore } from '@/lib/firebase/admin-simple';
 import { verifyAuthToken } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
+import type { QuerySnapshot } from 'firebase-admin/firestore';
 
 // GET - Fetch verification status for a creator
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await verifyAuthToken(request);
+    if ('error' in authResult) return authResult.error;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
+    const requestedUserId = searchParams.get('userId');
+    const userId = requestedUserId || authResult.user.uid;
     if (!userId) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    }
+    if (userId !== authResult.user.uid && !['admin', 'super_admin'].includes(authResult.user.role || '')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const adminDb = getAdminFirestore();
@@ -23,25 +29,49 @@ export async function GET(request: NextRequest) {
     const creatorDoc = await adminDb.collection('creators').doc(userId).get();
     
     if (!creatorDoc.exists) {
-      return NextResponse.json({ status: 'none', documents: [] });
+      const userDoc = await adminDb.collection('users').doc(userId).get();
+      const userData = userDoc.data() || {};
+      return NextResponse.json({
+        status: 'none',
+        verificationPaymentStatus: userData.verificationPaymentStatus || 'none',
+        featured: userData.featured === true,
+        waitlistEligible: userData.waitlistEligible === true || userData.waitlistMember === true,
+        creatorUploadAccess: userData.creatorUploadAccess || null,
+        documents: [],
+      });
     }
 
     const creatorData = creatorDoc.data();
+    const userDoc = await adminDb.collection('users').doc(userId).get();
+    const userData = userDoc.data() || {};
     
-    // Fetch associated verification documents
-    const docsSnapshot = await adminDb
-      .collection('verification_documents')
-      .where('userId', '==', userId)
-      .orderBy('uploadedAt', 'desc')
-      .get();
+    // Fetch documents with an index-free fallback. Older projects may not have
+    // the composite where(userId)+orderBy(uploadedAt) index yet.
+    let docsSnapshot: QuerySnapshot;
+    try {
+      docsSnapshot = await adminDb
+        .collection('verification_documents')
+        .where('userId', '==', userId)
+        .orderBy('uploadedAt', 'desc')
+        .get();
+    } catch (queryError) {
+      logger.warn('Verification document ordering index unavailable; using fallback query');
+      docsSnapshot = await adminDb
+        .collection('verification_documents')
+        .where('userId', '==', userId)
+        .get();
+    }
 
-    const documents = docsSnapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const documents = docsSnapshot.docs
+      .map((doc: any) => ({ id: doc.id, ...doc.data() }))
+      .sort((a: any, b: any) => String(b.uploadedAt || '').localeCompare(String(a.uploadedAt || '')));
 
     return NextResponse.json({
       status: creatorData?.verificationStatus || 'none',
+      verificationPaymentStatus: userData.verificationPaymentStatus || 'none',
+      featured: userData.featured === true,
+      waitlistEligible: userData.waitlistEligible === true || userData.waitlistMember === true,
+      creatorUploadAccess: userData.creatorUploadAccess || null,
       academicTier: creatorData?.academicTier || null,
       institutionAffiliation: creatorData?.institutionAffiliation || null,
       documents,

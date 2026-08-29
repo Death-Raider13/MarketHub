@@ -1,190 +1,101 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/firebase/auth-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
-import { Upload, Shield, CheckCircle2, Clock, XCircle, Loader2, GraduationCap, FileCheck } from "lucide-react"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
+import { CheckCircle2, Clock, Crown, Loader2, Sparkles, UploadCloud, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
-type VerificationStatus = 'none' | 'pending' | 'verified' | 'rejected'
-
-interface VerificationDoc {
-  type: string
-  url: string
-  status: VerificationStatus
-  uploadedAt: string
-  reviewNote?: string
-}
+type Status = "none" | "pending" | "paid" | "verified"
 
 function VerificationContent() {
-  const { user, userProfile } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('none')
-  const [verificationDocs, setVerificationDocs] = useState<VerificationDoc[]>([])
-  
-  // Form state
-  const [docType, setDocType] = useState("")
-  const [institutionName, setInstitutionName] = useState("")
-  const [graduationYear, setGraduationYear] = useState("")
-  const [additionalNotes, setAdditionalNotes] = useState("")
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const [status, setStatus] = useState<Status>("none")
+  const [featured, setFeatured] = useState(false)
+  const [resourceCount, setResourceCount] = useState(0)
+  const [waitlistEligible, setWaitlistEligible] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [paying, setPaying] = useState<"badge" | "uploads" | null>(null)
 
-  useEffect(() => {
-    if (user) {
-      loadVerificationStatus()
-    }
-  }, [user])
-
-  const loadVerificationStatus = async () => {
+  const loadStatus = async () => {
     if (!user) return
     try {
-      const response = await fetch(`/api/creator/verification?userId=${user.uid}`)
-      if (response.ok) {
-        const data = await response.json()
-        setVerificationStatus(data.status || 'none')
-        setVerificationDocs(data.documents || [])
-      }
+      const [verificationResponse, productsResponse] = await Promise.all([
+        authenticatedFetch(`/api/creator/verification?userId=${encodeURIComponent(user.uid)}`),
+        authenticatedFetch(`/api/creator/products?creatorId=${encodeURIComponent(user.uid)}`),
+      ])
+      const verification = await verificationResponse.json()
+      const products = await productsResponse.json()
+      setStatus(verification.verificationPaymentStatus || verification.status || "none")
+      setFeatured(Boolean(verification.featured))
+      setWaitlistEligible(Boolean(verification.waitlistEligible))
+      setResourceCount(Array.isArray(products.products) ? products.products.length : 0)
     } catch (error) {
-      console.error("Error loading verification status:", error)
-    }
-  }
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPEG, PNG, WebP, and PDF files are allowed")
-      return
-    }
-
-    // Validate file size (10MB max)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size must not exceed 10MB")
-      return
-    }
-
-    setSelectedFile(file)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!user) {
-      toast.error("Please login to continue")
-      return
-    }
-
-    if (!docType) {
-      toast.error("Please select a document type")
-      return
-    }
-
-    if (!selectedFile) {
-      toast.error("Please upload a verification document")
-      return
-    }
-
-    if (!institutionName.trim()) {
-      toast.error("Please enter your institution name")
-      return
-    }
-
-    setUploading(true)
-
-    try {
-      // Upload file to Cloudinary
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
-      formData.append('folder', 'verification-docs')
-      
-      const uploadResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/auto/upload`,
-        { method: 'POST', body: formData }
-      )
-      
-      const uploadData = await uploadResponse.json()
-      
-      if (!uploadData.secure_url) {
-        throw new Error('File upload failed')
-      }
-
-      // Submit verification request
-      const response = await fetch('/api/creator/verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          documentType: docType,
-          documentUrl: uploadData.secure_url,
-          institutionName: institutionName.trim(),
-          graduationYear: graduationYear.trim(),
-          additionalNotes: additionalNotes.trim(),
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success("Verification documents submitted! Our team will review within 24-48 hours. 🎓")
-        setVerificationStatus('pending')
-        setSelectedFile(null)
-        setDocType("")
-        setInstitutionName("")
-        setGraduationYear("")
-        setAdditionalNotes("")
-        loadVerificationStatus()
-      } else {
-        toast.error(data.error || "Failed to submit verification")
-      }
-    } catch (error) {
-      console.error("Error submitting verification:", error)
-      toast.error("Failed to submit verification")
+      console.error("Error loading creator verification status:", error)
+      toast.error("Could not load creator account status")
     } finally {
-      setUploading(false)
+      setLoading(false)
     }
   }
 
-  const getStatusBadge = (status: VerificationStatus) => {
-    switch (status) {
-      case 'verified':
-        return <Badge className="bg-green-100 text-green-800 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" /> Verified Educator</Badge>
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300"><Clock className="h-3 w-3 mr-1" /> Under Review</Badge>
-      case 'rejected':
-        return <Badge className="bg-red-100 text-red-800 border-red-300"><XCircle className="h-3 w-3 mr-1" /> Needs Resubmission</Badge>
-      default:
-        return <Badge variant="outline"><Shield className="h-3 w-3 mr-1" /> Not Verified</Badge>
+  useEffect(() => {
+    loadStatus()
+  }, [user])
+
+  useEffect(() => {
+    const reference = searchParams.get("reference")
+    const paymentId = searchParams.get("paymentId")
+    if (!reference || !paymentId || !user) return
+    setPaying("badge")
+    authenticatedFetch("/api/fees/verify", {
+      method: "POST",
+      body: JSON.stringify({ paymentId, reference }),
+    }).then(async (response) => {
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Payment verification failed")
+      toast.success("Payment confirmed. Your creator benefits are now active.")
+      await loadStatus()
+    }).catch((error) => toast.error(error.message || "Payment verification failed"))
+      .finally(() => setPaying(null))
+  }, [searchParams, user])
+
+  const startPayment = async (kind: "badge" | "uploads") => {
+    if (!user) return
+    setPaying(kind)
+    try {
+      const feeType = kind === "badge"
+        ? "creator_verification_featuring"
+        : (waitlistEligible ? "creator_waitlist_additional_upload" : "creator_additional_upload")
+      const createResponse = await authenticatedFetch("/api/fees/create", {
+        method: "POST",
+        body: JSON.stringify({ feeType }),
+      })
+      const created = await createResponse.json()
+      const initResponse = await authenticatedFetch("/api/fees/initialize", {
+        method: "POST",
+        body: JSON.stringify({ paymentId: created.paymentId }),
+      })
+      const initialized = await initResponse.json()
+      if (!initResponse.ok || !initialized.authorizationUrl) throw new Error(initialized.error || "Unable to start payment")
+      window.location.assign(initialized.authorizationUrl)
+    } catch (error: any) {
+      toast.error(error?.message || "Unable to start payment")
+      setPaying(null)
     }
   }
 
-  return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
+  if (loading) return <div className="min-h-screen"><Header /><main className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></main><Footer /></div>
 
-      <main className="flex-1 bg-muted/30">
-        <div className="container mx-auto px-4 py-8 max-w-3xl">
-          <div className="mb-8 text-center">
-            <GraduationCap className="h-12 w-12 mx-auto text-primary mb-4" />
-            <h1 className="text-3xl font-bold">Educator Verification</h1>
-            <p className="text-muted-foreground mt-2">
-              Verify your academic credentials to earn the &quot;Verified Educator&quot; badge and build trust with students.
-            </p>
-            <div className="mt-4">{getStatusBadge(verificationStatus)}</div>
-          </div>
+  const badgePaid = status === "paid" || status === "verified"
+  const uploadFee = waitlistEligible ? 3000 : 4000
 
           {verificationStatus === 'verified' ? (
             <Card>
@@ -353,13 +264,8 @@ function VerificationContent() {
 
       <Footer />
     </div>
-  )
+    <div className="mt-8 rounded-lg border bg-background p-5 text-sm text-muted-foreground"><Clock className="mr-2 inline h-4 w-4" />Payments are verified server-side through Paystack. Benefits are activated only after successful verification; the browser cannot mark an account as paid.</div>
+  </div></main><Footer /></div>
 }
 
-export default function VerificationPage() {
-  return (
-    <ProtectedRoute allowedRoles={["creator"]}>
-      <VerificationContent />
-    </ProtectedRoute>
-  )
-}
+export default function VerificationPage() { return <ProtectedRoute allowedRoles={["creator"]}><VerificationContent /></ProtectedRoute> }

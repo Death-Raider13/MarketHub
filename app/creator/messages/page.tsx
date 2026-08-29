@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -89,7 +90,7 @@ function CreatorMessagesContent() {
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/creator/messages?creatorId=${user.uid}`)
+      const response = await authenticatedFetch(`/api/creator/messages?creatorId=${user.uid}`)
       const data = await response.json()
 
       if (data.success) {
@@ -108,7 +109,7 @@ function CreatorMessagesContent() {
   const loadMessages = async (conversationId: string) => {
     try {
       setLoadingMessages(true)
-      const response = await fetch(`/api/creator/messages/${conversationId}`)
+      const response = await authenticatedFetch(`/api/creator/messages/${conversationId}`)
       const data = await response.json()
 
       if (data.success) {
@@ -128,7 +129,7 @@ function CreatorMessagesContent() {
 
   const markAsRead = async (conversationId: string) => {
     try {
-      await fetch(`/api/creator/messages/${conversationId}/read`, {
+      await authenticatedFetch(`/api/creator/messages/${conversationId}/read`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user?.uid })
@@ -152,7 +153,7 @@ function CreatorMessagesContent() {
 
     try {
       setSendingMessage(true)
-      const response = await fetch('/api/creator/messages/send', {
+      const response = await authenticatedFetch('/api/creator/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -184,7 +185,7 @@ function CreatorMessagesContent() {
 
   const updateConversationStatus = async (conversationId: string, status: string) => {
     try {
-      const response = await fetch(`/api/creator/messages/${conversationId}/status`, {
+      const response = await authenticatedFetch(`/api/creator/messages/${conversationId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })

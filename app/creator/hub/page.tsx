@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -83,14 +84,14 @@ function CreatorHubSettingsContent() {
 
       try {
         // Load user profile
-        const profileResponse = await fetch(`/api/creator/profile?creatorId=${user.uid}`)
+        const profileResponse = await authenticatedFetch(`/api/creator/profile?creatorId=${user.uid}`)
         const profileData = await profileResponse.json()
         if (profileData.profile) {
           setUserProfile(profileData.profile)
         }
 
         // Load hub settings
-        const response = await fetch(`/api/creator/hub-settings?creatorId=${user.uid}`)
+        const response = await authenticatedFetch(`/api/creator/hub-settings?creatorId=${user.uid}`)
         const data = await response.json()
  
         if (data.settings) {
@@ -142,7 +143,7 @@ function CreatorHubSettingsContent() {
 
     setLoading(true)
     try {
-      const response = await fetch("/api/creator/hub-settings", {
+      const response = await authenticatedFetch("/api/creator/hub-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -89,7 +90,7 @@ function CreatorQuestionsContent() {
       console.log('Loading questions for creator:', user.uid)
 
       // Use API to get questions with replies
-      const response = await fetch(`/api/creator/questions?creatorId=${user.uid}`)
+      const response = await authenticatedFetch(`/api/creator/questions?creatorId=${user.uid}`)
       const data = await response.json()
 
       if (data.success) {
@@ -177,7 +178,7 @@ function CreatorQuestionsContent() {
     try {
       setSubmittingReply(prev => ({ ...prev, [questionId]: true }))
 
-      const response = await fetch(`/api/products/temp/questions/${questionId}/replies`, {
+      const response = await authenticatedFetch(`/api/products/temp/questions/${questionId}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

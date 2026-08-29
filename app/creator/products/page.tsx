@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -104,7 +105,7 @@ function CreatorProductsContent() {
       if (!user) return
 
       try {
-        const response = await fetch(`/api/creator/products?creatorId=${user.uid}`)
+        const response = await authenticatedFetch(`/api/creator/products?creatorId=${user.uid}`)
         const data = await response.json()
 
         if (data.products) {
@@ -145,7 +146,7 @@ function CreatorProductsContent() {
     const newStatus = currentStatus === "active" ? "inactive" : "active"
 
     try {
-      const response = await fetch(`/api/creator/products/${productId}`, {
+      const response = await authenticatedFetch(`/api/creator/products/${productId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -167,7 +168,7 @@ function CreatorProductsContent() {
 
   const handleUpdateStock = async (productId: string, newStock: number) => {
     try {
-      const response = await fetch(`/api/creator/products/${productId}`, {
+      const response = await authenticatedFetch(`/api/creator/products/${productId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stock: newStock }),
@@ -190,7 +191,7 @@ function CreatorProductsContent() {
 
   const handleDelete = async (productId: string) => {
     try {
-      const response = await fetch(`/api/creator/products/${productId}`, {
+      const response = await authenticatedFetch(`/api/creator/products/${productId}`, {
         method: "DELETE",
       })
 
@@ -233,7 +234,7 @@ function CreatorProductsContent() {
         sponsored: false,
       }
 
-      const response = await fetch("/api/creator/products", {
+      const response = await authenticatedFetch("/api/creator/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(duplicatedProduct),
@@ -245,7 +246,7 @@ function CreatorProductsContent() {
         toast.dismiss()
         toast.success("Product duplicated successfully! 🎉")
         // Reload products to show the new duplicate
-        const response2 = await fetch(`/api/creator/products?creatorId=${user.uid}`)
+        const response2 = await authenticatedFetch(`/api/creator/products?creatorId=${user.uid}`)
         const data2 = await response2.json()
         if (data2.products) {
           setProducts(data2.products)

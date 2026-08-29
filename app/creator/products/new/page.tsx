@@ -1,113 +1,99 @@
 "use client"
 
-import React, { useState } from "react"
-import { useAuth } from "@/lib/firebase/auth-context"
+import { useMemo, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AnimatePresence, motion } from "framer-motion"
+import { ArrowLeft, BookOpen, CheckCircle2, FileVideo, Loader2, LockKeyhole, PlayCircle, ShieldCheck, UploadCloud } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import {
-  ArrowLeft,
-  UploadCloud,
-  FileText,
-  ShieldCheck,
-  BookOpen,
-  DollarSign,
-  Clock,
-  Zap,
-  Tag
-} from "lucide-react"
-import Link from "next/link"
-import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ProtectedRoute } from "@/lib/firebase/protected-route"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { DigitalFileUpload } from "@/components/creator/digital-file-upload"
 import type { DigitalFile } from "@/lib/types"
+import { toast } from "sonner"
 
-export default function NewResourcePage() {
+type ResourceType = "book" | "video"
+
+const categories = [
+  ["digital-ebooks", "Books & E-books"],
+  ["digital-academic", "Academic Resources"],
+  ["digital-study-guides", "Study Guides"],
+  ["digital-past-questions", "Past Questions & CBT"],
+  ["digital-courses", "Online Courses"],
+  ["digital-video", "Educational Videos"],
+  ["digital-audiobooks", "Audiobooks"],
+  ["digital-professional", "Professional Development"],
+] as const
+
+function NewResourceContent() {
   const router = useRouter()
   const { user, userProfile } = useAuth()
-  
-  const [isUploading, setIsUploading] = useState(false)
-  const [resourceType, setResourceType] = useState<"past_question" | "course" | "exam_prep" | "study_guide">("past_question")
-
-  // Core Data
-  const [name, setName] = useState("")
+  const [resourceType, setResourceType] = useState<ResourceType>("book")
+  const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [institution, setInstitution] = useState("")
+  const [category, setCategory] = useState("digital-ebooks")
   const [price, setPrice] = useState("")
-  
-  // Real file uploads
-  const [digitalFiles, setDigitalFiles] = useState<DigitalFile[]>([])
-  
-  // Advanced features (mock data for now, saved as JSON string in actual description/file)
-  const [questions, setQuestions] = useState([{ q: "", a: "", b: "", c: "", d: "", correct: "a" }])
-  const [modules, setModules] = useState([{ title: "", duration: "" }])
-  const [cbtDuration, setCbtDuration] = useState(30)
+  const [author, setAuthor] = useState("")
+  const [tags, setTags] = useState("")
+  const [files, setFiles] = useState<DigitalFile[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Handlers for dynamic builders
-  const addQuestion = () => setQuestions([...questions, { q: "", a: "", b: "", c: "", d: "", correct: "a" }])
-  const addModule = () => setModules([...modules, { title: "", duration: "" }])
+  const fileLabel = resourceType === "book" ? "Upload your book file" : "Upload your video file"
+  const acceptedLabel = resourceType === "book" ? "PDF, EPUB, DOCX, ZIP or audiobook files" : "MP4, MOV, WEBM or other supported video files"
+  const defaultCategory = resourceType === "book" ? "digital-ebooks" : "digital-video"
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!user) {
-      toast.error("Please login to publish resources.")
-      return
-    }
+  const switchType = (type: ResourceType) => {
+    setResourceType(type)
+    setCategory(type === "book" ? "digital-ebooks" : "digital-video")
+    setFiles([])
+  }
 
-    if (!name || !price || !institution) {
-      toast.error("Please fill out the name, institution, and price.")
-      return
-    }
+  const canSubmit = useMemo(() => Boolean(user && title.trim() && description.trim() && price && Number(price) >= 0 && files.length > 0 && category), [user, title, description, price, files, category])
 
-    if (resourceType === "past_question" || resourceType === "study_guide") {
-      if (digitalFiles.length === 0) {
-        toast.error("Please upload the required document files.")
-        return
-      }
-    }
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!user) return toast.error("Please sign in to publish a resource.")
+    if (!canSubmit) return toast.error("Complete the required fields and upload at least one resource file.")
 
-    setIsUploading(true)
-    
-    // Convert advanced structure into database format or tags
-    const advancedContent = resourceType === 'exam_prep' ? JSON.stringify({ cbtDuration, questions }) : 
-                            resourceType === 'course' ? JSON.stringify({ modules }) : ""
-                            
-    const finalDescription = advancedContent ? `${description}\n\n[FeroData:${advancedContent}]` : description
-
+    setIsSubmitting(true)
     try {
-      const response = await fetch("/api/creator/products", {
+      const response = await authenticatedFetch("/api/creator/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           creatorId: user.uid,
-          creatorName: userProfile?.displayName || userProfile?.role || 'Verified Educator',
-          name,
-          description: finalDescription,
-          price,
-          category: resourceType,
+          creatorName: userProfile?.displayName || userProfile?.storeName || "Fero E-Library Creator",
+          name: title.trim(),
+          description: description.trim(),
+          price: Number(price),
+          category,
           type: "digital",
-          digitalFiles: digitalFiles,
+          digitalFiles: files,
+          tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+          status: "pending",
           isAcademic: true,
-          institution,
-          verificationStatus: 'pending',
-          images: ["https://res.cloudinary.com/dtg0cgylt/image/upload/v1727785461/hub-1_b3780l.png"] // Placeholder cover image
+          author: author.trim() || null,
+          accessDuration: 0,
+          downloadLimit: 0,
         }),
       })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success("Resource submitted for verification! It will be live shortly.")
-        router.push("/creator/dashboard")
-      } else {
-        toast.error(data.error || "Failed to create resource.")
+      const data = await response.json().catch(() => ({}))
+      if (response.status === 402 && data.code === "CREATOR_UPLOAD_ACCESS_REQUIRED") {
+        toast.error(`Your three free uploads are used. Upload access costs ₦${Number(data.feeAmount || 4000).toLocaleString()}.`)
+        router.push("/creator/verification")
+        return
       }
-    } catch (error) {
-      console.error("Error creating resource:", error)
-      toast.error("An error occurred during publishing.")
+      if (!response.ok || !data.success) throw new Error(data.error || "Unable to publish resource")
+      toast.success("Resource submitted for review.")
+      router.push("/creator/products")
+    } catch (error: any) {
+      toast.error(error?.message || "An error occurred while publishing your resource.")
     } finally {
-      setIsUploading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -392,3 +378,5 @@ export default function NewResourcePage() {
     </div>
   )
 }
+
+export default function NewResourcePage() { return <ProtectedRoute allowedRoles={["creator"]}><NewResourceContent /></ProtectedRoute> }

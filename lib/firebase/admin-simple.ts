@@ -22,23 +22,25 @@ export function getAdminFirestore() {
       return adminDb
     }
 
-    // Parse service account from environment variable
+    // Prefer a complete service-account JSON, but also support the individual
+    // variables commonly configured in Vercel projects.
     const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
-    
-    if (!serviceAccountJson) {
-      console.error('❌ FIREBASE_SERVICE_ACCOUNT_JSON not found in environment variables')
+    const serviceAccount = serviceAccountJson
+      ? JSON.parse(serviceAccountJson)
+      : {
+          project_id: process.env.FIREBASE_ADMIN_PROJECT_ID,
+          client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+          private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY,
+        }
+
+    if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
+      console.error('❌ Firebase Admin credentials are missing. Configure FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY.')
       return null
     }
 
-    // Parse and ensure private_key has proper newlines
-    const serviceAccount = JSON.parse(serviceAccountJson)
-    
-    // Fix the private key format - ensure \n are actual newlines
-    if (serviceAccount.private_key) {
-      // If the private key has literal \n strings, replace them with actual newlines
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n')
-    }
-    
+    // Vercel commonly stores escaped newline characters in environment values.
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n')
+
     const app = initializeApp({
       credential: cert(serviceAccount),
     })

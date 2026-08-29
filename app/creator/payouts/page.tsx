@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -96,7 +97,7 @@ export default function PayoutSettingsPage() {
     setConfiguring(true)
     try {
       const idToken = await user.getIdToken()
-      const response = await fetch("/api/creators/payout-setup", {
+      const response = await authenticatedFetch("/api/creators/payout-setup", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${idToken}`,

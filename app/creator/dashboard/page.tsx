@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useAuth } from "@/lib/firebase/auth-context"
 import { useRouter } from "next/navigation"
@@ -89,7 +90,7 @@ function CreatorDashboardContent() {
       if (!user) return
 
       try {
-        const response = await fetch(`/api/creator/stats?creatorId=${user.uid}`)
+        const response = await authenticatedFetch(`/api/creator/stats?creatorId=${user.uid}`)
 
         if (!response.ok) {
           console.error('Stats API error:', response.status)
@@ -110,7 +111,7 @@ function CreatorDashboardContent() {
         setRecentOrders(data.recentOrders || [])
 
         // Fetch additional dashboard stats from orders
-        const ordersResponse = await fetch(`/api/creator/orders?creatorId=${user.uid}`)
+        const ordersResponse = await authenticatedFetch(`/api/creator/orders?creatorId=${user.uid}`)
         const ordersData = await ordersResponse.json()
         const orders = ordersData.orders || []
 
@@ -521,17 +522,6 @@ function CreatorDashboardContent() {
                         <p className="text-sm font-medium">5 customer messages</p>
                         <Button variant="link" className="h-auto p-0 text-xs" asChild>
                           <Link href="/creator/messages">Reply now →</Link>
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="rounded-full bg-orange-500/10 p-2">
-                        <Calendar className="h-4 w-4 text-orange-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Service bookings pending</p>
-                        <Button variant="link" className="h-auto p-0 text-xs" asChild>
-                          <Link href="/creator/services">Manage services →</Link>
                         </Button>
                       </div>
                     </div>

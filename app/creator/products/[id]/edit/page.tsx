@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -46,7 +47,7 @@ function EditProductContent() {
   const [price, setPrice] = useState("")
   const [comparePrice, setComparePrice] = useState("")
   const [stock, setStock] = useState("")
-  const [productType, setProductType] = useState<"digital" | "service">("digital")
+  const [productType, setProductType] = useState<"digital">("digital")
   const [images, setImages] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
@@ -65,22 +66,13 @@ function EditProductContent() {
   const [downloadLimit, setDownloadLimit] = useState<number>(0) // 0 = unlimited
 
 
-  // Auto-set product type based on category
-  useEffect(() => {
-    if (category && category.startsWith('service-')) {
-      setProductType('service')
-    } else {
-      setProductType('digital')
-    }
-  }, [category])
-
   // Load product data from Firestore
   useEffect(() => {
     async function loadProduct() {
       if (!productId) return
 
       try {
-        const response = await fetch(`/api/creator/products/${productId}`)
+        const response = await authenticatedFetch(`/api/creator/products/${productId}`)
         const data = await response.json()
 
         if (data.id) {
@@ -145,7 +137,7 @@ function EditProductContent() {
     setLoading(true)
 
     try {
-      const response = await fetch(`/api/creator/products/${productId}`, {
+      const response = await authenticatedFetch(`/api/creator/products/${productId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -212,7 +204,7 @@ function EditProductContent() {
         formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
         formData.append('folder', 'products')
         
-        const response = await fetch(
+        const response = await authenticatedFetch(
           `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
           {
             method: 'POST',
@@ -342,28 +334,15 @@ function EditProductContent() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
-                            {/* Digital Products */}
-                            <SelectItem value="digital-courses">Online Courses & Training</SelectItem>
-                            <SelectItem value="digital-ebooks">eBooks & Digital Books</SelectItem>
-                            <SelectItem value="digital-software">Software & Apps</SelectItem>
-                            <SelectItem value="digital-templates">Templates & Graphics</SelectItem>
-                            <SelectItem value="digital-music">Music & Audio</SelectItem>
-                            <SelectItem value="digital-video">Videos & Tutorials</SelectItem>
-                            <SelectItem value="digital-photography">Photography & Stock Images</SelectItem>
-                            
-                            {/* Services */}
-                            <SelectItem value="service-consulting">Consulting & Coaching</SelectItem>
-                            <SelectItem value="service-design">Design & Creative</SelectItem>
-                            <SelectItem value="service-writing">Writing & Translation</SelectItem>
-                            <SelectItem value="service-marketing">Marketing & Advertising</SelectItem>
-                            <SelectItem value="service-tech">Tech & Programming</SelectItem>
-                            <SelectItem value="service-business">Business Services</SelectItem>
-                            <SelectItem value="service-education">Education & Tutoring</SelectItem>
-                            <SelectItem value="service-events">Events & Entertainment</SelectItem>
-                            <SelectItem value="service-repair">Repair & Maintenance</SelectItem>
-                            
-                            {/* Other */}
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="digital-ebooks">Books & E-books</SelectItem>
+                            <SelectItem value="digital-academic">Academic Resources</SelectItem>
+                            <SelectItem value="digital-study-guides">Study Guides</SelectItem>
+                            <SelectItem value="digital-past-questions">Past Questions & CBT</SelectItem>
+                            <SelectItem value="digital-courses">Online Courses</SelectItem>
+                            <SelectItem value="digital-video">Educational Videos</SelectItem>
+                            <SelectItem value="digital-audiobooks">Audiobooks</SelectItem>
+                            <SelectItem value="digital-professional">Professional Development</SelectItem>
+                            <SelectItem value="other">Other Educational Content</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -395,16 +374,6 @@ function EditProductContent() {
                           <div>
                             <div className="font-medium">Digital Product</div>
                             <div className="text-sm text-muted-foreground">Downloadable files (PDF, video, audio, etc.)</div>
-                          </div>
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2 rounded-lg border p-4">
-                        <RadioGroupItem value="service" id="service" />
-                        <Label htmlFor="service" className="flex flex-1 cursor-pointer items-center gap-3">
-                          <Star className="h-5 w-5 text-primary" />
-                          <div>
-                            <div className="font-medium">Service</div>
-                            <div className="text-sm text-muted-foreground">Consultation, booking, or service offering</div>
                           </div>
                         </Label>
                       </div>
@@ -615,25 +584,7 @@ function EditProductContent() {
                   </CardContent>
                 </Card>
 
-                {/* Product Variants */}
-                {/* Service Tiers - Show only for services */}
-                {productType === "service" && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5" />
-                        Service Tiers (Optional)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground">Add tiers like Basic, Standard, or Premium if your service has different options.</p>
-                      <Button type="button" variant="outline" className="w-full">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Tier
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
+                {/* Product variants are not used for digital learning resources yet. */}
               </div>
 
               {/* Sidebar */}

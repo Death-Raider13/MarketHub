@@ -9,8 +9,6 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  sendPasswordResetEmail,
-  sendEmailVerification,
   updateProfile,
   GoogleAuthProvider,
   signInWithCredential,
@@ -176,21 +174,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await updateProfile(userCredential.user, { displayName })
       }
 
-      // Send verification after the account is created, but do not turn a
-      // successful account creation into a failed signup if Firebase rejects
-      // the action URL or email operation. The verify-email page can retry.
-      const actionCodeSettings = {
-        url: typeof window !== 'undefined'
-          ? `${window.location.origin}/auth/action`
-          : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
-        handleCodeInApp: false
-      }
+      // Generate and send the verification message on the server so Firebase's
+      // default email template and continue-URI restrictions are bypassed.
       let verificationEmailError: unknown = null
       try {
-        await sendEmailVerification(userCredential.user, actionCodeSettings)
+        const idToken = await userCredential.user.getIdToken()
+        const response = await fetch('/api/auth/send-verification', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${idToken}` },
+        })
+        if (!response.ok) throw new Error((await response.json().catch(() => null))?.error || 'Verification email could not be sent')
       } catch (error) {
         verificationEmailError = error
-        console.error('Account created, but verification email could not be sent:', error)
+        console.error('Account created, but branded verification email could not be sent:', error)
       }
 
       const generateReferralCode = (name: string) => {
@@ -391,10 +387,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      await sendPasswordResetEmail(auth, email)
+      const response = await fetch('/api/auth/send-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(payload.error || 'Unable to send the password reset email')
     } catch (error: any) {
-      const userFriendlyMessage = handleAuthError(error)
-      throw new Error(userFriendlyMessage)
+      throw new Error(error?.message || handleAuthError(error))
     }
   }
 
@@ -407,24 +408,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Email already verified')
     }
 
-    // Automatically uses correct URL for dev/production
-    const actionCodeSettings = {
-      url: typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/action`
-        : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/action`,
-      handleCodeInApp: false
-    }
-
     try {
-      await sendEmailVerification(user, actionCodeSettings)
+      const idToken = await user.getIdToken()
+      const response = await fetch('/api/auth/send-verification', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}` },
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(payload.error || 'Unable to send the verification email')
     } catch (error: any) {
-      const authError = error as { code?: string; message?: string }
-      if (authError.code === 'auth/unauthorized-continue-uri') {
-        const actionHost = typeof window !== 'undefined' ? window.location.hostname : 'the deployed website domain'
-        throw new Error(`Firebase rejected the verification link domain. Add ${actionHost} under Authentication > Settings > Authorized domains, then try again.`)
-      }
-      const userFriendlyMessage = handleAuthError(error)
-      throw new Error(userFriendlyMessage)
+      throw new Error(error?.message || handleAuthError(error))
     }
   }
 

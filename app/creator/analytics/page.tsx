@@ -1,4 +1,5 @@
 "use client"
+import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/firebase/auth-context"
@@ -83,7 +84,7 @@ function CreatorAnalyticsContent() {
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/creator/analytics?creatorId=${user.uid}&period=${period}`)
+      const response = await authenticatedFetch(`/api/creator/analytics?creatorId=${user.uid}&period=${period}`)
       const data = await response.json()
 
       if (data.success) {
