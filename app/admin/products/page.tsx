@@ -44,7 +44,8 @@ import {
   RefreshCw,
   Star,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
+  ExternalLink
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -448,61 +449,61 @@ function ProductsManagementContent() {
 
           {/* Product Details Dialog */}
           <Dialog open={showProductDetails} onOpenChange={setShowProductDetails}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Product Details</DialogTitle>
+            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-6 overflow-hidden">
+              <DialogHeader className="pb-3 border-b shrink-0">
+                <DialogTitle className="text-xl font-bold">Product Details</DialogTitle>
                 <DialogDescription>
                   {selectedProduct?.name} by {selectedProduct?.creatorName}
                 </DialogDescription>
               </DialogHeader>
 
               {selectedProduct && (
-                <div className="space-y-4">
+                <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>Product Name</Label>
-                      <p className="font-medium">{selectedProduct.name}</p>
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Product Name</Label>
+                      <p className="font-semibold text-base mt-0.5">{selectedProduct.name}</p>
                     </div>
                     <div>
-                      <Label>creator</Label>
-                      <p className="font-medium">{selectedProduct.creatorName}</p>
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Creator / Author</Label>
+                      <p className="font-semibold text-base mt-0.5">{selectedProduct.creatorName}</p>
                     </div>
                   </div>
 
                   <div>
-                    <Label>Description</Label>
-                    <p className="mt-1 p-3 bg-muted rounded-lg">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1 block">Full Description</Label>
+                    <div className="p-4 bg-muted/50 border rounded-xl max-h-52 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap font-normal">
                       {selectedProduct.description || 'No description available'}
-                    </p>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-4 p-3 bg-muted/30 rounded-xl border">
                     <div>
-                      <Label>Price</Label>
-                      <p className="font-medium">₦{selectedProduct.price?.toLocaleString()}</p>
+                      <Label className="text-xs text-muted-foreground">Price</Label>
+                      <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400">₦{selectedProduct.price?.toLocaleString()}</p>
                     </div>
                     <div>
-                      <Label>Stock</Label>
-                      <p className="font-medium">{selectedProduct.stock}</p>
+                      <Label className="text-xs text-muted-foreground">Stock</Label>
+                      <p className="font-semibold">{selectedProduct.stock}</p>
                     </div>
                     <div>
-                      <Label>Category</Label>
-                      <p className="font-medium capitalize">{selectedProduct.category}</p>
+                      <Label className="text-xs text-muted-foreground">Category</Label>
+                      <p className="font-semibold capitalize">{selectedProduct.category}</p>
                     </div>
                   </div>
 
                   {selectedProduct.images && selectedProduct.images.length > 0 && (
                     <div>
-                      <Label>Product Images</Label>
-                      <div className="flex gap-2 mt-2">
-                        {selectedProduct.images.slice(0, 3).map((image, index) => (
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">Product Preview Images</Label>
+                      <div className="flex gap-2">
+                        {selectedProduct.images.slice(0, 4).map((image, index) => (
                           <Image
                             key={index}
                             src={image}
                             alt={`Product image ${index + 1}`}
                             width={80}
                             height={80}
-                            className="rounded border object-cover"
+                            className="rounded-lg border object-cover h-20 w-20"
                           />
                         ))}
                       </div>
@@ -511,10 +512,19 @@ function ProductsManagementContent() {
                 </div>
               )}
 
-              <DialogFooter>
+              <DialogFooter className="pt-3 border-t shrink-0 flex flex-wrap gap-2 justify-end">
                 <Button variant="outline" onClick={() => setShowProductDetails(false)}>
                   Close
                 </Button>
+
+                {selectedProduct && (
+                  <Button variant="outline" asChild>
+                    <Link href={`/products/${selectedProduct.id}`} target="_blank">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Preview Page
+                    </Link>
+                  </Button>
+                )}
 
                 {selectedProduct?.status === 'pending' && (
                   <>
