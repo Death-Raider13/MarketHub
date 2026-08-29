@@ -31,8 +31,8 @@ export default function CartPage() {
 
   const creatorGroups = Object.values(itemsBycreator)
 
-  const tax = totalPrice * 0.1
-  const total = totalPrice + tax
+  const tax = 0
+  const total = totalPrice
 
   if (items.length === 0) {
     return (
@@ -184,10 +184,6 @@ export default function CartPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-medium">₦{totalPrice.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax (10%)</span>
-                    <span className="font-medium">₦{tax.toLocaleString()}</span>
                   </div>
 
                   <div className="border-t border-border pt-4">

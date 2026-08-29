@@ -132,9 +132,13 @@ function MyPurchasesContent() {
     try {
       setGeneratingLinks(prev => ({ ...prev, [productId]: true }))
       
+      const token = await user?.getIdToken()
       const response = await fetch('/api/digital-delivery', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           orderId,
           userId: user?.uid
@@ -498,9 +502,9 @@ function MyPurchasesContent() {
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
-                            <div>
-                              <h4 className="font-medium mb-2">{purchase.product.name}</h4>
-                              <p className="text-sm text-gray-600">{purchase.product.description}</p>
+                            <div className="bg-gray-50 p-3 rounded-lg border">
+                              <h4 className="font-semibold text-gray-900 line-clamp-1 text-sm">{purchase.product.name}</h4>
+                              <p className="text-xs text-gray-500 line-clamp-2 mt-1">{purchase.product.description}</p>
                             </div>
                             
                             {/* Star Rating */}

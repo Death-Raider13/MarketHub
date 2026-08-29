@@ -119,6 +119,8 @@ function CreatorDashboardContent() {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const todayOrders = orders.filter((order: any) => {
+          const isPaid = order.paymentStatus === 'paid' || order.paymentStatus === 'completed' || order.status === 'completed' || order.status === 'delivered' || order.status === 'paid'
+          if (!isPaid) return false
           const orderDate = new Date(order.createdAt)
           orderDate.setHours(0, 0, 0, 0)
           return orderDate.getTime() === today.getTime()

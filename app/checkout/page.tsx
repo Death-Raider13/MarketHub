@@ -51,8 +51,8 @@ function CheckoutContent() {
   const [completedOrderItems, setCompletedOrderItems] = useState<any[]>([])
   const [downloadLinks, setDownloadLinks] = useState<any[]>([])
 
-  const tax = totalPrice * 0.1
-  const total = totalPrice + tax
+  const tax = 0
+  const total = totalPrice
 
   const getAffiliateAttribution = () => {
     if (typeof window === 'undefined') return null
@@ -510,7 +510,6 @@ function CheckoutContent() {
                   ))}
                   <div className="border-t pt-2 space-y-1">
                     <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>₦{totalPrice.toLocaleString()}</span></div>
-                    <div className="flex justify-between text-muted-foreground"><span>Tax (10%)</span><span>₦{tax.toLocaleString()}</span></div>
                     <div className="flex justify-between font-bold text-base mt-2"><span>Total</span><span>₦{total.toLocaleString()}</span></div>
                   </div>
                 </CardContent>

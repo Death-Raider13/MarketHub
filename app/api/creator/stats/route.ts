@@ -142,6 +142,8 @@ export async function GET(request: NextRequest) {
     recentOrdersSnapshot.docs.forEach((doc: any) => {
       const data = doc.data()
       if (!data.items?.some((item: any) => item.creatorId === creatorId)) return
+      const isPaid = data.paymentStatus === 'paid' || data.paymentStatus === 'completed' || data.status === 'completed' || data.status === 'delivered' || data.status === 'paid'
+      if (!isPaid) return
 
       const orderDate = data.createdAt?.toDate?.() || new Date()
       const dayName = daysOfWeek[orderDate.getDay()]
@@ -161,7 +163,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Compute total revenue and total sales across all orders for this creator
+    // Get all orders for this creator (for total sales & revenue)
     let allcreatorOrdersSnapshot
     try {
       allcreatorOrdersSnapshot = await adminDb
@@ -185,6 +187,9 @@ export async function GET(request: NextRequest) {
     let totalSales = 0
 
     allcreatorOrders.forEach((order: any) => {
+      const isPaid = order.paymentStatus === 'paid' || order.paymentStatus === 'completed' || order.status === 'completed' || order.status === 'delivered' || order.status === 'paid'
+      if (!isPaid) return
+
       const orderRevenue = calculatecreatorOrderRevenue(order)
       if (orderRevenue <= 0) return
 
