@@ -253,6 +253,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userDoc = await getDoc(doc(db, "users", user.uid))
 
       if (!userDoc.exists()) {
+        let referralCode: string | undefined
+        try {
+          const raw = typeof window !== 'undefined' ? window.localStorage.getItem('markethub_affiliate_attribution') : null
+          const parsed = raw ? JSON.parse(raw) : null
+          if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
+            referralCode = String(parsed.code).trim().toUpperCase()
+          }
+        } catch {}
+
         // New user: create a minimal profile and redirect to onboarding
         const minimalProfile: Partial<UserProfile> = {
           uid: user.uid,
@@ -263,6 +272,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           createdAt: new Date(),
           lastLoginAt: new Date(),
           updatedAt: new Date(),
+          ...(referralCode ? { referredByCode: referralCode } : {})
         }
 
         await setDoc(doc(db, "users", user.uid), minimalProfile)

@@ -81,6 +81,15 @@ export default function OnboardingPage() {
       const { doc, setDoc } = await import("firebase/firestore")
       const { db } = await import("@/lib/firebase/config")
 
+      let referralCode: string | undefined
+      try {
+        const raw = typeof window !== 'undefined' ? window.localStorage.getItem('markethub_affiliate_attribution') : null
+        const parsed = raw ? JSON.parse(raw) : null
+        if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
+          referralCode = String(parsed.code).trim().toUpperCase()
+        }
+      } catch {}
+
       // Update user profile with role and displayName
       const updateData = {
         role,
@@ -89,6 +98,7 @@ export default function OnboardingPage() {
         updatedAt: new Date(),
         ...(role === "creator" && { verified: false, commission: 10 }),
         ...(role === "promoter" && { affiliateStatus: 'approved' }),
+        ...(referralCode ? { referredByCode: referralCode } : {}),
       }
 
       await setDoc(doc(db, "users", user!.uid), updateData, { merge: true })
