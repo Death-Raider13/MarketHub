@@ -98,8 +98,48 @@ export default function PromoterDashboard() {
     }
   }, [authLoading, user, userProfile, router])
 
+  const [paymentInitializing, setPaymentInitializing] = useState(false)
+  const [paymentVerifying, setPaymentVerifying] = useState(false)
+
   useEffect(() => {
     if (!user || userProfile?.role !== "promoter") return
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const paymentId = urlParams.get('paymentId')
+    const reference = urlParams.get('reference') || urlParams.get('trxref')
+
+    if (paymentId && reference) {
+      const verifyPayment = async () => {
+        try {
+          setPaymentVerifying(true)
+          toast.info('Verifying your affiliate registration payment...')
+          const token = await user.getIdToken()
+          const response = await fetch('/api/fees/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ paymentId, reference })
+          })
+
+          const data = await response.json()
+          if (data.success) {
+            toast.success('🎉 Registration payment verified! Welcome to the Affiliate Masterclass.')
+            // Clean URL query params
+            window.history.replaceState({}, document.title, window.location.pathname)
+          } else {
+            toast.error(data.error || 'Could not verify fee payment')
+          }
+        } catch (err: any) {
+          console.error('Error verifying payment:', err)
+          toast.error('Unable to verify registration payment')
+        } finally {
+          setPaymentVerifying(false)
+        }
+      }
+      verifyPayment()
+    }
 
     const loadDashboard = async () => {
       try {
@@ -220,6 +260,46 @@ export default function PromoterDashboard() {
     }
   }
 
+  const handlePayRegistrationFee = async () => {
+    if (!user) return
+    try {
+      setPaymentInitializing(true)
+      toast.info('Initializing registration fee payment via Paystack...')
+      const token = await user.getIdToken()
+      
+      const createRes = await fetch('/api/fees/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ feeType: 'affiliate_registration' })
+      })
+
+      const createData = await createRes.json()
+      if (!createRes.ok) throw new Error(createData.error || 'Failed to create fee payment')
+
+      const initRes = await fetch('/api/fees/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ paymentId: createData.paymentId })
+      })
+
+      const initData = await initRes.json()
+      if (!initRes.ok || !initData.authorizationUrl) throw new Error(initData.error || 'Failed to initialize Paystack')
+
+      window.location.href = initData.authorizationUrl
+    } catch (err: any) {
+      console.error('Registration fee payment error:', err)
+      toast.error(err.message || 'Unable to start registration payment')
+    } finally {
+      setPaymentInitializing(false)
+    }
+  }
+
   if (authLoading || loading || !userProfile) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-6 w-6 animate-spin mr-2" />Loading affiliate dashboard...</div>
   }
@@ -259,6 +339,62 @@ export default function PromoterDashboard() {
               </Button>
             )}
           </div>
+
+          {affiliate.affiliateStatus === 'pending_payment' && (
+            <Card className="border-amber-500/30 bg-amber-500/10 dark:bg-amber-950/20 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-amber-500/20 text-amber-800 dark:text-amber-300 font-extrabold text-xs rounded-full border border-amber-500/30">
+                        ⚡ Account Activation Required
+                      </span>
+                      {userProfile.waitlistMember && (
+                        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs rounded-full border border-emerald-500/30">
+                          🎉 25% Waitlist Discount Applied!
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-2xl font-black">Pay One-Time Affiliate Registration Fee</h3>
+                    <p className="text-sm text-muted-foreground max-w-2xl">
+                      Activate your official affiliate account to unlock full access to the <strong>Affiliate Marketing Masterclass</strong>, your unique referral links, and earn 15% commissions on all book sales + 50% referral share rewards.
+                    </p>
+                    <div className="flex items-center gap-4 pt-1">
+                      <div className="text-xl font-black">
+                        {userProfile.waitlistMember ? (
+                          <>
+                            <span className="line-through text-muted-foreground text-sm mr-2">₦8,000</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">₦6,000</span>
+                          </>
+                        ) : (
+                          <span>₦8,000</span>
+                        )}
+                        <span className="text-xs font-normal text-muted-foreground ml-1">(One-time registration fee)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    size="lg"
+                    onClick={handlePayRegistrationFee} 
+                    disabled={paymentInitializing}
+                    className="font-bold bg-amber-600 hover:bg-amber-700 text-white shrink-0 px-8 py-6 rounded-xl shadow-md"
+                  >
+                    {paymentInitializing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Connecting Paystack...
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="w-5 h-5 mr-2" />
+                        Pay {userProfile.waitlistMember ? '₦6,000' : '₦8,000'} & Activate
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className={`transition-all duration-300 ${courseCompleted ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-950/10' : 'border-primary/20 shadow-lg'}`}>
             <CardHeader className="p-5 sm:p-6">

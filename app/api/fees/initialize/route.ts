@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     if (payment.status !== 'pending') return NextResponse.json({ error: 'This payment is no longer pending' }, { status: 400 })
     const secret = process.env.PAYSTACK_SECRET_KEY
     if (!secret) return NextResponse.json({ error: 'Payment service is not configured' }, { status: 500 })
-    const origin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'https://www.fero-elibrary.shop'
+    const callbackPath = payment.feeType === 'affiliate_registration' ? '/dashboard/promoter' : '/creator/verification'
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         amount: Math.round(Number(payment.amount) * 100),
         currency: 'NGN',
         reference: paymentId,
-        callback_url: `${origin}/creator/verification?paymentId=${encodeURIComponent(paymentId)}`,
+        callback_url: `${origin}${callbackPath}?paymentId=${encodeURIComponent(paymentId)}`,
         metadata: { paymentId, feeType: payment.feeType, userId: auth.user.uid },
       }),
     })

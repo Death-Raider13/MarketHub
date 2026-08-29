@@ -79,6 +79,9 @@ export interface UserProfile {
   activeRole?: "customer" | "creator" | "promoter"
   // verifier fields
   verificationStatus?: 'pending' | 'approved' | 'rejected'
+  // waitlist fields
+  waitlistMember?: boolean
+  waitlistEligible?: boolean
 }
 
 interface AuthContextType {
