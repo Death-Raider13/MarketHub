@@ -408,11 +408,50 @@ function MyPurchasesContent() {
                       </DialogContent>
                     </Dialog>
                     
-                    <Link href={`/my-orders`}>
-                      <Button variant="outline">
-                        View Order Details
-                      </Button>
-                    </Link>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Receipt
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Digital Resource Receipt</DialogTitle>
+                          <DialogDescription>
+                            Purchase details and payment verification
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-2">
+                          <div className="bg-muted/50 p-4 rounded-xl space-y-2 border">
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>Order Reference</span>
+                              <span className="font-mono font-bold text-foreground">#FERO-{(purchase.orderId || purchase.id).substring(0, 8).toUpperCase()}</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>Date Purchased</span>
+                              <span className="font-medium text-foreground">{formatDate(purchase.purchasedAt)}</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>Access Type</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold">Lifetime Digital Access</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold">Resource Details</h4>
+                            <div className="flex justify-between items-center text-sm p-3 border rounded-xl bg-background">
+                              <span className="font-medium truncate pr-2">{purchase.product?.name || 'Digital Resource'}</span>
+                              <span className="font-bold shrink-0">₦{Number(purchase.product?.price || 0).toLocaleString()}</span>
+                            </div>
+                          </div>
+
+                          <div className="p-3 bg-primary/5 rounded-xl border border-primary/20 text-xs text-muted-foreground">
+                            💡 <strong>Need Help with this Order?</strong> If you have any questions or need technical support, visit our <Link href="/contact" className="text-primary underline font-semibold">Contact & Live Support Page</Link>.
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
                   {/* Rating Section */}
@@ -545,15 +584,15 @@ function MyPurchasesContent() {
         )}
 
         {/* Quick Actions */}
-        <div className="mt-8 flex gap-4 justify-center">
-          <Link href="/my-orders">
-            <Button variant="outline">
-              View All Orders
+        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/products?type=digital">
+            <Button size="lg" className="w-full sm:w-auto font-bold px-6">
+              Browse More Digital Resources
             </Button>
           </Link>
-          <Link href="/products?type=digital">
-            <Button variant="outline">
-              Browse More Digital Products
+          <Link href="/contact">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto font-bold px-6">
+              Contact Live Support
             </Button>
           </Link>
         </div>

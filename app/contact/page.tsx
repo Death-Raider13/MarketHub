@@ -165,9 +165,9 @@ export default function ContactPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Need immediate assistance? Chat with our support team now.
                   </p>
-                  <Button className="w-full" asChild>
-                    <a href="https://wa.me/234XXXXXXXXXX" target="_blank" rel="noopener noreferrer">
-                      Start Live Chat
+                  <Button className="w-full font-bold bg-emerald-600 hover:bg-emerald-700 text-white" asChild>
+                    <a href="https://chat.whatsapp.com/H15NqzspEi9Ew9lsqioRH1?mode=gi_t" target="_blank" rel="noopener noreferrer">
+                      Start Live WhatsApp Support
                     </a>
                   </Button>
                 </CardContent>
