@@ -11,12 +11,23 @@ import { useRouter } from "next/navigation"
 import { Store } from "lucide-react"
 
 export default function OnboardingPage() {
-  const [role, setRole] = useState<"customer" | "creator">("customer")
+  const [role, setRole] = useState<"customer" | "creator" | "promoter">("customer")
   const [displayName, setDisplayName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const { user, userProfile, refreshUserProfile } = useAuth()
   const router = useRouter()
+
+  // Read URL query parameter for role preselection (e.g., ?role=promoter)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search)
+      const roleParam = urlParams.get("role")
+      if (roleParam === "creator" || roleParam === "promoter" || roleParam === "customer") {
+        setRole(roleParam)
+      }
+    }
+  }, [])
 
   // Redirect if not authenticated or already onboarded
   useEffect(() => {
@@ -41,6 +52,9 @@ export default function OnboardingPage() {
           } else {
             router.push("/creator/pending-approval")
           }
+          break
+        case "promoter":
+          router.push("/dashboard/promoter")
           break
         case "customer":
         default:
@@ -70,9 +84,11 @@ export default function OnboardingPage() {
       // Update user profile with role and displayName
       const updateData = {
         role,
+        activeRole: role,
         displayName: displayName.trim(),
         updatedAt: new Date(),
         ...(role === "creator" && { verified: false, commission: 10 }),
+        ...(role === "promoter" && { affiliateStatus: 'approved' }),
       }
 
       await setDoc(doc(db, "users", user!.uid), updateData, { merge: true })
@@ -85,6 +101,11 @@ export default function OnboardingPage() {
           sessionStorage.setItem('suppressRoleRedirect', 'true')
         }
         router.push("/auth/creator-register-new")
+        return
+      }
+
+      if (role === "promoter") {
+        router.push("/dashboard/promoter")
         return
       }
 
@@ -131,17 +152,23 @@ export default function OnboardingPage() {
 
             <div className="space-y-2">
               <Label className="text-xs font-semibold">Account type</Label>
-              <RadioGroup value={role} onValueChange={(value: "customer" | "creator") => setRole(value)} className="space-y-2">
+              <RadioGroup value={role} onValueChange={(value: "customer" | "creator" | "promoter") => setRole(value)} className="space-y-2">
                 <div className={`flex items-center space-x-3 rounded-xl border p-3.5 transition-all cursor-pointer ${role === 'customer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}>
                   <RadioGroupItem value="customer" id="customer" />
                   <Label htmlFor="customer" className="cursor-pointer text-xs sm:text-sm font-medium flex-1">
-                    Student / Customer <span className="block text-[10px] text-muted-foreground font-normal">I want to browse & buy products</span>
+                    Student / Customer <span className="block text-[10px] text-muted-foreground font-normal">I want to browse & buy educational resources</span>
                   </Label>
                 </div>
                 <div className={`flex items-center space-x-3 rounded-xl border p-3.5 transition-all cursor-pointer ${role === 'creator' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}>
                   <RadioGroupItem value="creator" id="creator" />
                   <Label htmlFor="creator" className="cursor-pointer text-xs sm:text-sm font-medium flex-1">
                     Creator / Educator <span className="block text-[10px] text-muted-foreground font-normal">I want to sell materials & build a hub</span>
+                  </Label>
+                </div>
+                <div className={`flex items-center space-x-3 rounded-xl border p-3.5 transition-all cursor-pointer ${role === 'promoter' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}>
+                  <RadioGroupItem value="promoter" id="promoter" />
+                  <Label htmlFor="promoter" className="cursor-pointer text-xs sm:text-sm font-medium flex-1">
+                    Affiliate Promoter <span className="block text-[10px] text-muted-foreground font-normal">I want to promote resources & earn commissions</span>
                   </Label>
                 </div>
               </RadioGroup>

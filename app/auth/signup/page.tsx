@@ -95,7 +95,7 @@ export default function SignupPage() {
 
     try {
       await signInWithGoogle()
-      router.push("/auth/onboarding")
+      router.push(`/auth/onboarding?role=${role}`)
     } catch (err: any) {
       setError(err.message || "Failed to sign up with Google")
     } finally {

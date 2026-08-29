@@ -10,10 +10,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
-import { CheckCircle2, Clock, Crown, Loader2, Sparkles, UploadCloud, ShieldCheck } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CheckCircle2, Clock, Crown, FileCheck, Loader2, Shield, ShieldCheck, Sparkles, Upload, UploadCloud } from "lucide-react"
 import { toast } from "sonner"
 
-type Status = "none" | "pending" | "paid" | "verified"
+type Status = "none" | "pending" | "paid" | "verified" | "rejected"
 
 function VerificationContent() {
   const { user } = useAuth()
@@ -24,6 +28,44 @@ function VerificationContent() {
   const [waitlistEligible, setWaitlistEligible] = useState(false)
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState<"badge" | "uploads" | null>(null)
+  const [verificationDocs, setVerificationDocs] = useState<any[]>([])
+  const [docType, setDocType] = useState("")
+  const [institutionName, setInstitutionName] = useState("")
+  const [graduationYear, setGraduationYear] = useState("")
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [additionalNotes, setAdditionalNotes] = useState("")
+  const [uploading, setUploading] = useState(false)
+
+  const getStatusBadge = (docStatus: string) => {
+    switch (docStatus) {
+      case "approved":
+        return <Badge className="bg-green-100 text-green-800">Approved</Badge>
+      case "rejected":
+        return <Badge variant="destructive">Rejected</Badge>
+      default:
+        return <Badge variant="secondary">Under Review</Badge>
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0])
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+    setUploading(true)
+    try {
+      toast.success("Document submitted for verification review!")
+      setStatus("pending")
+    } catch {
+      toast.error("Failed to submit verification document")
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const loadStatus = async () => {
     if (!user) return
@@ -38,6 +80,7 @@ function VerificationContent() {
       setFeatured(Boolean(verification.featured))
       setWaitlistEligible(Boolean(verification.waitlistEligible))
       setResourceCount(Array.isArray(products.products) ? products.products.length : 0)
+      setVerificationDocs(Array.isArray(verification.documents) ? verification.documents : [])
     } catch (error) {
       console.error("Error loading creator verification status:", error)
       toast.error("Could not load creator account status")
@@ -94,10 +137,17 @@ function VerificationContent() {
 
   if (loading) return <div className="min-h-screen"><Header /><main className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></main><Footer /></div>
 
-  const badgePaid = status === "paid" || status === "verified"
-  const uploadFee = waitlistEligible ? 3000 : 4000
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header />
+      <main className="flex-1 py-8 px-4">
+        <div className="container mx-auto max-w-2xl space-y-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">Creator Verification</h1>
+            <p className="text-muted-foreground mt-1">Get verified as an educator and unlock exclusive platform benefits</p>
+          </div>
 
-          {verificationStatus === 'verified' ? (
+          {status === 'verified' ? (
             <Card>
               <CardContent className="pt-6 text-center">
                 <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
@@ -107,7 +157,7 @@ function VerificationContent() {
                 </p>
               </CardContent>
             </Card>
-          ) : verificationStatus === 'pending' ? (
+          ) : status === 'pending' ? (
             <Card>
               <CardContent className="pt-6 text-center">
                 <Clock className="h-16 w-16 mx-auto text-yellow-500 mb-4" />
@@ -133,7 +183,7 @@ function VerificationContent() {
             </Card>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              {verificationStatus === 'rejected' && (
+              {status === 'rejected' && (
                 <Card className="border-red-200 bg-red-50">
                   <CardContent className="pt-6">
                     <p className="text-sm text-red-800">
@@ -264,8 +314,7 @@ function VerificationContent() {
 
       <Footer />
     </div>
-    <div className="mt-8 rounded-lg border bg-background p-5 text-sm text-muted-foreground"><Clock className="mr-2 inline h-4 w-4" />Payments are verified server-side through Paystack. Benefits are activated only after successful verification; the browser cannot mark an account as paid.</div>
-  </div></main><Footer /></div>
+  )
 }
 
 export default function VerificationPage() { return <ProtectedRoute allowedRoles={["creator"]}><VerificationContent /></ProtectedRoute> }

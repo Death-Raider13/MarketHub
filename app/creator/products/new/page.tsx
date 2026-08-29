@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, BookOpen, CheckCircle2, FileVideo, Loader2, LockKeyhole, PlayCircle, ShieldCheck, UploadCloud } from "lucide-react"
+import { ArrowLeft, BookOpen, CheckCircle2, Clock, DollarSign, FileText, FileVideo, Loader2, LockKeyhole, PlayCircle, ShieldCheck, UploadCloud, Zap } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -38,6 +39,7 @@ function NewResourceContent() {
   const [category, setCategory] = useState("digital-ebooks")
   const [price, setPrice] = useState("")
   const [author, setAuthor] = useState("")
+  const [institution, setInstitution] = useState("")
   const [tags, setTags] = useState("")
   const [files, setFiles] = useState<DigitalFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -159,8 +161,8 @@ function NewResourceContent() {
                   <input 
                     type="text" 
                     required 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Complete MTH101 Guide 2024" 
                     className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-4 text-base focus:border-primary/50 outline-none transition-all font-medium" 
                   />
@@ -180,114 +182,19 @@ function NewResourceContent() {
               >
                 <h3 className="text-xl font-black flex items-center gap-3">
                   <BookOpen className="h-6 w-6 text-primary" />
-                  {resourceType === 'course' ? 'Curriculum Designer' :
-                   resourceType === 'exam_prep' ? 'Interactive Question Builder' :
-                   'Upload digital materials'}
+                  {resourceType === 'video' ? 'Video Resource Settings' : 'Upload digital materials'}
                 </h3>
 
                 {/* Upload Standard */}
-                {(resourceType === "past_question" || resourceType === "study_guide") && (
+                {(resourceType === "book" || resourceType === "video") && (
                   <div className="space-y-6">
                     <p className="text-sm text-muted-foreground mb-4">Securely upload your PDFs, DOCX, or ZIP files to be encrypted upon checkout.</p>
                     <DigitalFileUpload
-                      onFilesUploaded={setDigitalFiles}
-                      existingFiles={digitalFiles}
+                      onFilesUploaded={setFiles}
+                      existingFiles={files}
                       maxFiles={5}
                       maxSizePerFile={250}
                     />
-                  </div>
-                )}
-
-                {/* CBT Builder */}
-                {resourceType === "exam_prep" && (
-                  <div className="space-y-6 relative z-10">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-primary/10 rounded-2xl border border-primary/20">
-                      <span className="text-xs font-bold text-primary">CBT Engine Active. Simulating Real Environment.</span>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-primary" />
-                        <input 
-                          type="number" 
-                          value={cbtDuration}
-                          onChange={(e) => setCbtDuration(Number(e.target.value))}
-                          className="w-16 bg-muted/30 border border-border rounded-lg px-2 py-1 text-xs text-center focus:border-primary font-mono" 
-                        />
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground">Mins</span>
-                      </div>
-                    </div>
-
-                    {questions.map((q, i) => (
-                      <div key={i} className="p-4 sm:p-6 bg-muted/20 border border-border rounded-[1.5rem] space-y-4 relative group">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Question {i + 1}</span>
-                        </div>
-                        <textarea 
-                          placeholder="Type or paste the exam question here..." 
-                          className="w-full bg-muted/30 border border-border/50 rounded-xl py-3 px-4 text-sm font-medium focus:border-primary/50 outline-none resize-none min-h-[80px]"
-                          value={q.q}
-                          onChange={(e) => {
-                            const n = [...questions]; n[i].q = e.target.value; setQuestions(n);
-                          }}
-                        />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {['a','b','c','d'].map((opt) => (
-                            <div key={opt} className={`relative flex items-center border rounded-xl overflow-hidden ${q.correct === opt ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
-                              <button 
-                                type="button"
-                                onClick={() => { const n = [...questions]; n[i].correct = opt; setQuestions(n); }}
-                                className={`px-4 py-3 text-xs font-bold uppercase ${q.correct === opt ? 'bg-primary text-white' : 'bg-muted/50 text-muted-foreground'}`}
-                              >
-                                {opt}
-                              </button>
-                              <input 
-                                type="text" 
-                                placeholder={`Option ${opt.toUpperCase()} text`} 
-                                className="flex-1 bg-transparent py-3 px-3 text-xs outline-none"
-                                value={(q as any)[opt]}
-                                onChange={(e) => { const n = [...questions]; (n[i] as any)[opt] = e.target.value; setQuestions(n); }}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                    <button type="button" onClick={addQuestion} className="w-full py-5 border-2 border-dashed border-border rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
-                      + Add Target Question
-                    </button>
-                  </div>
-                )}
-
-                {/* Course Builder */}
-                {resourceType === "course" && (
-                  <div className="space-y-6 relative z-10">
-                    <div className="p-10 border-dashed border-2 border-primary/20 rounded-[1.5rem] bg-primary/5 text-center transition-all hover:bg-primary/10 cursor-pointer">
-                      <UploadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
-                      <p className="text-sm font-bold mb-1">Upload Course Intro/Trailer Video</p>
-                      <p className="text-xs text-muted-foreground">Used for previewing your content on the marketplace.</p>
-                    </div>
-                    <div className="space-y-4">
-                      {modules.map((m, i) => (
-                        <div key={i} className="flex gap-3 p-4 bg-muted/20 border border-border rounded-2xl items-center flex-wrap sm:flex-nowrap">
-                          <div className="bg-muted h-10 w-10 rounded-xl flex items-center justify-center font-black text-xs text-muted-foreground shrink-0">{i + 1}</div>
-                          <input 
-                            type="text" 
-                            placeholder="Module Title (e.g. Advanced Calculus Intro)" 
-                            className="flex-1 min-w-0 w-full sm:w-auto bg-transparent border-none outline-none text-sm font-bold placeholder:text-muted-foreground/50" 
-                            value={m.title}
-                            onChange={(e) => { const n = [...modules]; n[i].title = e.target.value; setModules(n); }}
-                          />
-                          <input 
-                            type="text" 
-                            placeholder="Mins (e.g. 45)" 
-                            className="w-24 bg-muted/30 border border-border/50 rounded-lg px-3 py-2 text-xs font-mono text-center shrink-0" 
-                            value={m.duration}
-                            onChange={(e) => { const n = [...modules]; n[i].duration = e.target.value; setModules(n); }}
-                          />
-                        </div>
-                      ))}
-                      <button type="button" onClick={addModule} className="w-full py-5 border-2 border-dashed border-border rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
-                        + Add Course Module
-                      </button>
-                    </div>
                   </div>
                 )}
               </motion.div>
@@ -359,10 +266,10 @@ function NewResourceContent() {
 
             <button
               type="submit"
-              disabled={isUploading}
+              disabled={isSubmitting}
               className="w-full bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-white font-black py-6 rounded-[2rem] transition-all shadow-[0_15px_30px_rgba(79,70,229,0.3)] active:scale-[0.98] flex items-center justify-center gap-3 text-lg"
             >
-              {isUploading ? (
+              {isSubmitting ? (
                 <span className="animate-pulse flex items-center gap-3">
                   <UploadCloud className="h-6 w-6 animate-bounce" /> Securing Network Upload...
                 </span>
