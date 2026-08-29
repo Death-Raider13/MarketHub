@@ -115,9 +115,10 @@ function ProductsManagementContent() {
 
   const updateProductStatus = async (productId: string, newStatus: string) => {
     try {
+      const statusToSave = newStatus === 'approved' ? 'active' : newStatus
       const productRef = doc(db, "products", productId)
       await updateDoc(productRef, {
-        status: newStatus,
+        status: statusToSave,
         updatedAt: new Date()
       })
 
@@ -127,7 +128,7 @@ function ProductsManagementContent() {
       // Update local state
       setProducts(products.map(product =>
         product.id === productId
-          ? { ...product, status: newStatus as any, updatedAt: new Date() }
+          ? { ...product, status: statusToSave as any, updatedAt: new Date() }
           : product
       ))
 

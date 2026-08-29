@@ -15,7 +15,7 @@ export interface Product {
   reviewCount: number
   featured: boolean
   sponsored: boolean
-  status: "active" | "inactive" | "pending" | "rejected"
+  status: "active" | "inactive" | "pending" | "approved" | "rejected"
   
   // Reputation & Analytics
   reputationScore?: number

@@ -101,7 +101,7 @@ function buildSecurityHeaders(response: NextResponse, pathname: string, method: 
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: blob: https: ",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.paystack.co https://api.commerce.coinbase.com https://ik.imagekit.io https://upload.imagekit.io https://*.imagekit.io https://res.cloudinary.com https://www.google-analytics.com https://*.sentry.io",
+    "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.paystack.co https://api.commerce.coinbase.com https://ik.imagekit.io https://upload.imagekit.io https://*.imagekit.io https://res.cloudinary.com https://api.cloudinary.com https://*.cloudinary.com https://www.google-analytics.com https://*.sentry.io",
     "frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://commerce.coinbase.com https://*.firebaseapp.com",
     "worker-src 'self' blob:",
     "object-src 'none'",

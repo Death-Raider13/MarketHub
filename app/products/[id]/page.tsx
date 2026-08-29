@@ -98,14 +98,14 @@ export default function ProductDetailPage() {
           updatedAt: productDoc.data().updatedAt?.toDate()
         } as Product
 
-        // Check if product is active
-        if (productData.status !== 'active') {
+        // Check if product is active or approved
+        if (productData.status !== 'active' && productData.status !== 'approved') {
           setError('This product is not available')
           return
         }
 
         // Log view event for analytics
-        if (productData.status === 'active') {
+        if (productData.status === 'active' || productData.status === 'approved') {
           fetch('/api/analytics/view', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -686,14 +686,7 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
                               </div>
                               <span className="hidden sm:inline">•</span>
                               <span>{creatorstats.productCount}+ creations</span>
-                              <span className="hidden sm:inline">•</span>
                             </>
-                          )}
-                          {creatorInfo?.verified && (
-                            <Badge variant="secondary" className="gap-1">
-                              <Check className="h-3 w-3" />
-                              Verified Creator
-                            </Badge>
                           )}
                         </div>
                         <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
