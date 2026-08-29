@@ -97,12 +97,12 @@ function buildSecurityHeaders(response: NextResponse, pathname: string, method: 
   // CSP — locked to known asset & payment origins. Adjust if you add new CDNs.
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://commerce.coinbase.com https://www.googletagmanager.com https://www.google-analytics.com https://*.firebaseapp.com https://apis.google.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://checkout.paystack.com https://*.paystack.co https://*.paystack.com https://commerce.coinbase.com https://www.googletagmanager.com https://www.google-analytics.com https://*.firebaseapp.com https://apis.google.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: blob: https: ",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.paystack.co https://api.commerce.coinbase.com https://ik.imagekit.io https://upload.imagekit.io https://*.imagekit.io https://res.cloudinary.com https://api.cloudinary.com https://*.cloudinary.com https://www.google-analytics.com https://*.sentry.io",
-    "frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://commerce.coinbase.com https://*.firebaseapp.com",
+    "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.paystack.co https://*.paystack.co https://*.paystack.com https://api.commerce.coinbase.com https://ik.imagekit.io https://upload.imagekit.io https://*.imagekit.io https://res.cloudinary.com https://api.cloudinary.com https://*.cloudinary.com https://www.google-analytics.com https://*.sentry.io",
+    "frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://*.paystack.co https://*.paystack.com https://commerce.coinbase.com https://*.firebaseapp.com",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

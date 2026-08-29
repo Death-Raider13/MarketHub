@@ -18,7 +18,7 @@ export function initiatePaystackPayment(
     return
   }
 
-  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
+  const publicKey = (process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_4f982216f23d912048d00f1a9c9f77a7b54647bc').trim()
   if (!publicKey) {
     throw new Error('Paystack is not configured. Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in the deployment environment.')
   }
@@ -33,13 +33,12 @@ export function initiatePaystackPayment(
   const PaystackPop = require('@paystack/inline-js').default || require('@paystack/inline-js')
   const paystack = new PaystackPop()
   
-  paystack.newTransaction({
+  const transactionOptions: any = {
     key: publicKey,
     email: data.email,
     amount: Math.round(data.amount * 100), // Convert to kobo (Naira cents)
     currency: 'NGN',
     ref: data.orderId,
-    subaccount: data.subaccount, // Automated split
     metadata: {
       custom_fields: [
         {
@@ -62,7 +61,13 @@ export function initiatePaystackPayment(
       console.log('Payment cancelled by user')
       onClose()
     }
-  })
+  }
+
+  if (data.subaccount && typeof data.subaccount === 'string' && data.subaccount.trim().length > 0) {
+    transactionOptions.subaccount = data.subaccount.trim()
+  }
+
+  paystack.newTransaction(transactionOptions)
 }
 
 // Helper function to format currency

@@ -222,15 +222,19 @@ function CheckoutContent() {
         let subaccountCode: string | undefined = undefined
         const creatorIds = [...new Set(items.map(item => item.product.creatorId).filter(Boolean))]
         
-        if (creatorIds.length === 1) {
+        if (creatorIds.length === 1 && creatorIds[0]) {
           try {
-            const creatorDoc = await getDoc(doc(db, 'creators', creatorIds[0]))
-            if (creatorDoc.exists()) {
-              subaccountCode = creatorDoc.data().paystackSubaccountCode
+            const userDoc = await getDoc(doc(db, 'users', creatorIds[0]))
+            if (userDoc.exists() && userDoc.data().paystackSubaccountCode) {
+              subaccountCode = userDoc.data().paystackSubaccountCode
+            } else {
+              const creatorDoc = await getDoc(doc(db, 'creators', creatorIds[0]))
+              if (creatorDoc.exists() && creatorDoc.data().paystackSubaccountCode) {
+                subaccountCode = creatorDoc.data().paystackSubaccountCode
+              }
             }
           } catch (err) {
             console.warn('Creator Paystack subaccount unavailable; continuing without split:', err)
-            // Continue without subaccount (manual payout fallback)
           }
         }
 
