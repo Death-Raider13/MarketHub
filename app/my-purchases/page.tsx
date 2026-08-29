@@ -70,15 +70,54 @@ function MyPurchasesContent() {
 
     try {
       setLoading(true)
+      const token = await user.getIdToken()
       
-      const response = await fetch(`/api/customer/purchases?userId=${user.uid}`)
+      const response = await fetch(`/api/customer/purchases?userId=${user.uid}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       
       if (response.ok) {
         const data = await response.json()
-        console.log('Purchases loaded:', data)
-        setPurchases(data.purchases || [])
+        if (data.purchases && data.purchases.length > 0) {
+          setPurchases(data.purchases)
+          return
+        }
+      }
+
+      // Fallback: If purchases endpoint returned empty or failed, fetch paid orders with digital items
+      const ordersResponse = await fetch(`/api/customer/orders?userId=${user.uid}`)
+      if (ordersResponse.ok) {
+        const ordersData = await ordersResponse.json()
+        const paidOrders = (ordersData.orders || []).filter((o: any) => o.paymentStatus === 'paid' || o.paymentStatus === 'completed' || o.status === 'paid' || o.status === 'delivered')
+        const digitalItems: PurchasedProduct[] = []
+
+        for (const order of paidOrders) {
+          const items = order.items || []
+          for (const item of items) {
+            if (item.product?.productType === 'digital' || item.product?.type === 'digital' || (item.product?.digitalFiles && item.product.digitalFiles.length > 0)) {
+              digitalItems.push({
+                id: `${order.id}_${item.productId}`,
+                userId: user.uid,
+                productId: item.productId,
+                orderId: order.id,
+                product: {
+                  id: item.productId,
+                  name: item.productName || item.product?.name || 'Digital Resource',
+                  description: item.product?.description || '',
+                  type: 'digital',
+                  digitalFiles: item.product?.digitalFiles || [],
+                  price: item.productPrice || item.price || 0,
+                },
+                purchasedAt: order.paidAt || order.createdAt || new Date().toISOString(),
+                downloadCount: 0
+              })
+            }
+          }
+        }
+        setPurchases(digitalItems)
       } else {
-        console.error('Failed to load purchases:', response.status)
         toast.error('Failed to load your purchases')
       }
     } catch (error) {
