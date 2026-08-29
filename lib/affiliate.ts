@@ -65,14 +65,21 @@ export async function getAffiliateByUid(uid: string): Promise<AffiliateProfile |
   const db = getAdminFirestore()
   if (!db || !uid) return null
 
-  const doc = await db.collection('users').doc(uid).get()
+  const docRef = db.collection('users').doc(uid)
+  const doc = await docRef.get()
   if (!doc.exists) return null
   const data = doc.data() || {}
-  if (data.role !== 'promoter' || !normalizeAffiliateCode(data.referralCode)) return null
+  if (data.role !== 'promoter') return null
+
+  let code = normalizeAffiliateCode(data.referralCode)
+  if (!code) {
+    code = `FERO${uid.slice(0, 6).toUpperCase()}`
+    await docRef.set({ referralCode: code, affiliateStatus: data.affiliateStatus || 'approved' }, { merge: true })
+  }
 
   return {
     id: uid,
-    referralCode: normalizeAffiliateCode(data.referralCode) as string,
+    referralCode: code,
     commissionRate: commissionRate(data.commission),
     displayName: data.displayName,
     email: data.email,

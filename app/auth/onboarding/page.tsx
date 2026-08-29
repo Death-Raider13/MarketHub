@@ -97,7 +97,10 @@ export default function OnboardingPage() {
         displayName: displayName.trim(),
         updatedAt: new Date(),
         ...(role === "creator" && { verified: false, commission: 10 }),
-        ...(role === "promoter" && { affiliateStatus: 'approved' }),
+        ...(role === "promoter" && { 
+          affiliateStatus: 'approved',
+          referralCode: `FERO${user!.uid.slice(0, 6).toUpperCase()}`
+        }),
         ...(referralCode ? { referredByCode: referralCode } : {}),
       }
 
