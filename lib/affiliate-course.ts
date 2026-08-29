@@ -201,11 +201,20 @@ export const affiliateCourseModules: AffiliateCourseModule[] = [
   {
     id: 9,
     title: 'Access to the group',
-    summary: 'Join the official affiliate community using the link provided by the MarketHub team.',
+    summary: 'Join the official affiliate community to receive marketing materials, graphics, launch updates, and daily mentorship.',
     sections: [
       {
-        heading: 'Official Affiliate Community',
-        text: 'Connect with fellow Fero E-Library affiliates, receive promotional materials, graphics, launch updates, and daily mentorship inside our official affiliate group.'
+        heading: 'Official Affiliate Community Groups',
+        text: 'Connect with fellow Fero E-Library affiliates, receive promotional materials, graphics, launch updates, and daily mentorship inside our official affiliate community channels.'
+      },
+      {
+        heading: 'Why Join the Affiliate Group?',
+        bullets: [
+          'Receive daily promotional scripts and high-converting status copies.',
+          'Access exclusive early-bird promotional banners, book covers, and flyers.',
+          'Get direct answers to your marketing and commission payout questions.',
+          'Participate in monthly affiliate sales challenges and earn extra cash bonuses!'
+        ]
       }
     ]
   },

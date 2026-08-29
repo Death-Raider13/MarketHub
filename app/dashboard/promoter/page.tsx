@@ -393,6 +393,32 @@ export default function PromoterDashboard() {
                       )}
                     </div>
                   ))}
+
+                  {activeModule.id === 9 && (
+                    <div className="p-5 bg-gradient-to-r from-emerald-500/10 via-primary/10 to-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-3 mt-4">
+                      <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+                        <Users className="h-4 w-4 text-emerald-500" /> Join Official Affiliate Channels:
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <a
+                          href="https://chat.whatsapp.com/FeroELibraryAffiliates"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-sm active:scale-95"
+                        >
+                          <Megaphone className="h-4 w-4" /> Join WhatsApp Group
+                        </a>
+                        <a
+                          href="https://t.me/FeroELibraryAffiliates"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-sm active:scale-95"
+                        >
+                          <ExternalLink className="h-4 w-4" /> Join Telegram Channel
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <DialogFooter className="border-t border-border pt-4 flex flex-col sm:flex-row gap-3">
