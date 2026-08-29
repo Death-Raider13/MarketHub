@@ -64,19 +64,38 @@ export async function GET(request: NextRequest) {
         .get()
     }
 
-    // Fallback: If no purchasedProducts records exist, scan completed orders for digital products
+    // Fallback: If no purchasedProducts records exist, scan completed/paid orders for digital products
     if (purchasesSnapshot.empty) {
       try {
-        const ordersSnapshot = await adminDb
-          .collection('orders')
-          .where('customerId', '==', userId)
-          .where('paymentStatus', '==', 'completed')
-          .get()
+        const userEmail = auth.user.email
+        
+        // Fetch orders by userId, customerId, or email
+        const orderQueries = [
+          adminDb.collection('orders').where('userId', '==', userId).get(),
+          adminDb.collection('orders').where('customerId', '==', userId).get()
+        ]
+        
+        if (userEmail) {
+          orderQueries.push(adminDb.collection('orders').where('userEmail', '==', userEmail).get())
+        }
+
+        const querySnapshots = await Promise.all(orderQueries)
+        const orderDocsMap = new Map<string, any>()
+        
+        for (const snap of querySnapshots) {
+          for (const doc of snap.docs) {
+            orderDocsMap.set(doc.id, doc.data())
+          }
+        }
 
         const legacyDigitalPurchases: any[] = []
 
-        for (const orderDoc of ordersSnapshot.docs) {
-          const orderData = orderDoc.data()
+        for (const [orderId, orderData] of orderDocsMap.entries()) {
+          const pStatus = (orderData.paymentStatus || orderData.status || '').toLowerCase()
+          const isPaid = pStatus === 'completed' || pStatus === 'paid' || pStatus === 'successful' || pStatus === 'delivered'
+
+          if (!isPaid) continue
+
           const digitalItems = (orderData.items || []).filter((item: any) =>
             item.product?.productType === 'digital' ||
             item.product?.type === 'digital' ||
@@ -86,10 +105,10 @@ export async function GET(request: NextRequest) {
           for (const item of digitalItems) {
             const purchasedAtDate = toDateSafe(orderData.paidAt || orderData.createdAt)
             legacyDigitalPurchases.push({
-              id: `${orderDoc.id}_${item.productId}`,
+              id: `${orderId}_${item.productId}`,
               userId,
               productId: item.productId,
-              orderId: orderDoc.id,
+              orderId: orderId,
               product: {
                 id: item.productId,
                 name: item.productName || item.product?.name || 'Digital Resource',
