@@ -26,7 +26,9 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   Copy,
   ExternalLink,
   Link2,
@@ -88,6 +90,7 @@ export default function PromoterDashboard() {
   const [quizScore, setQuizScore] = useState<number | null>(null)
   const [quizSubmitted, setQuizSubmitted] = useState(false)
   const [savingCourse, setSavingCourse] = useState(false)
+  const [isCourseExpanded, setIsCourseExpanded] = useState(false)
 
   useEffect(() => {
     if (!authLoading && (!user || userProfile?.role !== "promoter")) {
@@ -229,6 +232,8 @@ export default function PromoterDashboard() {
   const courseCompleted = completedModules.length === affiliateCourseModules.length && quizScore !== null && quizScore >= AFFILIATE_QUIZ_PASS_PERCENT
   const advertisingApproved = courseCompleted
 
+  const showCourseGrid = !courseCompleted || isCourseExpanded
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -255,22 +260,57 @@ export default function PromoterDashboard() {
             )}
           </div>
 
-          <Card className="border-primary/20 shadow-lg">
-            <CardHeader className="p-5 sm:p-6 pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-xl font-bold">
-                  <CheckCircle2 className="h-6 w-6 text-primary" /> Affiliate Masterclass
-                </CardTitle>
-                <span className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-full">
-                  {completedModules.length} of {affiliateCourseModules.length} Lessons Read
-                </span>
+          <Card className={`transition-all duration-300 ${courseCompleted ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-950/10' : 'border-primary/20 shadow-lg'}`}>
+            <CardHeader className="p-5 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                      <CheckCircle2 className={`h-6 w-6 ${courseCompleted ? 'text-emerald-500' : 'text-primary'}`} />
+                      {courseCompleted ? "🎉 Affiliate Masterclass Passed & Active" : "Affiliate Masterclass"}
+                    </CardTitle>
+                    {courseCompleted && (
+                      <span className="text-xs font-black px-3 py-1 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-500/30">
+                        Score: {quizScore}%
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {courseCompleted
+                      ? "Your advertising access is active! The masterclass modules are folded below to keep your workspace clean."
+                      : `Tap any module to read the lesson notes & strategies. Complete all lessons and pass the quiz with at least ${AFFILIATE_QUIZ_PASS_PERCENT}% to activate advertising.`
+                    }
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  {!courseCompleted && (
+                    <span className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-full">
+                      {completedModules.length} of {affiliateCourseModules.length} Read
+                    </span>
+                  )}
+                  {courseCompleted && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsCourseExpanded(!isCourseExpanded)}
+                      className="font-bold border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 rounded-xl gap-2 text-xs"
+                    >
+                      {isCourseExpanded ? (
+                        <>Fold Course <ChevronUp className="h-4 w-4" /></>
+                      ) : (
+                        <>Review Lessons & Quiz <ChevronDown className="h-4 w-4" /></>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Tap any module to read the lesson notes, rules, and strategies. Complete all lessons and pass the short quiz with at least {AFFILIATE_QUIZ_PASS_PERCENT}% to activate product advertising access.
-              </p>
             </CardHeader>
-            <CardContent className="p-5 sm:p-6 space-y-5">
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+
+            {showCourseGrid && (
+              <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0 space-y-5 border-t border-border/50 mt-4">
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 pt-4">
                 {affiliateCourseModules.map(module => {
                   const complete = completedModules.includes(module.id)
                   return (
@@ -345,6 +385,7 @@ export default function PromoterDashboard() {
                 </div>
               )}
             </CardContent>
+          )}
           </Card>
 
           {/* Lesson Reader Modal */}
