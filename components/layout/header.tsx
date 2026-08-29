@@ -19,7 +19,8 @@ import {
   HelpCircle,
   Store,
   Bell,
-  TrendingUp
+  TrendingUp,
+  Shield
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuth, type UserRole } from "@/lib/firebase/auth-context"
@@ -291,16 +292,26 @@ export function Header() {
                       <GraduationCap className="h-5 w-5 text-primary" />
                       Browse Library Books
                     </Link>
-                    {userProfile?.role === 'promoter' && (
+                    <Link href="/my-purchases" className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-xl transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Package className="h-5 w-5 text-primary" />
+                      My Library
+                    </Link>
+                    {(userProfile?.role === 'promoter' || userProfile?.activeRole === 'promoter') && (
                       <Link href="/dashboard/promoter" className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl transition-colors font-bold text-emerald-600 dark:text-emerald-400" onClick={() => setIsMobileMenuOpen(false)}>
                         <TrendingUp className="h-5 w-5 text-emerald-500" />
                         Affiliate Workspace
                       </Link>
                     )}
-                    {userProfile?.role === 'creator' && (
+                    {(userProfile?.role === 'creator' || userProfile?.activeRole === 'creator') && (
                       <Link href="/creator/dashboard" className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl transition-colors font-bold text-primary" onClick={() => setIsMobileMenuOpen(false)}>
                         <LayoutDashboard className="h-5 w-5" />
                         Educator Hub
+                      </Link>
+                    )}
+                    {isAdminRole && (
+                      <Link href="/admin/dashboard" className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl transition-colors font-bold text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Shield className="h-5 w-5" />
+                        Admin Panel
                       </Link>
                     )}
                   </nav>
