@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/lib/firebase/auth-context"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/config"
-import { affiliateCourseModules, affiliateQuiz, AFFILIATE_QUIZ_PASS_PERCENT } from "@/lib/affiliate-course"
+import { affiliateCourseModules, affiliateQuiz, AFFILIATE_QUIZ_PASS_PERCENT, type AffiliateCourseModule } from "@/lib/affiliate-course"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,8 +15,18 @@ import { Label } from "@/components/ui/label"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
   ArrowRight,
+  BookOpen,
   CheckCircle2,
+  ChevronRight,
   Copy,
   ExternalLink,
   Link2,
@@ -24,6 +34,7 @@ import {
   Megaphone,
   MousePointerClick,
   Search,
+  Sparkles,
   TrendingUp,
   Users,
   Wallet,
@@ -72,6 +83,7 @@ export default function PromoterDashboard() {
   const [bankCode, setBankCode] = useState("")
   const [submittingPayout, setSubmittingPayout] = useState(false)
   const [completedModules, setCompletedModules] = useState<number[]>([])
+  const [activeModule, setActiveModule] = useState<AffiliateCourseModule | null>(null)
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({})
   const [quizScore, setQuizScore] = useState<number | null>(null)
   const [quizSubmitted, setQuizSubmitted] = useState(false)
@@ -243,18 +255,169 @@ export default function PromoterDashboard() {
             )}
           </div>
 
-          <Card className="border-primary/20">
-            <CardHeader><CardTitle className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /> Affiliate Masterclass</CardTitle><p className="text-sm text-muted-foreground">Complete all ten lessons and pass the short quiz with at least {AFFILIATE_QUIZ_PASS_PERCENT}% before advertising access can be activated.</p></CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
+          <Card className="border-primary/20 shadow-lg">
+            <CardHeader className="p-5 sm:p-6 pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                  <CheckCircle2 className="h-6 w-6 text-primary" /> Affiliate Masterclass
+                </CardTitle>
+                <span className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary rounded-full">
+                  {completedModules.length} of {affiliateCourseModules.length} Lessons Read
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Tap any module to read the lesson notes, rules, and strategies. Complete all lessons and pass the short quiz with at least {AFFILIATE_QUIZ_PASS_PERCENT}% to activate product advertising access.
+              </p>
+            </CardHeader>
+            <CardContent className="p-5 sm:p-6 space-y-5">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                 {affiliateCourseModules.map(module => {
                   const complete = completedModules.includes(module.id)
-                  return <button type="button" key={module.id} disabled={complete || savingCourse} onClick={() => markModuleComplete(module.id)} className={`text-left rounded-xl border p-3 transition-colors ${complete ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-border hover:border-primary/50'}`}><div className="flex items-start gap-2"><CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${complete ? 'text-emerald-500' : 'text-muted-foreground'}`} /><span><strong className="text-sm">Module {module.id}: {module.title}</strong><span className="block text-xs text-muted-foreground mt-1">{module.summary}</span></span></div></button>
+                  return (
+                    <button
+                      type="button"
+                      key={module.id}
+                      onClick={() => setActiveModule(module)}
+                      className={`text-left rounded-2xl border p-4 transition-all duration-200 hover:shadow-md flex flex-col justify-between min-h-[110px] ${
+                        complete
+                          ? 'border-emerald-500/40 bg-emerald-500/10 dark:bg-emerald-950/20'
+                          : 'border-border bg-card hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <CheckCircle2 className={`h-5 w-5 mt-0.5 shrink-0 ${complete ? 'text-emerald-500' : 'text-muted-foreground/60'}`} />
+                        <div>
+                          <strong className="text-sm font-bold text-foreground block">
+                            Module {module.id}: {module.title}
+                          </strong>
+                          <span className="block text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {module.summary}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-xs font-semibold pt-2 border-t border-border/50">
+                        <span className={complete ? "text-emerald-600 dark:text-emerald-400" : "text-primary"}>
+                          {complete ? "Completed (Click to re-read)" : "Tap to Read Lesson"}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </button>
+                  )
                 })}
               </div>
-              {completedModules.length === affiliateCourseModules.length && <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4"><div><p className="font-bold">Knowledge check</p><p className="text-sm text-muted-foreground">Answer all {affiliateQuiz.length} questions. You need {AFFILIATE_QUIZ_PASS_PERCENT}% to pass.</p></div>{affiliateQuiz.map((question, index) => <fieldset key={question.id} className="space-y-2"><legend className="text-sm font-medium">{index + 1}. {question.question}</legend><div className="grid gap-2 sm:grid-cols-2">{question.options.map((option, optionIndex) => <label key={option} className="flex items-center gap-2 rounded-lg border border-border p-2 text-sm cursor-pointer hover:bg-muted"><input type="radio" name={question.id} checked={quizAnswers[question.id] === optionIndex} onChange={() => { setQuizSubmitted(false); setQuizAnswers(previous => ({ ...previous, [question.id]: optionIndex })) }} />{option}</label>)}</div></fieldset>)}<Button type="button" onClick={submitCourseQuiz} disabled={savingCourse || Object.keys(quizAnswers).length !== affiliateQuiz.length}>{savingCourse ? 'Saving...' : quizScore !== null ? 'Retake quiz' : 'Submit quiz'}</Button>{quizSubmitted && quizScore !== null && <p className={`text-sm font-medium ${courseCompleted ? 'text-emerald-600' : 'text-destructive'}`}>{courseCompleted ? `Final grade: ${quizScore}%. Course completed and advertising access is now unlocked automatically.` : `Final grade: ${quizScore}%. Please review the modules and retake the quiz.`}</p>}</div>}
+
+              {completedModules.length === affiliateCourseModules.length && (
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+                  <div>
+                    <p className="font-bold text-base">Knowledge Check Quiz</p>
+                    <p className="text-sm text-muted-foreground">Answer all {affiliateQuiz.length} questions. You need {AFFILIATE_QUIZ_PASS_PERCENT}% to pass and unlock advertising access.</p>
+                  </div>
+                  {affiliateQuiz.map((question, index) => (
+                    <fieldset key={question.id} className="space-y-2 bg-background p-4 rounded-xl border border-border">
+                      <legend className="text-sm font-semibold">{index + 1}. {question.question}</legend>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {question.options.map((option, optionIndex) => (
+                          <label key={option} className="flex items-center gap-2.5 rounded-lg border border-border p-3 text-sm cursor-pointer hover:bg-muted/50 transition-colors">
+                            <input
+                              type="radio"
+                              name={question.id}
+                              checked={quizAnswers[question.id] === optionIndex}
+                              onChange={() => {
+                                setQuizSubmitted(false)
+                                setQuizAnswers(previous => ({ ...previous, [question.id]: optionIndex }))
+                              }}
+                              className="accent-primary"
+                            />
+                            <span>{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  ))}
+                  <Button type="button" onClick={submitCourseQuiz} disabled={savingCourse || Object.keys(quizAnswers).length !== affiliateQuiz.length} className="w-full sm:w-auto font-bold px-6 py-3">
+                    {savingCourse ? 'Saving...' : quizScore !== null ? 'Retake Quiz' : 'Submit Quiz'}
+                  </Button>
+                  {quizSubmitted && quizScore !== null && (
+                    <p className={`text-sm font-bold ${courseCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
+                      {courseCompleted ? `🎉 Final grade: ${quizScore}%. Course completed! Advertising access is now unlocked automatically.` : `❌ Final grade: ${quizScore}%. Please review the lessons and retake the quiz.`}
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Lesson Reader Modal */}
+          {activeModule && (
+            <Dialog open={!!activeModule} onOpenChange={(open) => { if (!open) setActiveModule(null) }}>
+              <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl p-6 sm:p-8">
+                <DialogHeader className="space-y-2 border-b border-border pb-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-wider w-fit">
+                    <BookOpen className="h-3.5 w-3.5" /> Module {activeModule.id} of {affiliateCourseModules.length}
+                  </div>
+                  <DialogTitle className="text-2xl font-black">{activeModule.title}</DialogTitle>
+                  <DialogDescription className="text-sm font-medium text-muted-foreground">
+                    {activeModule.summary}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6 py-4">
+                  {activeModule.sections.map((section, idx) => (
+                    <div key={idx} className="space-y-3">
+                      {section.heading && (
+                        <h3 className="text-base font-bold text-primary flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 shrink-0" />
+                          {section.heading}
+                        </h3>
+                      )}
+                      {section.text && (
+                        <p className="text-sm text-foreground/90 leading-relaxed">
+                          {section.text}
+                        </p>
+                      )}
+                      {section.bullets && section.bullets.length > 0 && (
+                        <ul className="space-y-2 bg-muted/30 p-4 rounded-xl border border-border/50 text-sm">
+                          {section.bullets.map((bullet, bIdx) => (
+                            <li key={bIdx} className="flex items-start gap-2.5">
+                              <span className="text-primary font-bold mt-0.5">•</span>
+                              <span className="text-foreground/90 font-medium">{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {section.example && (
+                        <div className="p-4 bg-primary/10 border-l-4 border-primary rounded-r-xl text-xs sm:text-sm font-medium text-foreground">
+                          <strong className="block text-primary font-bold uppercase tracking-wider text-[10px] mb-1">Example Strategy / Script:</strong>
+                          {section.example}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <DialogFooter className="border-t border-border pt-4 flex flex-col sm:flex-row gap-3">
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      await markModuleComplete(activeModule.id)
+                      const nextId = activeModule.id + 1
+                      const nextMod = affiliateCourseModules.find(m => m.id === nextId)
+                      if (nextMod) {
+                        setActiveModule(nextMod)
+                        toast.success(`Module ${activeModule.id} completed! Advanced to Module ${nextId}.`)
+                      } else {
+                        setActiveModule(null)
+                        toast.success(`Module ${activeModule.id} completed! All lessons read. Scroll down to complete the quiz!`)
+                      }
+                    }}
+                    className="w-full sm:flex-1 font-bold py-6 rounded-xl bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-base"
+                  >
+                    {completedModules.includes(activeModule.id) ? "Mark as Read & Close" : "Mark as Completed & Continue ➔"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Total earnings</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{formatNGN(affiliate.totalEarnings)}</div><p className="text-xs text-muted-foreground mt-1">Approved commissions</p></CardContent></Card>
