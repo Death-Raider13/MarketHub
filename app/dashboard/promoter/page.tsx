@@ -401,7 +401,7 @@ export default function PromoterDashboard() {
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <a
-                          href="https://chat.whatsapp.com/FeroELibraryAffiliates"
+                          href="https://chat.whatsapp.com/H15NqzspEi9Ew9lsqioRH1?mode=gi_t"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-sm active:scale-95"
