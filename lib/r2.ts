@@ -27,6 +27,7 @@ export function getR2Client() {
       accessKeyId,
       secretAccessKey,
     },
+    forcePathStyle: true,
   })
 }
 
