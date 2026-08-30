@@ -67,26 +67,17 @@ export function DigitalFileUpload({
 
         const authUser = (await import('@/lib/firebase/config')).auth.currentUser
         const token = authUser ? await authUser.getIdToken() : ''
-        const r2UrlResp = await fetch('/api/r2/upload-url', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          },
-          body: JSON.stringify({ fileName: file.name, fileType: file.type || 'application/octet-stream' })
-        })
 
-        if (!r2UrlResp.ok) {
-          const errData = await r2UrlResp.json().catch(() => ({}))
-          throw new Error(errData.error || 'Failed to initialize Cloudflare R2 upload URL')
-        }
-
-        const { uploadUrl, fileUrl } = await r2UrlResp.json()
+        const formData = new FormData()
+        formData.append('file', file)
 
         return new Promise<DigitalFile>((resolve, reject) => {
           const xhr = new XMLHttpRequest()
-          xhr.open('PUT', uploadUrl, true)
-          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+          xhr.open('POST', '/api/r2/upload', true)
+
+          if (token) {
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+          }
 
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
@@ -97,21 +88,31 @@ export function DigitalFileUpload({
 
           xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
-              resolve({
-                id: fileId,
-                fileName: file.name,
-                fileUrl: fileUrl,
-                fileSize: file.size,
-                fileType: file.type || 'application/octet-stream',
-                uploadedAt: new Date()
-              })
+              try {
+                const response = JSON.parse(xhr.responseText)
+                resolve({
+                  id: fileId,
+                  fileName: file.name,
+                  fileUrl: response.fileUrl,
+                  fileSize: file.size,
+                  fileType: file.type || 'application/octet-stream',
+                  uploadedAt: new Date()
+                })
+              } catch (e) {
+                reject(new Error('Invalid response from upload server'))
+              }
             } else {
-              reject(new Error(`Cloudflare R2 upload failed with status ${xhr.status}`))
+              let errorMsg = `Upload failed with status ${xhr.status}`
+              try {
+                const errData = JSON.parse(xhr.responseText)
+                if (errData.error) errorMsg = errData.error
+              } catch (_) {}
+              reject(new Error(errorMsg))
             }
           }
 
           xhr.onerror = () => reject(new Error('Upload network error. Please check your internet connection.'))
-          xhr.send(file)
+          xhr.send(formData)
         })
       })
 
