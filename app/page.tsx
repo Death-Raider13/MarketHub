@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { getAdminFirestore } from "@/lib/firebase/admin-simple"
 import { FeaturedCreatorsCarousel, type FeaturedCreator } from "@/components/creator/featured-creators-carousel"
+import { ProductCard } from "@/components/product-card"
 
 interface Product {
   id: string
@@ -51,14 +52,9 @@ export default async function HomePage() {
       const pCount = productsMeta.data().count
       if (pCount > 0) realStats.products = pCount > 1000 ? `${Math.floor(pCount / 1000)}K+` : `${pCount}+`
 
-      const productsQuery = await adminDb
-        .collection("products")
-        .where("status", "in", ["active", "approved"])
-        .limit(20)
-        .get()
-
-      const creatorQuery = await adminDb.collection("users").limit(24).get()
-      const rawCreators = creatorQuery.docs.map((doc: any) => {
+      // 1. Fetch featured creators ONLY (where featured == true)
+      const creatorQuery = await adminDb.collection("users").where("featured", "==", true).limit(24).get()
+      featuredCreators = creatorQuery.docs.map((doc: any) => {
         const data = doc.data()
         return {
           id: doc.id,
@@ -67,20 +63,23 @@ export default async function HomePage() {
           description: data.hubDescription || data.storeDescription,
           logoUrl: data.logoUrl,
           storeUrl: data.storeUrl,
-          featured: data.featured === true,
           role: data.role
         }
       }).filter((creator: any) => creator.role === "creator" || !creator.role)
 
-      // Sort creators with featured === true first
-      rawCreators.sort((a: any, b: any) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-      featuredCreators = rawCreators.slice(0, 10)
+      // 2. Fetch products (prioritize featured products)
+      const productsQuery = await adminDb
+        .collection("products")
+        .where("status", "in", ["active", "approved"])
+        .limit(20)
+        .get()
 
       const rawProducts = productsQuery.docs.map((doc: any) => {
         const data = doc.data()
         return {
           id: doc.id,
           ...data,
+          images: data.images || (data.imageUrl ? [data.imageUrl] : []),
           creatorId: data.creatorId || "",
           creatorName: data.creatorName || "Fero Library Educator"
         }
@@ -88,7 +87,10 @@ export default async function HomePage() {
 
       // Sort products with featured === true first
       rawProducts.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-      featuredProducts = rawProducts.slice(0, 8) as Product[]
+      
+      // Serialize to plain JSON objects for Client Components
+      featuredProducts = JSON.parse(JSON.stringify(rawProducts.slice(0, 8))) as Product[]
+      featuredCreators = JSON.parse(JSON.stringify(featuredCreators)) as FeaturedCreator[]
     } catch (error) {
       console.error("Error fetching homepage data:", error)
     }
@@ -258,6 +260,34 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Products Section */}
+      {featuredProducts.length > 0 && (
+        <section className="py-16 px-4 sm:px-6 bg-background border-t border-border/40">
+          <div className="container mx-auto max-w-6xl">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-3">
+                  <Sparkles className="w-3.5 h-3.5" /> Featured Resources
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Featured eBooks & Study Guides</h2>
+                <p className="text-muted-foreground text-xs sm:text-sm mt-1">Handpicked educational resources verified for top academic performance.</p>
+              </div>
+              <Link href="/products">
+                <Button variant="outline" className="gap-2 font-bold rounded-xl shrink-0">
+                  Explore All Resources <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product as any} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <FeaturedCreatorsCarousel creators={featuredCreators} />
 
