@@ -502,16 +502,26 @@ function CheckoutContent() {
               <Card>
                 <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
                 <CardContent className="space-y-4 text-sm">
-                  {items.map(item => (
-                    <div key={item.product.id} className="flex items-center justify-between gap-3">
-                      <span className="line-clamp-1 flex-1 pr-2">{item.product.name} (x{item.quantity})</span>
-                      <span className="font-medium shrink-0">₦{(item.product.price * item.quantity).toLocaleString()}</span>
-                    </div>
-                  ))}
-                  <div className="border-t pt-2 space-y-1">
-                    <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>₦{totalPrice.toLocaleString()}</span></div>
-                    <div className="flex justify-between font-bold text-base mt-2"><span>Total</span><span>₦{total.toLocaleString()}</span></div>
-                  </div>
+                  {(() => {
+                    const displayItems = step === 3 && completedOrderItems.length > 0 ? completedOrderItems : items
+                    const displaySubtotal = displayItems.reduce((sum, item) => sum + ((item.product?.price || 0) * (item.quantity || 1)), 0)
+                    const displayTotal = displaySubtotal
+
+                    return (
+                      <>
+                        {displayItems.map((item, idx) => (
+                          <div key={item.product?.id || idx} className="flex items-center justify-between gap-3">
+                            <span className="line-clamp-1 flex-1 pr-2">{item.product?.name || 'Digital Resource'} (x{item.quantity || 1})</span>
+                            <span className="font-medium shrink-0">₦{((item.product?.price || 0) * (item.quantity || 1)).toLocaleString()}</span>
+                          </div>
+                        ))}
+                        <div className="border-t pt-2 space-y-1">
+                          <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>₦{displaySubtotal.toLocaleString()}</span></div>
+                          <div className="flex justify-between font-bold text-base mt-2"><span>Total</span><span>₦{displayTotal.toLocaleString()}</span></div>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </CardContent>
               </Card>
             </div>

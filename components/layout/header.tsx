@@ -102,11 +102,6 @@ export function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-4 relative z-50 shrink-0">
-          {user && ['creator', 'promoter', 'admin', 'super_admin'].includes(userProfile?.role || '') && (
-            <div className="hidden sm:block">
-              <RoleSwitcher />
-            </div>
-          )}
           <ModeToggle />
           {/* Cart */}
           <Link href="/cart" className="relative p-2 hover:bg-muted/50 rounded-full transition-colors cursor-pointer group">
@@ -265,11 +260,7 @@ export function Header() {
                   />
                 </form>
 
-                {user && ['creator', 'promoter', 'admin', 'super_admin'].includes(userProfile?.role || '') && (
-                  <div className="p-2 glass rounded-xl border border-border">
-                    <RoleSwitcher />
-                  </div>
-                )}
+
 
                 <div className="flex items-center justify-between p-2 glass rounded-xl border border-border">
                   <span className="text-sm font-medium ml-2">Theme Preference</span>
