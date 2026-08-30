@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { upload } from "@imagekit/javascript"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Upload, X, File, FileText, FileVideo, FileAudio, FileArchive } from "lucide-react"
@@ -66,110 +65,53 @@ export function DigitalFileUpload({
       const uploadPromises = files.map(async (file) => {
         const fileId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-        // 1. Try Cloudflare R2 upload
-        try {
-          const authUser = (await import('@/lib/firebase/config')).auth.currentUser
-          const token = authUser ? await authUser.getIdToken() : ''
-          const r2UrlResp = await fetch('/api/r2/upload-url', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-            },
-            body: JSON.stringify({ fileName: file.name, fileType: file.type || 'application/octet-stream' })
-          })
+        const authUser = (await import('@/lib/firebase/config')).auth.currentUser
+        const token = authUser ? await authUser.getIdToken() : ''
+        const r2UrlResp = await fetch('/api/r2/upload-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ fileName: file.name, fileType: file.type || 'application/octet-stream' })
+        })
 
-          if (r2UrlResp.ok) {
-            const { uploadUrl, fileUrl } = await r2UrlResp.json()
-
-            return new Promise<DigitalFile>((resolve, reject) => {
-              const xhr = new XMLHttpRequest()
-              xhr.open('PUT', uploadUrl, true)
-              xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
-
-              xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                  const progress = (event.loaded / event.total) * 100
-                  setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
-                }
-              }
-
-              xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                  resolve({
-                    id: fileId,
-                    fileName: file.name,
-                    fileUrl: fileUrl,
-                    fileSize: file.size,
-                    fileType: file.type || 'application/octet-stream',
-                    uploadedAt: new Date()
-                  })
-                } else {
-                  reject(new Error(`Cloudflare R2 upload failed with status ${xhr.status}`))
-                }
-              }
-
-              xhr.onerror = () => reject(new Error('Cloudflare R2 upload network error'))
-              xhr.send(file)
-            })
-          }
-        } catch (r2Err) {
-          console.warn('R2 upload unconfigured or failed, falling back to ImageKit:', r2Err)
+        if (!r2UrlResp.ok) {
+          const errData = await r2UrlResp.json().catch(() => ({}))
+          throw new Error(errData.error || 'Failed to initialize Cloudflare R2 upload URL')
         }
 
-        // 2. ImageKit Fallback
-        const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || ""
-        const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || ""
+        const { uploadUrl, fileUrl } = await r2UrlResp.json()
 
-        if (!publicKey || !urlEndpoint) {
-          throw new Error('Storage service is not configured in environment variables')
-        }
-
-        const authResp = await fetch('/api/imagekit-auth')
-        if (!authResp.ok) {
-          throw new Error('Failed to get auth parameters')
-        }
-
-        const authData = await authResp.json()
-        const tokenVal: string | undefined = authData?.token
-        const signature: string | undefined = authData?.signature
-        const expire: number | undefined = authData?.expire
-
-        if (!tokenVal || !signature || !expire) {
-          throw new Error('Invalid storage auth parameters')
-        }
-        
         return new Promise<DigitalFile>((resolve, reject) => {
-          upload({
-            file,
-            fileName: file.name,
-            folder: '/digital-products',
-            useUniqueFileName: true,
-            tags: ['digital-product'],
-            publicKey,
-            token: tokenVal,
-            signature,
-            expire,
-            onProgress: (event: ProgressEvent) => {
-              if (event.lengthComputable) {
-                const progress = (event.loaded / event.total) * 100
-                setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
-              }
+          const xhr = new XMLHttpRequest()
+          xhr.open('PUT', uploadUrl, true)
+          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const progress = (event.loaded / event.total) * 100
+              setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
             }
-          })
-            .then((result: any) => {
+          }
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
               resolve({
                 id: fileId,
                 fileName: file.name,
-                fileUrl: `${urlEndpoint}${result.filePath}`,
+                fileUrl: fileUrl,
                 fileSize: file.size,
-                fileType: file.type,
+                fileType: file.type || 'application/octet-stream',
                 uploadedAt: new Date()
               })
-            })
-            .catch((err: unknown) => {
-              reject(err || new Error('Upload failed'))
-            })
+            } else {
+              reject(new Error(`Cloudflare R2 upload failed with status ${xhr.status}`))
+            }
+          }
+
+          xhr.onerror = () => reject(new Error('Upload network error. Please check your internet connection.'))
+          xhr.send(file)
         })
       })
 
@@ -179,11 +121,11 @@ export function DigitalFileUpload({
       setUploadedFiles(allFiles)
       onFilesUploaded(allFiles)
       
-      toast.success(`${files.length} file(s) uploaded successfully!`)
+      toast.success(`${files.length} file(s) uploaded successfully to Cloudflare R2!`)
       setUploadProgress({})
-    } catch (error) {
+    } catch (error: any) {
       console.error('File upload error:', error)
-      toast.error('Failed to upload files')
+      toast.error(error?.message || 'Failed to upload files')
     } finally {
       setUploading(false)
     }
@@ -213,7 +155,7 @@ export function DigitalFileUpload({
           <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">Upload Digital Files</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Drag and drop or click to browse
+            Drag and drop or click to browse (Powered by Cloudflare R2)
           </p>
           <p className="text-xs text-muted-foreground">
             Supported: PDF, ZIP, MP4, MP3, DOC, XLS, PPT, EPUB, etc.
@@ -227,7 +169,7 @@ export function DigitalFileUpload({
             className="mt-4"
             disabled={uploading || uploadedFiles.length >= maxFiles}
           >
-            {uploading ? 'Uploading...' : 'Select Files'}
+            {uploading ? 'Uploading to R2...' : 'Select Files'}
           </Button>
         </label>
       </div>
