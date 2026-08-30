@@ -54,16 +54,29 @@ export default async function HomePage() {
       const productsQuery = await adminDb
         .collection("products")
         .where("status", "in", ["active", "approved"])
-        .limit(8)
+        .limit(20)
         .get()
 
-      const creatorQuery = await adminDb.collection("users").where("featured", "==", true).limit(24).get()
-      featuredCreators = creatorQuery.docs.map((doc: any) => {
+      const creatorQuery = await adminDb.collection("users").limit(24).get()
+      const rawCreators = creatorQuery.docs.map((doc: any) => {
         const data = doc.data()
-        return { id: doc.id, name: data.displayName || data.email?.split("@")[0] || "Featured Creator", storeName: data.storeName || data.hubName, description: data.hubDescription || data.storeDescription, logoUrl: data.logoUrl, storeUrl: data.storeUrl, role: data.role }
-      }).filter((creator: FeaturedCreator & { role?: string }) => creator.role === "creator")
+        return {
+          id: doc.id,
+          name: data.displayName || data.email?.split("@")[0] || "Featured Creator",
+          storeName: data.storeName || data.hubName,
+          description: data.hubDescription || data.storeDescription,
+          logoUrl: data.logoUrl,
+          storeUrl: data.storeUrl,
+          featured: data.featured === true,
+          role: data.role
+        }
+      }).filter((creator: any) => creator.role === "creator" || !creator.role)
 
-      featuredProducts = productsQuery.docs.map((doc: any) => {
+      // Sort creators with featured === true first
+      rawCreators.sort((a: any, b: any) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+      featuredCreators = rawCreators.slice(0, 10)
+
+      const rawProducts = productsQuery.docs.map((doc: any) => {
         const data = doc.data()
         return {
           id: doc.id,
@@ -71,7 +84,11 @@ export default async function HomePage() {
           creatorId: data.creatorId || "",
           creatorName: data.creatorName || "Fero Library Educator"
         }
-      }) as Product[]
+      }) as (Product & { featured?: boolean })[]
+
+      // Sort products with featured === true first
+      rawProducts.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+      featuredProducts = rawProducts.slice(0, 8) as Product[]
     } catch (error) {
       console.error("Error fetching homepage data:", error)
     }
