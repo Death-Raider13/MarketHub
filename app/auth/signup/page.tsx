@@ -42,7 +42,7 @@ export default function SignupPage() {
       router.push("/auth/creator-register-new")
       return
     }
-    
+
     if (role === "verifier") {
       router.push("/auth/verifier-apply")
       return
@@ -71,14 +71,14 @@ export default function SignupPage() {
         if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
           referralCode = String(parsed.code).trim().toUpperCase()
         }
-      } catch {}
+      } catch { }
 
       // Combine first and last name for display name
       const fullName = `${firstName} ${lastName}`.trim()
       await signUp(email, password, role as UserRole, fullName, referralCode)
-      
+
       if (role === "promoter") {
-        router.push("/dashboard/promoter") 
+        router.push("/dashboard/promoter")
       } else {
         router.push("/auth/verify-email")
       }
@@ -110,16 +110,16 @@ export default function SignupPage() {
       <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -z-10 opacity-20" />
 
       <div className="w-full max-w-[1000px] mx-auto grid lg:grid-cols-2 gap-8 items-center z-10">
-        
+
         {/* Left column - Branding */}
         <div className="hidden lg:flex flex-col justify-center h-full pr-8">
           <Link href="/" className="flex items-center gap-2 mb-8">
             <div className="relative h-10 w-10">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+              <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-3xl font-bold tracking-tight">Fero<span className="text-primary text-gradient">E-Library</span></span>
           </Link>
-          
+
           <h1 className="text-5xl font-black mb-6 tracking-tighter leading-[1.1]">
             Join Fero E-Library <br />
             <span className="text-muted-foreground/50">Digital Learning Engine.</span>
@@ -163,7 +163,7 @@ export default function SignupPage() {
             <div className="space-y-2.5 sm:space-y-3">
               <Label className="text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground font-bold">1. Select Role</Label>
               <RadioGroup value={role} onValueChange={(value: any) => setRole(value)} className="grid grid-cols-3 gap-1.5 sm:gap-3">
-                
+
                 {/* Student */}
                 <Label htmlFor="customer" className={`cursor-pointer border rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition-all flex flex-col items-center text-center gap-1.5 sm:gap-2 ${role === 'customer' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(79,70,229,0.15)] ring-1 ring-primary' : 'border-border bg-background/50 hover:border-primary/20'}`}>
                   <RadioGroupItem value="customer" id="customer" className="sr-only" />
@@ -211,7 +211,7 @@ export default function SignupPage() {
                   <Label htmlFor="email" className="text-xs text-muted-foreground font-bold uppercase">Email Address</Label>
                   <Input id="email" type="email" required className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={email} onChange={e => setEmail(e.target.value)} />
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label htmlFor="phone" className="text-xs text-muted-foreground font-bold uppercase">Phone Number</Label>
                   <Input id="phone" type="tel" required className="bg-muted/50 border-border focus:border-primary/50 rounded-xl" value={phone} onChange={e => setPhone(e.target.value)} />
@@ -249,11 +249,11 @@ export default function SignupPage() {
             )}
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-black h-14 rounded-xl text-md transition-all active:scale-[0.98]" disabled={loading}>
-              {loading ? "Processing..." : 
-               role === "creator" ? "Continue to Educator Setup" : 
-               role === "verifier" ? "Start Verifier Application" :
-               role === "promoter" ? "Setup Affiliate Account" :
-               "Create Account"}
+              {loading ? "Processing..." :
+                role === "creator" ? "Continue to Educator Setup" :
+                  role === "verifier" ? "Start Verifier Application" :
+                    role === "promoter" ? "Setup Affiliate Account" :
+                      "Create Account"}
               {!loading && <ArrowRight className="ml-2 h-5 w-5" />}
             </Button>
 
@@ -266,10 +266,10 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full border-border bg-background hover:bg-muted h-12 rounded-xl text-sm font-bold transition-all" 
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-border bg-background hover:bg-muted h-12 rounded-xl text-sm font-bold transition-all"
               disabled={loading}
               onClick={handleGoogleSignUp}
             >

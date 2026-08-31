@@ -79,7 +79,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 relative z-50 shrink-0">
           <div className="relative h-8 w-8 rounded-lg overflow-hidden">
-            <Image src="/logo.png" alt="FeroLibrary Logo" fill className="object-contain" />
+            <Image src="/logo.jpg" alt="FeroLibrary Logo" fill className="object-contain" />
           </div>
           <span className="text-xl font-bold tracking-tight hidden sm:inline-block">
             Fero<span className="text-primary text-gradient">E-Library</span>
@@ -242,7 +242,7 @@ export function Header() {
               <SheetHeader className="mb-6 sm:mb-8">
                 <SheetTitle className="text-left flex items-center gap-2">
                   <div className="relative h-6 w-6">
-                    <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+                    <Image src="/logo.jpg" alt="Logo" fill className="object-contain" />
                   </div>
                   Fero<span className="text-primary">Library</span>
                 </SheetTitle>

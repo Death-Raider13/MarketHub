@@ -11,7 +11,7 @@ export function Footer() {
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-2 mb-4 group">
               <div className="relative h-8 w-8 rounded-lg overflow-hidden group-hover:scale-110 transition-transform bg-muted/50">
-                <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+                <Image src="/logo.jpg" alt="Logo" fill className="object-contain" />
               </div>
               <span className="text-xl font-bold tracking-tight text-foreground">Fero<span className="text-primary text-gradient">E-Library</span></span>
             </Link>
@@ -127,7 +127,7 @@ export function Footer() {
               <Link href="https://cloudsparkdigital.netlify.app" target="_blank" className="text-primary hover:underline font-bold">CloudSparkDigital</Link>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4 sm:gap-6">
             <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
             <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>

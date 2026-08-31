@@ -33,9 +33,9 @@ export const metadata: Metadata = {
   description: "Access verified past questions, study guides, and project templates. Guaranteed accuracy for academic success.",
   keywords: ["FeroLibrary", "Academic Resources", "JAMB", "WAEC", "University Notes", "Verified Study Guides"],
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo.jpg",
+    shortcut: "/logo.jpg",
+    apple: "/logo.jpg",
   },
   openGraph: {
     title: "FeroLibrary | Nigeria's Most Trusted Academic Marketplace",

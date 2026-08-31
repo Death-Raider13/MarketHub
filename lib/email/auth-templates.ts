@@ -3,7 +3,7 @@ import { getCanonicalAppUrl } from '@/lib/app-url'
 const APP_URL = getCanonicalAppUrl()
 const BRAND_NAME = 'Fero E-Library'
 const BRAND_EMAIL = process.env.SUPPORT_EMAIL || 'support@fero-elibrary.shop'
-const LOGO_URL = process.env.EMAIL_LOGO_URL || `${APP_URL}/logo.png`
+const LOGO_URL = process.env.EMAIL_LOGO_URL || `${APP_URL}/logo.jpg`
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] || character))

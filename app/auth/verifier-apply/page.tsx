@@ -46,7 +46,7 @@ export default function VerifierApplyPage() {
         status: "pending",
         appliedAt: new Date().toISOString()
       })
-      
+
       setSubmitted(true)
     } catch (err: any) {
       console.error("Error submitting application:", err)
@@ -58,7 +58,7 @@ export default function VerifierApplyPage() {
 
   if (submitted) {
     return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 relative overflow-hidden bg-background">
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 relative overflow-hidden bg-background">
         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -z-10 opacity-30" />
         <div className="glass-card w-full max-w-md rounded-[2.5rem] p-10 border-white/10 text-center animate-in fade-in zoom-in duration-500">
           <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
@@ -82,21 +82,21 @@ export default function VerifierApplyPage() {
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] -z-10 opacity-30" />
 
       <div className="w-full max-w-[800px] mx-auto z-10 glass-card rounded-[2.5rem] overflow-hidden border-white/10 shadow-2xl flex flex-col md:flex-row">
-        
+
         {/* Left column - Branding */}
         <div className="w-full md:w-[40%] bg-white/5 p-8 flex flex-col justify-between border-r border-white/5">
           <div>
             <Link href="/" className="inline-block mb-10">
               <div className="flex items-center gap-2">
                 <div className="relative h-8 w-8">
-                  <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                  <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <span className="text-xl font-bold tracking-tight">Fero<span className="text-primary text-gradient">Library</span></span>
               </div>
             </Link>
-            
+
             <Badge className="bg-primary/20 text-primary border-primary/20 mb-4 px-3 py-1 rounded-full text-[10px] font-black uppercase">
-               Auditors Network
+              Auditors Network
             </Badge>
             <h1 className="text-3xl font-black mb-4 tracking-tight">
               Verifier <br /> Application.
@@ -121,7 +121,7 @@ export default function VerifierApplyPage() {
 
             <div className="space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-white/10 pb-2">Personal Details</h3>
-              
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="firstName" className="text-[10px] text-muted-foreground font-bold uppercase">First Name</Label>
@@ -164,13 +164,13 @@ export default function VerifierApplyPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="motivation" className="text-[10px] text-muted-foreground font-bold uppercase">Why do you want to be a verifier?</Label>
-                <Textarea 
-                  id="motivation" 
-                  required 
-                  placeholder="Tell us about your experience..." 
-                  className="bg-black/20 border-white/10 focus:border-primary/50 rounded-xl min-h-[80px]" 
-                  value={formData.motivation} 
-                  onChange={handleChange} 
+                <Textarea
+                  id="motivation"
+                  required
+                  placeholder="Tell us about your experience..."
+                  className="bg-black/20 border-white/10 focus:border-primary/50 rounded-xl min-h-[80px]"
+                  value={formData.motivation}
+                  onChange={handleChange}
                 />
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function VerifierApplyPage() {
               {loading ? "Submitting..." : "Submit Application"}
               {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
-            
+
             <div className="text-center">
               <Link href="/auth/signup" className="text-xs text-muted-foreground hover:text-white transition-colors">
                 Back to Role Selection
