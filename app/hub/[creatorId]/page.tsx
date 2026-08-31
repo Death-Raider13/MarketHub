@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Store, ShoppingCart, Share2, Mail, Globe, 
-  Twitter, Instagram, Facebook, Loader2, Flag, Shield, 
+  Twitter, Instagram, Facebook, Loader2, Flag, Shield, Crown,
   Search, Star, Youtube, Linkedin, MessageCircle, AlertCircle, HelpCircle
 } from "lucide-react"
 import Link from "next/link"
@@ -288,6 +288,11 @@ export default function CreatorHubPage() {
               <div className={`${layout.headerStyle === 'centered' ? 'flex flex-col items-center sm:items-start' : ''}`}>
                 <div className="flex items-center gap-2">
                   <h1 className={`${layout.headerStyle === 'minimal' ? 'text-lg' : 'text-xl'} font-bold`}>{branding.hubName}</h1>
+                  {((creator as any).verified === true || (creator as any).featured === true || (creator as any).verificationStatus === 'verified') && (
+                    <Badge className="bg-amber-500 text-black border-none text-[10px] font-extrabold px-2 py-0.5 uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                      <Crown className="h-3 w-3 fill-black" /> Verified Educator
+                    </Badge>
+                  )}
                   {creator.reputation?.level && features.showSocialProof !== false && (
                     <Badge variant="secondary" className="bg-blue-600 text-white border-none text-[10px] h-5 uppercase">
                       {creator.reputation.level}

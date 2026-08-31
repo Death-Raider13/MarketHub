@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +29,7 @@ import {
   XCircle,
   Activity,
   MessageSquare,
+  Crown,
   TrendingDown,
   Calendar,
   Target,
@@ -202,8 +204,15 @@ function CreatorDashboardContent() {
           <div className="mb-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-3xl font-bold">Educator Dashboard</h1>
-                <p className="text-muted-foreground">Welcome back! Here&apos;s what&apos;s happening with your library</p>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-bold">Educator Dashboard</h1>
+                  {(userProfile?.verified || (userProfile as any)?.featured || (userProfile as any)?.verificationStatus === 'verified') && (
+                    <Badge className="bg-amber-500 hover:bg-amber-600 text-black font-extrabold flex items-center gap-1.5 px-3 py-1 text-xs uppercase shadow-sm">
+                      <Crown className="h-3.5 w-3.5 fill-black" /> Verified Educator
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground mt-1">Welcome back! Here&apos;s what&apos;s happening with your library</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" asChild className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border-amber-300 text-amber-900 dark:text-amber-200 font-bold">

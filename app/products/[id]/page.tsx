@@ -40,7 +40,8 @@ import {
   Loader2,
   AlertCircle,
   Flag,
-  Copy
+  Copy,
+  Crown
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -185,7 +186,7 @@ export default function ProductDetailPage() {
             setcreatorInfo({
               name: creatorData.displayName || creatorData.businessName || creatorData.email?.split('@')[0] || 'creator',
               description: creatorData.storeDescription || creatorData.bio || 'Quality products with excellent customer service.',
-              verified: creatorData.verified || false
+              verified: creatorData.verified === true || creatorData.featured === true || creatorData.verificationStatus === 'verified'
             })
           }
 
@@ -495,13 +496,20 @@ ${product.description.length > 100 ? product.description.substring(0, 100) + '..
             {/* Product Info */}
             <div className="space-y-6">
               <div>
-                <Link
-                  href={`/hub/${product.creatorId}`}
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline mb-2"
-                >
-                  <Store className="h-4 w-4" />
-                  {creatorInfo?.name || 'Creator Hub'}
-                </Link>
+                <div className="flex items-center gap-2 mb-2">
+                  <Link
+                    href={`/hub/${product.creatorId}`}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                  >
+                    <Store className="h-4 w-4" />
+                    {creatorInfo?.name || 'Creator Hub'}
+                  </Link>
+                  {creatorInfo?.verified && (
+                    <Badge className="bg-amber-500 hover:bg-amber-600 text-black text-[10px] font-extrabold px-2 py-0.5 uppercase tracking-wider flex items-center gap-1">
+                      <Crown className="h-3 w-3 fill-black" /> Verified Educator
+                    </Badge>
+                  )}
+                </div>
                 <h1 className="text-3xl font-bold">{product.name}</h1>
                 <div className="mt-2 flex items-center gap-4">
                   <div className="flex items-center gap-1">

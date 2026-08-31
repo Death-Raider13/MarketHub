@@ -27,6 +27,7 @@ function VerificationContent() {
   const searchParams = useSearchParams()
   const [featured, setFeatured] = useState(false)
   const [resourceCount, setResourceCount] = useState(0)
+  const [uploadAccessPaid, setUploadAccessPaid] = useState(false)
   const [waitlistEligible, setWaitlistEligible] = useState(false)
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState<"badge" | "uploads" | null>(null)
@@ -44,6 +45,7 @@ function VerificationContent() {
 
       setFeatured(Boolean(verification.featured))
       setWaitlistEligible(Boolean(verification.waitlistEligible || userProfile?.waitlistMember))
+      setUploadAccessPaid(Boolean(verification.creatorUploadAccess?.status === "active"))
       setResourceCount(Array.isArray(products.products) ? products.products.length : 0)
     } catch (error) {
       console.error("Error loading creator verification status:", error)
@@ -136,7 +138,7 @@ function VerificationContent() {
           </div>
 
           {/* Upload Quota Card */}
-          <Card className="border-primary/20 bg-muted/30">
+          <Card className={`border-2 transition-all ${uploadAccessPaid ? "border-emerald-500/50 bg-emerald-500/5" : "border-primary/20 bg-muted/30"}`}>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -144,12 +146,20 @@ function VerificationContent() {
                     <BookOpen className="h-5 w-5 text-primary" /> Your Upload Quota
                   </CardTitle>
                   <CardDescription className="mt-1">
-                    Every creator gets <strong>3 FREE book uploads</strong>. Additional book uploads cost ₦{additionalUploadFee.toLocaleString()} each.
+                    {uploadAccessPaid 
+                      ? "You have unlocked Unlimited Book Upload Access on Fero E-Library!" 
+                      : `Every creator gets 3 FREE book uploads. Additional book uploads cost ₦${additionalUploadFee.toLocaleString()} each.`}
                   </CardDescription>
                 </div>
-                <Badge variant={freeUploadsLeft > 0 ? "default" : "secondary"} className="w-fit text-sm px-3 py-1 font-bold">
-                  {freeUploadsLeft > 0 ? `${freeUploadsLeft} Free Uploads Remaining` : "3 Free Uploads Used"}
-                </Badge>
+                {uploadAccessPaid ? (
+                  <Badge className="w-fit text-sm px-3 py-1 font-extrabold bg-emerald-600 text-white uppercase tracking-wider">
+                    🎉 Unlimited Uploads Unlocked
+                  </Badge>
+                ) : (
+                  <Badge variant={freeUploadsLeft > 0 ? "default" : "secondary"} className="w-fit text-sm px-3 py-1 font-bold">
+                    {freeUploadsLeft > 0 ? `${freeUploadsLeft} Free Uploads Remaining` : "3 Free Uploads Used"}
+                  </Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -157,26 +167,40 @@ function VerificationContent() {
                 <div>
                   <p className="font-bold">Total Books Published: <span className="text-primary font-extrabold">{resourceCount}</span></p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {freeUploadsLeft > 0 
-                      ? `You can publish ${freeUploadsLeft} more resource${freeUploadsLeft > 1 ? 's' : ''} for free!` 
-                      : `Purchase additional upload access to publish your next resource.`}
+                    {uploadAccessPaid ? (
+                      <span className="text-emerald-700 font-semibold flex items-center gap-1 mt-1">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 inline" />
+                        Unlimited upload access active! You can publish as many resources as you want.
+                      </span>
+                    ) : freeUploadsLeft > 0 ? (
+                      `You can publish ${freeUploadsLeft} more resource${freeUploadsLeft > 1 ? 's' : ''} for free!`
+                    ) : (
+                      `Purchase additional upload access to publish your next resource.`
+                    )}
                   </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button asChild variant="outline" className="font-bold">
+                  <Button asChild variant="default" className="font-bold bg-primary text-white">
                     <Link href="/creator/products/new">
                       Upload Resource ➔
                     </Link>
                   </Button>
-                  <Button 
-                    onClick={() => startPayment("uploads")} 
-                    disabled={paying === "uploads"}
-                    className="font-bold bg-primary hover:bg-primary/90 text-white"
-                  >
-                    {paying === "uploads" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
-                    Pay Upload Access Fee (₦{additionalUploadFee.toLocaleString()})
-                  </Button>
+                  {uploadAccessPaid ? (
+                    <Button disabled variant="outline" className="font-bold border-emerald-500 text-emerald-700 bg-emerald-50">
+                      <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
+                      Upload Access Paid & Active
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => startPayment("uploads")} 
+                      disabled={paying === "uploads"}
+                      className="font-bold bg-primary hover:bg-primary/90 text-white"
+                    >
+                      {paying === "uploads" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                      Pay Upload Access Fee (₦{additionalUploadFee.toLocaleString()})
+                    </Button>
+                  )}
                 </div>
               </div>
 
