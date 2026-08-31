@@ -124,16 +124,8 @@ function AdminPayoutsContent() {
         }
         payload.rejectionReason = rejectionReason;
       } else if (actionDialog === 'complete') {
-        if (!transactionRef) {
-          toast({
-            title: 'Transaction Reference Required',
-            description: 'Please provide a transaction reference',
-            variant: 'destructive',
-          });
-          setProcessing(false);
-          return;
-        }
-        payload.transactionReference = transactionRef;
+        const finalRef = transactionRef.trim() || `MANUAL-TRF-${Date.now().toString().slice(-6)}`
+        payload.transactionReference = finalRef;
       } else if (actionDialog === 'process') {
         // Process transfer via Paystack
         const processResponse = await fetch(`/api/payouts/${selectedPayout.id}/process`, {
@@ -587,20 +579,19 @@ function AdminPayoutsContent() {
       <Dialog open={actionDialog === 'complete'} onOpenChange={() => setActionDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Complete Payout</DialogTitle>
+            <DialogTitle>Complete Payout (Manual Transfer)</DialogTitle>
             <DialogDescription>
-              Mark this payout of ₦{selectedPayout?.amount.toLocaleString()} as completed
+              Mark this Net Payout of ₦{(selectedPayout ? (selectedPayout.netAmount || (selectedPayout.amount - 100)) : 0).toLocaleString()} (after ₦100 fee) as completed.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="transactionRef">Transaction Reference *</Label>
+              <Label htmlFor="transactionRef">Transaction Reference (Optional)</Label>
               <Input
                 id="transactionRef"
                 value={transactionRef}
                 onChange={(e) => setTransactionRef(e.target.value)}
-                placeholder="Enter transaction reference number"
-                required
+                placeholder="e.g. 00001928374 (Leave blank to auto-generate)"
               />
             </div>
             <div className="space-y-2">
