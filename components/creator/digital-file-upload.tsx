@@ -69,7 +69,59 @@ export function DigitalFileUpload({
         const token = authUser ? await authUser.getIdToken() : ''
         const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {}
 
-        // 1. Initialize Multipart Upload
+        const FIVE_MB = 5 * 1024 * 1024
+
+        // 1. For small files (<= 5 MB), perform single upload via /api/r2/upload
+        if (file.size <= FIVE_MB) {
+          const formData = new FormData()
+          formData.append('file', file)
+
+          return new Promise<DigitalFile>((resolve, reject) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', '/api/r2/upload', true)
+
+            if (token) {
+              xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+            }
+
+            xhr.upload.onprogress = (event) => {
+              if (event.lengthComputable) {
+                const progress = Math.round((event.loaded / event.total) * 100)
+                setUploadProgress((prev) => ({ ...prev, [file.name]: progress }))
+              }
+            }
+
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                  const response = JSON.parse(xhr.responseText)
+                  resolve({
+                    id: fileId,
+                    fileName: file.name,
+                    fileUrl: response.fileUrl,
+                    fileSize: file.size,
+                    fileType: file.type || 'application/octet-stream',
+                    uploadedAt: new Date(),
+                  })
+                } catch (e) {
+                  reject(new Error('Invalid response from upload server'))
+                }
+              } else {
+                let errorMsg = `Upload failed with status ${xhr.status}`
+                try {
+                  const errData = JSON.parse(xhr.responseText)
+                  if (errData.error) errorMsg = errData.error
+                } catch (_) {}
+                reject(new Error(errorMsg))
+              }
+            }
+
+            xhr.onerror = () => reject(new Error('Upload network error. Please check your internet connection.'))
+            xhr.send(formData)
+          })
+        }
+
+        // 2. For large files (> 5 MB), perform S3 Multipart Upload with 5.2 MB chunks
         const initResp = await fetch('/api/r2/upload-chunk', {
           method: 'POST',
           headers: {
@@ -90,8 +142,7 @@ export function DigitalFileUpload({
 
         const { uploadId, key } = await initResp.json()
 
-        // 2. Upload chunks (3.5 MB each to stay safely under Vercel 4.5 MB limit)
-        const CHUNK_SIZE = 3.5 * 1024 * 1024
+        const CHUNK_SIZE = 5.2 * 1024 * 1024 // 5.2 MB to meet S3's minimum 5MB part size requirement
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
         const parts: { ETag: string; PartNumber: number }[] = []
 
@@ -126,12 +177,10 @@ export function DigitalFileUpload({
               PartNumber: chunkData.partNumber,
             })
 
-            // Calculate progress percentage
             const progressPercent = Math.min(Math.round((end / file.size) * 100), 99)
             setUploadProgress((prev) => ({ ...prev, [file.name]: progressPercent }))
           }
 
-          // 3. Complete Multipart Upload
           const completeResp = await fetch('/api/r2/upload-chunk', {
             method: 'POST',
             headers: {
@@ -163,7 +212,6 @@ export function DigitalFileUpload({
             uploadedAt: new Date(),
           } as DigitalFile
         } catch (uploadError) {
-          // Attempt to abort multipart upload on failure to clean up incomplete chunks
           fetch('/api/r2/upload-chunk', {
             method: 'POST',
             headers: {
