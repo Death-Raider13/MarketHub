@@ -136,7 +136,8 @@ export async function POST(request: NextRequest) {
           amount,
           paymentMethod: payoutMethod,
           payoutId: payoutRef.id,
-          requestedAt: new Date()
+          requestedAt: new Date(),
+          roleLabel: 'Promoter / Affiliate'
         }).catch(err => console.error('Failed sending admin payout email:', err))
       }
     } catch (emailErr) {

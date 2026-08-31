@@ -1513,18 +1513,23 @@ export async function sendPayoutRequestAdminEmail(
     paymentMethod: string;
     payoutId: string;
     requestedAt: Date;
+    roleLabel?: string;
   }
 ) {
+  const roleTitle = payload.roleLabel || 'Creator'
+  const isAffiliate = roleTitle.toLowerCase().includes('promoter') || roleTitle.toLowerCase().includes('affiliate')
+  const adminUrl = isAffiliate ? `${APP_URL}/admin/affiliate-payouts` : `${APP_URL}/admin/payouts`
+
   const html = `<!DOCTYPE html>
   <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Payout Request</title>
+    <title>New ${roleTitle} Payout Request</title>
   </head>
   <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px">
     <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin-bottom:20px">
-      <h1 style="color:#dc2626;margin:0;font-size:24px">💰 New Payout Request</h1>
+      <h1 style="color:#dc2626;margin:0;font-size:24px">💰 New ${roleTitle} Payout Request</h1>
       <p style="margin:10px 0 0 0;color:#6b7280">Requires admin approval</p>
     </div>
     
@@ -1532,7 +1537,7 @@ export async function sendPayoutRequestAdminEmail(
       <h2 style="color:#374151;margin-top:0">Payout Request Details</h2>
       
       <div style="background:#f9fafb;padding:15px;border-radius:6px;margin:15px 0">
-        <div style="margin-bottom:10px"><strong>creator:</strong> ${payload.creatorName} (${payload.creatorEmail})</div>
+        <div style="margin-bottom:10px"><strong>User (${roleTitle}):</strong> ${payload.creatorName} (${payload.creatorEmail})</div>
         <div style="margin-bottom:10px"><strong>Amount:</strong> ₦${payload.amount.toLocaleString()}</div>
         <div style="margin-bottom:10px"><strong>Payment Method:</strong> ${payload.paymentMethod.replace('_', ' ').toUpperCase()}</div>
         <div style="margin-bottom:10px"><strong>Request ID:</strong> #${payload.payoutId}</div>
@@ -1542,14 +1547,14 @@ export async function sendPayoutRequestAdminEmail(
       <div style="background:#fef3c7;padding:15px;border-radius:6px;margin:20px 0;border-left:4px solid #f59e0b">
         <h3 style="color:#92400e;margin:0 0 10px 0">Action Required</h3>
         <p style="margin:0;color:#92400e">
-          Please review this payout request and approve or reject it from the admin panel.
+          Please review this ${roleTitle.toLowerCase()} payout request and approve, process, or reject it from the admin panel.
         </p>
       </div>
       
       <div style="text-align:center;margin:30px 0">
-        <a href="${APP_URL}/admin/payouts" 
+        <a href="${adminUrl}" 
            style="background:#dc2626;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block">
-          Review Payout Request
+          Review ${roleTitle} Payout Request
         </a>
       </div>
       

@@ -33,17 +33,26 @@ export async function POST(
     if (payout.status !== 'pending' && payout.status !== 'approved') {
       return NextResponse.json({ error: `Only pending or approved payouts can be processed. Current status: ${payout.status}` }, { status: 400 })
     }
-    if (!payout.affiliateId || !payout.amount || !payout.bankDetails?.bankCode) {
-      return NextResponse.json({ error: 'Affiliate payout is missing bank details or bank code' }, { status: 400 })
+    if (!payout.affiliateId || !payout.amount || !payout.bankDetails) {
+      return NextResponse.json({ error: 'Affiliate payout is missing bank details' }, { status: 400 })
     }
     if (!paystackTransferService.isConfigured()) {
       return NextResponse.json({ error: 'Paystack transfer service is not configured' }, { status: 500 })
     }
 
+    const { resolveBankCode } = await import('@/lib/payment/paystack-transfers')
+    const bankCode = payout.bankDetails.bankCode || resolveBankCode(payout.bankDetails.bankName)
+    if (!bankCode) {
+      return NextResponse.json({ error: `Could not resolve bank code for ${payout.bankDetails.bankName}` }, { status: 400 })
+    }
+
+    const fee = payout.fee ?? 100
+    const transferAmount = payout.netAmount ?? Math.max(0, Number(payout.amount) - fee)
+
     await payoutRef.update({ status: 'processing', processedAt: new Date(), processedBy: auth.user.uid, updatedAt: new Date() })
 
     try {
-      const { accountName, accountNumber, bankCode } = payout.bankDetails
+      const { accountName, accountNumber } = payout.bankDetails
       await paystackTransferService.resolveAccountNumber(accountNumber, bankCode)
       const recipient = await paystackTransferService.createTransferRecipient({
         type: 'nuban',
@@ -56,7 +65,7 @@ export async function POST(
       })
       const transfer = await paystackTransferService.initiateTransfer({
         source: 'balance',
-        amount: PaystackTransferService.nairaToKobo(Number(payout.amount)),
+        amount: PaystackTransferService.nairaToKobo(transferAmount),
         recipient: recipient.recipient_code,
         reason: `Affiliate commission payout ${params.payoutId}`,
         currency: 'NGN',
@@ -69,6 +78,8 @@ export async function POST(
         paystackTransferCode: transfer.transfer_code,
         paystackReference: transfer.reference,
         recipientCode: recipient.recipient_code,
+        fee,
+        netAmount: transferAmount,
         completedAt: new Date(),
         updatedAt: new Date(),
       })
@@ -79,15 +90,41 @@ export async function POST(
         updatedAt: new Date(),
       }, { merge: true })
 
+      if (payout.affiliateEmail) {
+        const { sendPayoutCompletedEmail } = await import('@/lib/email/service')
+        await sendPayoutCompletedEmail({
+          creatorEmail: payout.affiliateEmail,
+          creatorName: payout.affiliateName || 'Promoter',
+          amount: Number(payout.amount),
+          fee,
+          netAmount: transferAmount,
+          transactionReference: transfer.reference,
+          processedAt: new Date()
+        }).catch(err => console.error('Failed sending affiliate completed payout email:', err))
+      }
+
       return NextResponse.json({ success: true, status: 'completed', transferReference: transfer.reference })
     } catch (transferError: any) {
-      await payoutRef.update({ status: 'rejected', rejectionReason: transferError?.message || 'Transfer failed', rejectedAt: new Date(), updatedAt: new Date() })
+      const reason = transferError?.message || 'Paystack Transfer Failed'
+      await payoutRef.update({ status: 'rejected', rejectionReason: reason, rejectedAt: new Date(), updatedAt: new Date() })
       await db.collection('users').doc(payout.affiliateId).set({
         affiliateAvailableBalance: FieldValue.increment(Number(payout.amount)),
         affiliatePendingBalance: FieldValue.increment(-Number(payout.amount)),
         updatedAt: new Date(),
       }, { merge: true })
-      return NextResponse.json({ error: transferError?.message || 'Affiliate transfer failed' }, { status: 502 })
+
+      if (payout.affiliateEmail) {
+        const { sendPayoutRejectedEmail } = await import('@/lib/email/service')
+        await sendPayoutRejectedEmail({
+          creatorEmail: payout.affiliateEmail,
+          creatorName: payout.affiliateName || 'Promoter',
+          amount: Number(payout.amount),
+          rejectionReason: reason,
+          rejectedAt: new Date()
+        }).catch(err => console.error('Failed sending affiliate rejected payout email:', err))
+      }
+
+      return NextResponse.json({ error: reason }, { status: 502 })
     }
   } catch (error) {
     console.error('Affiliate payout processing error:', error)

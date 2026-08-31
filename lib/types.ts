@@ -187,6 +187,7 @@ export interface PayoutRequest {
   status: "pending" | "approved" | "processing" | "completed" | "rejected" | "cancelled"
   requestedAt: Date
   processedAt?: Date
+  rejectedAt?: Date
   processedBy?: string
   notes?: string
   rejectionReason?: string
