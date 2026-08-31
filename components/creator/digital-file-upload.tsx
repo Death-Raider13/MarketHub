@@ -67,165 +67,55 @@ export function DigitalFileUpload({
 
         const authUser = (await import('@/lib/firebase/config')).auth.currentUser
         const token = authUser ? await authUser.getIdToken() : ''
-        const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {}
 
-        const FIVE_MB = 5 * 1024 * 1024
-
-        // 1. For small files (<= 5 MB), perform single upload via /api/r2/upload
-        if (file.size <= FIVE_MB) {
-          const formData = new FormData()
-          formData.append('file', file)
-
-          return new Promise<DigitalFile>((resolve, reject) => {
-            const xhr = new XMLHttpRequest()
-            xhr.open('POST', '/api/r2/upload', true)
-
-            if (token) {
-              xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-            }
-
-            xhr.upload.onprogress = (event) => {
-              if (event.lengthComputable) {
-                const progress = Math.round((event.loaded / event.total) * 100)
-                setUploadProgress((prev) => ({ ...prev, [file.name]: progress }))
-              }
-            }
-
-            xhr.onload = () => {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                  const response = JSON.parse(xhr.responseText)
-                  resolve({
-                    id: fileId,
-                    fileName: file.name,
-                    fileUrl: response.fileUrl,
-                    fileSize: file.size,
-                    fileType: file.type || 'application/octet-stream',
-                    uploadedAt: new Date(),
-                  })
-                } catch (e) {
-                  reject(new Error('Invalid response from upload server'))
-                }
-              } else {
-                let errorMsg = `Upload failed with status ${xhr.status}`
-                try {
-                  const errData = JSON.parse(xhr.responseText)
-                  if (errData.error) errorMsg = errData.error
-                } catch (_) {}
-                reject(new Error(errorMsg))
-              }
-            }
-
-            xhr.onerror = () => reject(new Error('Upload network error. Please check your internet connection.'))
-            xhr.send(formData)
-          })
-        }
-
-        // 2. For large files (> 5 MB), perform S3 Multipart Upload with 5.2 MB chunks
-        const initResp = await fetch('/api/r2/upload-chunk', {
+        // 1. Get Presigned Upload URL from server
+        const r2UrlResp = await fetch('/api/r2/upload-url', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...authHeaders,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           },
-          body: JSON.stringify({
-            action: 'init',
-            fileName: file.name,
-            fileType: file.type || 'application/octet-stream',
-          }),
+          body: JSON.stringify({ fileName: file.name, fileType: file.type || 'application/octet-stream' })
         })
 
-        if (!initResp.ok) {
-          const errData = await initResp.json().catch(() => ({}))
-          throw new Error(errData.error || 'Failed to initialize upload')
+        if (!r2UrlResp.ok) {
+          const errData = await r2UrlResp.json().catch(() => ({}))
+          throw new Error(errData.error || 'Failed to initialize Cloudflare R2 upload URL')
         }
 
-        const { uploadId, key } = await initResp.json()
+        const { uploadUrl, fileUrl } = await r2UrlResp.json()
 
-        const CHUNK_SIZE = 5.2 * 1024 * 1024 // 5.2 MB to meet S3's minimum 5MB part size requirement
-        const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
-        const parts: { ETag: string; PartNumber: number }[] = []
+        // 2. Direct upload from browser straight to Cloudflare R2 (bypasses Vercel body limits completely!)
+        return new Promise<DigitalFile>((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+          xhr.open('PUT', uploadUrl, true)
+          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
 
-        try {
-          for (let partNumber = 1; partNumber <= totalChunks; partNumber++) {
-            const start = (partNumber - 1) * CHUNK_SIZE
-            const end = Math.min(start + CHUNK_SIZE, file.size)
-            const chunkBlob = file.slice(start, end)
-
-            const chunkFormData = new FormData()
-            chunkFormData.append('chunk', chunkBlob, file.name)
-            chunkFormData.append('key', key)
-            chunkFormData.append('uploadId', uploadId)
-            chunkFormData.append('partNumber', partNumber.toString())
-
-            const chunkResp = await fetch('/api/r2/upload-chunk', {
-              method: 'POST',
-              headers: {
-                ...authHeaders,
-              },
-              body: chunkFormData,
-            })
-
-            if (!chunkResp.ok) {
-              const errData = await chunkResp.json().catch(() => ({}))
-              throw new Error(errData.error || `Chunk ${partNumber}/${totalChunks} upload failed`)
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const progress = Math.round((event.loaded / event.total) * 100)
+              setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
             }
-
-            const chunkData = await chunkResp.json()
-            parts.push({
-              ETag: chunkData.ETag,
-              PartNumber: chunkData.partNumber,
-            })
-
-            const progressPercent = Math.min(Math.round((end / file.size) * 100), 99)
-            setUploadProgress((prev) => ({ ...prev, [file.name]: progressPercent }))
           }
 
-          const completeResp = await fetch('/api/r2/upload-chunk', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...authHeaders,
-            },
-            body: JSON.stringify({
-              action: 'complete',
-              uploadId,
-              key,
-              parts,
-            }),
-          })
-
-          if (!completeResp.ok) {
-            const errData = await completeResp.json().catch(() => ({}))
-            throw new Error(errData.error || 'Failed to complete upload assembly')
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve({
+                id: fileId,
+                fileName: file.name,
+                fileUrl: fileUrl,
+                fileSize: file.size,
+                fileType: file.type || 'application/octet-stream',
+                uploadedAt: new Date()
+              })
+            } else {
+              reject(new Error(`Cloudflare R2 direct upload failed with status ${xhr.status}`))
+            }
           }
 
-          const completeData = await completeResp.json()
-          setUploadProgress((prev) => ({ ...prev, [file.name]: 100 }))
-
-          return {
-            id: fileId,
-            fileName: file.name,
-            fileUrl: completeData.fileUrl,
-            fileSize: file.size,
-            fileType: file.type || 'application/octet-stream',
-            uploadedAt: new Date(),
-          } as DigitalFile
-        } catch (uploadError) {
-          fetch('/api/r2/upload-chunk', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...authHeaders,
-            },
-            body: JSON.stringify({
-              action: 'abort',
-              uploadId,
-              key,
-            }),
-          }).catch(() => {})
-          throw uploadError
-        }
+          xhr.onerror = () => reject(new Error('Direct upload network error. Please check CORS settings in Cloudflare Dashboard.'))
+          xhr.send(file)
+        })
       })
 
       const newFiles = await Promise.all(uploadPromises)
