@@ -9,14 +9,16 @@ export function getR2Client() {
   const secretAccessKey = (process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_SECRET_ACCESS_KEY || '').trim()
   const publicDomain = (process.env.NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL || 'https://pub-8df3facea5b446d2aed1eafbfca818b1.r2.dev').trim()
 
-  // Always enforce valid 32-char hex account ID
+  // Prioritize valid 32-char hex account ID from environment variables
   if (!/^[a-f0-9]{32}$/i.test(accountId)) {
-    const match = publicDomain.match(/([a-f0-9]{32})/)
+    const match = publicDomain.match(/pub-([a-f0-9]{32})\.r2\.dev/)
     if (match && match[1]) {
       accountId = match[1]
-    } else {
-      accountId = '8df3facea5b446d2aed1eafbfca818b1'
     }
+  }
+
+  if (!accountId) {
+    throw new Error('CLOUDFLARE_R2_ACCOUNT_ID or CLOUDFLARE_ACCOUNT_ID is required and must be a 32-character hex ID from Cloudflare Dashboard')
   }
 
   if (!accessKeyId || !secretAccessKey) {
