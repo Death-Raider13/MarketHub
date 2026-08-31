@@ -1642,7 +1642,73 @@ export async function sendBetaApplicationEmail(data: {
       html,
     })
   } catch (error) {
-    console.error('Failed to send beta application email:', error)
-    throw error
+    console.error('Failed to send beta application notification email:', error)
+    return { success: false, error: (error as Error).message }
   }
+}
+
+export async function sendWaitlistOnboardingEmail(payload: {
+  email: string
+  role: string
+  passwordResetLink: string
+}) {
+  const roleName = payload.role === 'creator' ? 'Educator / Creator' : payload.role === 'affiliate' || payload.role === 'promoter' ? 'Affiliate Promoter' : 'Student & Reader'
+  
+  const html = `<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Fero E-Library - Activate Your Account</title>
+  </head>
+  <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px;background-color:#f9fafb">
+    <div style="background:white;padding:30px;border-radius:12px;border:1px solid #e5e7eb;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+      
+      <div style="text-align:center;margin-bottom:25px">
+        <h1 style="color:#dc2626;margin:0;font-size:28px;font-weight:800">🎉 Welcome to Fero E-Library</h1>
+        <p style="margin:8px 0 0 0;color:#4b5563;font-size:16px">Your Waitlist Membership is Active!</p>
+      </div>
+
+      <div style="background:#f3f4f6;padding:20px;border-radius:8px;margin-bottom:20px border-left:4px solid #dc2626">
+        <p style="margin:0 0 10px 0;font-size:15px">Hello,</p>
+        <p style="margin:0;font-size:15px;color:#374151">
+          Great news! As a valued early subscriber on our waitlist, your <strong>Fero E-Library account</strong> has been pre-configured as an official <strong>${roleName}</strong>.
+        </p>
+      </div>
+
+      <div style="background:#fef3c7;padding:15px;border-radius:8px;margin:20px 0;border:1px solid #fde68a">
+        <h3 style="color:#92400e;margin:0 0 5px 0;font-size:16px">✨ Exclusive Waitlist Perk Unlocked</h3>
+        <p style="margin:0;color:#b45309;font-size:14px">
+          You have automatically qualified for a <strong>25% Waitlist Discount</strong> on platform fees and exclusive features!
+        </p>
+      </div>
+
+      <div style="margin:30px 0;text-align:center">
+        <p style="margin-bottom:15px;font-weight:600;font-size:15px">Click the button below to set up your secure password and sign in:</p>
+        <a href="${payload.passwordResetLink}" 
+           style="background:#dc2626;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;display:inline-block;box-shadow:0 4px 6px -1px rgba(220,38,38,0.3)">
+          Set Up Password & Activate Account ➔
+        </a>
+      </div>
+
+      <p style="font-size:13px;color:#6b7280;line-height:1.4">
+        If the button above does not work, copy and paste this link into your browser:<br>
+        <a href="${payload.passwordResetLink}" style="color:#dc2626;word-break:break-all">${payload.passwordResetLink}</a>
+      </p>
+
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:25px 0">
+
+      <p style="text-align:center;font-size:12px;color:#9ca3af;margin:0">
+        Fero E-Library — Nigeria's Premier Academic & Educational Resource Hub.<br>
+        Need help? Contact support at <a href="mailto:support@fero-elibrary.shop" style="color:#6b7280">support@fero-elibrary.shop</a>
+      </p>
+    </div>
+  </body>
+  </html>`
+
+  return sendEmail({
+    to: payload.email,
+    subject: `🚀 Activate Your Fero E-Library Account (${roleName})`,
+    html
+  })
 }
