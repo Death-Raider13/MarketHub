@@ -201,12 +201,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create payout request
+    // Create payout request with ₦100 processing fee
+    const fee = 100
+    const netAmount = amount - fee
+
     const payoutData = {
       creatorId,
       creatorName,
       creatorEmail,
       amount,
+      fee,
+      netAmount,
       paymentMethod,
       status: 'pending',
       requestedAt: new Date(),

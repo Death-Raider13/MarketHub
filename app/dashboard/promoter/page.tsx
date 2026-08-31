@@ -658,15 +658,22 @@ export default function PromoterDashboard() {
                   <Button className="w-full" onClick={() => setShowPayoutForm(true)} disabled={affiliate.availableBalance < 1000}>Request payout <ArrowRight className="ml-2 h-4 w-4" /></Button>
                 ) : (
                   <form className="space-y-3" onSubmit={submitPayout}>
-                    <div><Label htmlFor="payoutAmount">Amount</Label><Input id="payoutAmount" type="number" min="1000" max={affiliate.availableBalance} value={payoutAmount} onChange={event => setPayoutAmount(event.target.value)} placeholder="1000" required /></div>
+                    <div><Label htmlFor="payoutAmount">Amount (₦)</Label><Input id="payoutAmount" type="number" min="1000" max={affiliate.availableBalance} value={payoutAmount} onChange={event => setPayoutAmount(event.target.value)} placeholder="1000" required /></div>
                     <div><Label htmlFor="accountName">Account name</Label><Input id="accountName" value={accountName} onChange={event => setAccountName(event.target.value)} required /></div>
                     <div><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" inputMode="numeric" value={accountNumber} onChange={event => setAccountNumber(event.target.value)} required /></div>
                     <div><Label htmlFor="bankName">Bank name</Label><Input id="bankName" value={bankName} onChange={event => setBankName(event.target.value)} required /></div>
                     <div><Label htmlFor="bankCode">Bank code</Label><Input id="bankCode" inputMode="numeric" value={bankCode} onChange={event => setBankCode(event.target.value)} placeholder="e.g. 058" required /></div>
-                    <div className="flex flex-col sm:flex-row gap-2"><Button type="submit" className="w-full sm:flex-1" disabled={submittingPayout}>{submittingPayout ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit request'}</Button><Button type="button" variant="outline" className="w-full sm:flex-1" onClick={() => setShowPayoutForm(false)}>Cancel</Button></div>
+                    
+                    <div className="rounded-lg border bg-muted/40 p-3 text-xs space-y-1">
+                      <div className="flex justify-between"><span>Requested Amount:</span><strong>₦{Number(payoutAmount || 0).toLocaleString()}</strong></div>
+                      <div className="flex justify-between"><span>Processing Fee:</span><strong className="text-amber-600">₦100</strong></div>
+                      <div className="flex justify-between pt-1 border-t border-border/60"><span className="font-semibold">Net Payout to Bank:</span><strong className="text-emerald-600">₦{Math.max(0, Number(payoutAmount || 0) - 100).toLocaleString()}</strong></div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2"><Button type="submit" className="w-full sm:flex-1 font-bold bg-emerald-600 hover:bg-emerald-700" disabled={submittingPayout}>{submittingPayout ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit request'}</Button><Button type="button" variant="outline" className="w-full sm:flex-1" onClick={() => setShowPayoutForm(false)}>Cancel</Button></div>
                   </form>
                 )}
-                <p className="text-xs text-muted-foreground">Requests are reviewed before transfer. Bank details are stored with the payout request for processing.</p>
+                <p className="text-xs text-muted-foreground bg-primary/5 p-2 rounded border border-primary/10">ℹ️ <strong>24/7 Requesting:</strong> Submit requests anytime 24/7. Requests are reviewed and processed within 24–48 business hours (Mon–Fri).</p>
               </CardContent>
             </Card>
           </div>

@@ -415,11 +415,27 @@ export default function PayoutSettingsPage() {
                   </p>
                 </div>
 
-                <div className="rounded-lg border bg-muted/40 p-3 text-xs space-y-1">
-                  <p className="font-semibold text-foreground">Withdrawal Destination:</p>
-                  <p className="text-muted-foreground">Bank: <strong>{payoutDetails.bankName || 'Not Set'}</strong></p>
-                  <p className="text-muted-foreground">Account: <strong>{payoutDetails.accountNumber} ({payoutDetails.accountName})</strong></p>
+                <div className="rounded-lg border bg-muted/40 p-3 text-xs space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Requested Amount:</span>
+                    <strong className="font-semibold text-foreground">₦{parseFloat(withdrawAmount || '0').toLocaleString()}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Processing Fee:</span>
+                    <strong className="font-semibold text-amber-600">₦100</strong>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-border/60">
+                    <span className="font-semibold text-foreground">Net Payout to Bank:</span>
+                    <strong className="font-bold text-emerald-600">₦{Math.max(0, parseFloat(withdrawAmount || '0') - 100).toLocaleString()}</strong>
+                  </div>
+                  <div className="pt-2 border-t border-border/40 text-[11px] text-muted-foreground">
+                    Bank: <strong>{payoutDetails.bankName || 'Not Set'}</strong> · Account: <strong>{payoutDetails.accountNumber} ({payoutDetails.accountName})</strong>
+                  </div>
                 </div>
+
+                <p className="text-[11px] text-muted-foreground bg-primary/5 p-2 rounded border border-primary/10">
+                  ℹ️ <strong>24/7 Requesting:</strong> You can submit payout requests anytime 24/7. Requests are reviewed and processed within 24–48 business hours (Mon–Fri).
+                </p>
 
                 <DialogFooter className="pt-2">
                   <Button type="button" variant="outline" onClick={() => setShowWithdrawDialog(false)}>

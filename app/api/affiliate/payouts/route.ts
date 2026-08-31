@@ -83,11 +83,16 @@ export async function POST(request: NextRequest) {
       const affiliatePortion = amount - referralPortion
 
       const now = FieldValue.serverTimestamp()
+      const fee = 100
+      const netAmount = amount - fee
+
       payout = {
         affiliateId: auth.user.uid,
         affiliateEmail: auth.user.email || affiliate.email || null,
         affiliateName: affiliate.displayName || null,
         amount: Math.round(amount * 100) / 100,
+        fee,
+        netAmount: Math.round(netAmount * 100) / 100,
         payoutMethod,
         bankDetails,
         status: 'pending',
