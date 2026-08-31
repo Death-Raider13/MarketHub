@@ -67,53 +67,117 @@ export function DigitalFileUpload({
 
         const authUser = (await import('@/lib/firebase/config')).auth.currentUser
         const token = authUser ? await authUser.getIdToken() : ''
+        const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {}
 
-        const formData = new FormData()
-        formData.append('file', file)
-
-        return new Promise<DigitalFile>((resolve, reject) => {
-          const xhr = new XMLHttpRequest()
-          xhr.open('POST', '/api/r2/upload', true)
-
-          if (token) {
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-          }
-
-          xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-              const progress = (event.loaded / event.total) * 100
-              setUploadProgress(prev => ({ ...prev, [file.name]: progress }))
-            }
-          }
-
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              try {
-                const response = JSON.parse(xhr.responseText)
-                resolve({
-                  id: fileId,
-                  fileName: file.name,
-                  fileUrl: response.fileUrl,
-                  fileSize: file.size,
-                  fileType: file.type || 'application/octet-stream',
-                  uploadedAt: new Date()
-                })
-              } catch (e) {
-                reject(new Error('Invalid response from upload server'))
-              }
-            } else {
-              let errorMsg = `Upload failed with status ${xhr.status}`
-              try {
-                const errData = JSON.parse(xhr.responseText)
-                if (errData.error) errorMsg = errData.error
-              } catch (_) {}
-              reject(new Error(errorMsg))
-            }
-          }
-
-          xhr.onerror = () => reject(new Error('Upload network error. Please check your internet connection.'))
-          xhr.send(formData)
+        // 1. Initialize Multipart Upload
+        const initResp = await fetch('/api/r2/upload-chunk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders,
+          },
+          body: JSON.stringify({
+            action: 'init',
+            fileName: file.name,
+            fileType: file.type || 'application/octet-stream',
+          }),
         })
+
+        if (!initResp.ok) {
+          const errData = await initResp.json().catch(() => ({}))
+          throw new Error(errData.error || 'Failed to initialize upload')
+        }
+
+        const { uploadId, key } = await initResp.json()
+
+        // 2. Upload chunks (3.5 MB each to stay safely under Vercel 4.5 MB limit)
+        const CHUNK_SIZE = 3.5 * 1024 * 1024
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
+        const parts: { ETag: string; PartNumber: number }[] = []
+
+        try {
+          for (let partNumber = 1; partNumber <= totalChunks; partNumber++) {
+            const start = (partNumber - 1) * CHUNK_SIZE
+            const end = Math.min(start + CHUNK_SIZE, file.size)
+            const chunkBlob = file.slice(start, end)
+
+            const chunkFormData = new FormData()
+            chunkFormData.append('chunk', chunkBlob, file.name)
+            chunkFormData.append('key', key)
+            chunkFormData.append('uploadId', uploadId)
+            chunkFormData.append('partNumber', partNumber.toString())
+
+            const chunkResp = await fetch('/api/r2/upload-chunk', {
+              method: 'POST',
+              headers: {
+                ...authHeaders,
+              },
+              body: chunkFormData,
+            })
+
+            if (!chunkResp.ok) {
+              const errData = await chunkResp.json().catch(() => ({}))
+              throw new Error(errData.error || `Chunk ${partNumber}/${totalChunks} upload failed`)
+            }
+
+            const chunkData = await chunkResp.json()
+            parts.push({
+              ETag: chunkData.ETag,
+              PartNumber: chunkData.partNumber,
+            })
+
+            // Calculate progress percentage
+            const progressPercent = Math.min(Math.round((end / file.size) * 100), 99)
+            setUploadProgress((prev) => ({ ...prev, [file.name]: progressPercent }))
+          }
+
+          // 3. Complete Multipart Upload
+          const completeResp = await fetch('/api/r2/upload-chunk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...authHeaders,
+            },
+            body: JSON.stringify({
+              action: 'complete',
+              uploadId,
+              key,
+              parts,
+            }),
+          })
+
+          if (!completeResp.ok) {
+            const errData = await completeResp.json().catch(() => ({}))
+            throw new Error(errData.error || 'Failed to complete upload assembly')
+          }
+
+          const completeData = await completeResp.json()
+          setUploadProgress((prev) => ({ ...prev, [file.name]: 100 }))
+
+          return {
+            id: fileId,
+            fileName: file.name,
+            fileUrl: completeData.fileUrl,
+            fileSize: file.size,
+            fileType: file.type || 'application/octet-stream',
+            uploadedAt: new Date(),
+          } as DigitalFile
+        } catch (uploadError) {
+          // Attempt to abort multipart upload on failure to clean up incomplete chunks
+          fetch('/api/r2/upload-chunk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...authHeaders,
+            },
+            body: JSON.stringify({
+              action: 'abort',
+              uploadId,
+              key,
+            }),
+          }).catch(() => {})
+          throw uploadError
+        }
       })
 
       const newFiles = await Promise.all(uploadPromises)
