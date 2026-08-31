@@ -37,7 +37,7 @@ FEROMARKETHUB is a specialized high-margin, zero-logistics infrastructure for Ni
 | **Database** | Firebase Firestore |
 | **Auth** | Firebase Authentication (Email + Google OAuth) |
 | **Payments** | Paystack (primary), Coinbase Commerce (crypto) |
-| **Media Storage** | ImageKit |
+| **Media Storage** | Cloudflare R2 (Digital Files & Videos) & Cloudinary (Images) |
 | **Email** | Resend / Nodemailer |
 | **UI Components** | Radix UI + shadcn/ui |
 | **Styling** | Tailwind CSS |
