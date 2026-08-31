@@ -629,7 +629,7 @@ function AdminPayoutsContent() {
           <DialogHeader>
             <DialogTitle>Process Transfer via Paystack</DialogTitle>
             <DialogDescription>
-              This will initiate a bank transfer of ₦{selectedPayout?.amount.toLocaleString()} via Paystack
+              This will initiate a bank transfer of ₦{(selectedPayout ? (selectedPayout.netAmount || (selectedPayout.amount - 100)) : 0).toLocaleString()} via Paystack
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -637,8 +637,10 @@ function AdminPayoutsContent() {
               <div className="bg-muted p-4 rounded-lg space-y-2">
                 <h4 className="font-medium">Transfer Details</h4>
                 <div className="text-sm space-y-1">
-                  <p><span className="font-medium">creator:</span> {selectedPayout.creatorName}</p>
-                  <p><span className="font-medium">Amount:</span> ₦{selectedPayout.amount.toLocaleString()}</p>
+                  <p><span className="font-medium">Creator:</span> {selectedPayout.creatorName}</p>
+                  <p><span className="font-medium">Gross Requested Amount:</span> ₦{selectedPayout.amount.toLocaleString()}</p>
+                  <p><span className="font-medium">Processing Fee:</span> ₦{(selectedPayout.fee || 100).toLocaleString()}</p>
+                  <p><span className="font-semibold text-emerald-600">Net Payout to Bank:</span> <strong className="text-emerald-700">₦{(selectedPayout.netAmount || (selectedPayout.amount - 100)).toLocaleString()}</strong></p>
                   <p><span className="font-medium">Bank:</span> {selectedPayout.bankDetails?.bankName}</p>
                   <p><span className="font-medium">Account:</span> {selectedPayout.bankDetails?.accountNumber}</p>
                   <p><span className="font-medium">Account Name:</span> {selectedPayout.bankDetails?.accountName}</p>

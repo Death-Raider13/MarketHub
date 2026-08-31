@@ -163,10 +163,11 @@ export async function POST(
           throw new Error(`Failed to create transfer recipient: ${recipientError.message}`)
         }
 
-        // Initiate transfer
+        // Initiate transfer using netAmount (after ₦100 fee)
         console.log('Initiating transfer...')
-        const transferAmount = PaystackTransferService.nairaToKobo(payoutData.amount)
-        console.log('Transfer amount in kobo:', transferAmount)
+        const netPayoutNaira = payoutData.netAmount || (payoutData.amount - (payoutData.fee || 100))
+        const transferAmount = PaystackTransferService.nairaToKobo(netPayoutNaira)
+        console.log('Net payout in Naira:', netPayoutNaira, 'Transfer amount in kobo:', transferAmount)
 
         try {
           transferResult = await paystackTransferService.initiateTransfer({

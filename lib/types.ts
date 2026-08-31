@@ -169,6 +169,8 @@ export interface PayoutRequest {
   creatorName: string
   creatorEmail: string
   amount: number
+  fee?: number
+  netAmount?: number
   paymentMethod: "bank_transfer" | "mobile_money" | "paypal"
   bankDetails?: {
     accountName: string
