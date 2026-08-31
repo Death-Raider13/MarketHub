@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { NIGERIAN_BANKS_LIST, resolveBankCode } from "@/lib/payment/paystack-transfers"
 import {
   Dialog,
   DialogContent,
@@ -661,8 +663,25 @@ export default function PromoterDashboard() {
                     <div><Label htmlFor="payoutAmount">Amount (₦)</Label><Input id="payoutAmount" type="number" min="200" max={affiliate.availableBalance} value={payoutAmount} onChange={event => setPayoutAmount(event.target.value)} placeholder="200" required /></div>
                     <div><Label htmlFor="accountName">Account name</Label><Input id="accountName" value={accountName} onChange={event => setAccountName(event.target.value)} required /></div>
                     <div><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" inputMode="numeric" value={accountNumber} onChange={event => setAccountNumber(event.target.value)} required /></div>
-                    <div><Label htmlFor="bankName">Bank name</Label><Input id="bankName" value={bankName} onChange={event => setBankName(event.target.value)} required /></div>
-                    <div><Label htmlFor="bankCode">Bank code</Label><Input id="bankCode" inputMode="numeric" value={bankCode} onChange={event => setBankCode(event.target.value)} placeholder="e.g. 058" required /></div>
+                    <div>
+                      <Label>Bank name</Label>
+                      <Select 
+                        value={bankName} 
+                        onValueChange={(selectedBank) => {
+                          setBankName(selectedBank)
+                          setBankCode(resolveBankCode(selectedBank))
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Bank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {NIGERIAN_BANKS_LIST.map((b) => (
+                            <SelectItem key={b.code} value={b.name}>{b.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     
                     <div className="rounded-lg border bg-muted/40 p-3 text-xs space-y-1">
                       <div className="flex justify-between"><span>Requested Amount:</span><strong>₦{Number(payoutAmount || 0).toLocaleString()}</strong></div>
