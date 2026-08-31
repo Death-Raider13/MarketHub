@@ -58,11 +58,11 @@ export function initializeProductionErrorHandling() {
 
       console.warn = (...args: any[]) => {
         const message = args.join(' ')
-        
+
         // Check if this is a warning we want to suppress
-        const shouldSuppress = suppressedWarnings.some(warning => 
+        const shouldSuppress = suppressedWarnings.some(warning =>
           message.includes(warning)
-        ) || reactWarnings.some(warning => 
+        ) || reactWarnings.some(warning =>
           message.includes(warning)
         )
 
@@ -73,11 +73,11 @@ export function initializeProductionErrorHandling() {
 
       console.error = (...args: any[]) => {
         const message = args.join(' ')
-        
+
         // Check if this is an error we want to suppress
-        const shouldSuppress = suppressedWarnings.some(warning => 
+        const shouldSuppress = suppressedWarnings.some(warning =>
           message.includes(warning)
-        ) || reactWarnings.some(warning => 
+        ) || reactWarnings.some(warning =>
           message.includes(warning)
         )
 
@@ -90,7 +90,7 @@ export function initializeProductionErrorHandling() {
       const originalFirebaseWarn = console.warn
       console.warn = (...args: any[]) => {
         const message = args.join(' ')
-        
+
         if (
           message.includes('auth-context.tsx') ||
           message.includes('firebase-error-handler') ||
@@ -99,7 +99,7 @@ export function initializeProductionErrorHandling() {
         ) {
           return // Suppress Firebase development warnings
         }
-        
+
         originalFirebaseWarn.apply(console, args)
       }
     }
@@ -107,10 +107,10 @@ export function initializeProductionErrorHandling() {
     // Suppress unhandled promise rejections for known Firebase issues
     window.addEventListener('unhandledrejection', (event) => {
       const error = event.reason
-      
+
       if (error && typeof error === 'object') {
         const errorMessage = error.message || error.toString()
-        
+
         // Suppress known Firebase offline errors
         if (
           errorMessage.includes('Failed to get document because the client is offline') ||
@@ -126,8 +126,8 @@ export function initializeProductionErrorHandling() {
     // Suppress React DevTools detection
     if (typeof window.__REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined') {
       try {
-        window.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = () => {}
-        window.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = () => {}
+        window.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = () => { }
+        window.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = () => { }
       } catch (e) {
         // Ignore errors when trying to disable React DevTools
       }
@@ -173,7 +173,7 @@ export function handleAuthError(error: any): string {
     case 'auth/invalid-email':
       return 'Please enter a valid email address.'
     default:
-      return 'Authentication was rejected by Firebase. Check your email, password, and Firebase Authentication provider settings.'
+      return 'Network Error Please Try Again Later'
   }
 }
 
@@ -206,7 +206,7 @@ export class ProductionErrorBoundary extends Error {
   constructor(message: string, public originalError?: any) {
     super(message)
     this.name = 'ProductionErrorBoundary'
-    
+
     // Don't log to console in production
     if (isDevelopment() && originalError) {
       console.error('Original error:', originalError)

@@ -201,6 +201,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Auto-resolve bank code if missing
+    let finalBankDetails = bankDetails
+    if (bankDetails) {
+      const { resolveBankCode } = await import('@/lib/payment/paystack-transfers')
+      const bCode = bankDetails.bankCode || resolveBankCode(bankDetails.bankName)
+      finalBankDetails = {
+        ...bankDetails,
+        bankCode: bCode
+      }
+    }
+
     // Create payout request with ₦100 processing fee
     const fee = 100
     const netAmount = amount - fee
@@ -215,7 +226,7 @@ export async function POST(request: NextRequest) {
       paymentMethod,
       status: 'pending',
       requestedAt: new Date(),
-      ...(bankDetails && { bankDetails }),
+      ...(finalBankDetails && { bankDetails: finalBankDetails }),
       ...(mobileMoneyDetails && { mobileMoneyDetails }),
       ...(paypalEmail && { paypalEmail })
     }

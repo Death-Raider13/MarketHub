@@ -34,12 +34,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog"
 
-const NIGERIAN_BANKS = [
-  "Access Bank", "GTBank", "First Bank", "UBA", "Zenith Bank",
-  "Ecobank", "Fidelity Bank", "Union Bank", "Stanbic IBTC",
-  "Sterling Bank", "Wema Bank", "Polaris Bank", "Kuda Bank",
-  "Opay", "PalmPay"
-]
+import { NIGERIAN_BANKS_LIST, resolveBankCode } from "@/lib/payment/paystack-transfers"
 
 export default function PayoutSettingsPage() {
   const { user, userProfile } = useAuth()
@@ -55,6 +50,7 @@ export default function PayoutSettingsPage() {
     bankName: "",
     accountNumber: "",
     accountName: "",
+    bankCode: "",
     cryptoWallet: "",
   })
 
@@ -65,10 +61,13 @@ export default function PayoutSettingsPage() {
       if (doc.exists()) {
         const data = doc.data()
         setCreatorData(data)
+        const bName = data.payoutDetails?.bankName || ""
+        const bCode = data.payoutDetails?.bankCode || resolveBankCode(bName)
         setPayoutDetails({
-          bankName: data.payoutDetails?.bankName || "",
+          bankName: bName,
           accountNumber: data.payoutDetails?.accountNumber || "",
           accountName: data.payoutDetails?.accountName || "",
+          bankCode: bCode,
           cryptoWallet: data.payoutDetails?.cryptoWallet || "",
         })
       }
@@ -318,14 +317,17 @@ export default function PayoutSettingsPage() {
                     <Label>Bank Name</Label>
                     <Select 
                       value={payoutDetails.bankName} 
-                      onValueChange={(v) => setPayoutDetails({...payoutDetails, bankName: v})}
+                      onValueChange={(v) => {
+                        const code = resolveBankCode(v)
+                        setPayoutDetails({...payoutDetails, bankName: v, bankCode: code})
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Bank" />
                       </SelectTrigger>
                       <SelectContent>
-                        {NIGERIAN_BANKS.map(bank => (
-                          <SelectItem key={bank} value={bank}>{bank}</SelectItem>
+                        {NIGERIAN_BANKS_LIST.map(bank => (
+                          <SelectItem key={bank.code} value={bank.name}>{bank.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

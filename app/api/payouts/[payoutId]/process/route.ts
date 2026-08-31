@@ -115,11 +115,15 @@ export async function POST(
           throw new Error('Bank details are required for bank transfer')
         }
 
-        const { accountName, accountNumber, bankName, bankCode } = payoutData.bankDetails
-        console.log('Bank details:', { accountName, accountNumber, bankName, bankCode })
+        const { resolveBankCode } = await import('@/lib/payment/paystack-transfers')
+        const accountName = payoutData.bankDetails.accountName
+        const accountNumber = payoutData.bankDetails.accountNumber
+        const bankName = payoutData.bankDetails.bankName
+        const bankCode = payoutData.bankDetails.bankCode || resolveBankCode(bankName)
+        console.log('Bank details resolved:', { accountName, accountNumber, bankName, bankCode })
 
         if (!bankCode) {
-          throw new Error('Bank code is required for transfer')
+          throw new Error(`Could not find Paystack bank code for "${bankName || 'unspecified bank'}". Please specify valid bank code.`)
         }
 
         // Verify account number first

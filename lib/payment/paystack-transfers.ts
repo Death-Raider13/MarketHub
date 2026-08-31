@@ -315,26 +315,41 @@ export class PaystackTransferService {
 // Export singleton instance
 export const paystackTransferService = new PaystackTransferService()
 
-// Bank codes for popular Nigerian banks
-export const NIGERIAN_BANKS = {
-  ACCESS_BANK: '044',
-  CITIBANK: '023',
-  DIAMOND_BANK: '063',
-  ECOBANK: '050',
-  FIDELITY_BANK: '070',
-  FIRST_BANK: '011',
-  FIRST_CITY_MONUMENT_BANK: '214',
-  GUARANTY_TRUST_BANK: '058',
-  HERITAGE_BANK: '030',
-  KEYSTONE_BANK: '082',
-  POLARIS_BANK: '076',
-  PROVIDUS_BANK: '101',
-  STANBIC_IBTC: '221',
-  STANDARD_CHARTERED: '068',
-  STERLING_BANK: '232',
-  UNION_BANK: '032',
-  UNITED_BANK_FOR_AFRICA: '033',
-  UNITY_BANK: '215',
-  WEMA_BANK: '035',
-  ZENITH_BANK: '057'
-} as const
+// Bank list with official Paystack bank codes
+export const NIGERIAN_BANKS_LIST = [
+  { name: 'Access Bank', code: '044' },
+  { name: 'GTBank', code: '058' },
+  { name: 'First Bank', code: '011' },
+  { name: 'UBA', code: '033' },
+  { name: 'Zenith Bank', code: '057' },
+  { name: 'Ecobank', code: '050' },
+  { name: 'Fidelity Bank', code: '070' },
+  { name: 'Union Bank', code: '032' },
+  { name: 'Stanbic IBTC', code: '221' },
+  { name: 'Sterling Bank', code: '232' },
+  { name: 'Wema Bank', code: '035' },
+  { name: 'Polaris Bank', code: '076' },
+  { name: 'Kuda Bank', code: '50211' },
+  { name: 'Opay', code: '999992' },
+  { name: 'PalmPay', code: '999991' },
+  { name: 'Moniepoint MFB', code: '50515' },
+  { name: 'FCMB', code: '214' },
+  { name: 'Providus Bank', code: '101' },
+  { name: 'Jaiz Bank', code: '301' },
+  { name: 'Keystone Bank', code: '082' },
+]
+
+export function resolveBankCode(bankNameOrCode?: string): string {
+  if (!bankNameOrCode) return ''
+  const trimmed = bankNameOrCode.trim()
+  if (/^\d{3,6}$/.test(trimmed)) return trimmed // Already a 3-6 digit code
+
+  const lower = trimmed.toLowerCase()
+  const found = NIGERIAN_BANKS_LIST.find(b => 
+    b.name.toLowerCase() === lower || 
+    b.name.toLowerCase().includes(lower) || 
+    lower.includes(b.name.toLowerCase())
+  )
+
+  return found ? found.code : ''
+}
