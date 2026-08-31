@@ -25,6 +25,15 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog"
+
 const NIGERIAN_BANKS = [
   "Access Bank", "GTBank", "First Bank", "UBA", "Zenith Bank",
   "Ecobank", "Fidelity Bank", "Union Bank", "Stanbic IBTC",
@@ -33,10 +42,13 @@ const NIGERIAN_BANKS = [
 ]
 
 export default function PayoutSettingsPage() {
-  const { user } = useAuth()
+  const { user, userProfile } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [configuring, setConfiguring] = useState(false)
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
+  const [withdrawAmount, setWithdrawAmount] = useState("")
+  const [requestingPayout, setRequestingPayout] = useState(false)
   const [creatorData, setCreatorData] = useState<any>(null)
   const [balances, setBalances] = useState<any>(null)
   const [payoutDetails, setPayoutDetails] = useState({
@@ -89,6 +101,60 @@ export default function PayoutSettingsPage() {
       toast.error("Failed to update payout details")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSubmitWithdrawal = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+    const amt = parseFloat(withdrawAmount)
+    if (isNaN(amt) || amt < 1000) {
+      toast.error("Minimum payout amount is ₦1,000")
+      return
+    }
+    if (amt > (balances?.availableBalance || 0)) {
+      toast.error("Requested amount exceeds available balance")
+      return
+    }
+    if (!payoutDetails.bankName || !payoutDetails.accountNumber || !payoutDetails.accountName) {
+      toast.error("Please fill in your complete bank details first")
+      return
+    }
+
+    setRequestingPayout(true)
+    try {
+      const idToken = await user.getIdToken()
+      const response = await authenticatedFetch("/api/payouts", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          creatorName: userProfile?.displayName || payoutDetails.accountName || "Creator",
+          creatorEmail: userProfile?.email || user.email || "",
+          amount: amt,
+          paymentMethod: "bank_transfer",
+          bankDetails: {
+            bankName: payoutDetails.bankName,
+            accountNumber: payoutDetails.accountNumber,
+            accountName: payoutDetails.accountName,
+          }
+        })
+      })
+
+      const result = await response.json()
+      if (response.ok && result.success) {
+        toast.success("🎉 Payout request submitted for review!")
+        setShowWithdrawDialog(false)
+        setWithdrawAmount("")
+      } else {
+        throw new Error(result.error || "Failed to submit payout request")
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to submit payout request")
+    } finally {
+      setRequestingPayout(false)
     }
   }
 
@@ -166,25 +232,42 @@ export default function PayoutSettingsPage() {
               <p className="text-muted-foreground">Manage how you receive your earnings.</p>
             </div>
 
-            {/* Balances Overview */}
+            {/* Balances Overview & Withdrawal Request */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="bg-primary/5 border-primary/20">
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Available Balance (Fiat)</CardTitle>
+                  <Wallet className="h-5 w-5 text-primary" />
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="text-3xl font-bold">₦{(balances?.availableBalance || 0).toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Split automated via Paystack Subaccount</p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+                    <p className="text-xs text-muted-foreground">Min payout: ₦1,000</p>
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        if (!payoutDetails.bankName || !payoutDetails.accountNumber) {
+                          toast.error("Please save your bank details below before requesting payout")
+                          return
+                        }
+                        setShowWithdrawDialog(true)
+                      }}
+                      disabled={(balances?.availableBalance || 0) < 1000}
+                      className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
+                    >
+                      Request Payout ➔
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-orange-500/5 border-orange-500/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Pending Crypto Balance</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Pending Payouts</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">₦{(balances?.pendingCryptoBalance || 0).toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1 text-orange-600">Manual settlement required</p>
+                  <div className="text-3xl font-bold">₦{(balances?.pendingBalance || 0).toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1 text-orange-600">Currently awaiting admin processing</p>
                 </CardContent>
               </Card>
             </div>
@@ -301,6 +384,55 @@ export default function PayoutSettingsPage() {
               </Button>
             </div>
           </div>
+
+          {/* Withdrawal Request Dialog Modal */}
+          <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Landmark className="h-5 w-5 text-primary" /> Request Payout Withdrawal
+                </DialogTitle>
+                <DialogDescription>
+                  Enter the amount you wish to withdraw to your saved bank account.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleSubmitWithdrawal} className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <Label htmlFor="withdrawAmt">Amount (₦)</Label>
+                  <Input
+                    id="withdrawAmt"
+                    type="number"
+                    min="1000"
+                    max={balances?.availableBalance || 0}
+                    placeholder="e.g. 5000"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Available balance: <strong>₦{(balances?.availableBalance || 0).toLocaleString()}</strong>
+                  </p>
+                </div>
+
+                <div className="rounded-lg border bg-muted/40 p-3 text-xs space-y-1">
+                  <p className="font-semibold text-foreground">Withdrawal Destination:</p>
+                  <p className="text-muted-foreground">Bank: <strong>{payoutDetails.bankName || 'Not Set'}</strong></p>
+                  <p className="text-muted-foreground">Account: <strong>{payoutDetails.accountNumber} ({payoutDetails.accountName})</strong></p>
+                </div>
+
+                <DialogFooter className="pt-2">
+                  <Button type="button" variant="outline" onClick={() => setShowWithdrawDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={requestingPayout} className="bg-emerald-600 hover:bg-emerald-700 font-bold">
+                    {requestingPayout && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Confirm Withdrawal
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>
