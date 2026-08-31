@@ -242,11 +242,20 @@ export async function POST(request: NextRequest) {
       console.error('Failed to send creator confirmation email:', emailError)
     }
 
-    // Send notification email to admins
+    // Send notification email to all admins
     try {
-      const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(email => email.trim()) || []
-      const supportEmail = process.env.SUPPORT_EMAIL || 'support@feromarkethub.com'
-      const allAdminEmails = [...adminEmails, supportEmail].filter(Boolean)
+      const adminUsersSnap = await adminDb.collection('users')
+        .where('role', 'in', ['admin', 'super_admin'])
+        .get()
+      
+      const adminEmailsFromDb = adminUsersSnap.docs
+        .map((doc: any) => doc.data().email)
+        .filter((email: any): email is string => Boolean(email) && typeof email === 'string')
+
+      const envAdminEmails = process.env.ADMIN_EMAILS?.split(',').map(email => email.trim()) || []
+      const supportEmail = process.env.SUPPORT_EMAIL ? [process.env.SUPPORT_EMAIL] : []
+
+      const allAdminEmails = Array.from(new Set([...adminEmailsFromDb, ...envAdminEmails, ...supportEmail])).filter(Boolean)
 
       if (allAdminEmails.length > 0) {
         await sendPayoutRequestAdminEmail(allAdminEmails, {

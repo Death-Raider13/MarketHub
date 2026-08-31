@@ -109,6 +109,40 @@ export async function POST(request: NextRequest) {
       transaction.set(userRef, balanceUpdate, { merge: true })
     })
 
+    // Send email notifications to promoter and admins
+    try {
+      const { sendPayoutRequestSubmittedEmail, sendPayoutRequestAdminEmail } = await import('@/lib/email/service')
+
+      if (payout.affiliateEmail) {
+        await sendPayoutRequestSubmittedEmail(payout.affiliateEmail, {
+          creatorName: payout.affiliateName || 'Promoter',
+          amount,
+          paymentMethod: payoutMethod,
+          payoutId: payoutRef.id,
+          requestedAt: new Date()
+        }).catch(err => console.error('Failed sending promoter payout email:', err))
+      }
+
+      const adminUsersSnap = await db.collection('users').where('role', 'in', ['admin', 'super_admin']).get()
+      const adminEmailsFromDb = adminUsersSnap.docs.map((doc: any) => doc.data().email).filter((e: any): e is string => Boolean(e) && typeof e === 'string')
+      const envAdminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim()) || []
+      const supportEmail = process.env.SUPPORT_EMAIL ? [process.env.SUPPORT_EMAIL] : []
+      const allAdminEmails = Array.from(new Set([...adminEmailsFromDb, ...envAdminEmails, ...supportEmail])).filter(Boolean)
+
+      if (allAdminEmails.length > 0) {
+        await sendPayoutRequestAdminEmail(allAdminEmails, {
+          creatorName: payout.affiliateName || 'Promoter',
+          creatorEmail: payout.affiliateEmail || '',
+          amount,
+          paymentMethod: payoutMethod,
+          payoutId: payoutRef.id,
+          requestedAt: new Date()
+        }).catch(err => console.error('Failed sending admin payout email:', err))
+      }
+    } catch (emailErr) {
+      console.error('Failed to process payout email notifications:', emailErr)
+    }
+
     return NextResponse.json({ success: true, payout: { id: payoutRef.id, ...payout } }, { status: 201 })
   } catch (error: any) {
     const message = error?.message || 'Unable to create payout request'
