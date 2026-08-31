@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const memberMap = new Map<string, { email: string; role: string; createdAt: any }>()
-    snapshot.forEach(doc => {
+    snapshot.forEach((doc: any) => {
       const data = doc.data() || {}
       const email = data.email?.toLowerCase().trim()
       if (!email) return

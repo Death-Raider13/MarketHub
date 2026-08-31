@@ -10,80 +10,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ProtectedRoute } from "@/lib/firebase/protected-route"
 import { authenticatedFetch } from "@/lib/firebase/authenticated-fetch"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle2, Clock, Crown, FileCheck, Loader2, Shield, ShieldCheck, Sparkles, Upload, UploadCloud } from "lucide-react"
+import { CheckCircle2, Crown, Loader2, ShieldCheck, Sparkles, UploadCloud, BookOpen } from "lucide-react"
 import { toast } from "sonner"
+import Link from "next/link"
 
-type Status = "none" | "pending" | "paid" | "verified" | "rejected"
+export default function VerificationPage() {
+  return (
+    <ProtectedRoute allowedRoles={["creator"]}>
+      <VerificationContent />
+    </ProtectedRoute>
+  )
+}
 
 function VerificationContent() {
-  const { user } = useAuth()
+  const { user, userProfile } = useAuth()
   const searchParams = useSearchParams()
-  const [status, setStatus] = useState<Status>("none")
   const [featured, setFeatured] = useState(false)
   const [resourceCount, setResourceCount] = useState(0)
   const [waitlistEligible, setWaitlistEligible] = useState(false)
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState<"badge" | "uploads" | null>(null)
-  const [verificationDocs, setVerificationDocs] = useState<any[]>([])
-  const [docType, setDocType] = useState("")
-  const [institutionName, setInstitutionName] = useState("")
-  const [graduationYear, setGraduationYear] = useState("")
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [additionalNotes, setAdditionalNotes] = useState("")
-  const [uploading, setUploading] = useState(false)
-
-  const getStatusBadge = (docStatus: string) => {
-    switch (docStatus) {
-      case "approved":
-        return <Badge className="bg-green-100 text-green-800">Approved</Badge>
-      case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>
-      default:
-        return <Badge variant="secondary">Under Review</Badge>
-    }
-  }
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0])
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
-    setUploading(true)
-    try {
-      toast.success("Document submitted for verification review!")
-      setStatus("pending")
-    } catch {
-      toast.error("Failed to submit verification document")
-    } finally {
-      setUploading(false)
-    }
-  }
 
   const loadStatus = async () => {
     if (!user) return
     try {
+      setLoading(true)
       const [verificationResponse, productsResponse] = await Promise.all([
         authenticatedFetch(`/api/creator/verification?userId=${encodeURIComponent(user.uid)}`),
         authenticatedFetch(`/api/creator/products?creatorId=${encodeURIComponent(user.uid)}`),
       ])
-      const verification = await verificationResponse.json()
-      const products = await productsResponse.json()
-      setStatus(verification.verificationPaymentStatus || verification.status || "none")
+      const verification = await verificationResponse.json().catch(() => ({}))
+      const products = await productsResponse.json().catch(() => ({}))
+
       setFeatured(Boolean(verification.featured))
-      setWaitlistEligible(Boolean(verification.waitlistEligible))
+      setWaitlistEligible(Boolean(verification.waitlistEligible || userProfile?.waitlistMember))
       setResourceCount(Array.isArray(products.products) ? products.products.length : 0)
-      setVerificationDocs(Array.isArray(verification.documents) ? verification.documents : [])
     } catch (error) {
       console.error("Error loading creator verification status:", error)
-      toast.error("Could not load creator account status")
+      toast.error("Could not load creator status")
     } finally {
       setLoading(false)
     }
@@ -101,12 +65,14 @@ function VerificationContent() {
     authenticatedFetch("/api/fees/verify", {
       method: "POST",
       body: JSON.stringify({ paymentId, reference }),
-    }).then(async (response) => {
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Payment verification failed")
-      toast.success("Payment confirmed. Your creator benefits are now active.")
-      await loadStatus()
-    }).catch((error) => toast.error(error.message || "Payment verification failed"))
+    })
+      .then(async (response) => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || "Payment verification failed")
+        toast.success("🎉 Payment confirmed! Your creator benefits are active.")
+        await loadStatus()
+      })
+      .catch((error) => toast.error(error.message || "Payment verification failed"))
       .finally(() => setPaying(null))
   }, [searchParams, user])
 
@@ -117,17 +83,21 @@ function VerificationContent() {
       const feeType = kind === "badge"
         ? "creator_verification_featuring"
         : (waitlistEligible ? "creator_waitlist_additional_upload" : "creator_additional_upload")
+
       const createResponse = await authenticatedFetch("/api/fees/create", {
         method: "POST",
         body: JSON.stringify({ feeType }),
       })
       const created = await createResponse.json()
+      if (!createResponse.ok) throw new Error(created.error || "Unable to create fee session")
+
       const initResponse = await authenticatedFetch("/api/fees/initialize", {
         method: "POST",
         body: JSON.stringify({ paymentId: created.paymentId }),
       })
       const initialized = await initResponse.json()
-      if (!initResponse.ok || !initialized.authorizationUrl) throw new Error(initialized.error || "Unable to start payment")
+      if (!initResponse.ok || !initialized.authorizationUrl) throw new Error(initialized.error || "Unable to start Paystack checkout")
+
       window.location.assign(initialized.authorizationUrl)
     } catch (error: any) {
       toast.error(error?.message || "Unable to start payment")
@@ -135,180 +105,153 @@ function VerificationContent() {
     }
   }
 
-  if (loading) return <div className="min-h-screen"><Header /><main className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></main><Footer /></div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  const freeUploadsLeft = Math.max(0, 3 - resourceCount)
+  const isWaitlist = Boolean(userProfile?.waitlistMember || waitlistEligible)
+  const additionalUploadFee = isWaitlist ? 3000 : 4000
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      <main className="flex-1 py-8 px-4">
-        <div className="container mx-auto max-w-2xl space-y-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold">Creator Verification</h1>
-            <p className="text-muted-foreground mt-1">Get verified as an educator and unlock exclusive platform benefits</p>
+      <main className="flex-1 py-10 px-4">
+        <div className="container mx-auto max-w-4xl space-y-8">
+          
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-wider mb-2">
+              <ShieldCheck className="h-3.5 w-3.5" /> Educator Account Status
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Creator Account & Upload Access</h1>
+            <p className="text-muted-foreground mt-1">Manage your book upload quota, waitlist discounts, and verified educator badge.</p>
           </div>
 
-          {status === 'verified' ? (
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
-                <h2 className="text-2xl font-bold text-green-700">You&apos;re Verified! 🎉</h2>
-                <p className="text-muted-foreground mt-2">
-                  Your educator credentials have been verified. Your resources now display the &quot;Verified Educator&quot; badge, boosting student trust.
-                </p>
-              </CardContent>
-            </Card>
-          ) : status === 'pending' ? (
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <Clock className="h-16 w-16 mx-auto text-yellow-500 mb-4" />
-                <h2 className="text-2xl font-bold text-yellow-700">Under Review</h2>
-                <p className="text-muted-foreground mt-2">
-                  Your verification documents are being reviewed by our audit team. This typically takes 24-48 hours.
-                </p>
-                {verificationDocs.length > 0 && (
-                  <div className="mt-6 space-y-3 text-left">
-                    <h3 className="font-semibold text-sm">Submitted Documents:</h3>
-                    {verificationDocs.map((doc, i) => (
-                      <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted rounded-lg text-sm min-w-0">
-                        <span className="flex items-center gap-2 min-w-0 truncate">
-                          <FileCheck className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{doc.type}</span>
-                        </span>
-                        <div className="shrink-0">{getStatusBadge(doc.status)}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {status === 'rejected' && (
-                <Card className="border-red-200 bg-red-50">
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-red-800">
-                      ⚠️ Your previous submission was not approved. Please review the feedback below and resubmit with clearer documents.
-                    </p>
-                    {verificationDocs.filter(d => d.status === 'rejected').map((doc, i) => (
-                      <div key={i} className="mt-2 p-2 bg-white rounded text-sm break-words">
-                        <strong>{doc.type}:</strong> {doc.reviewNote || 'Document could not be verified. Please resubmit.'}
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Upload Verification Document</CardTitle>
-                  <CardDescription>
-                    Submit one of the following: Student ID, School Certificate, Transcript, NYSC Certificate, or Professional License.
+          {/* Upload Quota Card */}
+          <Card className="border-primary/20 bg-muted/30">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary" /> Your Upload Quota
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    Every creator gets <strong>3 FREE book uploads</strong>. Additional book uploads cost ₦{additionalUploadFee.toLocaleString()} each.
                   </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="docType">Document Type *</Label>
-                    <Select value={docType} onValueChange={setDocType}>
-                      <SelectTrigger id="docType">
-                        <SelectValue placeholder="Select document type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student-id">Student ID Card</SelectItem>
-                        <SelectItem value="school-certificate">School Certificate (WAEC/NECO)</SelectItem>
-                        <SelectItem value="university-degree">University Degree Certificate</SelectItem>
-                        <SelectItem value="transcript">Academic Transcript</SelectItem>
-                        <SelectItem value="nysc-certificate">NYSC Discharge/Exemption</SelectItem>
-                        <SelectItem value="professional-license">Professional License / Certification</SelectItem>
-                        <SelectItem value="admission-letter">Admission Letter</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                </div>
+                <Badge variant={freeUploadsLeft > 0 ? "default" : "secondary"} className="w-fit text-sm px-3 py-1 font-bold">
+                  {freeUploadsLeft > 0 ? `${freeUploadsLeft} Free Uploads Remaining` : "3 Free Uploads Used"}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-xl border bg-background p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <p className="font-bold">Total Books Published: <span className="text-primary font-extrabold">{resourceCount}</span></p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {freeUploadsLeft > 0 
+                      ? `You can publish ${freeUploadsLeft} more resource${freeUploadsLeft > 1 ? 's' : ''} for free!` 
+                      : `Purchase additional upload access to publish your next resource.`}
+                  </p>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="institutionName">Institution Name *</Label>
-                    <Input 
-                      id="institutionName" 
-                      placeholder="e.g., University of Lagos, FUTA, Covenant University" 
-                      value={institutionName}
-                      onChange={(e) => setInstitutionName(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="graduationYear">Graduation Year (or Expected)</Label>
-                    <Input 
-                      id="graduationYear" 
-                      placeholder="e.g., 2024" 
-                      value={graduationYear}
-                      onChange={(e) => setGraduationYear(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Upload Document *</Label>
-                    <div className="border-2 border-dashed rounded-lg p-4 sm:p-6 text-center">
-                      {selectedFile ? (
-                        <div className="space-y-2">
-                          <FileCheck className="h-8 w-8 mx-auto text-green-500" />
-                          <p className="text-sm font-medium">{selectedFile.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                          <Button type="button" variant="outline" size="sm" onClick={() => setSelectedFile(null)}>
-                            Change File
-                          </Button>
-                        </div>
-                      ) : (
-                        <label className="cursor-pointer space-y-2 block">
-                          <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">Click to upload (JPEG, PNG, PDF — max 10MB)</p>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/jpeg,image/png,image/webp,application/pdf"
-                            onChange={handleFileSelect}
-                          />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Additional Notes (Optional)</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Any additional context about your academic background..."
-                      value={additionalNotes}
-                      onChange={(e) => setAdditionalNotes(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-semibold text-blue-900 mb-2">🔒 Privacy Guarantee</h3>
-                <p className="text-sm text-blue-800">
-                  Your documents are encrypted and stored securely. They are only used for verification purposes and are never shared with third parties or other users.
-                </p>
+                <div className="flex gap-2">
+                  <Button asChild variant="outline" className="font-bold">
+                    <Link href="/creator/products/new">
+                      Upload Resource ➔
+                    </Link>
+                  </Button>
+                  {freeUploadsLeft === 0 && (
+                    <Button 
+                      onClick={() => startPayment("uploads")} 
+                      disabled={paying === "uploads"}
+                      className="font-bold bg-primary hover:bg-primary/90 text-white"
+                    >
+                      {paying === "uploads" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                      Pay Upload Fee (₦{additionalUploadFee.toLocaleString()})
+                    </Button>
+                  )}
+                </div>
               </div>
 
-              <Button type="submit" className="w-full" size="lg" disabled={uploading}>
-                {uploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Shield className="mr-2 h-5 w-5" />
-                    Submit for Verification
-                  </>
+              {isWaitlist && (
+                <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 shrink-0 text-amber-600" />
+                  <span><strong>25% Waitlist Discount Active:</strong> Your additional upload fee is reduced from ₦4,000 to ₦3,000!</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Verified Badge & Featuring Card */}
+          <Card className={`border-2 transition-all ${featured ? "border-amber-500/50 bg-amber-500/5" : "border-border"}`}>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <Crown className={`h-5 w-5 ${featured ? "text-amber-500 fill-amber-500" : "text-primary"}`} />
+                    Verified Educator Badge & Featuring (Optional)
+                  </CardTitle>
+                  <CardDescription>
+                    Upgrade your creator profile to receive an official Verified Badge and top featuring in search results.
+                  </CardDescription>
+                </div>
+                {featured && (
+                  <Badge className="bg-amber-500 text-black font-black uppercase text-xs">
+                    Verified Educator Active
+                  </Badge>
                 )}
-              </Button>
-            </form>
-          )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-5">
+              <div className="grid gap-3 sm:grid-cols-2 text-sm">
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/40 border">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Official <strong>Verified Educator Badge</strong> on all your book pages.</span>
+                </div>
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/40 border">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span><strong>Priority Featuring</strong> in marketplace search and creator hubs.</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">One-time Badge Fee</p>
+                  <p className="text-2xl font-black text-primary">₦10,000</p>
+                </div>
+
+                {!featured ? (
+                  <Button 
+                    size="lg"
+                    onClick={() => startPayment("badge")}
+                    disabled={paying === "badge"}
+                    className="w-full sm:w-auto font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl"
+                  >
+                    {paying === "badge" ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Connecting Paystack...</>
+                    ) : (
+                      <><Crown className="h-4 w-4 mr-2" /> Get Verified Educator Badge (₦10,000)</>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2 text-emerald-600 font-bold text-sm">
+                    <CheckCircle2 className="h-5 w-5" /> Your Store is Verified & Featured
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
         </div>
       </main>
 
@@ -316,5 +259,3 @@ function VerificationContent() {
     </div>
   )
 }
-
-export default function VerificationPage() { return <ProtectedRoute allowedRoles={["creator"]}><VerificationContent /></ProtectedRoute> }
