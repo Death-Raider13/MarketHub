@@ -163,22 +163,20 @@ function VerificationContent() {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button asChild variant="outline" className="font-bold">
                     <Link href="/creator/products/new">
                       Upload Resource ➔
                     </Link>
                   </Button>
-                  {freeUploadsLeft === 0 && (
-                    <Button 
-                      onClick={() => startPayment("uploads")} 
-                      disabled={paying === "uploads"}
-                      className="font-bold bg-primary hover:bg-primary/90 text-white"
-                    >
-                      {paying === "uploads" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
-                      Pay Upload Fee (₦{additionalUploadFee.toLocaleString()})
-                    </Button>
-                  )}
+                  <Button 
+                    onClick={() => startPayment("uploads")} 
+                    disabled={paying === "uploads"}
+                    className="font-bold bg-primary hover:bg-primary/90 text-white"
+                  >
+                    {paying === "uploads" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                    Pay Upload Access Fee (₦{additionalUploadFee.toLocaleString()})
+                  </Button>
                 </div>
               </div>
 
