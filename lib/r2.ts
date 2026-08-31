@@ -1,23 +1,25 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
-let accountId = process.env.CLOUDFLARE_R2_ACCOUNT_ID || process.env.CLOUDFLARE_ACCOUNT_ID || ''
-const accessKeyId = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || process.env.CLOUDFLARE_ACCESS_KEY_ID || ''
-const secretAccessKey = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_SECRET_ACCESS_KEY || ''
-const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME || 'fero-elibrary'
-const publicDomain = process.env.NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL || ''
+let accountId = (process.env.CLOUDFLARE_R2_ACCOUNT_ID || process.env.CLOUDFLARE_ACCOUNT_ID || '').trim()
+const accessKeyId = (process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || process.env.CLOUDFLARE_ACCESS_KEY_ID || '').trim()
+const secretAccessKey = (process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_SECRET_ACCESS_KEY || '').trim()
+const bucketName = (process.env.CLOUDFLARE_R2_BUCKET_NAME || 'fero-elibrary').trim()
+const publicDomain = (process.env.NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL || 'https://pub-8df3facea5b446d2aed1eafbfca818b1.r2.dev').trim()
 
-// If accountId is an API Token ID (starts with cfat_), extract real 32-char Account ID from publicDomain (e.g. pub-<ACCOUNT_ID>.r2.dev)
-if (accountId.startsWith('cfat_') && publicDomain) {
-  const match = publicDomain.match(/pub-([a-f0-9]{32})\.r2\.dev/)
+// Extract 32-char hex account ID or fallback to 8df3facea5b446d2aed1eafbfca818b1
+if (!/^[a-f0-9]{32}$/i.test(accountId)) {
+  const match = publicDomain.match(/([a-f0-9]{32})/)
   if (match && match[1]) {
     accountId = match[1]
+  } else {
+    accountId = '8df3facea5b446d2aed1eafbfca818b1'
   }
 }
 
 export function getR2Client() {
-  if (!accountId || !accessKeyId || !secretAccessKey) {
-    throw new Error('Cloudflare R2 is not fully configured in environment variables')
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error('Cloudflare R2 keys (CLOUDFLARE_R2_ACCESS_KEY_ID & CLOUDFLARE_R2_SECRET_ACCESS_KEY) are missing in environment variables')
   }
 
   return new S3Client({
