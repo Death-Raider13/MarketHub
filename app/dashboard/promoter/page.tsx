@@ -624,7 +624,7 @@ export default function PromoterDashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Total earnings</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{formatNGN(affiliate.totalEarnings)}</div><p className="text-xs text-muted-foreground mt-1">Approved commissions</p></CardContent></Card>
-            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Available to withdraw</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{formatNGN(affiliate.availableBalance)}</div><p className="text-xs text-muted-foreground mt-1">Minimum request: ₦1,000</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Available to withdraw</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{formatNGN(affiliate.availableBalance)}</div><p className="text-xs text-muted-foreground mt-1">Minimum request: ₦200</p></CardContent></Card>
             <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Tracked clicks</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{affiliate.clickCount}</div><p className="text-xs text-muted-foreground mt-1">Unique browser/product clicks</p></CardContent></Card>
             <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Conversions</CardTitle></CardHeader><CardContent><div className="text-2xl sm:text-3xl font-black truncate">{affiliate.conversionCount}</div><p className="text-xs text-muted-foreground mt-1">Commissioned purchases</p></CardContent></Card>
           </div>
@@ -655,10 +655,10 @@ export default function PromoterDashboard() {
                 <div className="flex justify-between text-sm"><span>Available</span><strong>{formatNGN(affiliate.availableBalance)}</strong></div>
                 <div className="flex justify-between text-sm"><span>Pending payout</span><strong>{formatNGN(affiliate.pendingBalance)}</strong></div>
                 {!showPayoutForm ? (
-                  <Button className="w-full" onClick={() => setShowPayoutForm(true)} disabled={affiliate.availableBalance < 1000}>Request payout <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                  <Button className="w-full" onClick={() => setShowPayoutForm(true)} disabled={affiliate.availableBalance < 200}>Request payout <ArrowRight className="ml-2 h-4 w-4" /></Button>
                 ) : (
                   <form className="space-y-3" onSubmit={submitPayout}>
-                    <div><Label htmlFor="payoutAmount">Amount (₦)</Label><Input id="payoutAmount" type="number" min="1000" max={affiliate.availableBalance} value={payoutAmount} onChange={event => setPayoutAmount(event.target.value)} placeholder="1000" required /></div>
+                    <div><Label htmlFor="payoutAmount">Amount (₦)</Label><Input id="payoutAmount" type="number" min="200" max={affiliate.availableBalance} value={payoutAmount} onChange={event => setPayoutAmount(event.target.value)} placeholder="200" required /></div>
                     <div><Label htmlFor="accountName">Account name</Label><Input id="accountName" value={accountName} onChange={event => setAccountName(event.target.value)} required /></div>
                     <div><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" inputMode="numeric" value={accountNumber} onChange={event => setAccountNumber(event.target.value)} required /></div>
                     <div><Label htmlFor="bankName">Bank name</Label><Input id="bankName" value={bankName} onChange={event => setBankName(event.target.value)} required /></div>

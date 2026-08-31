@@ -40,6 +40,7 @@ import {
   Mail,
   Shield,
   GraduationCap,
+  BookOpen,
 } from "lucide-react"
 import Link from "next/link"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -205,6 +206,12 @@ function CreatorDashboardContent() {
                 <p className="text-muted-foreground">Welcome back! Here&apos;s what&apos;s happening with your library</p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Button variant="outline" asChild className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border-amber-300 text-amber-900 dark:text-amber-200 font-bold">
+                  <Link href="/creator/guide">
+                    <BookOpen className="mr-2 h-4 w-4 text-amber-600" />
+                    Creator Masterclass
+                  </Link>
+                </Button>
                 <Button variant="outline" asChild className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200">
                   <Link href={`/hub/${userProfile?.uid}`} target="_blank">
                     <Eye className="mr-2 h-4 w-4" />

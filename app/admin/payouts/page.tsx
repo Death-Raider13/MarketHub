@@ -22,7 +22,7 @@ import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Wallet, TrendingUp } from 'lucide-react';
+import { DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Wallet, TrendingUp, Copy } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { PayoutRequest } from '@/lib/types';
 import { useAuth } from '@/lib/firebase/auth-context';
@@ -242,12 +242,26 @@ function AdminPayoutsContent() {
             <p><span className="font-medium">Payment Method:</span> {payout.paymentMethod.replace('_', ' ').toUpperCase()}</p>
 
             {payout.bankDetails && (
-              <div className="p-2 bg-muted rounded mt-2">
-                <p className="font-medium mb-1">Bank Details:</p>
-                <p>Name: {payout.bankDetails.accountName}</p>
-                <p>Account: {payout.bankDetails.accountNumber}</p>
-                <p>Bank: {payout.bankDetails.bankName}</p>
-                {payout.bankDetails.bankCode && <p>Code: {payout.bankDetails.bankCode}</p>}
+              <div className="p-3 bg-muted rounded-lg mt-2 border border-border/80 space-y-1.5 text-xs">
+                <p className="font-semibold text-foreground mb-1">Bank Details:</p>
+                <div className="flex items-center justify-between">
+                  <span>Name: <strong>{payout.bankDetails.accountName}</strong></span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { navigator.clipboard.writeText(payout.bankDetails?.accountName || ''); toast({ title: 'Copied account name' }); }}>
+                    <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between font-bold text-primary bg-background/80 p-1.5 rounded border border-primary/20">
+                  <span>Account: <strong className="font-mono text-sm">{payout.bankDetails.accountNumber}</strong></span>
+                  <Button variant="secondary" size="sm" className="h-6 text-[11px] font-bold gap-1 px-2" onClick={() => { navigator.clipboard.writeText(payout.bankDetails?.accountNumber || ''); toast({ title: 'Copied account number' }); }}>
+                    <Copy className="h-3 w-3" /> Copy Account #
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Bank: <strong>{payout.bankDetails.bankName}</strong> {payout.bankDetails.bankCode ? `(${payout.bankDetails.bankCode})` : ''}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { navigator.clipboard.writeText(payout.bankDetails?.bankName || ''); toast({ title: 'Copied bank name' }); }}>
+                    <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
             )}
 
