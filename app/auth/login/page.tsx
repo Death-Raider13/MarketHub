@@ -108,13 +108,20 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
           {earlyAccessNotice && (
-            <div className="mb-4 rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
-              <div className="font-bold text-sm flex items-center gap-1.5 mb-1 text-amber-600 dark:text-amber-400">
+            <div className="mb-4 rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-900 dark:text-amber-200 space-y-2">
+              <div className="font-bold text-sm flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                 ⏳ Educator Early Access Window Active!
               </div>
-              We are giving Creators & Educators <strong>3 days</strong> to upload textbooks, past questions, and resources before opening the doors for Affiliates and Readers.
-              <div className="mt-2 font-medium text-green-700 dark:text-green-400">
-                🎉 Your account & 25% Waitlist Discount are safely active. Full launch opens in 3 days!
+              <p>
+                We are giving Creators & Educators <strong>3 days</strong> to upload textbooks, past questions, and study materials before opening public access for Affiliates and Students.
+              </p>
+              <div className="pt-1 text-xs border-t border-amber-500/20 space-y-1">
+                <div className="text-green-700 dark:text-green-400 font-semibold">
+                  🎁 <strong>Waitlist Members:</strong> Your account & 25% Waitlist Discount are safely active and ready when public doors open!
+                </div>
+                <div className="text-muted-foreground">
+                  🌐 <strong>New Visitors:</strong> Public registrations & student access open in 3 days!
+                </div>
               </div>
             </div>
           )}

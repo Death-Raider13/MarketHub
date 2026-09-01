@@ -203,13 +203,20 @@ export default function SignupPage() {
             </div>
 
             {IS_CREATOR_EARLY_ACCESS_ACTIVE && (role === "customer" || role === "promoter") && (
-              <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-900 dark:text-amber-200 animate-in fade-in duration-300">
-                <div className="font-bold text-sm text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-900 dark:text-amber-200 animate-in fade-in duration-300 space-y-2">
+                <div className="font-bold text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                   ⏳ 3-Day Creator Early Access Active
                 </div>
-                We are giving Educators <strong>3 days</strong> to upload textbooks, past questions, and study materials before opening public signups for Students and Affiliates.
-                <div className="mt-2 text-primary font-bold">
-                  👉 If you are an Educator or Author, select "Creator" above to get started immediately!
+                <p>
+                  We are giving Educators <strong>3 days</strong> to upload textbooks, past questions, and study materials before opening public signups for Students and Affiliates.
+                </p>
+                <div className="pt-1 text-xs border-t border-amber-500/20 space-y-1">
+                  <div className="text-green-700 dark:text-green-400 font-semibold">
+                    🔑 <strong>Waitlist Members:</strong> Your account is pre-registered! Use <strong>Sign In</strong> with your waitlist email when public launch opens in 3 days to claim your 25% discount.
+                  </div>
+                  <div className="text-primary font-bold">
+                    👉 <strong>Educators & Authors:</strong> Select "Creator" above to get started & upload immediately!
+                  </div>
                 </div>
               </div>
             )}
