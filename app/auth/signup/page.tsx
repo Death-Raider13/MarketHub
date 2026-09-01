@@ -33,9 +33,18 @@ export default function SignupPage() {
     }
   }, [])
 
+  // 3-Day Creator Early Access Lock
+  const IS_CREATOR_EARLY_ACCESS_ACTIVE = true
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    // Block non-creators during Creator Early Access Period
+    if (IS_CREATOR_EARLY_ACCESS_ACTIVE && role !== "creator" && role !== "verifier") {
+      setError("⏳ Early Access Active: Signups are currently open exclusively for Educators/Creators during our 3-day resource upload window. Please select 'Creator' if you are an educator!")
+      return
+    }
 
     // Redirect to specialized onboarding flows
     if (role === "creator") {
@@ -192,6 +201,18 @@ export default function SignupPage() {
                 </Label>
               </RadioGroup>
             </div>
+
+            {IS_CREATOR_EARLY_ACCESS_ACTIVE && (role === "customer" || role === "promoter") && (
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-900 dark:text-amber-200 animate-in fade-in duration-300">
+                <div className="font-bold text-sm text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
+                  ⏳ 3-Day Creator Early Access Active
+                </div>
+                We are giving Educators <strong>3 days</strong> to upload textbooks, past questions, and study materials before opening public signups for Students and Affiliates.
+                <div className="mt-2 text-primary font-bold">
+                  👉 If you are an Educator or Author, select "Creator" above to get started immediately!
+                </div>
+              </div>
+            )}
 
             {/* Form Fields - Only show for Student and Promoter in this view */}
             {(role === "customer" || role === "promoter") && (

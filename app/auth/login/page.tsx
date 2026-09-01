@@ -18,12 +18,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const { signIn, signInWithGoogle, user, userProfile } = useAuth()
+  const [earlyAccessNotice, setEarlyAccessNotice] = useState(false)
+  const { signIn, signInWithGoogle, user, userProfile, logout, loading: authLoading } = useAuth()
   const router = useRouter()
+
+  // 3-Day Creator Early Access Lock
+  const IS_CREATOR_EARLY_ACCESS_ACTIVE = true
 
   // Redirect based on user role after successful login
   useEffect(() => {
-    if (user && userProfile && !loading) {
+    if (user && userProfile && !authLoading) {
       // Check if user needs onboarding (Google signup case)
       if (typeof window !== 'undefined' && sessionStorage.getItem('needsOnboarding')) {
         sessionStorage.removeItem('needsOnboarding')
@@ -34,6 +38,13 @@ export default function LoginPage() {
       // If user has no role, send to onboarding
       if (!userProfile.role) {
         router.push('/auth/onboarding')
+        return
+      }
+
+      // Block non-creators/non-admins during Creator Early Access Period
+      if (IS_CREATOR_EARLY_ACCESS_ACTIVE && userProfile.role !== 'creator' && userProfile.role !== 'admin' && (userProfile.role as string) !== 'super_admin') {
+        setEarlyAccessNotice(true)
+        logout()
         return
       }
 
@@ -54,7 +65,7 @@ export default function LoginPage() {
           break
       }
     }
-  }, [user, userProfile, loading, router])
+  }, [user, userProfile, authLoading, router, logout])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,6 +107,17 @@ export default function LoginPage() {
           <CardDescription className="text-xs sm:text-sm">Enter your credentials to manage your digital hub</CardDescription>
         </CardHeader>
         <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
+          {earlyAccessNotice && (
+            <div className="mb-4 rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
+              <div className="font-bold text-sm flex items-center gap-1.5 mb-1 text-amber-600 dark:text-amber-400">
+                ⏳ Educator Early Access Window Active!
+              </div>
+              We are giving Creators & Educators <strong>3 days</strong> to upload textbooks, past questions, and resources before opening the doors for Affiliates and Readers.
+              <div className="mt-2 font-medium text-green-700 dark:text-green-400">
+                🎉 Your account & 25% Waitlist Discount are safely active. Full launch opens in 3 days!
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && <div className="rounded-lg bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">{error}</div>}
 
