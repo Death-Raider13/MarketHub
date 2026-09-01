@@ -42,7 +42,8 @@ export default function LoginPage() {
       }
 
       // Block non-creators/non-admins during Creator Early Access Period
-      if (IS_CREATOR_EARLY_ACCESS_ACTIVE && userProfile.role !== 'creator' && userProfile.role !== 'admin' && (userProfile.role as string) !== 'super_admin') {
+      const isAdminStaff = ['admin', 'super_admin', 'moderator', 'support'].includes(userProfile.role)
+      if (IS_CREATOR_EARLY_ACCESS_ACTIVE && userProfile.role !== 'creator' && !isAdminStaff) {
         setEarlyAccessNotice(true)
         logout()
         return
