@@ -86,12 +86,6 @@ const navItems: NavItem[] = [
     permission: 'products.feature',
   },
   {
-    title: 'Advertising',
-    href: '/admin/advertising',
-    icon: Megaphone,
-    permission: 'ads.view',
-  },
-  {
     title: 'Support', // Added Support link
     href: '/admin/support',
     icon: LifeBuoy,

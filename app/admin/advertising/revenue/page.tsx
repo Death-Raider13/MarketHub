@@ -456,6 +456,8 @@ function AdvertisingRevenuePageContent() {
 }
 
 
+import { redirect } from "next/navigation"
+
 export default function AdvertisingRevenuePage() {
-  return <ProtectedRoute requiredPermission="finance.view"><AdvertisingRevenuePageContent /></ProtectedRoute>
+  redirect('/admin/dashboard')
 }

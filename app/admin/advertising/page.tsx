@@ -547,10 +547,8 @@ function AdminAdvertisingContent() {
   )
 }
 
+import { redirect } from "next/navigation"
+
 export default function AdminAdvertisingPage() {
-  return (
-    <ProtectedRoute requiredPermission="ads.view">
-      <AdminAdvertisingContent />
-    </ProtectedRoute>
-  )
+  redirect('/admin/dashboard')
 }

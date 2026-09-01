@@ -498,10 +498,6 @@ function HubCustomizeContent() {
                     <Globe className="h-4 w-4 sm:mr-2 shrink-0" />
                     <span className="truncate">Social</span>
                   </TabsTrigger>
-                  <TabsTrigger value="advertising" className="text-[11px] sm:text-xs py-2 px-1">
-                    <Megaphone className="h-4 w-4 sm:mr-2 shrink-0" />
-                    <span className="truncate">Ads</span>
-                  </TabsTrigger>
                   <TabsTrigger value="features" className="text-[11px] sm:text-xs py-2 px-1">
                     <Settings className="h-4 w-4 sm:mr-2 shrink-0" />
                     <span className="truncate">Features</span>

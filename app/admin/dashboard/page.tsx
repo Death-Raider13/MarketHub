@@ -429,20 +429,6 @@ function UnifiedAdminDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/advertising'}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Megaphone className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Pending Ads</p>
-                    <p className="text-2xl font-bold text-purple-600">8</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/reports-abuse'}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
