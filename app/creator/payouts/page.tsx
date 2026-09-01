@@ -352,31 +352,6 @@ export default function PayoutSettingsPage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Crypto Details Card */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-primary" />
-                    <CardTitle>Crypto Wallet</CardTitle>
-                  </div>
-                  <CardDescription>Optional for crypto settlements.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cryptoWallet">Wallet Address (USDT/BTC/ETH)</Label>
-                    <Input 
-                      id="cryptoWallet"
-                      value={payoutDetails.cryptoWallet}
-                      onChange={(e) => setPayoutDetails({...payoutDetails, cryptoWallet: e.target.value})}
-                      placeholder="0x... or 1..."
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-4">
-                    Note: Crypto payments are processed manually by the platform within 24-48 hours.
-                  </p>
-                </CardContent>
-              </Card>
             </div>
 
             <div className="flex justify-end pt-4">

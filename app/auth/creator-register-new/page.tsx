@@ -743,25 +743,6 @@ export default function CreatorRegisterNewPage() {
                         />
                       </div>
                     </div>
-
-                    <div className="pt-4 border-t">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Wallet className="h-5 w-5 text-primary" />
-                        <h3 className="font-semibold">Web3 & Crypto (Optional)</h3>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cryptoWallet">Coinbase Wallet Address (USDC / ETH / SOL)</Label>
-                        <Input
-                          id="cryptoWallet"
-                          placeholder="0x... or Wallet Username"
-                          value={formData.cryptoWallet}
-                          onChange={(e) => updateFormData("cryptoWallet", e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Used for direct crypto payouts for international sales.
-                        </p>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="flex items-start space-x-2 rounded-lg border p-4">

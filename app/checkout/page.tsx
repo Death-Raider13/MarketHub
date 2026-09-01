@@ -395,16 +395,6 @@ function CheckoutContent() {
                             </div>
                           </Label>
                         </div>
-                        <div className="flex items-center space-x-2 rounded-lg border p-4">
-                          <RadioGroupItem value="crypto" id="crypto" />
-                          <Label htmlFor="crypto" className="flex flex-1 cursor-pointer items-center gap-2">
-                            <Bitcoin className="h-5 w-5 text-orange-500" />
-                            <div>
-                              <div className="font-medium">Crypto</div>
-                              <div className="text-sm text-muted-foreground">Bitcoin, Ethereum via Coinbase</div>
-                            </div>
-                          </Label>
-                        </div>
                       </RadioGroup>
 
                       <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-4 text-sm text-blue-800 dark:text-blue-100">

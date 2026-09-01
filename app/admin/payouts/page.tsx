@@ -281,14 +281,6 @@ function AdminPayoutsContent() {
               </div>
             )}
 
-            {(payout as any).cryptoWallet && (
-              <div className="p-2 bg-muted rounded mt-2 border border-orange-200">
-                <p className="font-medium mb-1">🪙 Crypto Wallet (Manual Settlement):</p>
-                <p className="font-mono text-xs break-all">{(payout as any).cryptoWallet}</p>
-                <p className="text-xs text-muted-foreground mt-1">Process via Coinbase or send manually to the address above.</p>
-              </div>
-            )}
-
             {payout.transactionReference && (
               <p><span className="font-medium">Transaction Ref:</span> {payout.transactionReference}</p>
             )}
