@@ -29,6 +29,9 @@ export default function OnboardingPage() {
     }
   }, [])
 
+  // 3-Day Creator Early Access Lock
+  const IS_CREATOR_EARLY_ACCESS_ACTIVE = true
+
   // Redirect if not authenticated or already onboarded
   useEffect(() => {
     if (!user) {
@@ -41,6 +44,13 @@ export default function OnboardingPage() {
     }
 
     if (userProfile && userProfile.role) {
+      // Block non-creators/non-admins during Creator Early Access Period
+      const isAdminStaff = ['admin', 'super_admin', 'moderator', 'support'].includes(userProfile.role)
+      if (IS_CREATOR_EARLY_ACCESS_ACTIVE && userProfile.role !== 'creator' && !isAdminStaff) {
+        router.push('/auth/login')
+        return
+      }
+
       // Already has a role, redirect based on role
       switch (userProfile.role) {
         case "admin":
@@ -71,6 +81,12 @@ export default function OnboardingPage() {
     e.preventDefault()
     if (!displayName.trim()) {
       setError("Please enter your name")
+      return
+    }
+
+    // Block non-creators during Creator Early Access Period
+    if (IS_CREATOR_EARLY_ACCESS_ACTIVE && role !== "creator") {
+      setError("⏳ 3-Day Creator Early Access Active: Public signups for Students and Affiliates open in 3 days. Please select 'Creator / Educator' above if you are an educator!")
       return
     }
 
