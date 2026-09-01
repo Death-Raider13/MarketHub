@@ -90,21 +90,39 @@ export default function OnboardingPage() {
         }
       } catch {}
 
-      // Update user profile with role and displayName
-      const updateData = {
-        role,
-        activeRole: role,
-        displayName: displayName.trim(),
-        updatedAt: new Date(),
-        ...(role === "creator" && { verified: false, commission: 10 }),
-        ...(role === "promoter" && { 
-          affiliateStatus: 'approved',
-          referralCode: `FERO${user!.uid.slice(0, 6).toUpperCase()}`
-        }),
-        ...(referralCode ? { referredByCode: referralCode } : {}),
-      }
+      // Update user profile via Admin API for bulletproof permission handling
+      try {
+        const token = await user!.getIdToken()
+        const response = await fetch('/api/auth/complete-onboarding', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            role,
+            displayName: displayName.trim(),
+            referredByCode: referralCode
+          })
+        })
 
-      await setDoc(doc(db, "users", user!.uid), updateData, { merge: true })
+        const resData = await response.json()
+        if (!response.ok) {
+          throw new Error(resData.error || 'Failed to complete profile onboarding')
+        }
+      } catch (apiError) {
+        // Fallback to client setDoc if API endpoint is unreachable
+        const updateData = {
+          role,
+          activeRole: role,
+          displayName: displayName.trim(),
+          updatedAt: new Date(),
+          ...(role === "creator" && { verified: false }),
+          ...(role === "promoter" && { affiliateStatus: 'approved' }),
+          ...(referralCode ? { referredByCode: referralCode } : {}),
+        }
+        await setDoc(doc(db, "users", user!.uid), updateData, { merge: true })
+      }
       
       // Refresh the user profile in context
       await refreshUserProfile()
