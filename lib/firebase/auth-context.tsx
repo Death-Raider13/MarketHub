@@ -13,6 +13,8 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
 } from "firebase/auth"
 import { onUserRegistration } from '@/lib/notifications/client-triggers'
 import { doc, getDoc, setDoc } from "firebase/firestore"
@@ -118,9 +120,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Helper to process Google authenticated users (works for both popup and redirect)
+  const processGoogleUser = async (user: User) => {
+    const userDoc = await getDoc(doc(db, "users", user.uid))
+
+    if (!userDoc.exists()) {
+      let referralCode: string | undefined
+      try {
+        const raw = typeof window !== 'undefined' ? window.localStorage.getItem('markethub_affiliate_attribution') : null
+        const parsed = raw ? JSON.parse(raw) : null
+        if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
+          referralCode = String(parsed.code).trim().toUpperCase()
+        }
+      } catch {}
+
+      const minimalProfile: Partial<UserProfile> = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || user.email || '',
+        photoURL: user.photoURL || undefined,
+        emailVerified: user.emailVerified,
+        createdAt: new Date(),
+        lastLoginAt: new Date(),
+        updatedAt: new Date(),
+        ...(referralCode ? { referredByCode: referralCode } : {})
+      }
+
+      await setDoc(doc(db, "users", user.uid), minimalProfile)
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('needsOnboarding', 'true')
+      }
+    } else {
+      const profile = userDoc.data() as UserProfile
+      await setDoc(doc(db, "users", user.uid), {
+        ...profile,
+        lastLoginAt: new Date(),
+        updatedAt: new Date(),
+      }, { merge: true })
+
+      if (profile.role) {
+        try {
+          const ipAddress = 'client-ip'
+          const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+          const newSession = await createSession(
+            user.uid,
+            user.email!,
+            profile.role,
+            ipAddress,
+            userAgent,
+            false
+          )
+          setSession(newSession)
+        } catch (sessionError) {
+          console.error('Session creation failed:', sessionError)
+        }
+      } else {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('needsOnboarding', 'true')
+        }
+      }
+    }
+  }
+
   useEffect(() => {
     // Initialize session management
     initializeSessionManagement()
+
+    // Process mobile/redirect Google Sign-in result on page mount
+    getRedirectResult(auth).then(async (result) => {
+      if (result && result.user) {
+        await processGoogleUser(result.user)
+      }
+    }).catch((err) => {
+      console.error("Error processing Google redirect result:", err)
+    })
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user)
@@ -249,79 +323,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider()
-      const result = await signInWithPopup(auth, provider)
-      const user = result.user
+      provider.setCustomParameters({ prompt: 'select_account' })
 
-      // Check if user profile exists
-      const userDoc = await getDoc(doc(db, "users", user.uid))
+      // Detect iOS / Android mobile devices where Safari popup blocking freezes signInWithPopup
+      const isMobile = typeof navigator !== 'undefined' && (
+        /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent))
+      )
 
-      if (!userDoc.exists()) {
-        let referralCode: string | undefined
-        try {
-          const raw = typeof window !== 'undefined' ? window.localStorage.getItem('markethub_affiliate_attribution') : null
-          const parsed = raw ? JSON.parse(raw) : null
-          if (parsed?.code && (!parsed.expiresAt || Number(parsed.expiresAt) > Date.now())) {
-            referralCode = String(parsed.code).trim().toUpperCase()
-          }
-        } catch {}
+      if (isMobile) {
+        // Mobile / iOS Safari: Use signInWithRedirect for 100% smooth authentication without popup freezing
+        await signInWithRedirect(auth, provider)
+        return
+      }
 
-        // New user: create a minimal profile and redirect to onboarding
-        const minimalProfile: Partial<UserProfile> = {
-          uid: user.uid,
-          email: user.email || '',
-          displayName: user.displayName || user.email || '',
-          photoURL: user.photoURL || undefined,
-          emailVerified: user.emailVerified,
-          createdAt: new Date(),
-          lastLoginAt: new Date(),
-          updatedAt: new Date(),
-          ...(referralCode ? { referredByCode: referralCode } : {})
+      // Desktop: Attempt popup, fallback to redirect if popup is blocked or cancelled
+      try {
+        const result = await signInWithPopup(auth, provider)
+        if (result && result.user) {
+          await processGoogleUser(result.user)
         }
-
-        await setDoc(doc(db, "users", user.uid), minimalProfile)
-
-        // Set a flag in sessionStorage to show onboarding
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('needsOnboarding', 'true')
+      } catch (popupError: any) {
+        if (
+          popupError?.code === 'auth/popup-blocked' ||
+          popupError?.code === 'auth/popup-closed-by-user' ||
+          popupError?.code === 'auth/cancelled-popup-request'
+        ) {
+          await signInWithRedirect(auth, provider)
+          return
         }
-      } else {
-        // Existing user: update last login and proceed normally
-        const profile = userDoc.data() as UserProfile
-        await setDoc(doc(db, "users", user.uid), {
-          ...profile,
-          lastLoginAt: new Date(),
-          updatedAt: new Date(),
-        }, { merge: true })
-
-        // Only create session if user has a role
-        if (profile.role) {
-          // Create session (best-effort)
-          try {
-            // Note: External IP resolution removed for performance and reliability.
-            // IP tracking should be handled exclusively on the server side via middleware/headers.
-            const ipAddress = 'client-ip'
-
-            const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
-
-            const newSession = await createSession(
-              user.uid,
-              user.email!,
-              profile.role,
-              ipAddress,
-              userAgent,
-              false
-            )
-
-            setSession(newSession)
-          } catch (sessionError) {
-            console.error('Session creation failed:', sessionError)
-          }
-        } else {
-          // User exists but has no role, send to onboarding
-          if (typeof window !== 'undefined') {
-            sessionStorage.setItem('needsOnboarding', 'true')
-          }
-        }
+        throw popupError
       }
     } catch (error: unknown) {
       const userFriendlyMessage = handleAuthError(error)
