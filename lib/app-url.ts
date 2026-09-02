@@ -1,4 +1,4 @@
-const PRODUCTION_APP_URL = 'https://www.fero-elibrary.shop'
+const PRODUCTION_APP_URL = 'https://fero-elibrary.shop'
 
 /**
  * Returns the canonical URL used in server-generated links.
