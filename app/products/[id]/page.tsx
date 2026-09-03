@@ -186,7 +186,7 @@ export default function ProductDetailPage() {
             setcreatorInfo({
               name: creatorData.displayName || creatorData.businessName || creatorData.email?.split('@')[0] || 'creator',
               description: creatorData.storeDescription || creatorData.bio || 'Quality products with excellent customer service.',
-              verified: creatorData.verified === true || creatorData.featured === true || creatorData.verificationStatus === 'verified'
+              verified: creatorData.verified === true
             })
           }
 

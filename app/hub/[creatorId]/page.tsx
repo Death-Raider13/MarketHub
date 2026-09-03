@@ -288,7 +288,7 @@ export default function CreatorHubPage() {
               <div className={`${layout.headerStyle === 'centered' ? 'flex flex-col items-center sm:items-start' : ''}`}>
                 <div className="flex items-center gap-2">
                   <h1 className={`${layout.headerStyle === 'minimal' ? 'text-lg' : 'text-xl'} font-bold`}>{branding.hubName}</h1>
-                  {((creator as any).verified === true || (creator as any).featured === true || (creator as any).verificationStatus === 'verified') && (
+                  {(creator as any).verified === true && (
                     <Badge className="bg-amber-500 text-black border-none text-[10px] font-extrabold px-2 py-0.5 uppercase tracking-wider flex items-center gap-1 shadow-sm">
                       <Crown className="h-3 w-3 fill-black" /> Verified Educator
                     </Badge>

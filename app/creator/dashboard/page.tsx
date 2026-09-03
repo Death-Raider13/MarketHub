@@ -206,7 +206,7 @@ function CreatorDashboardContent() {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-3xl font-bold">Educator Dashboard</h1>
-                  {(userProfile?.verified || (userProfile as any)?.featured || (userProfile as any)?.verificationStatus === 'verified') && (
+                  {userProfile?.verified === true && (
                     <Badge className="bg-amber-500 hover:bg-amber-600 text-black font-extrabold flex items-center gap-1.5 px-3 py-1 text-xs uppercase shadow-sm">
                       <Crown className="h-3.5 w-3.5 fill-black" /> Verified Educator
                     </Badge>

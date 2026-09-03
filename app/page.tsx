@@ -67,11 +67,11 @@ export default async function HomePage() {
         }
       }).filter((creator: any) => creator.role === "creator" || !creator.role)
 
-      // 2. Fetch products (prioritize featured products)
+      // 2. Fetch products (ONLY products with featured == true)
       const productsQuery = await adminDb
         .collection("products")
         .where("status", "in", ["active", "approved"])
-        .limit(20)
+        .limit(30)
         .get()
 
       const rawProducts = productsQuery.docs.map((doc: any) => {
@@ -85,11 +85,11 @@ export default async function HomePage() {
         }
       }) as (Product & { featured?: boolean })[]
 
-      // Sort products with featured === true first
-      rawProducts.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+      // Filter to ONLY products explicitly marked as featured
+      const featuredOnly = rawProducts.filter((p) => p.featured === true)
       
       // Serialize to plain JSON objects for Client Components
-      featuredProducts = JSON.parse(JSON.stringify(rawProducts.slice(0, 8))) as Product[]
+      featuredProducts = JSON.parse(JSON.stringify(featuredOnly.slice(0, 8))) as Product[]
       featuredCreators = JSON.parse(JSON.stringify(featuredCreators)) as FeaturedCreator[]
     } catch (error) {
       console.error("Error fetching homepage data:", error)
