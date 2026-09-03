@@ -359,7 +359,7 @@ function ProductsManagementContent() {
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               ) : (
-                <Table>
+                <Table className="min-w-[800px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Product</TableHead>
@@ -450,7 +450,7 @@ function ProductsManagementContent() {
 
           {/* Product Details Dialog */}
           <Dialog open={showProductDetails} onOpenChange={setShowProductDetails}>
-            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-6 overflow-hidden">
+            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden">
               <DialogHeader className="pb-3 border-b shrink-0">
                 <DialogTitle className="text-xl font-bold">Product Details</DialogTitle>
                 <DialogDescription>
@@ -513,13 +513,13 @@ function ProductsManagementContent() {
                 </div>
               )}
 
-              <DialogFooter className="pt-3 border-t shrink-0 flex flex-wrap gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowProductDetails(false)}>
+              <DialogFooter className="pt-3 border-t shrink-0 flex flex-col-reverse sm:flex-row gap-2 justify-end sticky bottom-0 bg-background z-10 mt-auto">
+                <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 font-semibold" onClick={() => setShowProductDetails(false)}>
                   Close
                 </Button>
 
                 {selectedProduct && (
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 font-semibold" asChild>
                     <Link href={`/products/${selectedProduct.id}`} target="_blank">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Preview Page
@@ -535,9 +535,10 @@ function ProductsManagementContent() {
                         setShowProductDetails(false)
                       }}
                       variant="destructive"
+                      className="w-full sm:w-auto h-11 sm:h-10 font-bold"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Reject
+                      Reject Product
                     </Button>
 
                     <Button
@@ -545,10 +546,10 @@ function ProductsManagementContent() {
                         updateProductStatus(selectedProduct.id, 'approved')
                         setShowProductDetails(false)
                       }}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="w-full sm:w-auto h-11 sm:h-10 font-bold bg-green-600 hover:bg-green-700 text-white"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
+                      Approve Product
                     </Button>
                   </>
                 )}

@@ -25,6 +25,15 @@ import {
   Eye,
 } from "lucide-react"
 import Link from "next/link"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 interface creator {
   id: string
@@ -41,6 +50,7 @@ function AdmincreatorsContent() {
   const [creators, setcreators] = useState<creator[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCreator, setSelectedCreator] = useState<creator | null>(null)
 
   useEffect(() => {
     loadcreators()
@@ -243,7 +253,7 @@ function AdmincreatorsContent() {
             <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[700px]">
                     <thead className="border-b border-border bg-muted/50">
                       <tr>
                         <th className="p-4 text-left text-sm font-medium">Store Name</th>
@@ -271,7 +281,7 @@ function AdmincreatorsContent() {
                         </tr>
                       ) : (
                         filteredcreators.map((creator) => (
-                          <tr key={creator.id} className="border-b border-border">
+                          <tr key={creator.id} className="border-b border-border hover:bg-muted/30 cursor-pointer" onClick={() => setSelectedCreator(creator)}>
                             <td className="p-4">
                               <div>
                                 <p className="font-medium">{creator.storeName}</p>
@@ -292,13 +302,21 @@ function AdmincreatorsContent() {
                                 {creator.status}
                               </Badge>
                             </td>
-                            <td className="p-4">
+                            <td className="p-4" onClick={(e) => e.stopPropagation()}>
                               <div className="flex gap-2">
-                                {creator.status === "pending" ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setSelectedCreator(creator)}
+                                >
+                                  <Eye className="mr-1 h-4 w-4" />
+                                  Review
+                                </Button>
+                                {creator.status === "pending" && (
                                   <>
                                     <Button
                                       size="sm"
-                                      variant="outline"
+                                      className="bg-green-600 hover:bg-green-700 text-white"
                                       onClick={() => updatecreatorstatus(creator.id, "active")}
                                     >
                                       <CheckCircle className="mr-1 h-4 w-4" />
@@ -306,18 +324,13 @@ function AdmincreatorsContent() {
                                     </Button>
                                     <Button
                                       size="sm"
-                                      variant="outline"
+                                      variant="destructive"
                                       onClick={() => updatecreatorstatus(creator.id, "suspended")}
                                     >
                                       <XCircle className="mr-1 h-4 w-4" />
                                       Reject
                                     </Button>
                                   </>
-                                ) : (
-                                  <Button size="sm" variant="outline">
-                                    <Eye className="mr-1 h-4 w-4" />
-                                    View
-                                  </Button>
                                 )}
                               </div>
                             </td>
@@ -329,6 +342,89 @@ function AdmincreatorsContent() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Creator Review Modal for Mobile Responsiveness */}
+            <Dialog open={!!selectedCreator} onOpenChange={(open) => !open && setSelectedCreator(null)}>
+              <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden">
+                <DialogHeader className="pb-3 border-b shrink-0">
+                  <DialogTitle className="text-xl font-bold">Creator Profile Review</DialogTitle>
+                  <DialogDescription>
+                    Review details for {selectedCreator?.storeName}
+                  </DialogDescription>
+                </DialogHeader>
+
+                {selectedCreator && (
+                  <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase font-semibold">Store / Hub Name</Label>
+                      <p className="font-bold text-base">{selectedCreator.storeName}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase font-semibold">Email Address</Label>
+                      <p className="font-medium text-sm">{selectedCreator.email}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 p-3 bg-muted/40 rounded-xl border">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Products Uploaded</Label>
+                        <p className="font-bold text-lg">{selectedCreator.products}</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Total Revenue</Label>
+                        <p className="font-bold text-lg text-emerald-600">₦{selectedCreator.revenue.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground uppercase font-semibold">Current Account Status</Label>
+                      <div>
+                        <Badge
+                          variant={selectedCreator.status === "active" ? "default" :
+                            selectedCreator.status === "pending" ? "secondary" : "destructive"}
+                          className="capitalize font-bold px-3 py-1 text-xs"
+                        >
+                          {selectedCreator.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <DialogFooter className="pt-3 border-t shrink-0 flex flex-col-reverse sm:flex-row gap-2 justify-end sticky bottom-0 bg-background z-10 mt-auto">
+                  <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 font-semibold" onClick={() => setSelectedCreator(null)}>
+                    Close
+                  </Button>
+
+                  {selectedCreator && selectedCreator.status !== "active" && (
+                    <Button
+                      onClick={() => {
+                        updatecreatorstatus(selectedCreator.id, "active")
+                        setSelectedCreator(null)
+                      }}
+                      className="w-full sm:w-auto h-11 sm:h-10 font-bold bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approve Creator
+                    </Button>
+                  )}
+
+                  {selectedCreator && selectedCreator.status !== "suspended" && (
+                    <Button
+                      onClick={() => {
+                        updatecreatorstatus(selectedCreator.id, "suspended")
+                        setSelectedCreator(null)
+                      }}
+                      variant="destructive"
+                      className="w-full sm:w-auto h-11 sm:h-10 font-bold"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject / Suspend
+                    </Button>
+                  )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       </div>

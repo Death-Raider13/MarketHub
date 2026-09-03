@@ -522,7 +522,7 @@ function AdminPayoutsContent() {
 
       {/* Action Dialogs */}
       <Dialog open={actionDialog === 'approve'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Approve Payout Request</DialogTitle>
             <DialogDescription>
@@ -540,11 +540,11 @@ function AdminPayoutsContent() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10" onClick={() => setActionDialog(null)}>
               Cancel
             </Button>
-            <Button onClick={confirmAction} disabled={processing}>
+            <Button className="w-full sm:w-auto h-11 sm:h-10 bg-green-600 hover:bg-green-700 text-white font-bold" onClick={confirmAction} disabled={processing}>
               {processing ? 'Processing...' : 'Approve Payout'}
             </Button>
           </DialogFooter>
@@ -552,7 +552,7 @@ function AdminPayoutsContent() {
       </Dialog>
 
       <Dialog open={actionDialog === 'reject'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Reject Payout Request</DialogTitle>
             <DialogDescription>
@@ -561,21 +561,20 @@ function AdminPayoutsContent() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="rejectionReason">Rejection Reason *</Label>
+              <Label htmlFor="rejection-reason">Rejection Reason (Required)</Label>
               <Textarea
-                id="rejectionReason"
+                id="rejection-reason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Provide a reason for rejection..."
-                required
+                placeholder="Provide a reason for rejecting this payout..."
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10" onClick={() => setActionDialog(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmAction} disabled={processing}>
+            <Button variant="destructive" className="w-full sm:w-auto h-11 sm:h-10 font-bold" onClick={confirmAction} disabled={processing}>
               {processing ? 'Processing...' : 'Reject Payout'}
             </Button>
           </DialogFooter>
