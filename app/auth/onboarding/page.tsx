@@ -29,8 +29,8 @@ export default function OnboardingPage() {
     }
   }, [])
 
-  // 3-Day Creator Early Access Lock
-  const IS_CREATOR_EARLY_ACCESS_ACTIVE = true
+  // 3-Day Creator Early Access Lock (OFFICIALLY OPEN FOR ALL USERS)
+  const IS_CREATOR_EARLY_ACCESS_ACTIVE = false
 
   // Redirect if not authenticated or already onboarded
   useEffect(() => {
