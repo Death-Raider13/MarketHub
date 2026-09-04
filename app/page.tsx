@@ -100,12 +100,13 @@ export default async function HomePage() {
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-cyan-500/30">
       <Header />
 
-      {/* Creator Early Access Banner */}
+      {/* Creator Early Access Banner 
       <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white text-xs md:text-sm py-2.5 px-4 text-center font-bold flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 shadow-md">
         <Sparkles className="w-4 h-4 text-amber-200 animate-bounce shrink-0" />
         <span className="inline-block">⏳ 3-DAY CREATOR EARLY ACCESS: Educators & Authors are currently uploading resources! Public student & affiliate access opens in 3 days.</span>
         <Link href="/auth/signup?role=creator" className="inline-flex items-center underline text-amber-200 hover:text-white shrink-0 font-extrabold">Are you an Educator? Upload Books Now &rarr;</Link>
       </div>
+      */}
 
       {/* Hero Section */}
       <section className="relative pt-12 pb-20 md:pt-24 md:pb-32 overflow-hidden px-4 sm:px-6">
